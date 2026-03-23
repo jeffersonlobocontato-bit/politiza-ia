@@ -127,7 +127,7 @@ export default function SalaDeGuerra() {
                     : mapView === 'operacional'
                     ? (muni.actionsDelayed > 3 ? '#ef4444' : muni.actionsCompleted > 10 ? '#22c55e' : '#3b82f6')
                     : (muni.pollScore && muni.pollScore > 45 ? '#22c55e' : muni.pollScore && muni.pollScore > 40 ? '#f59e0b' : '#ef4444');
-                  const radius = mapView === 'operacional' ? Math.max(6, muni.actionsPlanned * 0.4) : Math.max(8, muni.engagementScore * 0.12);
+                  const radius = mapView === 'operacional' ? Math.max(10, muni.actionsPlanned * 0.55) : Math.max(14, muni.engagementScore * 0.22);
                   return (
                     <CircleMarker
                       key={muni.id}
