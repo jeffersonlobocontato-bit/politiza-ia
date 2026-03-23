@@ -34,7 +34,7 @@ export default function MapaEstrategico() {
         </button>
       </div>
 
-      <div className="flex-1 flex relative">
+      <div className="flex relative" style={{ height: 'calc(100vh - 110px)' }}>
         {/* Filters Panel */}
         {showFilters && (
           <div className="w-64 border-r border-border p-4 space-y-4 flex-shrink-0 overflow-auto" style={{ background: 'var(--gradient-card)' }}>
@@ -114,11 +114,11 @@ export default function MapaEstrategico() {
               <CircleMarker
                 key={m.id}
                 center={[m.lat, m.lng]}
-                radius={Math.max(10, m.engagementScore * 0.15)}
+                radius={Math.max(14, m.engagementScore * 0.22)}
                 fillColor={getEngagementColor(m.engagementScore)}
                 color={getEngagementColor(m.engagementScore)}
-                weight={1}
-                fillOpacity={0.65}
+                weight={2}
+                fillOpacity={0.8}
               >
                 <Tooltip>
                   <strong>{m.name}</strong><br />
@@ -133,11 +133,11 @@ export default function MapaEstrategico() {
               <CircleMarker
                 key={action.id}
                 center={[action.lat, action.lng]}
-                radius={action.estimatedImpact > 5000 ? 12 : action.estimatedImpact > 1000 ? 9 : 6}
+                radius={action.estimatedImpact > 5000 ? 16 : action.estimatedImpact > 1000 ? 12 : 8}
                 fillColor={getStatusColor(action.status)}
                 color="#ffffff"
-                weight={1.5}
-                fillOpacity={0.9}
+                weight={2}
+                fillOpacity={0.92}
                 eventHandlers={{ click: () => setSelectedAction(action) }}
               >
                 <Popup>

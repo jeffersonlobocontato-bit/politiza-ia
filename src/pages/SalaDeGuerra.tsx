@@ -127,7 +127,7 @@ export default function SalaDeGuerra() {
                     : mapView === 'operacional'
                     ? (muni.actionsDelayed > 3 ? '#ef4444' : muni.actionsCompleted > 10 ? '#22c55e' : '#3b82f6')
                     : (muni.pollScore && muni.pollScore > 45 ? '#22c55e' : muni.pollScore && muni.pollScore > 40 ? '#f59e0b' : '#ef4444');
-                  const radius = mapView === 'operacional' ? Math.max(6, muni.actionsPlanned * 0.4) : Math.max(8, muni.engagementScore * 0.12);
+                  const radius = mapView === 'operacional' ? Math.max(10, muni.actionsPlanned * 0.55) : Math.max(14, muni.engagementScore * 0.22);
                   return (
                     <CircleMarker
                       key={muni.id}
@@ -135,9 +135,9 @@ export default function SalaDeGuerra() {
                       radius={radius}
                       fillColor={color}
                       color={color}
-                      weight={1}
-                      opacity={0.9}
-                      fillOpacity={0.7}
+                      weight={2}
+                      opacity={1}
+                      fillOpacity={0.8}
                       eventHandlers={{ click: () => setSelectedMunicipality(muni.id) }}
                     >
                       <Tooltip permanent={false}>
@@ -151,15 +151,15 @@ export default function SalaDeGuerra() {
                     </CircleMarker>
                   );
                 })}
-                {/* Action pins */}
+            {/* Action pins */}
                 {mapView === 'operacional' && actions.map((action) => (
                   <CircleMarker
                     key={action.id}
                     center={[action.lat, action.lng]}
-                    radius={5}
+                    radius={7}
                     fillColor={getStatusColor(action.status)}
                     color="#ffffff"
-                    weight={1.5}
+                    weight={2}
                     fillOpacity={0.95}
                   >
                     <Popup>
