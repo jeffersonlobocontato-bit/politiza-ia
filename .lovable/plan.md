@@ -1,66 +1,108 @@
 
-## Diagnóstico do problema
 
-**Root cause**: A ordem dos `@import` em `src/index.css` está incorreta.
+## What the PDFs reveal — the data model
 
-```text
-ATUAL (quebrado):
-  @tailwind base;           ← aplica reset global ANTES do Leaflet
-  @tailwind components;
-  @tailwind utilities;
-  @import url(Google Fonts)
-  @import "leaflet/..."     ← importado DEPOIS, mas PostCSS já processou os @tailwind
+**PR_Mar26.pdf** is a full research report with:
+- **Methodology block**: institute, date, territory, sample size, margin of error, collection method
+- **Results sections** organized by cargo (Governador, Senador) and question type:
+  - Espontânea (open-ended)
+  - Estimulada Cenário 1, 2, 3... (stimulated voting — multiple candidate slates)
+  - Comparativo (trend table: same question across multiple months/waves)
+  - Rejeição (rejection RM*)
+  - Avaliação da Administração (approval/disapproval + historical trend)
+- **Cross-tabs per result**: every scenario has a sub-table broken by: Gênero, Faixa Etária, Escolaridade, Nível Econômico (PEA/Não PEA), Religiosidade
 
-CORRETO:
-  @import url(Google Fonts)  ← todos @import primeiro
-  @import "leaflet/..."
-  @tailwind base;            ← depois as diretivas Tailwind
-  @tailwind components;
-  @tailwind utilities;
+**Pesquisa_estadual_mar2026.pdf** is a pure tabulation file with color-coded cross-tab tables (sub/over-represented).
+
+---
+
+## Architecture of the new Pesquisas page
+
+The page will be rebuilt with **3 main tabs**:
+
+```
+[ Biblioteca ]  [ Analisar ]  [ Cruzar Pesquisas ]
 ```
 
-O PostCSS/CSS exige que todos os `@import` venham antes de qualquer regra CSS. Quando `@tailwind base` vem primeiro, ele injeta um reset CSS global (incluindo `*, *::before, *::after { box-sizing: border-box; }` e remove heights) que faz os elementos SVG do Leaflet perderem altura e `z-index`, tornando os CircleMarkers invisíveis.
+### Tab 1 — Biblioteca
+- Upload area (drag & drop PDF)
+- Cards for each registered research showing: institute, territory, cargo, date, sample, margin
+- "Importar PDF" button that opens a modal with tabulation preview extracted from the PDF patterns
 
-**Segundo problema**: A camada do mapa na `SalaDeGuerra` só mostra ações na view "Operacional", mas o padrão é "Calor" (apenas municípios). Na view padrão do usuário os pins de ações não aparecem porque estão apenas em `mapView === 'operacional'`. Precisa deixar a view padrão como "Operacional" para ver os pins de ações de campo.
+### Tab 2 — Analisar (single research analysis)
+- Select a research from a dropdown
+- Sub-tabs per cargo: **Governador** | **Senador**
+- For each cargo, sections:
+  1. **Espontânea** — horizontal bar chart
+  2. **Estimulada** — tab per cenário, bar chart + cross-tab table (filterable by: Gênero / Faixa Etária / Escolaridade / Renda / Religiosidade)
+  3. **Rejeição** — bar chart + cross-tab
+  4. **Aprovação** — gauge/bar + historical trend line chart (comparativo)
 
-**Terceiro problema**: Falta um `leaflet-fix` no `main.tsx` para resolver o problema de ícone default do Leaflet no Vite (causa warnings e pode afetar renderização SVG).
+### Tab 3 — Cruzar Pesquisas
+- Multi-select up to 4 researches (checkboxes)
+- Select metric: Intenção Estimulada / Rejeição / Aprovação
+- Select candidate to track
+- Output: side-by-side comparison line chart (evolution over dates) + table showing delta between waves
 
-## Arquivos a editar
+---
 
-### 1. `src/index.css`
-Mover os `@import` para o topo, antes dos `@tailwind`:
-```css
-@import url('https://fonts.googleapis.com/...');
-@import "leaflet/dist/leaflet.css";
+## Data model to create
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+New TypeScript interfaces in `src/data/mockData.ts` and a new `src/data/pollsData.ts`:
+
+```
+PollWave {                        ← one research wave/document
+  id, institute, territory, cargo,
+  collectionStart, collectionEnd,
+  releaseDate, sampleSize, marginOfError,
+  methodology, tseRegistration
+}
+
+PollQuestion {                    ← one question inside a wave
+  id, waveId,
+  cargo: 'governador' | 'senador'
+  questionType: 'espontanea' | 'estimulada' | 'rejeicao' | 'aprovacao'
+  scenarioLabel: string           ← e.g. "Cenário 1", "Cenário 2"
+  results: CandidateResult[]      ← overall %
+  crossTabs: CrossTab[]           ← breakdowns by filter
+}
+
+CandidateResult { candidate, percentage }
+
+CrossTab {
+  filterType: 'genero' | 'faixa_etaria' | 'escolaridade' | 'renda' | 'religiosidade'
+  rows: CrossTabRow[]
+}
+
+CrossTabRow { label, values: Record<candidate, percentage> }
 ```
 
-### 2. `src/main.tsx`
-Adicionar fix padrão do Leaflet + Vite para corrigir ícones:
-```ts
-import L from 'leaflet';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
-```
+Pre-populate with data extracted from **PR_Mar26.pdf** (the two PDFs already uploaded) so the interface is not empty on first load.
 
-### 3. `src/pages/SalaDeGuerra.tsx`
-Mudar o estado inicial do mapView de `'calor'` para `'operacional'` para que os pins de ações de campo sejam exibidos por padrão.
+---
 
-### 4. `src/pages/MapaEstrategico.tsx`
-Garantir que a camada padrão seja `'acoes'` (já está correta) e adicionar validação de coordenadas nos CircleMarkers para evitar pins em coordenadas `undefined/NaN`:
-```ts
-filteredActions.filter(a => a.lat && a.lng && !isNaN(a.lat) && !isNaN(a.lng))
-```
+## Files to create / modify
 
-## Resumo do impacto
+1. **`src/data/pollsData.ts`** — new file with full typed data model + pre-populated data from PR_Mar26.pdf (Governador cenários 1-3, Senador cenários 1-2, Rejeição Governador, Rejeição Senador, Aprovação + comparativo)
 
-- Fix da ordem CSS: resolve o principal bug visual onde os CircleMarkers ficam "invisíveis"
-- Fix do Leaflet icon: elimina os warnings de ref e garante SVG estável
-- Default view "Operacional": pins de ações aparecem imediatamente ao abrir a Sala de Guerra
-- Filtro de coordenadas: previne erros silenciosos com ações sem lat/lng definidos
+2. **`src/pages/Pesquisas.tsx`** — full rewrite:
+   - 3-tab layout (Biblioteca / Analisar / Cruzar)
+   - Tab 1: upload card + research library cards
+   - Tab 2: cargo sub-tabs + question type sections with bar charts + collapsible cross-tab tables with filter selector
+   - Tab 3: multi-select + comparison line chart
+
+3. **`src/components/polls/CrossTabTable.tsx`** — reusable cross-tab table component with color intensity (green = highest, red = lowest in row, matching PDF heat-map style)
+
+4. **`src/components/polls/CandidateBarChart.tsx`** — horizontal bar chart for candidate results with color-coded bars per candidate
+
+No new dependencies needed — Recharts (already installed) handles all charts.
+
+---
+
+## Key UX decisions based on PDF patterns
+
+- The PDF uses **color coding** (green = over-represented, red = sub-represented) in cross-tabs → replicate with conditional cell background opacity
+- Multiple **cenários** per cargo (Cenário 1, 2, 3 for Governador) → tabs within the question section
+- **Comparativo** tables show historical trend (Jan/25 → Mar/26 with 7 waves) → already perfect for Recharts LineChart
+- The "Cruzar" mode tracks one candidate across multiple waves — the comparativo table in the PDF is exactly this pattern
+
