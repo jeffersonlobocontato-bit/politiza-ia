@@ -90,7 +90,7 @@ export const pollWaves: PollWave[] = [
     id: 'igr-mar26',
     institute: 'IGR Pesquisas',
     territory: 'Estado do Paraná',
-    cargos: ['senador'],
+    cargos: ['governador', 'senador'],
     collectionStart: '01/03/2026',
     collectionEnd: '05/03/2026',
     releaseDate: '12/03/2026',
@@ -98,7 +98,7 @@ export const pollWaves: PollWave[] = [
     marginOfError: 2.9,
     methodology: 'Entrevistas domiciliares com eleitores aptos — quotas por gênero, faixa etária, escolaridade e renda domiciliar',
     tseRegistration: 'PR-00382/2026',
-    fileName: 'Pesquisa_estadual_mar2026-2.pdf',
+    fileName: 'Pesquisa_estadual_mar2026-3.pdf',
   },
 ];
 
