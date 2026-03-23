@@ -88,16 +88,16 @@ export const pollWaves: PollWave[] = [
   },
   {
     id: 'igr-mar26',
-    institute: 'IGR Pesquisas',
+    institute: 'IRG Pesquisas',
     territory: 'Estado do Paraná',
     cargos: ['governador', 'senador'],
-    collectionStart: '01/03/2026',
-    collectionEnd: '05/03/2026',
-    releaseDate: '12/03/2026',
-    sampleSize: 1200,
-    marginOfError: 2.9,
-    methodology: 'Entrevistas domiciliares com eleitores aptos — quotas por gênero, faixa etária, escolaridade e renda domiciliar',
-    tseRegistration: 'PR-00382/2026',
+    collectionStart: '13/03/2026',
+    collectionEnd: '18/03/2026',
+    releaseDate: '19/03/2026',
+    sampleSize: 1000,
+    marginOfError: 3.1,
+    methodology: 'Entrevistas telefônicas com questionário estruturado. 30% das entrevistas foram auditadas. Quotas por sexo, faixa etária, escolaridade e renda domiciliar. Universo: eleitores do Estado do Paraná com 16 anos ou mais.',
+    tseRegistration: 'PR-02737_2026',
     fileName: 'Pesquisa_estadual_mar2026-3.pdf',
   },
 ];
@@ -818,11 +818,162 @@ export const pollQuestions: PollQuestion[] = [
   },
 
   // ────────────────────────────────────────────────────────────
-  // QUESTIONS — IGR PESQUISAS — SENADOR (Estimulada Opção 2)
-  // Extracted from: Pesquisa_estadual_mar2026-2.pdf
+  // QUESTIONS — IGR PESQUISAS — GOVERNADOR Est C3 (P4)
+  // Sergio Moro | Requião Filho | Alexandre Curi | Não sabe | Nenhum | Luiz França
   // ────────────────────────────────────────────────────────────
 
-  // ── SENADOR ESTIMULADA OPÇÃO 2 ──
+  {
+    id: 'igr-gov-est-c3',
+    waveId: 'igr-mar26',
+    cargo: 'governador',
+    questionType: 'estimulada',
+    scenarioLabel: 'Cenário 3',
+    results: [
+      { candidate: 'Sergio Moro',               percentage: 42.8 },
+      { candidate: 'Requião Filho',              percentage: 19.1 },
+      { candidate: 'Alexandre Curi',             percentage: 15.2 },
+      { candidate: 'Não sabe/Não respondeu',     percentage: 12.5 },
+      { candidate: 'Nenhum/Branco/Nulo',         percentage: 9.2 },
+      { candidate: 'Luiz França',                percentage: 1.2 },
+    ],
+    crossTabs: [
+      {
+        filterType: 'genero',
+        filterLabel: 'Gênero',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Alexandre Curi', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Feminino',  values: { 'Sergio Moro': 40.9, 'Requião Filho': 19.4, 'Alexandre Curi': 14.3, 'Não sabe/Não respondeu': 14.5, 'Nenhum/Branco/Nulo': 9.6, 'Luiz França': 1.1 } },
+          { label: 'Masculino', values: { 'Sergio Moro': 44.9, 'Requião Filho': 18.7, 'Alexandre Curi': 16.2, 'Não sabe/Não respondeu': 10.2, 'Nenhum/Branco/Nulo': 8.7, 'Luiz França': 1.3 } },
+        ],
+      },
+      {
+        filterType: 'faixa_etaria',
+        filterLabel: 'Faixa Etária',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Alexandre Curi', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: '16 a 24 anos',    values: { 'Sergio Moro': 39.1, 'Requião Filho': 13.6, 'Alexandre Curi': 22.7, 'Não sabe/Não respondeu': 14.5, 'Nenhum/Branco/Nulo': 9.1, 'Luiz França': 0.9 } },
+          { label: '25 a 34 anos',    values: { 'Sergio Moro': 42.1, 'Requião Filho': 17.9, 'Alexandre Curi': 11.1, 'Não sabe/Não respondeu': 15.3, 'Nenhum/Branco/Nulo': 11.6, 'Luiz França': 2.1 } },
+          { label: '35 a 44 anos',    values: { 'Sergio Moro': 42.1, 'Requião Filho': 17.9, 'Alexandre Curi': 18.4, 'Não sabe/Não respondeu': 8.4, 'Nenhum/Branco/Nulo': 12.1, 'Luiz França': 1.1 } },
+          { label: '45 a 59 anos',    values: { 'Sergio Moro': 45.4, 'Requião Filho': 20.8, 'Alexandre Curi': 17.3, 'Não sabe/Não respondeu': 10.4, 'Nenhum/Branco/Nulo': 5.4, 'Luiz França': 0.8 } },
+          { label: '60 anos ou mais', values: { 'Sergio Moro': 42.8, 'Requião Filho': 21.6, 'Alexandre Curi': 10.4, 'Não sabe/Não respondeu': 14.8, 'Nenhum/Branco/Nulo': 9.2, 'Luiz França': 1.2 } },
+        ],
+      },
+      {
+        filterType: 'escolaridade',
+        filterLabel: 'Escolaridade',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Alexandre Curi', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Ensino Fundamental', values: { 'Sergio Moro': 42.9, 'Requião Filho': 19.4, 'Alexandre Curi': 15.3, 'Não sabe/Não respondeu': 13.5, 'Nenhum/Branco/Nulo': 8.2, 'Luiz França': 0.6 } },
+          { label: 'Ensino Médio',       values: { 'Sergio Moro': 42.3, 'Requião Filho': 17.7, 'Alexandre Curi': 14.5, 'Não sabe/Não respondeu': 13.4, 'Nenhum/Branco/Nulo': 10.0, 'Luiz França': 2.0 } },
+          { label: 'Ensino Superior',    values: { 'Sergio Moro': 43.6, 'Requião Filho': 21.4, 'Alexandre Curi': 16.4, 'Não sabe/Não respondeu': 9.1, 'Nenhum/Branco/Nulo': 9.1, 'Luiz França': 0.5 } },
+        ],
+      },
+      {
+        filterType: 'renda',
+        filterLabel: 'Nível Econômico (Renda Domiciliar)',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Alexandre Curi', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Até 2 SM',     values: { 'Sergio Moro': 39.2, 'Requião Filho': 21.7, 'Alexandre Curi': 15.3, 'Não sabe/Não respondeu': 11.9, 'Nenhum/Branco/Nulo': 10.8, 'Luiz França': 1.1 } },
+          { label: '2 a 5 SM',     values: { 'Sergio Moro': 44.6, 'Requião Filho': 17.9, 'Alexandre Curi': 13.6, 'Não sabe/Não respondeu': 14.4, 'Nenhum/Branco/Nulo': 8.5, 'Luiz França': 1.0 } },
+          { label: 'Mais de 5 SM', values: { 'Sergio Moro': 45.2, 'Requião Filho': 17.2, 'Alexandre Curi': 17.6, 'Não sabe/Não respondeu': 10.4, 'Nenhum/Branco/Nulo': 8.0, 'Luiz França': 1.6 } },
+        ],
+      },
+    ],
+  },
+
+  // ────────────────────────────────────────────────────────────
+  // QUESTIONS — IGR PESQUISAS — SENADOR
+  // ────────────────────────────────────────────────────────────
+
+  // ── SENADOR ESPONTÂNEA (P5) ──
+  {
+    id: 'igr-sen-esp',
+    waveId: 'igr-mar26',
+    cargo: 'senador',
+    questionType: 'espontanea',
+    scenarioLabel: 'Espontânea',
+    results: [
+      { candidate: 'Não sabe/ Não respondeu', percentage: 80.1 },
+      { candidate: 'Nenhum/ Branco/ Nulo',    percentage: 5.5 },
+      { candidate: 'Ratinho Junior',           percentage: 3.1 },
+      { candidate: 'Gleisi Hoffmann',          percentage: 2.4 },
+      { candidate: 'Deltan Dallagnol',         percentage: 2.3 },
+      { candidate: 'Cristina Graeml',          percentage: 1.5 },
+      { candidate: 'Alvaro Dias',              percentage: 1.0 },
+      { candidate: 'Filipe Barros',            percentage: 1.0 },
+      { candidate: 'Sergio Moro',              percentage: 0.8 },
+      { candidate: 'Requião Filho',            percentage: 0.6 },
+      { candidate: 'Alexandre Curi',           percentage: 0.4 },
+    ],
+    crossTabs: [],
+  },
+
+  // ── SENADOR ESTIMULADA OPÇÃO 1 (P6) ──
+  // Deltan Dallagnol | Alvaro Dias | Gleisi Hoffmann | Alexandre Curi | Cristina Graeml | Filipe Barros | Nenhum | Não sabe
+  {
+    id: 'igr-sen-est-c1',
+    waveId: 'igr-mar26',
+    cargo: 'senador',
+    questionType: 'estimulada',
+    scenarioLabel: 'Opção 1',
+    note: '*Pergunta 6 — Elegeremos 2 Senadores em 2026; cada eleitor pode votar em dois',
+    results: [
+      { candidate: 'Deltan Dallagnol',       percentage: 19.5 },
+      { candidate: 'Alvaro Dias',            percentage: 17.5 },
+      { candidate: 'Gleisi Hoffmann',        percentage: 16.0 },
+      { candidate: 'Alexandre Curi',         percentage: 13.5 },
+      { candidate: 'Cristina Graeml',        percentage: 10.0 },
+      { candidate: 'Filipe Barros',          percentage: 9.0 },
+      { candidate: 'Nenhum/Branco/Nulo',     percentage: 7.7 },
+      { candidate: 'Não sabe/Não respondeu', percentage: 6.8 },
+    ],
+    crossTabs: [
+      {
+        filterType: 'genero',
+        filterLabel: 'Gênero',
+        candidates: ['Deltan Dallagnol', 'Alvaro Dias', 'Gleisi Hoffmann', 'Alexandre Curi', 'Cristina Graeml', 'Filipe Barros', 'Nenhum/Branco/Nulo', 'Não sabe/Não respondeu'],
+        rows: [
+          { label: 'Feminino',  values: { 'Deltan Dallagnol': 15.8, 'Alvaro Dias': 18.7, 'Gleisi Hoffmann': 17.2, 'Alexandre Curi': 13.6, 'Cristina Graeml': 9.4,  'Filipe Barros': 8.7, 'Nenhum/Branco/Nulo': 8.5, 'Não sabe/Não respondeu': 8.1 } },
+          { label: 'Masculino', values: { 'Deltan Dallagnol': 23.6, 'Alvaro Dias': 16.2, 'Gleisi Hoffmann': 14.7, 'Alexandre Curi': 13.4, 'Cristina Graeml': 10.6, 'Filipe Barros': 9.4, 'Nenhum/Branco/Nulo': 6.8, 'Não sabe/Não respondeu': 5.3 } },
+        ],
+      },
+      {
+        filterType: 'faixa_etaria',
+        filterLabel: 'Faixa Etária',
+        candidates: ['Deltan Dallagnol', 'Alvaro Dias', 'Gleisi Hoffmann', 'Alexandre Curi', 'Cristina Graeml', 'Filipe Barros', 'Nenhum/Branco/Nulo', 'Não sabe/Não respondeu'],
+        rows: [
+          { label: '16 a 24 anos',    values: { 'Deltan Dallagnol': 19.1, 'Alvaro Dias': 20.0, 'Gleisi Hoffmann': 10.9, 'Alexandre Curi': 13.6, 'Cristina Graeml': 10.0, 'Filipe Barros': 7.3, 'Nenhum/Branco/Nulo': 10.9, 'Não sabe/Não respondeu': 8.2 } },
+          { label: '25 a 34 anos',    values: { 'Deltan Dallagnol': 16.8, 'Alvaro Dias': 15.3, 'Gleisi Hoffmann': 15.8, 'Alexandre Curi': 14.2, 'Cristina Graeml': 6.3,  'Filipe Barros': 10.0, 'Nenhum/Branco/Nulo': 13.2, 'Não sabe/Não respondeu': 8.4 } },
+          { label: '35 a 44 anos',    values: { 'Deltan Dallagnol': 18.9, 'Alvaro Dias': 17.4, 'Gleisi Hoffmann': 13.2, 'Alexandre Curi': 18.4, 'Cristina Graeml': 10.5, 'Filipe Barros': 9.5, 'Nenhum/Branco/Nulo': 6.3, 'Não sabe/Não respondeu': 5.8 } },
+          { label: '45 a 59 anos',    values: { 'Deltan Dallagnol': 21.5, 'Alvaro Dias': 13.8, 'Gleisi Hoffmann': 18.1, 'Alexandre Curi': 13.5, 'Cristina Graeml': 10.8, 'Filipe Barros': 11.2, 'Nenhum/Branco/Nulo': 4.6, 'Não sabe/Não respondeu': 6.5 } },
+          { label: '60 anos ou mais', values: { 'Deltan Dallagnol': 20.0, 'Alvaro Dias': 22.0, 'Gleisi Hoffmann': 18.4, 'Alexandre Curi': 9.2,  'Cristina Graeml': 11.6, 'Filipe Barros': 6.4, 'Nenhum/Branco/Nulo': 6.4, 'Não sabe/Não respondeu': 6.0 } },
+        ],
+      },
+      {
+        filterType: 'escolaridade',
+        filterLabel: 'Escolaridade',
+        candidates: ['Deltan Dallagnol', 'Alvaro Dias', 'Gleisi Hoffmann', 'Alexandre Curi', 'Cristina Graeml', 'Filipe Barros', 'Nenhum/Branco/Nulo', 'Não sabe/Não respondeu'],
+        rows: [
+          { label: 'Ensino Fundamental', values: { 'Deltan Dallagnol': 15.6, 'Alvaro Dias': 19.4, 'Gleisi Hoffmann': 18.2, 'Alexandre Curi': 12.4, 'Cristina Graeml': 8.2,  'Filipe Barros': 10.9, 'Nenhum/Branco/Nulo': 8.8, 'Não sabe/Não respondeu': 6.5 } },
+          { label: 'Ensino Médio',       values: { 'Deltan Dallagnol': 20.2, 'Alvaro Dias': 17.5, 'Gleisi Hoffmann': 13.9, 'Alexandre Curi': 14.8, 'Cristina Graeml': 9.8,  'Filipe Barros': 8.2, 'Nenhum/Branco/Nulo': 7.7, 'Não sabe/Não respondeu': 8.0 } },
+          { label: 'Ensino Superior',    values: { 'Deltan Dallagnol': 24.1, 'Alvaro Dias': 14.5, 'Gleisi Hoffmann': 16.8, 'Alexandre Curi': 12.7, 'Cristina Graeml': 13.2, 'Filipe Barros': 7.7, 'Nenhum/Branco/Nulo': 5.9, 'Não sabe/Não respondeu': 5.0 } },
+        ],
+      },
+      {
+        filterType: 'renda',
+        filterLabel: 'Nível Econômico (Renda Domiciliar)',
+        candidates: ['Deltan Dallagnol', 'Alvaro Dias', 'Gleisi Hoffmann', 'Alexandre Curi', 'Cristina Graeml', 'Filipe Barros', 'Nenhum/Branco/Nulo', 'Não sabe/Não respondeu'],
+        rows: [
+          { label: 'Até 2 SM',     values: { 'Deltan Dallagnol': 15.3, 'Alvaro Dias': 20.8, 'Gleisi Hoffmann': 17.8, 'Alexandre Curi': 12.5, 'Cristina Graeml': 8.3,  'Filipe Barros': 8.6, 'Nenhum/Branco/Nulo': 10.3, 'Não sabe/Não respondeu': 6.4 } },
+          { label: '2 a 5 SM',     values: { 'Deltan Dallagnol': 16.9, 'Alvaro Dias': 17.7, 'Gleisi Hoffmann': 16.4, 'Alexandre Curi': 14.1, 'Cristina Graeml': 10.5, 'Filipe Barros': 9.0, 'Nenhum/Branco/Nulo': 6.9, 'Não sabe/Não respondeu': 8.5 } },
+          { label: 'Mais de 5 SM', values: { 'Deltan Dallagnol': 29.6, 'Alvaro Dias': 12.4, 'Gleisi Hoffmann': 12.8, 'Alexandre Curi': 14.0, 'Cristina Graeml': 11.6, 'Filipe Barros': 9.6, 'Nenhum/Branco/Nulo': 5.2, 'Não sabe/Não respondeu': 4.8 } },
+        ],
+      },
+    ],
+  },
+
+  // ── SENADOR ESTIMULADA OPÇÃO 2 (P7) ──
+  // Nenhum | Alvaro Dias | Não sabe | Deltan | Filipe Barros | Alexandre Curi | Cristina Graeml | Gleisi
   {
     id: 'igr-sen-est-c2',
     waveId: 'igr-mar26',
@@ -831,55 +982,55 @@ export const pollQuestions: PollQuestion[] = [
     scenarioLabel: 'Opção 2',
     note: '*Pergunta 7 — Elegeremos 2 Senadores em 2026; cada eleitor pode votar em dois',
     results: [
-      { candidate: 'Alvaro Dias',        percentage: 16.6 },
-      { candidate: 'Deltan Dallagnol',   percentage: 14.7 },
-      { candidate: 'Alexandre Curi',     percentage: 11.6 },
-      { candidate: 'Cristina Graeml',    percentage: 10.7 },
-      { candidate: 'Gleisi Hoffmann',    percentage: 10.7 },
-      { candidate: 'Filipe Barros',      percentage: 15.2 },
-      { candidate: 'Nenhum/Branco/Nulo', percentage: 16.6 },
-      { candidate: 'Não Sabe/Não Respondeu', percentage: 4.9 },
+      { candidate: 'Nenhum/Branco/Nulo',     percentage: 17.0 },
+      { candidate: 'Alvaro Dias',             percentage: 16.5 },
+      { candidate: 'Não sabe/Não respondeu',  percentage: 14.9 },
+      { candidate: 'Deltan Dallagnol',        percentage: 12.4 },
+      { candidate: 'Filipe Barros',           percentage: 11.8 },
+      { candidate: 'Alexandre Curi',          percentage: 11.6 },
+      { candidate: 'Cristina Graeml',         percentage: 10.7 },
+      { candidate: 'Gleisi Hoffmann',         percentage: 5.1 },
     ],
     crossTabs: [
       {
         filterType: 'genero',
         filterLabel: 'Gênero',
-        candidates: ['Nenhum/Branco/Nulo', 'Não Sabe/Não Respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann', 'Alvaro Dias'],
+        candidates: ['Nenhum/Branco/Nulo', 'Alvaro Dias', 'Não sabe/Não respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann'],
         rows: [
-          { label: 'Feminino',  values: { 'Nenhum/Branco/Nulo': 19.2, 'Não Sabe/Não Respondeu': 16.6, 'Deltan Dallagnol': 17.5, 'Filipe Barros': 10.8, 'Alexandre Curi': 11.3, 'Cristina Graeml': 10.2, 'Gleisi Hoffmann': 9.4,  'Alvaro Dias': 4.9 } },
-          { label: 'Masculino', values: { 'Nenhum/Branco/Nulo': 14.5, 'Não Sabe/Não Respondeu': 16.4, 'Deltan Dallagnol': 11.9, 'Filipe Barros': 14.3, 'Alexandre Curi': 12.3, 'Cristina Graeml': 13.2, 'Gleisi Hoffmann': 12.1, 'Alvaro Dias': 5.3 } },
+          { label: 'Feminino',  values: { 'Nenhum/Branco/Nulo': 19.2, 'Alvaro Dias': 16.6, 'Não sabe/Não respondeu': 17.5, 'Deltan Dallagnol': 10.8, 'Filipe Barros': 11.3, 'Alexandre Curi': 10.2, 'Cristina Graeml': 9.4,  'Gleisi Hoffmann': 4.9 } },
+          { label: 'Masculino', values: { 'Nenhum/Branco/Nulo': 14.5, 'Alvaro Dias': 16.4, 'Não sabe/Não respondeu': 11.9, 'Deltan Dallagnol': 14.3, 'Filipe Barros': 12.3, 'Alexandre Curi': 13.2, 'Cristina Graeml': 12.1, 'Gleisi Hoffmann': 5.3 } },
         ],
       },
       {
         filterType: 'faixa_etaria',
         filterLabel: 'Faixa Etária',
-        candidates: ['Nenhum/Branco/Nulo', 'Não Sabe/Não Respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann', 'Alvaro Dias'],
+        candidates: ['Nenhum/Branco/Nulo', 'Alvaro Dias', 'Não sabe/Não respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann'],
         rows: [
-          { label: '16 a 24 anos',    values: { 'Nenhum/Branco/Nulo': 15.5, 'Não Sabe/Não Respondeu': 14.5, 'Deltan Dallagnol': 15.5, 'Filipe Barros': 10.9, 'Alexandre Curi': 20.9, 'Cristina Graeml': 8.2,  'Gleisi Hoffmann': 11.8, 'Alvaro Dias': 2.7 } },
-          { label: '25 a 34 anos',    values: { 'Nenhum/Branco/Nulo': 24.7, 'Não Sabe/Não Respondeu': 13.2, 'Deltan Dallagnol': 15.8, 'Filipe Barros': 7.9,  'Alexandre Curi': 13.2, 'Cristina Graeml': 9.5,  'Gleisi Hoffmann': 8.9,  'Alvaro Dias': 6.8 } },
-          { label: '35 a 44 anos',    values: { 'Nenhum/Branco/Nulo': 13.7, 'Não Sabe/Não Respondeu': 19.5, 'Deltan Dallagnol': 14.2, 'Filipe Barros': 15.8, 'Alexandre Curi': 13.7, 'Cristina Graeml': 13.7, 'Gleisi Hoffmann': 6.3,  'Alvaro Dias': 3.2 } },
-          { label: '45 a 59 anos',    values: { 'Nenhum/Branco/Nulo': 15.4, 'Não Sabe/Não Respondeu': 17.3, 'Deltan Dallagnol': 14.2, 'Filipe Barros': 15.4, 'Alexandre Curi': 7.3,  'Cristina Graeml': 12.3, 'Gleisi Hoffmann': 13.1, 'Alvaro Dias': 5.0 } },
-          { label: '60 anos ou mais', values: { 'Nenhum/Branco/Nulo': 16.0, 'Não Sabe/Não Respondeu': 16.8, 'Deltan Dallagnol': 15.2, 'Filipe Barros': 10.8, 'Alexandre Curi': 10.0, 'Cristina Graeml': 12.4, 'Gleisi Hoffmann': 12.4, 'Alvaro Dias': 6.4 } },
+          { label: '16 a 24 anos',    values: { 'Nenhum/Branco/Nulo': 15.5, 'Alvaro Dias': 14.5, 'Não sabe/Não respondeu': 15.5, 'Deltan Dallagnol': 10.9, 'Filipe Barros': 20.9, 'Alexandre Curi': 8.2,  'Cristina Graeml': 11.8, 'Gleisi Hoffmann': 2.7 } },
+          { label: '25 a 34 anos',    values: { 'Nenhum/Branco/Nulo': 24.7, 'Alvaro Dias': 13.2, 'Não sabe/Não respondeu': 15.8, 'Deltan Dallagnol': 7.9,  'Filipe Barros': 13.2, 'Alexandre Curi': 9.5,  'Cristina Graeml': 8.9,  'Gleisi Hoffmann': 6.8 } },
+          { label: '35 a 44 anos',    values: { 'Nenhum/Branco/Nulo': 13.7, 'Alvaro Dias': 19.5, 'Não sabe/Não respondeu': 14.2, 'Deltan Dallagnol': 15.8, 'Filipe Barros': 13.7, 'Alexandre Curi': 13.7, 'Cristina Graeml': 6.3,  'Gleisi Hoffmann': 3.2 } },
+          { label: '45 a 59 anos',    values: { 'Nenhum/Branco/Nulo': 15.4, 'Alvaro Dias': 17.3, 'Não sabe/Não respondeu': 14.2, 'Deltan Dallagnol': 15.4, 'Filipe Barros': 7.3,  'Alexandre Curi': 12.3, 'Cristina Graeml': 13.1, 'Gleisi Hoffmann': 5.0 } },
+          { label: '60 anos ou mais', values: { 'Nenhum/Branco/Nulo': 16.0, 'Alvaro Dias': 16.8, 'Não sabe/Não respondeu': 15.2, 'Deltan Dallagnol': 10.8, 'Filipe Barros': 10.0, 'Alexandre Curi': 12.4, 'Cristina Graeml': 12.4, 'Gleisi Hoffmann': 6.4 } },
         ],
       },
       {
         filterType: 'escolaridade',
         filterLabel: 'Escolaridade',
-        candidates: ['Nenhum/Branco/Nulo', 'Não Sabe/Não Respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann', 'Alvaro Dias'],
+        candidates: ['Nenhum/Branco/Nulo', 'Alvaro Dias', 'Não sabe/Não respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann'],
         rows: [
-          { label: 'Ensino Fundamental', values: { 'Nenhum/Branco/Nulo': 18.5, 'Não Sabe/Não Respondeu': 16.8, 'Deltan Dallagnol': 15.3, 'Filipe Barros': 12.1, 'Alexandre Curi': 12.1, 'Cristina Graeml': 10.0, 'Gleisi Hoffmann': 10.6, 'Alvaro Dias': 4.7 } },
-          { label: 'Ensino Médio',       values: { 'Nenhum/Branco/Nulo': 18.0, 'Não Sabe/Não Respondeu': 16.4, 'Deltan Dallagnol': 15.2, 'Filipe Barros': 10.7, 'Alexandre Curi': 13.0, 'Cristina Graeml': 12.3, 'Gleisi Hoffmann': 9.8,  'Alvaro Dias': 4.8 } },
-          { label: 'Ensino Superior',    values: { 'Nenhum/Branco/Nulo': 12.7, 'Não Sabe/Não Respondeu': 16.4, 'Deltan Dallagnol': 13.6, 'Filipe Barros': 16.4, 'Alexandre Curi': 9.1,  'Cristina Graeml': 12.7, 'Gleisi Hoffmann': 12.7, 'Alvaro Dias': 6.4 } },
+          { label: 'Ensino Fundamental', values: { 'Nenhum/Branco/Nulo': 18.5, 'Alvaro Dias': 16.8, 'Não sabe/Não respondeu': 15.3, 'Deltan Dallagnol': 12.1, 'Filipe Barros': 12.1, 'Alexandre Curi': 10.0, 'Cristina Graeml': 10.6, 'Gleisi Hoffmann': 4.7 } },
+          { label: 'Ensino Médio',       values: { 'Nenhum/Branco/Nulo': 18.0, 'Alvaro Dias': 16.4, 'Não sabe/Não respondeu': 15.2, 'Deltan Dallagnol': 10.7, 'Filipe Barros': 13.0, 'Alexandre Curi': 12.3, 'Cristina Graeml': 9.8,  'Gleisi Hoffmann': 4.8 } },
+          { label: 'Ensino Superior',    values: { 'Nenhum/Branco/Nulo': 12.7, 'Alvaro Dias': 16.4, 'Não sabe/Não respondeu': 13.6, 'Deltan Dallagnol': 16.4, 'Filipe Barros': 9.1,  'Alexandre Curi': 12.7, 'Cristina Graeml': 12.7, 'Gleisi Hoffmann': 6.4 } },
         ],
       },
       {
         filterType: 'renda',
         filterLabel: 'Nível Econômico (Renda Domiciliar)',
-        candidates: ['Nenhum/Branco/Nulo', 'Não Sabe/Não Respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann', 'Alvaro Dias'],
+        candidates: ['Nenhum/Branco/Nulo', 'Alvaro Dias', 'Não sabe/Não respondeu', 'Deltan Dallagnol', 'Filipe Barros', 'Alexandre Curi', 'Cristina Graeml', 'Gleisi Hoffmann'],
         rows: [
-          { label: 'Até 2 SM',    values: { 'Nenhum/Branco/Nulo': 20.6, 'Não Sabe/Não Respondeu': 18.9, 'Deltan Dallagnol': 15.8, 'Filipe Barros': 9.4,  'Alexandre Curi': 10.3, 'Cristina Graeml': 10.3, 'Gleisi Hoffmann': 8.6,  'Alvaro Dias': 6.1 } },
-          { label: '2 a 5 SM',    values: { 'Nenhum/Branco/Nulo': 16.7, 'Não Sabe/Não Respondeu': 14.1, 'Deltan Dallagnol': 16.7, 'Filipe Barros': 12.6, 'Alexandre Curi': 13.8, 'Cristina Graeml': 10.8, 'Gleisi Hoffmann': 11.3, 'Alvaro Dias': 4.1 } },
-          { label: 'Mais de 5 SM', values: { 'Nenhum/Branco/Nulo': 12.4, 'Não Sabe/Não Respondeu': 16.8, 'Deltan Dallagnol': 10.8, 'Filipe Barros': 16.4, 'Alexandre Curi': 10.8, 'Cristina Graeml': 14.8, 'Gleisi Hoffmann': 12.8, 'Alvaro Dias': 5.2 } },
+          { label: 'Até 2 SM',     values: { 'Nenhum/Branco/Nulo': 20.6, 'Alvaro Dias': 18.9, 'Não sabe/Não respondeu': 15.8, 'Deltan Dallagnol': 9.4,  'Filipe Barros': 10.3, 'Alexandre Curi': 10.3, 'Cristina Graeml': 8.6,  'Gleisi Hoffmann': 6.1 } },
+          { label: '2 a 5 SM',     values: { 'Nenhum/Branco/Nulo': 16.7, 'Alvaro Dias': 14.1, 'Não sabe/Não respondeu': 16.7, 'Deltan Dallagnol': 12.6, 'Filipe Barros': 13.8, 'Alexandre Curi': 10.8, 'Cristina Graeml': 11.3, 'Gleisi Hoffmann': 4.1 } },
+          { label: 'Mais de 5 SM', values: { 'Nenhum/Branco/Nulo': 12.4, 'Alvaro Dias': 16.8, 'Não sabe/Não respondeu': 10.8, 'Deltan Dallagnol': 16.4, 'Filipe Barros': 10.8, 'Alexandre Curi': 14.8, 'Cristina Graeml': 12.8, 'Gleisi Hoffmann': 5.2 } },
         ],
       },
     ],
