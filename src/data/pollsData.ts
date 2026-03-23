@@ -669,9 +669,157 @@ export const pollQuestions: PollQuestion[] = [
   },
 
   // ────────────────────────────────────────────────────────────
-  // QUESTIONS — IGR PESQUISAS (Senador Estimulada Opção 2)
+  // QUESTIONS — IGR PESQUISAS — GOVERNADOR
+  // Extracted from: Pesquisa_estadual_mar2026-3.pdf (pages 4–8)
+  // ────────────────────────────────────────────────────────────
+
+  // ── GOVERNADOR ESPONTÂNEA (P1) ──
+  {
+    id: 'igr-gov-esp',
+    waveId: 'igr-mar26',
+    cargo: 'governador',
+    questionType: 'espontanea',
+    scenarioLabel: 'Espontânea',
+    results: [
+      { candidate: 'Não sabe/ Não respondeu', percentage: 69.8 },
+      { candidate: 'Sergio Moro',             percentage: 7.4 },
+      { candidate: 'Ratinho Junior',           percentage: 6.7 },
+      { candidate: 'Requião Filho',            percentage: 4.7 },
+      { candidate: 'Nenhum/ Branco/ Nulo',    percentage: 4.5 },
+      { candidate: 'Alexandre Curi',           percentage: 1.9 },
+      { candidate: 'Guto Silva',               percentage: 1.8 },
+      { candidate: 'Rafael Greca',             percentage: 1.7 },
+      { candidate: 'Paulo Martins',            percentage: 0.3 },
+      { candidate: 'Deltan Dallagnol',         percentage: 0.2 },
+    ],
+    crossTabs: [],
+  },
+
+  // ── GOVERNADOR ESTIMULADA CENÁRIO 1 (P2) ──
+  // Candidatos: Sergio Moro | Rafael Greca | Requião Filho | Não sabe | Nenhum | Luiz França
+  {
+    id: 'igr-gov-est-c1',
+    waveId: 'igr-mar26',
+    cargo: 'governador',
+    questionType: 'estimulada',
+    scenarioLabel: 'Cenário 1',
+    results: [
+      { candidate: 'Sergio Moro',          percentage: 40.8 },
+      { candidate: 'Rafael Greca',         percentage: 19.7 },
+      { candidate: 'Requião Filho',        percentage: 18.0 },
+      { candidate: 'Não sabe/Não respondeu', percentage: 12.3 },
+      { candidate: 'Nenhum/Branco/Nulo',  percentage: 8.3 },
+      { candidate: 'Luiz França',          percentage: 0.9 },
+    ],
+    crossTabs: [
+      {
+        filterType: 'genero',
+        filterLabel: 'Gênero',
+        candidates: ['Sergio Moro', 'Rafael Greca', 'Requião Filho', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Feminino',  values: { 'Sergio Moro': 37.5, 'Rafael Greca': 20.2, 'Requião Filho': 18.3, 'Não sabe/Não respondeu': 13.8, 'Nenhum/Branco/Nulo': 9.1, 'Luiz França': 1.1 } },
+          { label: 'Masculino', values: { 'Sergio Moro': 44.5, 'Rafael Greca': 19.1, 'Requião Filho': 17.7, 'Não sabe/Não respondeu': 10.6, 'Nenhum/Branco/Nulo': 7.4, 'Luiz França': 0.6 } },
+        ],
+      },
+      {
+        filterType: 'faixa_etaria',
+        filterLabel: 'Faixa Etária',
+        candidates: ['Sergio Moro', 'Rafael Greca', 'Requião Filho', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: '16 a 24 anos',    values: { 'Sergio Moro': 40.9, 'Rafael Greca': 21.8, 'Requião Filho': 12.7, 'Não sabe/Não respondeu': 15.5, 'Nenhum/Branco/Nulo': 8.2, 'Luiz França': 0.9 } },
+          { label: '25 a 34 anos',    values: { 'Sergio Moro': 38.4, 'Rafael Greca': 20.0, 'Requião Filho': 16.8, 'Não sabe/Não respondeu': 13.7, 'Nenhum/Branco/Nulo': 9.5, 'Luiz França': 1.6 } },
+          { label: '35 a 44 anos',    values: { 'Sergio Moro': 42.6, 'Rafael Greca': 20.0, 'Requião Filho': 16.3, 'Não sabe/Não respondeu': 10.0, 'Nenhum/Branco/Nulo': 10.0, 'Luiz França': 1.1 } },
+          { label: '45 a 59 anos',    values: { 'Sergio Moro': 45.4, 'Rafael Greca': 15.8, 'Requião Filho': 20.8, 'Não sabe/Não respondeu': 11.5, 'Nenhum/Branco/Nulo': 6.2, 'Luiz França': 0.4 } },
+          { label: '60 anos ou mais', values: { 'Sergio Moro': 36.4, 'Rafael Greca': 22.4, 'Requião Filho': 19.6, 'Não sabe/Não respondeu': 12.4, 'Nenhum/Branco/Nulo': 8.4, 'Luiz França': 0.8 } },
+        ],
+      },
+      {
+        filterType: 'escolaridade',
+        filterLabel: 'Escolaridade',
+        candidates: ['Sergio Moro', 'Rafael Greca', 'Requião Filho', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Ensino Fundamental', values: { 'Sergio Moro': 40.0, 'Rafael Greca': 20.0, 'Requião Filho': 18.5, 'Não sabe/Não respondeu': 13.5, 'Nenhum/Branco/Nulo': 7.6, 'Luiz França': 0.3 } },
+          { label: 'Ensino Médio',       values: { 'Sergio Moro': 41.8, 'Rafael Greca': 18.0, 'Requião Filho': 16.4, 'Não sabe/Não respondeu': 13.0, 'Nenhum/Branco/Nulo': 9.3, 'Luiz França': 1.6 } },
+          { label: 'Ensino Superior',    values: { 'Sergio Moro': 40.0, 'Rafael Greca': 22.7, 'Requião Filho': 20.5, 'Não sabe/Não respondeu': 9.1, 'Nenhum/Branco/Nulo': 7.3, 'Luiz França': 0.5 } },
+        ],
+      },
+      {
+        filterType: 'renda',
+        filterLabel: 'Nível Econômico (Renda Domiciliar)',
+        candidates: ['Sergio Moro', 'Rafael Greca', 'Requião Filho', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Até 2 SM',     values: { 'Sergio Moro': 38.1, 'Rafael Greca': 21.9, 'Requião Filho': 20.3, 'Não sabe/Não respondeu': 11.9, 'Nenhum/Branco/Nulo': 9.2, 'Luiz França': 0.6 } },
+          { label: '2 a 5 SM',     values: { 'Sergio Moro': 42.8, 'Rafael Greca': 17.2, 'Requião Filho': 17.4, 'Não sabe/Não respondeu': 13.8, 'Nenhum/Branco/Nulo': 7.7, 'Luiz França': 1.0 } },
+          { label: 'Mais de 5 SM', values: { 'Sergio Moro': 44.4, 'Rafael Greca': 20.4, 'Requião Filho': 15.6, 'Não sabe/Não respondeu': 10.4, 'Nenhum/Branco/Nulo': 8.0, 'Luiz França': 1.2 } },
+        ],
+      },
+    ],
+  },
+
+  // ── GOVERNADOR ESTIMULADA CENÁRIO 2 (P3) ──
+  // Candidatos: Sergio Moro | Requião Filho | Guto Silva | Não sabe | Nenhum | Luiz França
+  {
+    id: 'igr-gov-est-c2',
+    waveId: 'igr-mar26',
+    cargo: 'governador',
+    questionType: 'estimulada',
+    scenarioLabel: 'Cenário 2',
+    results: [
+      { candidate: 'Sergio Moro',          percentage: 43.5 },
+      { candidate: 'Requião Filho',        percentage: 19.7 },
+      { candidate: 'Guto Silva',           percentage: 14.0 },
+      { candidate: 'Não sabe/Não respondeu', percentage: 13.0 },
+      { candidate: 'Nenhum/Branco/Nulo',  percentage: 8.5 },
+      { candidate: 'Luiz França',          percentage: 1.3 },
+    ],
+    crossTabs: [
+      {
+        filterType: 'genero',
+        filterLabel: 'Gênero',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Guto Silva', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Feminino',  values: { 'Sergio Moro': 41.9, 'Requião Filho': 20.0, 'Guto Silva': 11.9, 'Não sabe/Não respondeu': 15.1, 'Nenhum/Branco/Nulo': 9.8, 'Luiz França': 1.3 } },
+          { label: 'Masculino', values: { 'Sergio Moro': 45.3, 'Requião Filho': 19.4, 'Guto Silva': 16.4, 'Não sabe/Não respondeu': 10.6, 'Nenhum/Branco/Nulo': 7.0, 'Luiz França': 1.3 } },
+        ],
+      },
+      {
+        filterType: 'faixa_etaria',
+        filterLabel: 'Faixa Etária',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Guto Silva', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: '16 a 24 anos',    values: { 'Sergio Moro': 42.7, 'Requião Filho': 12.7, 'Guto Silva': 20.0, 'Não sabe/Não respondeu': 18.2, 'Nenhum/Branco/Nulo': 5.5, 'Luiz França': 0.9 } },
+          { label: '25 a 34 anos',    values: { 'Sergio Moro': 41.6, 'Requião Filho': 18.4, 'Guto Silva': 11.6, 'Não sabe/Não respondeu': 15.3, 'Nenhum/Branco/Nulo': 11.6, 'Luiz França': 1.6 } },
+          { label: '35 a 44 anos',    values: { 'Sergio Moro': 45.3, 'Requião Filho': 18.4, 'Guto Silva': 14.2, 'Não sabe/Não respondeu': 10.5, 'Nenhum/Branco/Nulo': 10.0, 'Luiz França': 1.6 } },
+          { label: '45 a 59 anos',    values: { 'Sergio Moro': 46.5, 'Requião Filho': 21.5, 'Guto Silva': 13.1, 'Não sabe/Não respondeu': 11.5, 'Nenhum/Branco/Nulo': 6.2, 'Luiz França': 1.2 } },
+          { label: '60 anos ou mais', values: { 'Sergio Moro': 40.8, 'Requião Filho': 22.8, 'Guto Silva': 14.0, 'Não sabe/Não respondeu': 12.4, 'Nenhum/Branco/Nulo': 8.8, 'Luiz França': 1.2 } },
+        ],
+      },
+      {
+        filterType: 'escolaridade',
+        filterLabel: 'Escolaridade',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Guto Silva', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Ensino Fundamental', values: { 'Sergio Moro': 41.8, 'Requião Filho': 19.4, 'Guto Silva': 15.3, 'Não sabe/Não respondeu': 14.7, 'Nenhum/Branco/Nulo': 7.6, 'Luiz França': 1.2 } },
+          { label: 'Ensino Médio',       values: { 'Sergio Moro': 43.6, 'Requião Filho': 18.2, 'Guto Silva': 13.9, 'Não sabe/Não respondeu': 13.6, 'Nenhum/Branco/Nulo': 8.9, 'Luiz França': 1.8 } },
+          { label: 'Ensino Superior',    values: { 'Sergio Moro': 45.9, 'Requião Filho': 23.2, 'Guto Silva': 12.3, 'Não sabe/Não respondeu': 9.1, 'Nenhum/Branco/Nulo': 9.1, 'Luiz França': 0.5 } },
+        ],
+      },
+      {
+        filterType: 'renda',
+        filterLabel: 'Nível Econômico (Renda Domiciliar)',
+        candidates: ['Sergio Moro', 'Requião Filho', 'Guto Silva', 'Não sabe/Não respondeu', 'Nenhum/Branco/Nulo', 'Luiz França'],
+        rows: [
+          { label: 'Até 2 SM',     values: { 'Sergio Moro': 38.9, 'Requião Filho': 21.9, 'Guto Silva': 14.2, 'Não sabe/Não respondeu': 12.8, 'Nenhum/Branco/Nulo': 10.6, 'Luiz França': 1.7 } },
+          { label: '2 a 5 SM',     values: { 'Sergio Moro': 45.4, 'Requião Filho': 18.2, 'Guto Silva': 13.8, 'Não sabe/Não respondeu': 14.6, 'Nenhum/Branco/Nulo': 6.9, 'Luiz França': 1.0 } },
+          { label: 'Mais de 5 SM', values: { 'Sergio Moro': 47.2, 'Requião Filho': 18.8, 'Guto Silva': 14.0, 'Não sabe/Não respondeu': 10.8, 'Nenhum/Branco/Nulo': 8.0, 'Luiz França': 1.2 } },
+        ],
+      },
+    ],
+  },
+
+  // ────────────────────────────────────────────────────────────
+  // QUESTIONS — IGR PESQUISAS — SENADOR (Estimulada Opção 2)
   // Extracted from: Pesquisa_estadual_mar2026-2.pdf
-  // Candidates order: Deltan Dallagnol | Filipe Barros | Alexandre Curi | Cristina Graeml | Gleisi Hoffmann | Alvaro Dias
   // ────────────────────────────────────────────────────────────
 
   // ── SENADOR ESTIMULADA OPÇÃO 2 ──
