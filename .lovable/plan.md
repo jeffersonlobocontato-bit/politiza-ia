@@ -1,129 +1,78 @@
 
-# CampanhaOS — Plataforma de Comando e Controle Eleitoral do Paraná
+## Estado atual da plataforma
 
-## Visão Geral
-Plataforma de gestão estratégica de campanha eleitoral majoritária para governo estadual do Paraná, com dados simulados realistas para demonstração. Interface profissional de "sala de guerra" com mapas interativos, dashboards executivos e inteligência territorial.
+O mapa **já funciona** com geolocalização simulada. O que existe hoje:
 
----
+**Módulo Campo (`/campo`):**
+- Wizard de 4 passos com formulário de dados da ação
+- Passo 2 tem mapa Leaflet com clique manual para marcar localização + botão "GPS" que simula coordenadas aleatórias no Paraná
+- Dados ficam apenas em estado local (React state) — ao enviar, a ação desaparece e não aparece no mapa estratégico
 
-## Identidade Visual
-- **Tema**: Dark mode profissional (fundo cinza-escuro/slate, acentos em azul-elétrico e âmbar)
-- **Tipografia**: Fonte moderna, clara, adequada para leitura de dados
-- **Paleta**: Azul primário (#1E40AF), âmbar para alertas, verde para metas atingidas, vermelho para risco
-- **Nome da plataforma**: **CampanhaOS** — logo com ícone de mapa + radar
+**Módulo Mapa Estratégico (`/mapa`):**
+- Mostra ações do `mockData.ts` (dados estáticos), não as ações inputadas pelo usuário
 
----
-
-## Estrutura de Páginas e Módulos
-
-### 1. Autenticação
-- Tela de login com logo CampanhaOS
-- Seleção de perfil simulado (Coordenador Geral, Regional, Municipal, Campo)
-- Redirecionamento automático para dashboard do perfil
-
-### 2. Sala de Guerra (Dashboard Executivo)
-**Página principal para Coordenação Central**
-- Header com nome da campanha, logo do candidato simulado, data e hora em tempo real
-- Barra de KPIs topo: Total de ações previstas | Realizadas | Atrasadas | Pessoas impactadas estimadas | Municípios cobertos / 399
-- **Mapa interativo central do Paraná** (Leaflet + GeoJSON dos 399 municípios):
-  - Camada de mapa de calor por engajamento territorial
-  - Pins coloridos por status (azul = prevista, verde = realizada, vermelho = atrasada, âmbar = em andamento)
-  - Clique no município abre painel lateral com indicadores locais
-  - Toggle entre: Mapa Operacional | Mapa Político | Mapa de Calor | Mapa de Pesquisas
-- Painel direito: Alertas estratégicos automáticos (cards vermelhos/amarelos com recomendações)
-- Ranking de macrorregiões por performance
-- Gráfico de evolução das pesquisas (linha temporal)
-- Cards de ações críticas e pendentes
-
-### 3. Mapa Estratégico (Módulo dedicado)
-- Mapa em tela cheia do Paraná
-- Painel de filtros lateral: por período, tipo de ação, status, responsável, nível hierárquico
-- Camadas visuais ativáveis: ações, lideranças, pesquisas, calor
-- Botão de geolocalização (simula captura de GPS)
-- Clique em pin abre modal com detalhes da ação + fotos de evidência
-
-### 4. Gestão Territorial
-- **Árvore territorial navegável**: Estado → 8 Macrorregiões → Microrregiões → 399 Municípios
-- Cards de macrorregião com score de engajamento (0–100), KPIs e responsável
-- Página de município individual: indicadores, ações, lideranças, pesquisas locais, mapa local
-- Índice de Engajamento Territorial com escala visual (0–30 risco / 31–60 atenção / 61–80 competitivo / 81–100 consolidado)
-
-### 5. Planejamento e Ações
-- Lista de ações com filtros avançados e busca
-- Formulário de nova ação (todos os campos especificados: tipo, categoria, território, responsável, data, meta, prioridade)
-- Visualização em tabela e em mapa
-- Status com indicador visual: prevista | confirmada | em andamento | realizada | atrasada | cancelada
-
-### 6. Execução de Campo (Input Mobile-Friendly)
-- Interface simplificada para lideranças locais
-- Formulário de registro de execução: data/hora real, local, pessoas impactadas, observações
-- Botão "Marcar localização no mapa" (geolocalização simulada)
-- Upload de fotos de evidência com legenda
-- Tela de confirmação com resumo
-
-### 7. Ativos Políticos
-- Cadastro e visualização de ativos por município/região
-- Tipos: prefeitos, vereadores, lideranças comunitárias, religiosas, empresariais, etc.
-- Campos: município, influência, alinhamento, status de apoio, observações
-- Mapa de densidade de ativos por região
-- Filtros por tipo, município, macrorregião
-
-### 8. Pesquisas Eleitorais
-- Lista de pesquisas com filtros
-- Formulário de cadastro (instituto, datas, abrangência, intenção de voto, rejeição, indecisos)
-- Visualização gráfica: evolução temporal por região
-- Cruzamento visual: pesquisa × execução de campo no mapa
-- Dados simulados realistas para demonstração
-
-### 9. Inteligência e Alertas
-- Central de alertas estratégicos automáticos
-- Cards categorizados: Risco Alto | Atenção | Oportunidade
-- Exemplos simulados: "Microrregião Noroeste com baixa execução e queda de 4pp nas pesquisas"
-- Priorização territorial automática com justificativa
-- Recomendações de ação por região
-
-### 10. Hierarquia e Equipe
-- Organograma interativo da campanha (5 níveis)
-- Perfis de coordenadores por região
-- Ranking de desempenho por liderança
-- Trilha de atividade por usuário
-
-### 11. Dashboards por Perfil
-- **Executivo/Geral**: Sala de Guerra completa
-- **Regional**: Foco na macrorregião com rankings municipais
-- **Microrregional**: Ações locais, cidades descobertas, lideranças ativas
-- **Municipal/Campo**: Agenda local, comprovações pendentes, mapa local
+**O gap atual:** as ações criadas no módulo Campo ou em Ações não aparecem no mapa em tempo real — não há estado global compartilhado entre os módulos.
 
 ---
 
-## Dados Simulados Realistas
-- 399 municípios do Paraná com coordenadas geográficas reais
-- 8 macrorregiões (Curitiba/RMC, Norte Central, Noroeste, Oeste, Sudoeste, Centro-Sul, Campos Gerais, Norte Pioneiro)
-- ~150 ações simuladas em diversos status
-- ~30 pesquisas eleitorais fictícias com evolução temporal
-- ~80 ativos políticos distribuídos pelo estado
-- Scores de engajamento variados para demonstrar o mapa de calor
+## O que o plano vai resolver
+
+Criar um **estado global de ações** usando React Context, para que:
+
+1. Ações cadastradas em **Campo** e em **Ações** sejam adicionadas ao estado compartilhado
+2. O **Mapa Estratégico** e a **Sala de Guerra** reflitam as novas ações em tempo real
+3. O fluxo completo de teste seja: cadastrar ação → ver no mapa imediatamente
 
 ---
 
-## Navegação Principal (Sidebar)
-- 🗺️ Sala de Guerra
-- 📍 Mapa Estratégico
-- 🌎 Territórios
-- 📋 Ações
-- 📱 Campo (input móvel)
-- 👥 Ativos Políticos
-- 📊 Pesquisas
-- 🧠 Inteligência
-- 🏛️ Hierarquia
-- ⚙️ Configurações
+## Implementação técnica
+
+### 1. Criar `src/contexts/CampaignContext.tsx`
+- `useState` com array de ações iniciando com os dados do `mockData`
+- Funções: `addAction(action)`, `updateActionStatus(id, status)`, `executeAction(id, fieldData)`
+- Exportar hook `useCampaign()`
+
+### 2. Conectar `App.tsx`
+- Envolver toda a aplicação com `<CampaignProvider>`
+
+### 3. Atualizar `Campo.tsx`
+- No passo de envio final, chamar `addAction()` com os dados do formulário + coordenadas do mapa
+- Usar `navigator.geolocation.getCurrentPosition()` real no botão GPS (com fallback simulado)
+
+### 4. Atualizar `Acoes.tsx`
+- Formulário "Nova Ação" passa a chamar `addAction()` do contexto
+- Campo de marcar localização no mapa dentro do formulário
+
+### 5. Atualizar `MapaEstrategico.tsx` e `SalaDeGuerra.tsx`
+- Trocar `import { actions } from '@/data/mockData'` por `const { actions } = useCampaign()`
+- Novas ações aparecem imediatamente nos mapas
+
+### 6. Indicador visual de "nova ação"
+- Pin pulsante/animado no mapa para ações criadas nos últimos 5 minutos
+- Badge contador no sidebar de Mapa Estratégico quando há novas ações
 
 ---
 
-## Stack
-- React + TypeScript + Tailwind CSS
-- Leaflet.js + React-Leaflet para mapas
-- GeoJSON dos municípios do Paraná (dados públicos)
-- Recharts para gráficos
-- Lovable Cloud para auth e backend (fase futura)
-- Dados mockados ricos para demonstração imediata
+## Fluxo de teste após implementação
+
+```text
+[Campo] Preencher dados → Marcar no mapa → Adicionar foto → Enviar
+         ↓
+[Contexto] addAction() — novo pin aparece
+         ↓
+[Mapa Estratégico] Pin verde/azul visível imediatamente
+[Sala de Guerra] KPI "Ações" atualiza, pin aparece no mapa
+```
+
+---
+
+## Arquivos a criar/editar
+
+| Arquivo | Ação |
+|---|---|
+| `src/contexts/CampaignContext.tsx` | Criar — estado global |
+| `src/App.tsx` | Editar — envolver com Provider |
+| `src/pages/Campo.tsx` | Editar — integrar com contexto + GPS real |
+| `src/pages/Acoes.tsx` | Editar — formulário conectado ao contexto |
+| `src/pages/MapaEstrategico.tsx` | Editar — consumir contexto |
+| `src/pages/SalaDeGuerra.tsx` | Editar — consumir contexto |
