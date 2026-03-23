@@ -1,47 +1,54 @@
 
-## Problem diagnosis
+## Current state
 
-The "Importar PDF" area in `TabBiblioteca` has a completely empty `onClick={() => {}}` handler — no file input, no modal, no state. It does nothing.
+`TabCruzar` today has a single "Candidato(a)" select that drives a single-line chart for one candidate. The chart only plots that one candidate's trajectory across the selected waves/scenarios.
 
-Additionally, `pollWaves` and `pollQuestions` are static constants imported from `pollsData.ts` — so even if a modal existed, new entries couldn't be added to the library dynamically.
-
-The console warnings about `refs on function components` (Select + CartesianGrid in TabCruzar) are React strict-mode warnings but do not break functionality — they will be left as-is to avoid scope creep.
+The user wants to:
+1. Keep a "candidato principal" (the focus/highlight)
+2. Also select **one or more additional candidates** to compare side-by-side on the same chart
 
 ---
 
-## What will be built
+## What will change — only `TabCruzar` inside `src/pages/Pesquisas.tsx`
 
-### 1. Lift state to page level (`Pesquisas.tsx`)
+### Control panel redesign (lines ~876–924)
 
-Add `useState` for `waves` and `questions` at the top-level `Pesquisas` component, initialised from the static data, then pass them down as props to `TabBiblioteca`, `TabAnalisar`, and `TabCruzar`. This allows the import modal to append new entries.
+Replace the single candidate `Select` with two parts:
 
-### 2. Import modal inside `TabBiblioteca`
+**Candidato Principal** — existing `Select` (single, becomes the highlighted line)
 
-A `Dialog` (already available in the UI kit) triggered when the user clicks the upload area or a hidden `<input type="file" accept=".pdf">`.
+**Candidatos para cruzar** — a multi-select checkbox list that appears below, showing all available candidates (excluding the principal one). Each entry has a colored dot using `CANDIDATE_COLORS`. The user can tick/untick freely. Max suggestion: up to 6 additional lines.
 
-**Modal steps:**
-- Step 1 — "Arquivo" — file picker confirms the PDF name selected
-- Step 2 — "Metadados da pesquisa" — form fields matching `PollWave`:
-  - Instituto (text)
-  - Território (text, default "Estado do Paraná")
-  - Cargos (checkboxes: Governador / Senador)
-  - Data de coleta início / fim (date inputs)
-  - Data de divulgação (date input)
-  - Tamanho da amostra (number)
-  - Margem de erro (number, pp)
-  - Metodologia (textarea)
-  - Registro TSE (text)
-- Step 3 — "Dados" (optional, progressive) — a simplified entry for at least one Estimulada question per cargo: candidate name + % pairs, with an "Adicionar candidato" row button.
+### Chart redesign (lines ~927–982)
 
-**On confirm**: Creates a new `PollWave` + at least one `PollQuestion` (estimulada cenário 1) and prepends them to the `waves`/`questions` state arrays. The new card appears immediately in the library.
+Instead of a single `<Line>` → render **one `<Line>` per selected candidate**:
+- Principal candidate: `strokeWidth={3}`, solid, with `dot={{ r: 5 }}`
+- Comparison candidates: `strokeWidth={2}`, slightly transparent (`opacity={0.75}`), smaller dots (`r: 3`), dashed `strokeDasharray="5 3"`
 
-### 3. Files to modify
+`chartData` needs restructuring: instead of `{ label, value }` → `{ label, [candidateName]: value, ... }` keyed by candidate name so Recharts can pick up each line's `dataKey`.
 
-**`src/pages/Pesquisas.tsx`** only — no other file needs changing:
-- Add `useState` for `waves`, `questions`, `comparativos` (initialised from pollsData exports)
-- Add modal state: `modalOpen`, `step` (1–3), and form field state
-- Wire the file input `ref` to the upload area click
-- Build the 3-step `Dialog` form
-- Pass `waves` and `questions` as props through to sub-components
+### Table at the bottom
 
-No new dependencies — `Dialog`, `Input`, `Label`, `Textarea`, `Checkbox`, `Badge` are all already in the UI kit.
+Currently shows delta for a single candidate. Will expand to show a column per selected candidate, still with green/red delta coloring.
+
+### State additions inside `TabCruzar`
+
+```
+const [comparisonCandidates, setComparisonCandidates] = useState<string[]>([])
+```
+
+When `targetCandidate` or `availableCandidates` changes, reset `comparisonCandidates` to empty (auto-cleanup).
+
+---
+
+## Files to modify
+
+**Only `src/pages/Pesquisas.tsx`**, specifically the `TabCruzar` function (~lines 805–991):
+
+1. Add `comparisonCandidates` state
+2. Rebuild `chartData` to be multi-candidate keyed
+3. Replace the single `Select` with Select + checkbox list
+4. Render multiple `<Line>` components
+5. Expand the variation table to show all selected candidates
+
+No new dependencies needed — all components already imported.
