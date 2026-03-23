@@ -137,7 +137,7 @@ export default function MapaEstrategico() {
             ))}
 
             {/* Ações layer */}
-            {activeLayer === 'acoes' && filteredActions.map(action => {
+            {activeLayer === 'acoes' && filteredActions.filter(a => a.lat && a.lng && !isNaN(a.lat) && !isNaN(a.lng)).map(action => {
               const isNew = newActionIds.has(action.id);
               return (
                 <CircleMarker

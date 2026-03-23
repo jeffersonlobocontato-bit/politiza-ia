@@ -59,7 +59,7 @@ const AlertCard = ({ alert }: any) => {
 
 export default function SalaDeGuerra() {
   const { actions } = useCampaign();
-  const [mapView, setMapView] = useState<'operacional' | 'calor' | 'politico'>('calor');
+  const [mapView, setMapView] = useState<'operacional' | 'calor' | 'politico'>('operacional');
   const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
   const completionRate = Math.round((globalKPIs.completedActions / globalKPIs.totalActions) * 100);
 
