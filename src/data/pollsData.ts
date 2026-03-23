@@ -107,21 +107,23 @@ export const pollWaves: PollWave[] = [
 // ────────────────────────────────────────────────────────────
 
 export const CANDIDATE_COLORS: Record<string, string> = {
-  'Sergio Moro':      '#3b82f6',
-  'Requião Filho':    '#ef4444',
-  'Rafael Greca':     '#a855f7',
-  'Alexandre Curi':   '#f59e0b',
-  'Giacobo':          '#6366f1',
-  'Guto Silva':       '#14b8a6',
-  'Luiz França':      '#f97316',
-  'Alvaro Dias':      '#3b82f6',
-  'Gleisi Hoffmann':  '#ef4444',
-  'Filipe Barros':    '#22c55e',
-  'Cristina Graeml':  '#f59e0b',
-  'Nenhum/Branco/Nulo': '#6b7280',
-  'Não sabe/Não opinou': '#9ca3af',
-  'Poderia votar em todos': '#34d399',
-  'Outros': '#9ca3af',
+  'Sergio Moro':             '#3b82f6',
+  'Requião Filho':           '#ef4444',
+  'Rafael Greca':            '#a855f7',
+  'Alexandre Curi':          '#f59e0b',
+  'Giacobo':                 '#6366f1',
+  'Guto Silva':              '#14b8a6',
+  'Luiz França':             '#f97316',
+  'Alvaro Dias':             '#3b82f6',
+  'Gleisi Hoffmann':         '#ef4444',
+  'Filipe Barros':           '#22c55e',
+  'Cristina Graeml':         '#f59e0b',
+  'Deltan Dallagnol':        '#8b5cf6',
+  'Nenhum/Branco/Nulo':      '#6b7280',
+  'Não Sabe/Não Respondeu':  '#9ca3af',
+  'Não sabe/Não opinou':     '#9ca3af',
+  'Poderia votar em todos':  '#34d399',
+  'Outros':                  '#9ca3af',
 };
 
 // ────────────────────────────────────────────────────────────
