@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
 import {
   Crosshair, TrendingUp, TrendingDown, Minus, AlertTriangle,
@@ -8,9 +8,10 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Legend
 } from 'recharts';
 import {
-  macroRegions, municipalities, actions, alerts, globalKPIs,
-  pollTimeline, getEngagementColor, getEngagementLevel, getStatusColor
+  macroRegions, municipalities, alerts, globalKPIs,
+  pollTimeline, getEngagementColor, getStatusColor
 } from '@/data/mockData';
+import { useCampaign } from '@/contexts/CampaignContext';
 
 const KPICard = ({ label, value, sub, icon: Icon, color, trend }: any) => (
   <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>

@@ -42,7 +42,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppRoutes />
+        <CampaignProvider>
+          <AppRoutes />
+        </CampaignProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
-import { Map, Filter, X, Layers, Crosshair, Search } from 'lucide-react';
+import { Map, Filter, X } from 'lucide-react';
 import {
-  municipalities, actions, politicalAssets,
+  municipalities, politicalAssets,
   getEngagementColor, getStatusColor, getStatusLabel, getActionTypeLabel
 } from '@/data/mockData';
+import { useCampaign } from '@/contexts/CampaignContext';
 
 export default function MapaEstrategico() {
+  const { actions, newActionIds } = useCampaign();
   const [activeLayer, setActiveLayer] = useState<'engajamento' | 'acoes' | 'ativos' | 'pesquisas'>('acoes');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
