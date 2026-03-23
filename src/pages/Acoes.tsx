@@ -1,17 +1,38 @@
 import { useState } from 'react';
-import { ClipboardList, Plus, Search, Filter, MapPin, Calendar, User, Target, ChevronDown } from 'lucide-react';
-import { actions, getStatusColor, getStatusLabel, getActionTypeLabel, macroRegions } from '@/data/mockData';
+import { ClipboardList, Plus, Search, MapPin, Calendar, User, Target } from 'lucide-react';
+import { getStatusColor, getStatusLabel, getActionTypeLabel, macroRegions } from '@/data/mockData';
 import type { ActionStatus } from '@/data/mockData';
+import { useCampaign } from '@/contexts/CampaignContext';
 
 const statusOptions: ActionStatus[] = ['prevista', 'confirmada', 'em_andamento', 'realizada', 'atrasada', 'cancelada', 'pendente_validacao'];
 const priorityColors: Record<string, string> = { critica: '#ef4444', alta: '#f59e0b', media: '#3b82f6', baixa: '#6b7280' };
 const priorityLabels: Record<string, string> = { critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa' };
 
+interface NewActionForm {
+  title: string;
+  municipality: string;
+  responsible: string;
+  plannedDate: string;
+  plannedTime: string;
+  estimatedImpact: string;
+  macroregion: string;
+}
+
 export default function Acoes() {
+  const { actions, addAction } = useCampaign();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [macroFilter, setMacroFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState<NewActionForm>({
+    title: '',
+    municipality: '',
+    responsible: '',
+    plannedDate: new Date().toISOString().split('T')[0],
+    plannedTime: '09:00',
+    estimatedImpact: '',
+    macroregion: 'rmc',
+  });
 
   const filtered = actions.filter(a => {
     const matchSearch = !search || a.title.toLowerCase().includes(search.toLowerCase()) || a.municipality.toLowerCase().includes(search.toLowerCase());
@@ -24,6 +45,42 @@ export default function Acoes() {
     acc[s] = actions.filter(a => a.status === s).length;
     return acc;
   }, {} as Record<string, number>);
+
+  const updateForm = (key: keyof NewActionForm, value: string) =>
+    setForm(prev => ({ ...prev, [key]: value }));
+
+  const handleAddAction = () => {
+    if (!form.title) return;
+    // Random Paraná coords when not provided
+    const lat = -25.4244 + (Math.random() - 0.5) * 3;
+    const lng = -49.2654 + (Math.random() - 0.5) * 5;
+    addAction({
+      title: form.title,
+      type: 'mobilizacao_comunitaria',
+      category: 'Campo',
+      description: '',
+      municipality: form.municipality || 'Paraná',
+      microregion: form.municipality || 'Paraná',
+      macroregion: form.macroregion,
+      address: '',
+      lat,
+      lng,
+      responsible: form.responsible || 'A definir',
+      team: [],
+      plannedDate: form.plannedDate,
+      plannedTime: form.plannedTime,
+      priority: 'media',
+      targetAudience: 'Público geral',
+      estimatedImpact: parseInt(form.estimatedImpact) || 0,
+      status: 'prevista',
+    });
+    setShowForm(false);
+    setForm({
+      title: '', municipality: '', responsible: '',
+      plannedDate: new Date().toISOString().split('T')[0],
+      plannedTime: '09:00', estimatedImpact: '', macroregion: 'rmc',
+    });
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -38,7 +95,7 @@ export default function Acoes() {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
           style={{ background: 'var(--gradient-primary)' }}
         >
           <Plus className="w-4 h-4" />
@@ -50,7 +107,7 @@ export default function Acoes() {
       <div className="px-6 py-3 border-b border-border flex gap-2 overflow-x-auto flex-shrink-0">
         <button
           onClick={() => setStatusFilter('all')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 ${statusFilter === 'all' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 ${statusFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
         >
           Todas ({actions.length})
         </button>
@@ -59,7 +116,7 @@ export default function Acoes() {
             <button
               key={s}
               onClick={() => setStatusFilter(statusFilter === s ? 'all' : s)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 border ${statusFilter === s ? 'text-white' : 'bg-muted/50 text-muted-foreground hover:text-foreground'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 border ${statusFilter === s ? 'text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:text-foreground'}`}
               style={statusFilter === s ? { backgroundColor: getStatusColor(s), borderColor: getStatusColor(s) } : { borderColor: `${getStatusColor(s)}40` }}
             >
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(s) }} />
@@ -93,32 +150,85 @@ export default function Acoes() {
 
       {/* New Action Form */}
       {showForm && (
-        <div className="mx-6 my-4 rounded-xl border border-primary/30 p-5 animate-fade-in" style={{ background: 'hsl(var(--primary) / 0.05)' }}>
+        <div className="mx-6 my-4 rounded-xl border border-primary/30 p-5 animate-fade-in flex-shrink-0" style={{ background: 'hsl(var(--primary) / 0.05)' }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-foreground">Nova Ação</h3>
             <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground text-xs">Cancelar</button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { label: 'Título da Ação', placeholder: 'Ex: Carreata Centro - Curitiba', span: 'col-span-2' },
-              { label: 'Município', placeholder: 'Curitiba' },
-              { label: 'Responsável', placeholder: 'Nome do coordenador' },
-              { label: 'Data Prevista', type: 'date' },
-              { label: 'Hora Prevista', type: 'time' },
-              { label: 'Meta Estimada', placeholder: '5000', type: 'number' },
-            ].map(f => (
-              <div key={f.label} className={f.span}>
-                <label className="text-xs text-muted-foreground block mb-1">{f.label}</label>
-                <input
-                  type={f.type || 'text'}
-                  placeholder={f.placeholder}
-                  className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
-            ))}
+            <div className="sm:col-span-2">
+              <label className="text-xs text-muted-foreground block mb-1">Título da Ação *</label>
+              <input
+                value={form.title}
+                onChange={e => updateForm('title', e.target.value)}
+                placeholder="Ex: Carreata Centro - Curitiba"
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Município</label>
+              <input
+                value={form.municipality}
+                onChange={e => updateForm('municipality', e.target.value)}
+                placeholder="Curitiba"
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Responsável</label>
+              <input
+                value={form.responsible}
+                onChange={e => updateForm('responsible', e.target.value)}
+                placeholder="Nome do coordenador"
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Data Prevista</label>
+              <input
+                type="date"
+                value={form.plannedDate}
+                onChange={e => updateForm('plannedDate', e.target.value)}
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Hora Prevista</label>
+              <input
+                type="time"
+                value={form.plannedTime}
+                onChange={e => updateForm('plannedTime', e.target.value)}
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Meta Estimada</label>
+              <input
+                type="number"
+                value={form.estimatedImpact}
+                onChange={e => updateForm('estimatedImpact', e.target.value)}
+                placeholder="5000"
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Macrorregião</label>
+              <select
+                value={form.macroregion}
+                onChange={e => updateForm('macroregion', e.target.value)}
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                {macroRegions.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+            </div>
           </div>
           <div className="flex justify-end gap-2 mt-4">
-            <button className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ background: 'var(--gradient-primary)' }}>
+            <button
+              onClick={handleAddAction}
+              disabled={!form.title}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              style={{ background: 'var(--gradient-primary)' }}
+            >
               Cadastrar Ação
             </button>
           </div>
