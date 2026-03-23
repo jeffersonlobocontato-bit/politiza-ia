@@ -135,9 +135,9 @@ export default function SalaDeGuerra() {
                       radius={radius}
                       fillColor={color}
                       color={color}
-                      weight={1}
-                      opacity={0.9}
-                      fillOpacity={0.7}
+                      weight={2}
+                      opacity={1}
+                      fillOpacity={0.8}
                       eventHandlers={{ click: () => setSelectedMunicipality(muni.id) }}
                     >
                       <Tooltip permanent={false}>
