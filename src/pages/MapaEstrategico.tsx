@@ -34,7 +34,7 @@ export default function MapaEstrategico() {
         </button>
       </div>
 
-      <div className="flex-1 flex relative">
+      <div className="flex relative" style={{ height: 'calc(100vh - 110px)' }}>
         {/* Filters Panel */}
         {showFilters && (
           <div className="w-64 border-r border-border p-4 space-y-4 flex-shrink-0 overflow-auto" style={{ background: 'var(--gradient-card)' }}>
