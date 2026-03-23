@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMapEvents } from 'react-leaflet';
-import { Smartphone, MapPin, Camera, CheckCircle, Upload, Navigation } from 'lucide-react';
+import { Smartphone, MapPin, Camera, CheckCircle, Navigation } from 'lucide-react';
+import { useCampaign } from '@/contexts/CampaignContext';
 
 interface FieldInput {
   actionTitle: string;
@@ -10,8 +11,6 @@ interface FieldInput {
   peopleCount: string;
   observations: string;
   result: string;
-  lat?: number;
-  lng?: number;
 }
 
 function LocationPicker({ onLocationPick }: { onLocationPick: (lat: number, lng: number) => void }) {
@@ -22,6 +21,7 @@ function LocationPicker({ onLocationPick }: { onLocationPick: (lat: number, lng:
 }
 
 export default function Campo() {
+  const { addAction } = useCampaign();
   const [step, setStep] = useState<'form' | 'map' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
     actionTitle: '',
@@ -35,20 +35,72 @@ export default function Campo() {
   const [markedLocation, setMarkedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [photos, setPhotos] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [gpsLoading, setGpsLoading] = useState(false);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
 
-  const simulateGPS = () => {
-    const lat = -25.4244 + (Math.random() - 0.5) * 2;
-    const lng = -49.2654 + (Math.random() - 0.5) * 4;
-    setMarkedLocation({ lat, lng });
+  const handleGPS = () => {
+    if (navigator.geolocation) {
+      setGpsLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setMarkedLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGpsLoading(false);
+        },
+        () => {
+          // Fallback: random coords within Paraná
+          const lat = -25.4244 + (Math.random() - 0.5) * 2;
+          const lng = -49.2654 + (Math.random() - 0.5) * 4;
+          setMarkedLocation({ lat, lng });
+          setGpsLoading(false);
+        },
+        { timeout: 8000 }
+      );
+    } else {
+      const lat = -25.4244 + (Math.random() - 0.5) * 2;
+      const lng = -49.2654 + (Math.random() - 0.5) * 4;
+      setMarkedLocation({ lat, lng });
+    }
   };
 
   const handleSubmit = () => {
+    const lat = markedLocation?.lat ?? (-25.4244 + (Math.random() - 0.5) * 2);
+    const lng = markedLocation?.lng ?? (-49.2654 + (Math.random() - 0.5) * 4);
+
+    addAction({
+      title: input.actionTitle || 'Ação de Campo',
+      type: 'mobilizacao_comunitaria',
+      category: 'Campo',
+      description: input.observations || input.result || 'Registro de campo',
+      municipality: input.municipality || 'Paraná',
+      microregion: input.municipality || 'Paraná',
+      macroregion: 'rmc',
+      address: '',
+      lat,
+      lng,
+      responsible: 'Equipe de Campo',
+      team: [],
+      plannedDate: input.executedDate,
+      plannedTime: input.executedTime,
+      priority: 'media',
+      targetAudience: 'Público geral',
+      estimatedImpact: parseInt(input.peopleCount) || 0,
+      status: 'realizada',
+      executedDate: input.executedDate,
+      executedPeopleCount: parseInt(input.peopleCount) || 0,
+      observations: input.observations,
+      evidencePhotos: photos,
+    });
+
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
     setStep('form');
-    setInput({ actionTitle: '', municipality: '', executedDate: new Date().toISOString().split('T')[0], executedTime: new Date().toTimeString().slice(0, 5), peopleCount: '', observations: '', result: '' });
+    setInput({
+      actionTitle: '', municipality: '',
+      executedDate: new Date().toISOString().split('T')[0],
+      executedTime: new Date().toTimeString().slice(0, 5),
+      peopleCount: '', observations: '', result: ''
+    });
     setMarkedLocation(null);
     setPhotos([]);
   };
@@ -62,7 +114,7 @@ export default function Campo() {
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Ação Registrada!</h2>
           <p className="text-muted-foreground text-sm">Sua execução foi enviada para o sistema.</p>
-          <p className="text-xs text-muted-foreground mt-1">Localização e evidências enviadas com sucesso.</p>
+          <p className="text-xs text-muted-foreground mt-1">Já aparece no Mapa Estratégico e na Sala de Guerra.</p>
         </div>
       </div>
     );
@@ -79,7 +131,6 @@ export default function Campo() {
             <p className="text-xs text-muted-foreground">Input de execução — Interface simplificada</p>
           </div>
         </div>
-        {/* Steps */}
         <div className="flex gap-2 mt-3">
           {[
             { id: 'form', label: '1. Dados' },
@@ -90,7 +141,7 @@ export default function Campo() {
             <button
               key={s.id}
               onClick={() => setStep(s.id as any)}
-              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${step === s.id ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
+              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${step === s.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
             >
               {s.label}
             </button>
@@ -158,7 +209,7 @@ export default function Campo() {
             </div>
             <button
               onClick={() => setStep('map')}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-white"
+              className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground"
               style={{ background: 'var(--gradient-primary)' }}
             >
               Próximo: Marcar Localização →
@@ -175,11 +226,12 @@ export default function Campo() {
               )}
             </div>
             <button
-              onClick={simulateGPS}
-              className="w-full h-11 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/20 transition-colors"
+              onClick={handleGPS}
+              disabled={gpsLoading}
+              className="w-full h-11 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/20 transition-colors disabled:opacity-60"
             >
-              <Navigation className="w-4 h-4" />
-              Usar minha localização atual (GPS)
+              <Navigation className={`w-4 h-4 ${gpsLoading ? 'animate-spin' : ''}`} />
+              {gpsLoading ? 'Obtendo localização...' : 'Usar minha localização atual (GPS)'}
             </button>
             <div className="text-xs text-center text-muted-foreground">— ou clique no mapa para marcar manualmente —</div>
             <div className="rounded-xl overflow-hidden border border-border" style={{ height: 300 }}>
@@ -216,7 +268,7 @@ export default function Campo() {
                 </span>
               </div>
             )}
-            <button onClick={() => setStep('photo')} className="w-full h-12 rounded-xl font-semibold text-sm text-white" style={{ background: 'var(--gradient-primary)' }}>
+            <button onClick={() => setStep('photo')} className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground" style={{ background: 'var(--gradient-primary)' }}>
               Próximo: Adicionar Evidências →
             </button>
           </div>
@@ -226,7 +278,6 @@ export default function Campo() {
           <div className="space-y-4 animate-fade-in">
             <h2 className="text-sm font-semibold text-foreground">Evidências Fotográficas</h2>
             <p className="text-xs text-muted-foreground">Adicione fotos que comprovem a realização da ação.</p>
-            {/* Simulated photo cards */}
             <div className="grid grid-cols-2 gap-3">
               {photos.map((p, i) => (
                 <div key={i} className="aspect-square rounded-xl bg-muted border border-border flex items-center justify-center relative overflow-hidden">
@@ -243,7 +294,7 @@ export default function Campo() {
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground text-center">Clique em "Adicionar foto" para simular upload de evidência</p>
-            <button onClick={() => setStep('confirm')} className="w-full h-12 rounded-xl font-semibold text-sm text-white" style={{ background: 'var(--gradient-primary)' }}>
+            <button onClick={() => setStep('confirm')} className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground" style={{ background: 'var(--gradient-primary)' }}>
               Próximo: Confirmar Envio →
             </button>
           </div>
@@ -259,7 +310,7 @@ export default function Campo() {
                 { label: 'Data/Hora', value: `${input.executedDate} às ${input.executedTime}` },
                 { label: 'Pessoas Impactadas', value: input.peopleCount ? `~${parseInt(input.peopleCount).toLocaleString()}` : '(não informado)' },
                 { label: 'Resultado', value: input.result || '(não informado)' },
-                { label: 'Localização', value: markedLocation ? `${markedLocation.lat.toFixed(4)}, ${markedLocation.lng.toFixed(4)}` : 'Não marcada' },
+                { label: 'Localização', value: markedLocation ? `${markedLocation.lat.toFixed(4)}, ${markedLocation.lng.toFixed(4)}` : 'Automática (aleatória no Paraná)' },
                 { label: 'Evidências', value: `${photos.length} foto(s)` },
               ].map(item => (
                 <div key={item.label} className="flex items-start justify-between gap-4">

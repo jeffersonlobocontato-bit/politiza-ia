@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
-import { Map, Filter, X, Layers, Crosshair, Search } from 'lucide-react';
+import { Map, Filter, X } from 'lucide-react';
 import {
-  municipalities, actions, politicalAssets,
+  municipalities, politicalAssets,
   getEngagementColor, getStatusColor, getStatusLabel, getActionTypeLabel
 } from '@/data/mockData';
+import { useCampaign } from '@/contexts/CampaignContext';
 
 export default function MapaEstrategico() {
+  const { actions, newActionIds } = useCampaign();
   const [activeLayer, setActiveLayer] = useState<'engajamento' | 'acoes' | 'ativos' | 'pesquisas'>('acoes');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -92,6 +94,12 @@ export default function MapaEstrategico() {
               <div className="text-xs text-muted-foreground">
                 {activeLayer === 'acoes' ? 'ações' : activeLayer === 'ativos' ? 'ativos' : 'municípios'}
               </div>
+              {newActionIds.size > 0 && activeLayer === 'acoes' && (
+                <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-brand-green">
+                  <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
+                  {newActionIds.size} nova{newActionIds.size > 1 ? 's' : ''} ação{newActionIds.size > 1 ? 'ões' : ''} ao vivo
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -129,33 +137,37 @@ export default function MapaEstrategico() {
             ))}
 
             {/* Ações layer */}
-            {activeLayer === 'acoes' && filteredActions.map(action => (
-              <CircleMarker
-                key={action.id}
-                center={[action.lat, action.lng]}
-                radius={action.estimatedImpact > 5000 ? 16 : action.estimatedImpact > 1000 ? 12 : 8}
-                fillColor={getStatusColor(action.status)}
-                color="#ffffff"
-                weight={2}
-                fillOpacity={0.92}
-                eventHandlers={{ click: () => setSelectedAction(action) }}
-              >
-                <Popup>
-                  <div style={{ color: '#1e293b', minWidth: 200 }}>
-                    <div style={{ fontWeight: 700, marginBottom: 6 }}>{action.title}</div>
-                    <div style={{ fontSize: 12 }}>📍 {action.municipality}</div>
-                    <div style={{ fontSize: 12 }}>📅 {action.plannedDate} às {action.plannedTime}</div>
-                    <div style={{ fontSize: 12 }}>👤 {action.responsible}</div>
-                    <div style={{ fontSize: 12 }}>🎯 ~{action.estimatedImpact.toLocaleString()} impactados</div>
-                    <div style={{ fontSize: 12, marginTop: 4 }}>
-                      <span style={{ backgroundColor: getStatusColor(action.status), color: 'white', padding: '2px 8px', borderRadius: 4, fontSize: 11 }}>
-                        {getStatusLabel(action.status)}
-                      </span>
+            {activeLayer === 'acoes' && filteredActions.map(action => {
+              const isNew = newActionIds.has(action.id);
+              return (
+                <CircleMarker
+                  key={action.id}
+                  center={[action.lat, action.lng]}
+                  radius={isNew ? 14 : (action.estimatedImpact > 5000 ? 16 : action.estimatedImpact > 1000 ? 12 : 8)}
+                  fillColor={isNew ? '#22c55e' : getStatusColor(action.status)}
+                  color={isNew ? '#ffffff' : '#ffffff'}
+                  weight={isNew ? 3 : 2}
+                  fillOpacity={isNew ? 1 : 0.92}
+                  eventHandlers={{ click: () => setSelectedAction(action) }}
+                >
+                  <Popup>
+                    <div style={{ color: '#1e293b', minWidth: 200 }}>
+                      {isNew && <div style={{ color: '#16a34a', fontWeight: 700, fontSize: 11, marginBottom: 4 }}>🟢 NOVA AÇÃO — AO VIVO</div>}
+                      <div style={{ fontWeight: 700, marginBottom: 6 }}>{action.title}</div>
+                      <div style={{ fontSize: 12 }}>📍 {action.municipality}</div>
+                      <div style={{ fontSize: 12 }}>📅 {action.plannedDate} às {action.plannedTime}</div>
+                      <div style={{ fontSize: 12 }}>👤 {action.responsible}</div>
+                      <div style={{ fontSize: 12 }}>🎯 ~{action.estimatedImpact.toLocaleString()} impactados</div>
+                      <div style={{ fontSize: 12, marginTop: 4 }}>
+                        <span style={{ backgroundColor: getStatusColor(action.status), color: 'white', padding: '2px 8px', borderRadius: 4, fontSize: 11 }}>
+                          {getStatusLabel(action.status)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Popup>
-              </CircleMarker>
-            ))}
+                  </Popup>
+                </CircleMarker>
+              );
+            })}
 
             {/* Ativos layer */}
             {activeLayer === 'ativos' && politicalAssets.filter(a => a.lat).map(asset => (

@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { CampaignProvider } from "@/contexts/CampaignContext";
 import Login from "./pages/Login";
 import SalaDeGuerra from "./pages/SalaDeGuerra";
 import MapaEstrategico from "./pages/MapaEstrategico";
@@ -41,7 +42,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppRoutes />
+        <CampaignProvider>
+          <AppRoutes />
+        </CampaignProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
