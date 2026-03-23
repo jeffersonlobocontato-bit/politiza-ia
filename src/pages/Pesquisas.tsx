@@ -802,11 +802,14 @@ interface CruzarProps {
   questions: PollQuestion[];
 }
 
+const EXCLUDED_CANDIDATES = ['Não sabe/ Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo', 'Poderia votar em todos'];
+
 function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   const [selectedWaves, setSelectedWaves] = useState<string[]>([waves[0]?.id ?? '']);
   const [metricType, setMetricType] = useState<'estimulada' | 'rejeicao'>('estimulada');
   const [targetCargo, setTargetCargo] = useState<Cargo>('governador');
   const [targetCandidate, setTargetCandidate] = useState('Sergio Moro');
+  const [comparisonCandidates, setComparisonCandidates] = useState<string[]>([]);
 
   const toggleWave = (id: string) => {
     setSelectedWaves(prev =>
@@ -819,15 +822,24 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
     allQuestions
       .filter(q => selectedWaves.includes(q.waveId) && q.cargo === targetCargo && q.questionType === metricType)
       .forEach(q => q.results.forEach(r => {
-        if (!['Não sabe/ Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo', 'Poderia votar em todos'].includes(r.candidate)) {
-          set.add(r.candidate);
-        }
+        if (!EXCLUDED_CANDIDATES.includes(r.candidate)) set.add(r.candidate);
       }));
     return [...set];
   }, [allQuestions, selectedWaves, targetCargo, metricType]);
 
+  // Reset comparison when available set changes
+  useMemo(() => {
+    setComparisonCandidates(prev => prev.filter(c => availableCandidates.includes(c) && c !== targetCandidate));
+  }, [availableCandidates, targetCandidate]);
+
+  const allSelectedCandidates = useMemo(
+    () => [targetCandidate, ...comparisonCandidates],
+    [targetCandidate, comparisonCandidates],
+  );
+
+  // Build chart data: one row per question point, keyed by candidate name
   const chartData = useMemo(() => {
-    const points: { label: string; value: number; wave: string; scenario: string }[] = [];
+    const rows: Record<string, any>[] = [];
     allQuestions
       .filter(q =>
         selectedWaves.includes(q.waveId) &&
@@ -836,24 +848,40 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       )
       .forEach(q => {
         const wave = waves.find(w => w.id === q.waveId);
-        const result = q.results.find(r => r.candidate === targetCandidate);
-        if (result) {
-          points.push({
-            label: `${wave?.releaseDate ?? q.waveId} — ${q.scenarioLabel}`,
-            wave: wave?.releaseDate ?? q.waveId,
-            scenario: q.scenarioLabel,
-            value: result.percentage,
-          });
-        }
+        const label = `${wave?.releaseDate ?? q.waveId} — ${q.scenarioLabel}`;
+        const row: Record<string, any> = { label };
+        let hasAny = false;
+        allSelectedCandidates.forEach(candidate => {
+          const result = q.results.find(r => r.candidate === candidate);
+          if (result) {
+            row[candidate] = result.percentage;
+            hasAny = true;
+          }
+        });
+        if (hasAny) rows.push(row);
       });
-    return points;
-  }, [allQuestions, waves, selectedWaves, targetCargo, metricType, targetCandidate]);
+    return rows;
+  }, [allQuestions, waves, selectedWaves, targetCargo, metricType, allSelectedCandidates]);
+
+  const toggleComparison = (candidate: string) => {
+    setComparisonCandidates(prev =>
+      prev.includes(candidate)
+        ? prev.filter(c => c !== candidate)
+        : prev.length < 6 ? [...prev, candidate] : prev,
+    );
+  };
+
+  const candidatesToCompare = availableCandidates.filter(c => c !== targetCandidate);
 
   return (
     <div className="space-y-4">
+      {/* Config panel */}
       <div className="rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
-        <div className="text-sm font-semibold flex items-center gap-2"><GitCompare className="w-4 h-4 text-primary" /> Configurar Cruzamento</div>
+        <div className="text-sm font-semibold flex items-center gap-2">
+          <GitCompare className="w-4 h-4 text-primary" /> Configurar Cruzamento
+        </div>
 
+        {/* Wave selector */}
         <div>
           <div className="text-xs text-muted-foreground mb-2 font-medium">Pesquisas (máx. 4):</div>
           <div className="flex flex-wrap gap-2">
@@ -873,7 +901,8 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-3">
+        {/* Cargo + Métrica */}
+        <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Cargo:</div>
             <div className="flex rounded-lg border border-border overflow-hidden text-sm">
@@ -890,7 +919,6 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               ))}
             </div>
           </div>
-
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Métrica:</div>
             <div className="flex rounded-lg border border-border overflow-hidden text-xs">
@@ -907,10 +935,19 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               ))}
             </div>
           </div>
+        </div>
 
+        {/* Candidato principal + candidatos para cruzar */}
+        <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <div className="text-xs text-muted-foreground mb-1.5 font-medium">Candidato(a):</div>
-            <Select value={targetCandidate} onValueChange={setTargetCandidate}>
+            <div className="text-xs text-muted-foreground mb-1.5 font-medium">Candidato principal:</div>
+            <Select
+              value={targetCandidate}
+              onValueChange={v => {
+                setTargetCandidate(v);
+                setComparisonCandidates(prev => prev.filter(c => c !== v));
+              }}
+            >
               <SelectTrigger className="h-9 text-xs">
                 <SelectValue />
               </SelectTrigger>
@@ -921,35 +958,106 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <div className="text-xs text-muted-foreground mb-1.5 font-medium">
+              Candidatos para cruzar <span className="text-[10px]">(máx. 6)</span>:
+            </div>
+            {candidatesToCompare.length === 0 ? (
+              <div className="text-xs text-muted-foreground italic">Nenhum outro candidato disponível</div>
+            ) : (
+              <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                {candidatesToCompare.map(c => {
+                  const color = CANDIDATE_COLORS[c] ?? 'hsl(var(--muted-foreground))';
+                  const checked = comparisonCandidates.includes(c);
+                  return (
+                    <div
+                      key={c}
+                      className="flex items-center gap-2 cursor-pointer group"
+                      onClick={() => toggleComparison(c)}
+                    >
+                      <Checkbox
+                        id={`cmp-${c}`}
+                        checked={checked}
+                        onCheckedChange={() => toggleComparison(c)}
+                      />
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      <label
+                        htmlFor={`cmp-${c}`}
+                        className="text-xs cursor-pointer group-hover:text-foreground text-muted-foreground transition-colors select-none"
+                      >
+                        {c}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Chart + table */}
       {chartData.length > 0 ? (
         <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CANDIDATE_COLORS[targetCandidate] ?? 'hsl(var(--primary))' }} />
-            <span className="text-sm font-semibold">{targetCandidate}</span>
-            <span className="text-xs text-muted-foreground">· {metricType === 'estimulada' ? 'Intenção Estimulada' : 'Rejeição'} · {targetCargo}</span>
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4">
+            {allSelectedCandidates.map((c, i) => (
+              <div key={c} className="flex items-center gap-1.5">
+                <div
+                  className="rounded-full shrink-0"
+                  style={{
+                    width: i === 0 ? 12 : 8,
+                    height: i === 0 ? 12 : 8,
+                    backgroundColor: CANDIDATE_COLORS[c] ?? 'hsl(var(--primary))',
+                    opacity: i === 0 ? 1 : 0.75,
+                  }}
+                />
+                <span className={`text-xs ${i === 0 ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{c}</span>
+                {i === 0 && (
+                  <span className="text-[10px] text-muted-foreground">· {metricType === 'estimulada' ? 'Estimulada' : 'Rejeição'} · {targetCargo}</span>
+                )}
+              </div>
+            ))}
           </div>
-          <ResponsiveContainer width="100%" height={260}>
+
+          <ResponsiveContainer width="100%" height={270}>
             <LineChart data={chartData} margin={{ left: 0, right: 24 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} interval={0} angle={-20} textAnchor="end" height={50} />
-              <YAxis domain={[0, 60]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                interval={0}
+                angle={-20}
+                textAnchor="end"
+                height={52}
+              />
+              <YAxis
+                domain={[0, 60]}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tickFormatter={v => `${v}%`}
+              />
               <Tooltip
                 contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
-                formatter={(v: any) => [`${v}%`, targetCandidate]}
+                formatter={(v: any, name: string) => [`${v}%`, name]}
               />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke={CANDIDATE_COLORS[targetCandidate] ?? 'hsl(var(--primary))'}
-                strokeWidth={3}
-                dot={{ r: 5, fill: CANDIDATE_COLORS[targetCandidate] ?? 'hsl(var(--primary))' }}
-              />
+              {allSelectedCandidates.map((c, i) => (
+                <Line
+                  key={c}
+                  type="monotone"
+                  dataKey={c}
+                  stroke={CANDIDATE_COLORS[c] ?? 'hsl(var(--primary))'}
+                  strokeWidth={i === 0 ? 3 : 2}
+                  strokeDasharray={i === 0 ? undefined : '5 3'}
+                  opacity={i === 0 ? 1 : 0.75}
+                  dot={{ r: i === 0 ? 5 : 3, fill: CANDIDATE_COLORS[c] ?? 'hsl(var(--primary))' }}
+                  connectNulls
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
 
+          {/* Variation table */}
           {chartData.length > 1 && (
             <div className="mt-4 border-t border-border pt-4">
               <div className="text-xs font-semibold text-muted-foreground mb-3">Variação entre cenários</div>
@@ -957,24 +1065,45 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="py-1.5 px-2 text-left text-muted-foreground">Onda / Cenário</th>
-                      <th className="py-1.5 px-2 text-right text-muted-foreground">Valor</th>
-                      <th className="py-1.5 px-2 text-right text-muted-foreground">Δ anterior</th>
+                      <th className="py-1.5 px-2 text-left text-muted-foreground whitespace-nowrap">Onda / Cenário</th>
+                      {allSelectedCandidates.map(c => (
+                        <th key={c} className="py-1.5 px-2 text-right text-muted-foreground whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1">
+                            <span
+                              className="inline-block w-2 h-2 rounded-full"
+                              style={{ backgroundColor: CANDIDATE_COLORS[c] ?? 'hsl(var(--muted-foreground))' }}
+                            />
+                            {c.split(' ')[0]}
+                          </span>
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {chartData.map((row, i) => {
-                      const delta = i > 0 ? row.value - chartData[i - 1].value : null;
-                      return (
-                        <tr key={i} className="border-b border-border last:border-0">
-                          <td className="py-1.5 px-2">{row.label}</td>
-                          <td className="py-1.5 px-2 text-right font-semibold">{row.value}%</td>
-                          <td className={`py-1.5 px-2 text-right font-bold ${delta === null ? '' : delta > 0 ? 'text-brand-green' : delta < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
-                            {delta === null ? '—' : delta > 0 ? `+${delta.toFixed(1)}pp` : `${delta.toFixed(1)}pp`}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {chartData.map((row, i) => (
+                      <tr key={i} className="border-b border-border last:border-0">
+                        <td className="py-1.5 px-2 text-muted-foreground">{row.label}</td>
+                        {allSelectedCandidates.map(c => {
+                          const val: number | undefined = row[c];
+                          const prev: number | undefined = i > 0 ? chartData[i - 1][c] : undefined;
+                          const delta = val !== undefined && prev !== undefined ? val - prev : null;
+                          return (
+                            <td key={c} className="py-1.5 px-2 text-right">
+                              {val !== undefined ? (
+                                <span className="font-semibold">{val.toFixed(1)}%</span>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                              {delta !== null && (
+                                <span className={`ml-1 text-[10px] font-bold ${delta > 0 ? 'text-brand-green' : delta < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
+                                  {delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
