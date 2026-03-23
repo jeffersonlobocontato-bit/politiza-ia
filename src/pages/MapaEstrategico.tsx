@@ -94,6 +94,12 @@ export default function MapaEstrategico() {
               <div className="text-xs text-muted-foreground">
                 {activeLayer === 'acoes' ? 'ações' : activeLayer === 'ativos' ? 'ativos' : 'municípios'}
               </div>
+              {newActionIds.size > 0 && activeLayer === 'acoes' && (
+                <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-brand-green">
+                  <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
+                  {newActionIds.size} nova{newActionIds.size > 1 ? 's' : ''} ação{newActionIds.size > 1 ? 'ões' : ''} ao vivo
+                </div>
+              )}
             </div>
           </div>
         )}
