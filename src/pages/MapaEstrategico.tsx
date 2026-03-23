@@ -114,11 +114,11 @@ export default function MapaEstrategico() {
               <CircleMarker
                 key={m.id}
                 center={[m.lat, m.lng]}
-                radius={Math.max(10, m.engagementScore * 0.15)}
+                radius={Math.max(14, m.engagementScore * 0.22)}
                 fillColor={getEngagementColor(m.engagementScore)}
                 color={getEngagementColor(m.engagementScore)}
-                weight={1}
-                fillOpacity={0.65}
+                weight={2}
+                fillOpacity={0.8}
               >
                 <Tooltip>
                   <strong>{m.name}</strong><br />
