@@ -151,15 +151,15 @@ export default function SalaDeGuerra() {
                     </CircleMarker>
                   );
                 })}
-                {/* Action pins */}
+            {/* Action pins */}
                 {mapView === 'operacional' && actions.map((action) => (
                   <CircleMarker
                     key={action.id}
                     center={[action.lat, action.lng]}
-                    radius={5}
+                    radius={7}
                     fillColor={getStatusColor(action.status)}
                     color="#ffffff"
-                    weight={1.5}
+                    weight={2}
                     fillOpacity={0.95}
                   >
                     <Popup>
