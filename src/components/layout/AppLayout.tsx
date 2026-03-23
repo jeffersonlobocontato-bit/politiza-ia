@@ -1,0 +1,64 @@
+import { ReactNode, useState, useEffect } from 'react';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from './AppSidebar';
+import { Bell, Clock } from 'lucide-react';
+import { alerts } from '@/data/mockData';
+import { Badge } from '@/components/ui/badge';
+
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
+  const [time, setTime] = useState(new Date());
+  const unreadAlerts = alerts.filter(a => !a.isRead).length;
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top bar */}
+          <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card/50 backdrop-blur-sm flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
+                <span className="text-xs text-muted-foreground font-medium">Sistema Online</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-1.5 text-xs text-muted-foreground mono">
+                <Clock className="w-3.5 h-3.5" />
+                <span>{time.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })}</span>
+              </div>
+              <button className="relative p-1.5 rounded-md hover:bg-accent transition-colors">
+                <Bell className="w-4 h-4 text-muted-foreground" />
+                {unreadAlerts > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-brand-red text-white text-[9px] font-bold">
+                    {unreadAlerts}
+                  </span>
+                )}
+              </button>
+              <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-border">
+                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-primary">JM</span>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Page content */}
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
