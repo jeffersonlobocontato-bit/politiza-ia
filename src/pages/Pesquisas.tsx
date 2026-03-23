@@ -1,17 +1,30 @@
-import { useState, useMemo } from 'react';
-import { BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare, FileText, X, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import {
+  BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare,
+  X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText,
+} from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend,
 } from 'recharts';
 import { CandidateBarChart } from '@/components/polls/CandidateBarChart';
 import { CrossTabTable } from '@/components/polls/CrossTabTable';
 import {
-  pollWaves, pollQuestions, pollComparativos,
-  PollWave, Cargo, FilterType, CANDIDATE_COLORS,
+  pollWaves as initialWaves,
+  pollQuestions as initialQuestions,
+  pollComparativos as initialComparativos,
+  PollWave, PollQuestion, Cargo, FilterType, CANDIDATE_COLORS,
 } from '@/data/pollsData';
 
 // ─── helpers ─────────────────────────────────────────────────
@@ -23,10 +36,20 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
   { value: 'religiosidade', label: 'Religiosidade' },
 ];
 
-function WaveCard({ wave }: { wave: PollWave }) {
+// ─── WaveCard ────────────────────────────────────────────────
+function WaveCard({ wave, onDelete }: { wave: PollWave; onDelete?: () => void }) {
   return (
-    <div className="rounded-xl border border-border p-4 flex flex-col gap-3" style={{ background: 'var(--gradient-card)' }}>
-      <div className="flex items-start justify-between gap-2">
+    <div className="rounded-xl border border-border p-4 flex flex-col gap-3 relative" style={{ background: 'var(--gradient-card)' }}>
+      {onDelete && (
+        <button
+          onClick={onDelete}
+          className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors"
+          title="Remover pesquisa"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
+      <div className="flex items-start justify-between gap-2 pr-6">
         <div>
           <div className="text-xs font-bold text-primary">{wave.institute}</div>
           <div className="text-sm font-semibold text-foreground mt-0.5">{wave.territory}</div>
@@ -57,14 +80,168 @@ function WaveCard({ wave }: { wave: PollWave }) {
   );
 }
 
+// ─── Import modal types ───────────────────────────────────────
+interface CandidateEntry { name: string; pct: string }
+interface ImportForm {
+  institute: string;
+  territory: string;
+  cargos: Cargo[];
+  collectionStart: string;
+  collectionEnd: string;
+  releaseDate: string;
+  sampleSize: string;
+  marginOfError: string;
+  methodology: string;
+  tseRegistration: string;
+  // per-cargo candidate data for one estimulada scenario
+  govCandidates: CandidateEntry[];
+  senCandidates: CandidateEntry[];
+}
+
+const emptyForm = (): ImportForm => ({
+  institute: '',
+  territory: 'Estado do Paraná',
+  cargos: ['governador', 'senador'],
+  collectionStart: '',
+  collectionEnd: '',
+  releaseDate: '',
+  sampleSize: '',
+  marginOfError: '',
+  methodology: '',
+  tseRegistration: '',
+  govCandidates: [{ name: '', pct: '' }],
+  senCandidates: [{ name: '', pct: '' }],
+});
+
 // ─── Tab: Biblioteca ─────────────────────────────────────────
-function TabBiblioteca() {
+interface BibliotecaProps {
+  waves: PollWave[];
+  onAdd: (wave: PollWave, questions: PollQuestion[]) => void;
+  onDelete: (waveId: string) => void;
+}
+
+function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(1);
+  const [fileName, setFileName] = useState('');
+  const [form, setForm] = useState<ImportForm>(emptyForm());
+
+  const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
+
+  const handleFileClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      setStep(1);
+      setForm(emptyForm());
+      setOpen(true);
+    }
+    // reset so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const toggleCargo = (cargo: Cargo) => {
+    updateForm({
+      cargos: form.cargos.includes(cargo)
+        ? form.cargos.filter(c => c !== cargo)
+        : [...form.cargos, cargo],
+    });
+  };
+
+  const addCandidate = (field: 'govCandidates' | 'senCandidates') =>
+    updateForm({ [field]: [...form[field], { name: '', pct: '' }] });
+
+  const removeCandidate = (field: 'govCandidates' | 'senCandidates', idx: number) =>
+    updateForm({ [field]: form[field].filter((_, i) => i !== idx) });
+
+  const updateCandidate = (field: 'govCandidates' | 'senCandidates', idx: number, key: 'name' | 'pct', value: string) => {
+    const updated = [...form[field]];
+    updated[idx] = { ...updated[idx], [key]: value };
+    updateForm({ [field]: updated });
+  };
+
+  const canGoNext = () => {
+    if (step === 1) return !!fileName;
+    if (step === 2) return !!(form.institute && form.territory && form.cargos.length > 0 && form.releaseDate && form.sampleSize);
+    return true;
+  };
+
+  const handleConfirm = () => {
+    const waveId = `wave-${Date.now()}`;
+    const newWave: PollWave = {
+      id: waveId,
+      institute: form.institute,
+      territory: form.territory,
+      cargos: form.cargos,
+      collectionStart: form.collectionStart || form.releaseDate,
+      collectionEnd: form.collectionEnd || form.releaseDate,
+      releaseDate: form.releaseDate,
+      sampleSize: parseInt(form.sampleSize) || 0,
+      marginOfError: parseFloat(form.marginOfError) || 0,
+      methodology: form.methodology,
+      tseRegistration: form.tseRegistration,
+    };
+
+    const newQuestions: PollQuestion[] = [];
+    let qIdx = 0;
+
+    if (form.cargos.includes('governador') && form.govCandidates.some(c => c.name && c.pct)) {
+      newQuestions.push({
+        id: `${waveId}-gov-est-1`,
+        waveId,
+        cargo: 'governador',
+        questionType: 'estimulada',
+        scenarioLabel: 'Cenário 1',
+        results: form.govCandidates
+          .filter(c => c.name)
+          .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
+          .sort((a, b) => b.percentage - a.percentage),
+        crossTabs: [],
+      });
+      qIdx++;
+    }
+
+    if (form.cargos.includes('senador') && form.senCandidates.some(c => c.name && c.pct)) {
+      newQuestions.push({
+        id: `${waveId}-sen-est-1`,
+        waveId,
+        cargo: 'senador',
+        questionType: 'estimulada',
+        scenarioLabel: 'Cenário 1',
+        results: form.senCandidates
+          .filter(c => c.name)
+          .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
+          .sort((a, b) => b.percentage - a.percentage),
+        crossTabs: [],
+      });
+    }
+
+    onAdd(newWave, newQuestions);
+    setOpen(false);
+    setStep(1);
+    setFileName('');
+    setForm(emptyForm());
+  };
+
   return (
     <div className="space-y-4">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* Upload area */}
-      <div className="rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center gap-3 cursor-pointer"
+      <div
+        className="rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center gap-3 cursor-pointer"
         style={{ background: 'var(--gradient-card)' }}
-        onClick={() => {}}
+        onClick={handleFileClick}
       >
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
           <Upload className="w-5 h-5 text-primary" />
@@ -82,26 +259,295 @@ function TabBiblioteca() {
 
       {/* Wave cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {pollWaves.map(w => <WaveCard key={w.id} wave={w} />)}
+        {waves.map(w => (
+          <WaveCard
+            key={w.id}
+            wave={w}
+            onDelete={() => onDelete(w.id)}
+          />
+        ))}
       </div>
+
+      {/* Import Dialog */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              Importar Pesquisa
+              <Badge variant="outline" className="ml-auto text-[10px]">Passo {step} / 3</Badge>
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Step indicator */}
+          <div className="flex gap-1 mb-2">
+            {[1, 2, 3].map(s => (
+              <div
+                key={s}
+                className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-muted'}`}
+              />
+            ))}
+          </div>
+
+          {/* ── Step 1: Arquivo ── */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div className="text-sm font-semibold text-muted-foreground">Arquivo selecionado</div>
+              <div className="flex items-center gap-3 rounded-lg border border-border p-3 bg-muted/30">
+                <FileText className="w-8 h-8 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate">{fileName}</div>
+                  <div className="text-xs text-muted-foreground">PDF · Pronto para importar</div>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3 space-y-1">
+                <div className="font-semibold text-foreground mb-1">Padrões reconhecidos:</div>
+                <div>• Relatório completo (Paraná Pesquisas) — Espontânea, Estimulada por cenários, Rejeição, Aprovação + Comparativo</div>
+                <div>• Tabulação cruzada colorida — sub/sobre-representação por segmento</div>
+                <div className="mt-2 text-[10px] text-muted-foreground">Os dados serão inseridos manualmente nas próximas etapas.</div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 2: Metadados ── */}
+          {step === 2 && (
+            <div className="space-y-3">
+              <div className="text-sm font-semibold text-muted-foreground mb-2">Metadados da pesquisa</div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2 space-y-1">
+                  <Label className="text-xs">Instituto *</Label>
+                  <Input
+                    placeholder="ex: Paraná Pesquisas"
+                    value={form.institute}
+                    onChange={e => updateForm({ institute: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="col-span-2 space-y-1">
+                  <Label className="text-xs">Território *</Label>
+                  <Input
+                    placeholder="ex: Estado do Paraná"
+                    value={form.territory}
+                    onChange={e => updateForm({ territory: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Coleta — início</Label>
+                  <Input
+                    type="date"
+                    value={form.collectionStart}
+                    onChange={e => updateForm({ collectionStart: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Coleta — fim</Label>
+                  <Input
+                    type="date"
+                    value={form.collectionEnd}
+                    onChange={e => updateForm({ collectionEnd: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Data de divulgação *</Label>
+                  <Input
+                    type="date"
+                    value={form.releaseDate}
+                    onChange={e => updateForm({ releaseDate: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Registro TSE</Label>
+                  <Input
+                    placeholder="ex: PR-00000/2026"
+                    value={form.tseRegistration}
+                    onChange={e => updateForm({ tseRegistration: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Tamanho da amostra *</Label>
+                  <Input
+                    type="number"
+                    placeholder="ex: 1500"
+                    value={form.sampleSize}
+                    onChange={e => updateForm({ sampleSize: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Margem de erro (pp)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="ex: 2.8"
+                    value={form.marginOfError}
+                    onChange={e => updateForm({ marginOfError: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="col-span-2 space-y-1">
+                  <Label className="text-xs">Metodologia</Label>
+                  <Textarea
+                    placeholder="ex: Entrevistas presenciais com eleitores aptos a votar..."
+                    value={form.methodology}
+                    onChange={e => updateForm({ methodology: e.target.value })}
+                    className="text-sm min-h-[60px]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Cargos pesquisados *</Label>
+                <div className="flex gap-4">
+                  {(['governador', 'senador'] as Cargo[]).map(c => (
+                    <div key={c} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`cargo-${c}`}
+                        checked={form.cargos.includes(c)}
+                        onCheckedChange={() => toggleCargo(c)}
+                      />
+                      <label htmlFor={`cargo-${c}`} className="text-sm capitalize cursor-pointer">
+                        {c}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: Dados ── */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <div className="text-sm font-semibold text-muted-foreground">
+                Dados de intenção de voto — Cenário 1 (Estimulada)
+              </div>
+              <div className="text-xs text-muted-foreground -mt-3">
+                Preencha candidatos e percentuais para visualização imediata. Você pode adicionar mais dados depois.
+              </div>
+
+              {form.cargos.includes('governador') && (
+                <CandidatesBlock
+                  title="Governador"
+                  entries={form.govCandidates}
+                  onAdd={() => addCandidate('govCandidates')}
+                  onRemove={idx => removeCandidate('govCandidates', idx)}
+                  onChange={(idx, key, val) => updateCandidate('govCandidates', idx, key, val)}
+                />
+              )}
+
+              {form.cargos.includes('senador') && (
+                <CandidatesBlock
+                  title="Senador"
+                  entries={form.senCandidates}
+                  onAdd={() => addCandidate('senCandidates')}
+                  onRemove={idx => removeCandidate('senCandidates', idx)}
+                  onChange={(idx, key, val) => updateCandidate('senCandidates', idx, key, val)}
+                />
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="mt-4 gap-2">
+            {step > 1 && (
+              <Button variant="outline" size="sm" onClick={() => setStep(s => s - 1)}>
+                Voltar
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => { setOpen(false); setStep(1); }}>
+              Cancelar
+            </Button>
+            {step < 3 ? (
+              <Button size="sm" onClick={() => setStep(s => s + 1)} disabled={!canGoNext()}>
+                Próximo
+              </Button>
+            ) : (
+              <Button size="sm" onClick={handleConfirm}>
+                Confirmar importação
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CandidatesBlock({
+  title, entries, onAdd, onRemove, onChange,
+}: {
+  title: string;
+  entries: CandidateEntry[];
+  onAdd: () => void;
+  onRemove: (idx: number) => void;
+  onChange: (idx: number, key: 'name' | 'pct', val: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="text-xs font-semibold text-foreground">{title}</div>
+      {entries.map((entry, idx) => (
+        <div key={idx} className="flex gap-2 items-center">
+          <Input
+            placeholder="Nome do candidato"
+            value={entry.name}
+            onChange={e => onChange(idx, 'name', e.target.value)}
+            className="h-8 text-sm flex-1"
+          />
+          <Input
+            type="number"
+            placeholder="%"
+            value={entry.pct}
+            onChange={e => onChange(idx, 'pct', e.target.value)}
+            className="h-8 text-sm w-20"
+            min={0}
+            max={100}
+          />
+          {entries.length > 1 && (
+            <button onClick={() => onRemove(idx)} className="text-muted-foreground hover:text-destructive transition-colors">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      ))}
+      <Button variant="outline" size="sm" className="w-full h-7 text-xs gap-1" onClick={onAdd}>
+        <Plus className="w-3 h-3" /> Adicionar candidato
+      </Button>
     </div>
   );
 }
 
 // ─── Tab: Analisar ───────────────────────────────────────────
-function TabAnalisar() {
-  const [selectedWave, setSelectedWave] = useState(pollWaves[0]?.id ?? '');
+interface AnalisarProps {
+  waves: PollWave[];
+  questions: PollQuestion[];
+}
+
+function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
+  const [selectedWave, setSelectedWave] = useState(waves[0]?.id ?? '');
   const [cargo, setCargo] = useState<Cargo>('governador');
   const [activeFilter, setActiveFilter] = useState<FilterType>('genero');
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     espontanea: true, estimulada: true, rejeicao: false, aprovacao: false,
   });
 
-  const wave = pollWaves.find(w => w.id === selectedWave);
+  const wave = waves.find(w => w.id === selectedWave);
 
   const questions = useMemo(() =>
-    pollQuestions.filter(q => q.waveId === selectedWave && q.cargo === cargo),
-    [selectedWave, cargo],
+    allQuestions.filter(q => q.waveId === selectedWave && q.cargo === cargo),
+    [allQuestions, selectedWave, cargo],
   );
 
   const estimuladas = questions.filter(q => q.questionType === 'estimulada');
@@ -111,7 +557,7 @@ function TabAnalisar() {
   const espontanea = questions.find(q => q.questionType === 'espontanea');
   const rejeicao   = questions.find(q => q.questionType === 'rejeicao');
 
-  const comparativos = pollComparativos.filter(c => c.waveId === selectedWave && c.cargo === cargo);
+  const comparativos = initialComparativos.filter(c => c.waveId === selectedWave && c.cargo === cargo);
   const aprovacao = comparativos.find(c => c.questionType === 'aprovacao');
 
   const toggleSection = (key: string) =>
@@ -127,7 +573,7 @@ function TabAnalisar() {
               <SelectValue placeholder="Selecione a pesquisa" />
             </SelectTrigger>
             <SelectContent>
-              {pollWaves.map(w => (
+              {waves.map(w => (
                 <SelectItem key={w.id} value={w.id}>
                   {w.institute} · {w.releaseDate} · {w.territory}
                 </SelectItem>
@@ -191,7 +637,7 @@ function TabAnalisar() {
                     key={q.id}
                     onClick={() => setActiveScenario(q.id)}
                     className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
-                      activeScenario === q.id
+                      (activeScenario === q.id || (!activeScenario && estimuladas[0]?.id === q.id))
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'border-border text-muted-foreground hover:bg-muted'
                     }`}
@@ -306,7 +752,6 @@ function TabAnalisar() {
             <div className="mt-2 rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
               <div className="text-xs text-muted-foreground">Ratinho Junior — Evolução da avaliação da administração estadual</div>
 
-              {/* Approve/Disapprove line */}
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={aprovacao.rows.map(r => ({ wave: r.wave, ...r.values }))}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -319,7 +764,6 @@ function TabAnalisar() {
                 </LineChart>
               </ResponsiveContainer>
 
-              {/* Detailed evaluation lines */}
               <div className="border-t border-border pt-4">
                 <div className="text-xs font-semibold text-muted-foreground mb-3">Avaliação Detalhada</div>
                 <ResponsiveContainer width="100%" height={200}>
@@ -341,13 +785,25 @@ function TabAnalisar() {
           </CollapsibleContent>
         </Collapsible>
       )}
+
+      {questions.length === 0 && (
+        <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-center" style={{ background: 'var(--gradient-card)' }}>
+          <Search className="w-8 h-8 text-muted-foreground/40" />
+          <div className="text-sm text-muted-foreground">Nenhuma pergunta encontrada para este cargo nesta pesquisa.</div>
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── Tab: Cruzar ─────────────────────────────────────────────
-function TabCruzar() {
-  const [selectedWaves, setSelectedWaves] = useState<string[]>([pollWaves[0]?.id ?? '']);
+interface CruzarProps {
+  waves: PollWave[];
+  questions: PollQuestion[];
+}
+
+function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
+  const [selectedWaves, setSelectedWaves] = useState<string[]>([waves[0]?.id ?? '']);
   const [metricType, setMetricType] = useState<'estimulada' | 'rejeicao'>('estimulada');
   const [targetCargo, setTargetCargo] = useState<Cargo>('governador');
   const [targetCandidate, setTargetCandidate] = useState('Sergio Moro');
@@ -358,10 +814,9 @@ function TabCruzar() {
     );
   };
 
-  // Candidates available across selected waves and cargo
   const availableCandidates = useMemo(() => {
     const set = new Set<string>();
-    pollQuestions
+    allQuestions
       .filter(q => selectedWaves.includes(q.waveId) && q.cargo === targetCargo && q.questionType === metricType)
       .forEach(q => q.results.forEach(r => {
         if (!['Não sabe/ Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo', 'Poderia votar em todos'].includes(r.candidate)) {
@@ -369,19 +824,18 @@ function TabCruzar() {
         }
       }));
     return [...set];
-  }, [selectedWaves, targetCargo, metricType]);
+  }, [allQuestions, selectedWaves, targetCargo, metricType]);
 
-  // Build chart data — one point per wave per scenario
   const chartData = useMemo(() => {
     const points: { label: string; value: number; wave: string; scenario: string }[] = [];
-    pollQuestions
+    allQuestions
       .filter(q =>
         selectedWaves.includes(q.waveId) &&
         q.cargo === targetCargo &&
         q.questionType === metricType,
       )
       .forEach(q => {
-        const wave = pollWaves.find(w => w.id === q.waveId);
+        const wave = waves.find(w => w.id === q.waveId);
         const result = q.results.find(r => r.candidate === targetCandidate);
         if (result) {
           points.push({
@@ -393,19 +847,17 @@ function TabCruzar() {
         }
       });
     return points;
-  }, [selectedWaves, targetCargo, metricType, targetCandidate]);
+  }, [allQuestions, waves, selectedWaves, targetCargo, metricType, targetCandidate]);
 
   return (
     <div className="space-y-4">
-      {/* Controls */}
       <div className="rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
         <div className="text-sm font-semibold flex items-center gap-2"><GitCompare className="w-4 h-4 text-primary" /> Configurar Cruzamento</div>
 
-        {/* Wave multi-select */}
         <div>
           <div className="text-xs text-muted-foreground mb-2 font-medium">Pesquisas (máx. 4):</div>
           <div className="flex flex-wrap gap-2">
-            {pollWaves.map(w => (
+            {waves.map(w => (
               <button
                 key={w.id}
                 onClick={() => toggleWave(w.id)}
@@ -422,7 +874,6 @@ function TabCruzar() {
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          {/* Cargo */}
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Cargo:</div>
             <div className="flex rounded-lg border border-border overflow-hidden text-sm">
@@ -440,7 +891,6 @@ function TabCruzar() {
             </div>
           </div>
 
-          {/* Metric */}
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Métrica:</div>
             <div className="flex rounded-lg border border-border overflow-hidden text-xs">
@@ -458,7 +908,6 @@ function TabCruzar() {
             </div>
           </div>
 
-          {/* Candidate */}
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Candidato(a):</div>
             <Select value={targetCandidate} onValueChange={setTargetCandidate}>
@@ -475,7 +924,6 @@ function TabCruzar() {
         </div>
       </div>
 
-      {/* Chart */}
       {chartData.length > 0 ? (
         <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
           <div className="flex items-center gap-2 mb-4">
@@ -502,7 +950,6 @@ function TabCruzar() {
             </LineChart>
           </ResponsiveContainer>
 
-          {/* Delta table */}
           {chartData.length > 1 && (
             <div className="mt-4 border-t border-border pt-4">
               <div className="text-xs font-semibold text-muted-foreground mb-3">Variação entre cenários</div>
@@ -546,18 +993,29 @@ function TabCruzar() {
 
 // ─── Page ─────────────────────────────────────────────────────
 export default function Pesquisas() {
+  const [waves, setWaves] = useState<PollWave[]>(initialWaves);
+  const [questions, setQuestions] = useState<PollQuestion[]>(initialQuestions);
+
+  const handleAdd = (wave: PollWave, newQuestions: PollQuestion[]) => {
+    setWaves(prev => [wave, ...prev]);
+    setQuestions(prev => [...newQuestions, ...prev]);
+  };
+
+  const handleDelete = (waveId: string) => {
+    setWaves(prev => prev.filter(w => w.id !== waveId));
+    setQuestions(prev => prev.filter(q => q.waveId !== waveId));
+  };
+
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center gap-3 flex-shrink-0">
         <BarChart2 className="w-5 h-5 text-primary" />
         <div>
           <h1 className="text-base font-bold">Pesquisas Eleitorais</h1>
-          <p className="text-xs text-muted-foreground">{pollWaves.length} pesquisa{pollWaves.length !== 1 ? 's' : ''} registrada{pollWaves.length !== 1 ? 's' : ''} · Paraná 2026</p>
+          <p className="text-xs text-muted-foreground">{waves.length} pesquisa{waves.length !== 1 ? 's' : ''} registrada{waves.length !== 1 ? 's' : ''} · Paraná 2026</p>
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex-1 overflow-auto">
         <Tabs defaultValue="biblioteca" className="h-full flex flex-col">
           <div className="px-6 pt-4 flex-shrink-0">
@@ -578,13 +1036,13 @@ export default function Pesquisas() {
           </div>
 
           <TabsContent value="biblioteca" className="flex-1 overflow-auto px-6 pb-6 pt-4 mt-0">
-            <TabBiblioteca />
+            <TabBiblioteca waves={waves} onAdd={handleAdd} onDelete={handleDelete} />
           </TabsContent>
           <TabsContent value="analisar" className="flex-1 overflow-auto px-6 pb-6 pt-4 mt-0">
-            <TabAnalisar />
+            <TabAnalisar waves={waves} questions={questions} />
           </TabsContent>
           <TabsContent value="cruzar" className="flex-1 overflow-auto px-6 pb-6 pt-4 mt-0">
-            <TabCruzar />
+            <TabCruzar waves={waves} questions={questions} />
           </TabsContent>
         </Tabs>
       </div>
