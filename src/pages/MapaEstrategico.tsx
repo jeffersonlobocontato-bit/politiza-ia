@@ -133,11 +133,11 @@ export default function MapaEstrategico() {
               <CircleMarker
                 key={action.id}
                 center={[action.lat, action.lng]}
-                radius={action.estimatedImpact > 5000 ? 12 : action.estimatedImpact > 1000 ? 9 : 6}
+                radius={action.estimatedImpact > 5000 ? 16 : action.estimatedImpact > 1000 ? 12 : 8}
                 fillColor={getStatusColor(action.status)}
                 color="#ffffff"
-                weight={1.5}
-                fillOpacity={0.9}
+                weight={2}
+                fillOpacity={0.92}
                 eventHandlers={{ click: () => setSelectedAction(action) }}
               >
                 <Popup>
