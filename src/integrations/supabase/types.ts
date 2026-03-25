@@ -14,16 +14,522 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      action_history: {
+        Row: {
+          action_id: string
+          changed_by: string | null
+          changed_by_name: string | null
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["action_status"] | null
+          note: string | null
+          old_status: Database["public"]["Enums"]["action_status"] | null
+        }
+        Insert: {
+          action_id: string
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["action_status"] | null
+          note?: string | null
+          old_status?: Database["public"]["Enums"]["action_status"] | null
+        }
+        Update: {
+          action_id?: string
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["action_status"] | null
+          note?: string | null
+          old_status?: Database["public"]["Enums"]["action_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_history_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      actions: {
+        Row: {
+          address: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          estimated_impact: number
+          evidence_photos: string[]
+          executed_date: string | null
+          executed_people_count: number | null
+          id: string
+          lat: number | null
+          lng: number | null
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          observations: string | null
+          planned_date: string
+          planned_time: string | null
+          priority: Database["public"]["Enums"]["priority_level"]
+          responsible: string | null
+          status: Database["public"]["Enums"]["action_status"]
+          target_audience: string | null
+          team: string[]
+          title: string
+          type: Database["public"]["Enums"]["action_type"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          estimated_impact?: number
+          evidence_photos?: string[]
+          executed_date?: string | null
+          executed_people_count?: number | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          observations?: string | null
+          planned_date: string
+          planned_time?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["action_status"]
+          target_audience?: string | null
+          team?: string[]
+          title: string
+          type?: Database["public"]["Enums"]["action_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          estimated_impact?: number
+          evidence_photos?: string[]
+          executed_date?: string | null
+          executed_people_count?: number | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          observations?: string | null
+          planned_date?: string
+          planned_time?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["action_status"]
+          target_audience?: string | null
+          team?: string[]
+          title?: string
+          type?: Database["public"]["Enums"]["action_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actions_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alerts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_auto_generated: boolean
+          is_read: boolean
+          level: Database["public"]["Enums"]["alert_level"]
+          macroregion_id: string | null
+          recommendation: string | null
+          resolved_at: string | null
+          severity: number
+          status: Database["public"]["Enums"]["alert_status"]
+          territory: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_auto_generated?: boolean
+          is_read?: boolean
+          level?: Database["public"]["Enums"]["alert_level"]
+          macroregion_id?: string | null
+          recommendation?: string | null
+          resolved_at?: string | null
+          severity?: number
+          status?: Database["public"]["Enums"]["alert_status"]
+          territory?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_auto_generated?: boolean
+          is_read?: boolean
+          level?: Database["public"]["Enums"]["alert_level"]
+          macroregion_id?: string | null
+          recommendation?: string | null
+          resolved_at?: string | null
+          severity?: number
+          status?: Database["public"]["Enums"]["alert_status"]
+          territory?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_members: {
+        Row: {
+          actions_managed: number
+          completion_rate: number
+          created_at: string
+          created_by: string | null
+          email: string | null
+          hierarchy_level: number
+          id: string
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          name: string
+          observations: string | null
+          phone: string | null
+          role: string
+          status: string
+          supervisor_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          actions_managed?: number
+          completion_rate?: number
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          hierarchy_level?: number
+          id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          name: string
+          observations?: string | null
+          phone?: string | null
+          role?: string
+          status?: string
+          supervisor_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          actions_managed?: number
+          completion_rate?: number
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          hierarchy_level?: number
+          id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          name?: string
+          observations?: string | null
+          phone?: string | null
+          role?: string
+          status?: string
+          supervisor_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_members_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_members_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      macroregions: {
+        Row: {
+          center_lat: number | null
+          center_lng: number | null
+          coordinator: string | null
+          created_at: string
+          id: string
+          municipalities_count: number
+          name: string
+        }
+        Insert: {
+          center_lat?: number | null
+          center_lng?: number | null
+          coordinator?: string | null
+          created_at?: string
+          id: string
+          municipalities_count?: number
+          name: string
+        }
+        Update: {
+          center_lat?: number | null
+          center_lng?: number | null
+          coordinator?: string | null
+          created_at?: string
+          id?: string
+          municipalities_count?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      political_assets: {
+        Row: {
+          alignment_status: Database["public"]["Enums"]["alignment_status"]
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          id: string
+          influence_level: number
+          lat: number | null
+          lng: number | null
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          name: string
+          observations: string | null
+          phone: string | null
+          position: string | null
+          relationship_owner: string | null
+          support_status: string | null
+          type: Database["public"]["Enums"]["asset_type"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          alignment_status?: Database["public"]["Enums"]["alignment_status"]
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          influence_level?: number
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          name: string
+          observations?: string | null
+          phone?: string | null
+          position?: string | null
+          relationship_owner?: string | null
+          support_status?: string | null
+          type?: Database["public"]["Enums"]["asset_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          alignment_status?: Database["public"]["Enums"]["alignment_status"]
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          influence_level?: number
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          name?: string
+          observations?: string | null
+          phone?: string | null
+          position?: string | null
+          relationship_owner?: string | null
+          support_status?: string | null
+          type?: Database["public"]["Enums"]["asset_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "political_assets_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_dashboard_kpis: { Args: never; Returns: Json }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      action_status:
+        | "prevista"
+        | "confirmada"
+        | "em_andamento"
+        | "realizada"
+        | "atrasada"
+        | "cancelada"
+        | "pendente_validacao"
+      action_type:
+        | "reuniao_politica"
+        | "visita_institucional"
+        | "mobilizacao_comunitaria"
+        | "adesivacao"
+        | "panfletagem"
+        | "carreata"
+        | "evento_regional"
+        | "agenda_candidato"
+        | "reuniao_empresarios"
+        | "encontro_liderancas"
+        | "acao_digital"
+      alert_level: "critico" | "atencao" | "oportunidade" | "info"
+      alert_status: "novo" | "em_analise" | "resolvido"
+      alignment_status:
+        | "alinhado"
+        | "provavel"
+        | "neutro"
+        | "oposicao"
+        | "indefinido"
+      app_role:
+        | "admin_master"
+        | "coordenador_geral"
+        | "coordenador_estadual"
+        | "coordenador_regional"
+        | "coordenador_microrregional"
+        | "coordenador_municipal"
+        | "lideranca_local"
+        | "operador_campo"
+        | "analista_inteligencia"
+        | "analista_pesquisa"
+        | "executivo_leitura"
+      asset_type:
+        | "prefeito"
+        | "ex_prefeito"
+        | "pretenso_prefeito"
+        | "vereador"
+        | "ex_vereador"
+        | "pretenso_vereador"
+        | "lideranca_comunitaria"
+        | "lideranca_empresarial"
+        | "lideranca_religiosa"
+        | "presidente_entidade"
+        | "influenciador_regional"
+        | "coordenador_partidario"
+      priority_level: "critica" | "alta" | "media" | "baixa"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +656,66 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      action_status: [
+        "prevista",
+        "confirmada",
+        "em_andamento",
+        "realizada",
+        "atrasada",
+        "cancelada",
+        "pendente_validacao",
+      ],
+      action_type: [
+        "reuniao_politica",
+        "visita_institucional",
+        "mobilizacao_comunitaria",
+        "adesivacao",
+        "panfletagem",
+        "carreata",
+        "evento_regional",
+        "agenda_candidato",
+        "reuniao_empresarios",
+        "encontro_liderancas",
+        "acao_digital",
+      ],
+      alert_level: ["critico", "atencao", "oportunidade", "info"],
+      alert_status: ["novo", "em_analise", "resolvido"],
+      alignment_status: [
+        "alinhado",
+        "provavel",
+        "neutro",
+        "oposicao",
+        "indefinido",
+      ],
+      app_role: [
+        "admin_master",
+        "coordenador_geral",
+        "coordenador_estadual",
+        "coordenador_regional",
+        "coordenador_microrregional",
+        "coordenador_municipal",
+        "lideranca_local",
+        "operador_campo",
+        "analista_inteligencia",
+        "analista_pesquisa",
+        "executivo_leitura",
+      ],
+      asset_type: [
+        "prefeito",
+        "ex_prefeito",
+        "pretenso_prefeito",
+        "vereador",
+        "ex_vereador",
+        "pretenso_vereador",
+        "lideranca_comunitaria",
+        "lideranca_empresarial",
+        "lideranca_religiosa",
+        "presidente_entidade",
+        "influenciador_regional",
+        "coordenador_partidario",
+      ],
+      priority_level: ["critica", "alta", "media", "baixa"],
+    },
   },
 } as const
