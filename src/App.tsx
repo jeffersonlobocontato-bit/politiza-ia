@@ -17,6 +17,7 @@ import AtivosPoliticos from "./pages/AtivosPoliticos";
 import Pesquisas from "./pages/Pesquisas";
 import Inteligencia from "./pages/Inteligencia";
 import Hierarquia from "./pages/Hierarquia";
+import Alertas from "./pages/Alertas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
