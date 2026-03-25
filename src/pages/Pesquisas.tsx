@@ -26,6 +26,7 @@ import {
   pollComparativos as initialComparativos,
   PollWave, PollQuestion, Cargo, FilterType, CANDIDATE_COLORS,
 } from '@/data/pollsData';
+import { useSurveys, useCreateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
 
 // ─── helpers ─────────────────────────────────────────────────
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
