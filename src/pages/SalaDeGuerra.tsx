@@ -606,3 +606,8 @@ export default function SalaDeGuerra() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
