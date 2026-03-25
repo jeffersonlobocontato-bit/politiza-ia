@@ -6,12 +6,13 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, User
+  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, User, ShieldAlert
 } from 'lucide-react';
 import { useCandidate } from '@/contexts/CandidateContext';
 
 const navItems = [
   { title: 'Sala de Guerra', url: '/', icon: Crosshair },
+  { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true },
   { title: 'Mapa Estratégico', url: '/mapa', icon: Map },
   { title: 'Territórios', url: '/territorios', icon: Globe },
   { title: 'Ações', url: '/acoes', icon: ClipboardList },
@@ -56,6 +57,7 @@ export function AppSidebar() {
             <SidebarMenu className="gap-0.5 px-2">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.url;
+                const isHighlight = (item as any).highlight;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
@@ -67,14 +69,19 @@ export function AppSidebar() {
                         } ${
                           isActive
                             ? 'bg-primary/15 text-primary font-semibold'
+                            : isHighlight
+                            ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
                             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                         }`}
                         activeClassName=""
                       >
-                        <item.icon className={`flex-shrink-0 w-4 h-4 ${isActive ? 'text-primary' : ''}`} />
+                        <item.icon className={`flex-shrink-0 w-4 h-4 ${isActive ? 'text-primary' : isHighlight ? 'text-red-400' : ''}`} />
                         {!collapsed && <span>{item.title}</span>}
                         {!collapsed && isActive && (
                           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+                        )}
+                        {!collapsed && !isActive && isHighlight && (
+                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
                         )}
                       </NavLink>
                     </SidebarMenuButton>
