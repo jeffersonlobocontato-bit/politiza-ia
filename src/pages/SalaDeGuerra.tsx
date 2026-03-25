@@ -44,21 +44,27 @@ function statusDotColor(status: string) {
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-function KPICard({ label, value, sub, icon: Icon, color, trend }: {
+function KPICard({ label, value, sub, icon: Icon, color, trend, onClick }: {
   label: string; value: string | number; sub?: string;
-  icon: any; color: string; trend?: number;
+  icon: any; color: string; trend?: number; onClick?: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+    <div
+      className={`rounded-xl border border-border p-4 transition-all ${onClick ? 'cursor-pointer hover:border-primary/50 hover:scale-[1.02] group' : ''}`}
+      style={{ background: 'var(--gradient-card)' }}
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}20` }}>
           <Icon className="w-4 h-4" style={{ color }} />
         </div>
-        {trend !== undefined && (
+        {trend !== undefined ? (
           <span className={`text-xs font-semibold ${trend > 0 ? 'text-brand-green' : trend < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
             {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
           </span>
-        )}
+        ) : onClick ? (
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+        ) : null}
       </div>
       <div className="text-2xl font-black text-foreground">{value}</div>
       <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
