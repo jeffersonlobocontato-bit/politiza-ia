@@ -6,8 +6,9 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle
+  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, User
 } from 'lucide-react';
+import { useCandidate } from '@/contexts/CandidateContext';
 
 const navItems = [
   { title: 'Sala de Guerra', url: '/', icon: Crosshair },
