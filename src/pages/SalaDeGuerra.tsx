@@ -129,6 +129,7 @@ function AlertCard({ alert, onRead, onResolve }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SalaDeGuerra() {
   const navigate = useNavigate();
+  const { activeCandidate } = useCandidate();
   const { data: kpis, isLoading: kpisLoading, refetch: refetchKPIs } = useDashboardKPIs();
   const { data: alerts = [], isLoading: alertsLoading } = useAlerts();
   const { data: macroStats = {} } = useMacroStats();
