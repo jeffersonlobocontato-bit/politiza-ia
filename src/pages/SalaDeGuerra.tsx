@@ -4,8 +4,9 @@ import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-lea
 import {
   Crosshair, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Users, Activity, Zap, Target,
-  RefreshCw, Bell, CheckCheck, ExternalLink, ChevronRight,
+  RefreshCw, Bell, CheckCheck, ExternalLink, ChevronRight, User,
 } from 'lucide-react';
+import { useCandidate } from '@/contexts/CandidateContext';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
