@@ -182,7 +182,7 @@ function AlertDetail({ alert, onClose, onRead, onResolve }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Inteligencia() {
   const navigate = useNavigate();
-  const { data: alerts = [], isLoading, refetch } = useAlerts(true);
+  const { data: alerts = [], isLoading, refetch } = useAlerts();
   const markRead = useMarkAlertRead();
   const updateStatus = useUpdateAlertStatus();
 
