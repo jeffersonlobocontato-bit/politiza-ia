@@ -440,10 +440,16 @@ export default function SalaDeGuerra() {
               <AlertTriangle className="w-4 h-4 text-brand-amber" />
               <span className="text-sm font-semibold text-foreground">Alertas Estratégicos</span>
               {unreadAlerts > 0 && (
-                <span className="ml-auto text-[10px] bg-brand-red/20 text-brand-red px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] bg-brand-red/20 text-brand-red px-2 py-0.5 rounded-full font-bold">
                   {unreadAlerts} novos
                 </span>
               )}
+              <button
+                onClick={() => navigate('/alertas')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Ver todos <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             <div className="p-3 flex-1 overflow-auto" style={{ maxHeight: 380 }}>
               {alertsLoading ? (
