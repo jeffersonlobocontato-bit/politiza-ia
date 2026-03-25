@@ -1,8 +1,23 @@
 import { useState } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
-import { macroRegions, getAlignmentColor, getAlignmentLabel, getAssetTypeLabel } from '@/data/mockData';
+import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
+
+const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
+  alinhado:   '#22c55e',
+  provavel:   '#3b82f6',
+  neutro:     '#6b7280',
+  oposicao:   '#ef4444',
+  indefinido: '#f59e0b',
+};
+const ALIGNMENT_LABELS: Record<DbAlignmentStatus, string> = {
+  alinhado:   'Alinhado',
+  provavel:   'Provável',
+  neutro:     'Neutro',
+  oposicao:   'Oposição',
+  indefinido: 'Indefinido',
+};
 
 const ASSET_TYPES: { value: DbAssetType; label: string }[] = [
   { value: 'prefeito',               label: 'Prefeito' },
