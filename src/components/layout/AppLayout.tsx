@@ -13,6 +13,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const [time, setTime] = useState(new Date());
   const unreadAlerts = alerts.filter(a => !a.isRead).length;
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
