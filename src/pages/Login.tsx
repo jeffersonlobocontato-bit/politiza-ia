@@ -52,8 +52,8 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ background: 'var(--gradient-primary)' }}>
             <Map className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-black text-gradient mb-1">CampanhaOS</h1>
-          <p className="text-muted-foreground text-sm">Plataforma de Comando e Controle Eleitoral</p>
+          <h1 className="text-3xl font-black text-gradient mb-1">Gestão Eleitoral</h1>
+          <p className="text-muted-foreground text-sm">Plataforma de Estratégia Política com IA Integrada</p>
           <div className="flex items-center justify-center gap-1.5 mt-2">
             <Shield className="w-3.5 h-3.5 text-brand-green" />
             <span className="text-xs text-brand-green font-medium">Governo do Estado do Paraná — Campanha 2026</span>
@@ -125,7 +125,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground/50 mt-6">
-          CampanhaOS v2.0 · Backend persistente ativo
+          Gestão Eleitoral v2.0 · Backend persistente ativo
         </p>
       </div>
     </div>
