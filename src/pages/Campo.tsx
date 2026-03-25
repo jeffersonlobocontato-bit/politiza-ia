@@ -21,7 +21,7 @@ function LocationPicker({ onLocationPick }: { onLocationPick: (lat: number, lng:
 }
 
 export default function Campo() {
-  const { addAction } = useCampaign();
+  const createAction = useCreateAction();
   const [step, setStep] = useState<'form' | 'map' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
     actionTitle: '',

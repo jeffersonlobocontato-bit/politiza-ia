@@ -152,9 +152,9 @@ export default function MapaEstrategico() {
                       {isNew && <div style={{ color: '#16a34a', fontWeight: 700, fontSize: 11, marginBottom: 4 }}>🟢 NOVA AÇÃO — AO VIVO</div>}
                       <div style={{ fontWeight: 700, marginBottom: 6 }}>{action.title}</div>
                       <div style={{ fontSize: 12 }}>📍 {action.municipality}</div>
-                      <div style={{ fontSize: 12 }}>📅 {action.plannedDate} às {action.plannedTime}</div>
-                      <div style={{ fontSize: 12 }}>👤 {action.responsible}</div>
-                      <div style={{ fontSize: 12 }}>🎯 ~{action.estimatedImpact.toLocaleString()} impactados</div>
+                       <div style={{ fontSize: 12 }}>📅 {action.planned_date} às {action.planned_time}</div>
+                       <div style={{ fontSize: 12 }}>👤 {action.responsible}</div>
+                       <div style={{ fontSize: 12 }}>🎯 ~{action.estimated_impact.toLocaleString()} impactados</div>
                       <div style={{ fontSize: 12, marginTop: 4 }}>
                         <span style={{ backgroundColor: getStatusColor(action.status), color: 'white', padding: '2px 8px', borderRadius: 4, fontSize: 11 }}>
                           {getStatusLabel(action.status)}
