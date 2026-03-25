@@ -1,9 +1,10 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
-import { Bell, Clock } from 'lucide-react';
+import { Bell, Clock, Sun, Moon } from 'lucide-react';
 import { alerts } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
+import { useTheme } from 'next-themes';
 
 interface AppLayoutProps {
   children: ReactNode;
