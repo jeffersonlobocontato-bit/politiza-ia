@@ -38,8 +38,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div>
-              <div className="font-black text-sm text-gradient">CampanhaOS</div>
-              <div className="text-[10px] text-sidebar-foreground/50 leading-none mt-0.5">Paraná 2026</div>
+              <div className="font-black text-sm text-gradient">Gestão Eleitoral</div>
+              <div className="text-[10px] text-sidebar-foreground/50 leading-none mt-0.5">Plataforma de Estratégia Política com IA Integrada</div>
             </div>
           )}
         </div>
