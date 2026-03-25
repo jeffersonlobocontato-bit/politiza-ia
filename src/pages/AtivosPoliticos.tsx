@@ -112,7 +112,7 @@ export default function AtivosPoliticos() {
       name: form.name,
       type: form.type,
       municipality: form.municipality || null,
-      microregion: null,
+      microregion: null as string | null,
       macroregion_id: form.macroregion_id || null,
       position: form.position || null,
       influence_level: parseInt(form.influence_level) || 5,
@@ -120,10 +120,12 @@ export default function AtivosPoliticos() {
       support_status: form.support_status || null,
       phone: form.phone || null,
       email: form.email || null,
-      lat: null,
-      lng: null,
+      lat: null as number | null,
+      lng: null as number | null,
       observations: form.observations || null,
       relationship_owner: form.relationship_owner || null,
+      created_by: null as string | null,
+      updated_by: null as string | null,
     };
     if (editingId) {
       await updateAsset.mutateAsync({ id: editingId, ...payload });
