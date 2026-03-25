@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { CampaignProvider } from "@/contexts/CampaignContext";
+import { CandidateProvider } from "@/contexts/CandidateContext";
 import Login from "./pages/Login";
 import SalaDeGuerra from "./pages/SalaDeGuerra";
 import MapaEstrategico from "./pages/MapaEstrategico";
@@ -18,6 +19,7 @@ import Pesquisas from "./pages/Pesquisas";
 import Inteligencia from "./pages/Inteligencia";
 import Hierarquia from "./pages/Hierarquia";
 import Alertas from "./pages/Alertas";
+import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
