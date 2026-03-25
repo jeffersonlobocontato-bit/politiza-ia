@@ -353,11 +353,12 @@ export default function SalaDeGuerra() {
                 {/* Municipality base circles */}
                 {municipalities.map(muni => {
                   const s = macroStats[muni.macroregion] ?? { total: 0, done: 0 };
-                  const rate = s.total > 0 ? (s.done / s.total) * 100 : 50;
+                  const hasData = s.total > 0;
+                  const rate = hasData ? (s.done / s.total) * 100 : 0;
                   const color = mapView === 'calor'
                     ? engagementColor(muni.engagementScore)
                     : mapView === 'operacional'
-                    ? execRateColor(rate)
+                    ? (hasData ? execRateColor(rate) : '#475569')
                     : (muni.pollScore && muni.pollScore > 45 ? '#22c55e' : muni.pollScore && muni.pollScore > 40 ? '#f59e0b' : '#ef4444');
                   const radius = Math.max(8, muni.engagementScore * 0.18);
                   return (
