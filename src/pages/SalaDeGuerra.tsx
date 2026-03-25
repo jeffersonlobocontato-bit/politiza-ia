@@ -483,9 +483,15 @@ export default function SalaDeGuerra() {
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">Evolução das Pesquisas</span>
-              <span className="ml-auto text-[10px] text-muted-foreground font-medium">
+              <span className="text-[10px] text-muted-foreground font-medium">
                 Gov · Estimulada C1 · {allWaves.length} onda{allWaves.length !== 1 ? 's' : ''}
               </span>
+              <button
+                onClick={() => navigate('/pesquisas')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Explorar <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             {pollChartData.length === 0 ? (
               <div className="flex items-center justify-center h-[160px] text-xs text-muted-foreground">
