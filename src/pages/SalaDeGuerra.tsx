@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
 import {
   Crosshair, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Users, Activity, Zap, Target,
-  RefreshCw, Bell, CheckCheck,
+  RefreshCw, Bell, CheckCheck, ExternalLink, ChevronRight,
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -43,21 +44,27 @@ function statusDotColor(status: string) {
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-function KPICard({ label, value, sub, icon: Icon, color, trend }: {
+function KPICard({ label, value, sub, icon: Icon, color, trend, onClick }: {
   label: string; value: string | number; sub?: string;
-  icon: any; color: string; trend?: number;
+  icon: any; color: string; trend?: number; onClick?: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+    <div
+      className={`rounded-xl border border-border p-4 transition-all ${onClick ? 'cursor-pointer hover:border-primary/50 hover:scale-[1.02] group' : ''}`}
+      style={{ background: 'var(--gradient-card)' }}
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}20` }}>
           <Icon className="w-4 h-4" style={{ color }} />
         </div>
-        {trend !== undefined && (
+        {trend !== undefined ? (
           <span className={`text-xs font-semibold ${trend > 0 ? 'text-brand-green' : trend < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
             {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
           </span>
-        )}
+        ) : onClick ? (
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+        ) : null}
       </div>
       <div className="text-2xl font-black text-foreground">{value}</div>
       <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
@@ -120,6 +127,7 @@ function AlertCard({ alert, onRead, onResolve }: {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SalaDeGuerra() {
+  const navigate = useNavigate();
   const { data: kpis, isLoading: kpisLoading, refetch: refetchKPIs } = useDashboardKPIs();
   const { data: alerts = [], isLoading: alertsLoading } = useAlerts();
   const { data: macroStats = {} } = useMacroStats();
@@ -263,6 +271,7 @@ export default function SalaDeGuerra() {
               value={totalActions}
               icon={Target}
               color="hsl(var(--primary))"
+              onClick={() => navigate('/acoes')}
             />
             <KPICard
               label="Ações Realizadas"
@@ -270,6 +279,7 @@ export default function SalaDeGuerra() {
               sub={`${completionRate}% de execução`}
               icon={CheckCircle}
               color="hsl(var(--brand-green))"
+              onClick={() => navigate('/acoes?status=realizada')}
             />
             <KPICard
               label="Ações Atrasadas"
@@ -277,12 +287,14 @@ export default function SalaDeGuerra() {
               sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined}
               icon={Clock}
               color="hsl(var(--brand-red))"
+              onClick={() => navigate('/acoes?status=atrasada')}
             />
             <KPICard
               label="Em Andamento"
               value={kpis?.in_progress_actions ?? 0}
               icon={Activity}
               color="hsl(var(--brand-amber))"
+              onClick={() => navigate('/acoes?status=em_andamento')}
             />
             <KPICard
               label="Pessoas Impactadas"
@@ -293,12 +305,14 @@ export default function SalaDeGuerra() {
                 : totalImpacted}
               icon={Users}
               color="hsl(var(--brand-cyan))"
+              onClick={() => navigate('/campo')}
             />
             <KPICard
               label="Pendentes Validação"
               value={kpis?.pending_validation ?? 0}
               icon={Bell}
               color="hsl(var(--primary))"
+              onClick={() => navigate('/acoes?status=pendente_validacao')}
             />
           </div>
         )}
@@ -309,16 +323,25 @@ export default function SalaDeGuerra() {
           <div className="rounded-xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
             <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card/50">
               <span className="text-sm font-semibold text-foreground">Mapa Interativo — Paraná</span>
-              <div className="flex gap-1">
-                {(['calor', 'operacional', 'politico'] as const).map(view => (
-                  <button
-                    key={view}
-                    onClick={() => setMapView(view)}
-                    className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${mapView === view ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
-                  >
-                    {view === 'calor' ? 'Calor' : view === 'operacional' ? 'Operacional' : 'Político'}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {(['calor', 'operacional', 'politico'] as const).map(view => (
+                    <button
+                      key={view}
+                      onClick={() => setMapView(view)}
+                      className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${mapView === view ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {view === 'calor' ? 'Calor' : view === 'operacional' ? 'Operacional' : 'Político'}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => navigate('/mapa')}
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-md font-medium bg-muted text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Expandir
+                </button>
               </div>
             </div>
             <div style={{ height: 380 }}>
@@ -417,10 +440,16 @@ export default function SalaDeGuerra() {
               <AlertTriangle className="w-4 h-4 text-brand-amber" />
               <span className="text-sm font-semibold text-foreground">Alertas Estratégicos</span>
               {unreadAlerts > 0 && (
-                <span className="ml-auto text-[10px] bg-brand-red/20 text-brand-red px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] bg-brand-red/20 text-brand-red px-2 py-0.5 rounded-full font-bold">
                   {unreadAlerts} novos
                 </span>
               )}
+              <button
+                onClick={() => navigate('/alertas')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Ver todos <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             <div className="p-3 flex-1 overflow-auto" style={{ maxHeight: 380 }}>
               {alertsLoading ? (
@@ -454,9 +483,15 @@ export default function SalaDeGuerra() {
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">Evolução das Pesquisas</span>
-              <span className="ml-auto text-[10px] text-muted-foreground font-medium">
+              <span className="text-[10px] text-muted-foreground font-medium">
                 Gov · Estimulada C1 · {allWaves.length} onda{allWaves.length !== 1 ? 's' : ''}
               </span>
+              <button
+                onClick={() => navigate('/pesquisas')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Explorar <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             {pollChartData.length === 0 ? (
               <div className="flex items-center justify-center h-[160px] text-xs text-muted-foreground">
@@ -495,7 +530,12 @@ export default function SalaDeGuerra() {
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-4 h-4 text-brand-cyan" />
               <span className="text-sm font-semibold text-foreground">Ranking Macrorregiões</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">por execução</span>
+              <button
+                onClick={() => navigate('/territorios')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Explorar <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             {macroRanking.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground text-xs">Cadastre ações para ver o ranking.</div>
@@ -504,7 +544,11 @@ export default function SalaDeGuerra() {
                 {macroRanking.map((r, i) => {
                   const color = execRateColor(r.execRate);
                   return (
-                    <div key={r.id} className="flex items-center gap-3">
+                    <div
+                      key={r.id}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/30 rounded-lg px-1 py-0.5 transition-colors"
+                      onClick={() => navigate(`/territorios`)}
+                    >
                       <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0">{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
@@ -532,13 +576,23 @@ export default function SalaDeGuerra() {
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle className="w-4 h-4 text-brand-green" />
               <span className="text-sm font-semibold text-foreground">Últimas Ações Realizadas</span>
+              <button
+                onClick={() => navigate('/acoes?status=realizada')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Ver todas <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             {recentlyDone.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground text-xs">Nenhuma ação realizada ainda.</div>
             ) : (
               <div className="space-y-2">
                 {recentlyDone.map(action => (
-                  <div key={action.id} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30">
+                  <div
+                    key={action.id}
+                    className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => navigate('/acoes?status=realizada')}
+                  >
                     <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-brand-green" />
                     <div className="min-w-0">
                       <div className="text-xs font-medium text-foreground leading-tight truncate">{action.title}</div>

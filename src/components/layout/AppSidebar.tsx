@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Brain, Network, Settings, ShieldCheck
+  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
   { title: 'Territórios', url: '/territorios', icon: Globe },
   { title: 'Ações', url: '/acoes', icon: ClipboardList },
   { title: 'Campo', url: '/campo', icon: Smartphone },
+  { title: 'Alertas', url: '/alertas', icon: AlertTriangle },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users },
   { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2 },
   { title: 'Inteligência', url: '/inteligencia', icon: Brain },
