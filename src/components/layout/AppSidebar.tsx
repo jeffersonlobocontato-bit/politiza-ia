@@ -6,8 +6,9 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle
+  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, User
 } from 'lucide-react';
+import { useCandidate } from '@/contexts/CandidateContext';
 
 const navItems = [
   { title: 'Sala de Guerra', url: '/', icon: Crosshair },
@@ -27,6 +28,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const { activeCandidate } = useCandidate();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -83,16 +85,27 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* User profile bottom */}
+        {/* Candidate / User profile bottom */}
         {!collapsed && (
           <div className="mt-auto p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/20 flex-shrink-0">
-                <ShieldCheck className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/20 flex-shrink-0 overflow-hidden">
+                {activeCandidate?.photo_url
+                  ? <img src={activeCandidate.photo_url} alt={activeCandidate.name} className="w-full h-full object-cover" />
+                  : <ShieldCheck className="w-4 h-4 text-primary" />}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-sidebar-foreground truncate">Dr. José Moreira</div>
-                <div className="text-[10px] text-sidebar-foreground/50 truncate">Coordenador Geral</div>
+                {activeCandidate ? (
+                  <>
+                    <div className="text-xs font-semibold text-sidebar-foreground truncate">{activeCandidate.name}</div>
+                    <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidate.cargo} · {activeCandidate.party}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-xs font-semibold text-sidebar-foreground/50 truncate">Nenhum candidato ativo</div>
+                    <div className="text-[10px] text-sidebar-foreground/40 truncate">Acesse Configurações</div>
+                  </>
+                )}
               </div>
             </div>
           </div>

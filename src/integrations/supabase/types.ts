@@ -293,6 +293,51 @@ export type Database = {
           },
         ]
       }
+      candidates: {
+        Row: {
+          bio: string | null
+          cargo: string
+          created_at: string
+          created_by: string | null
+          election_year: number
+          id: string
+          is_active: boolean
+          name: string
+          party: string
+          photo_url: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          cargo?: string
+          created_at?: string
+          created_by?: string | null
+          election_year?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          party?: string
+          photo_url?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          cargo?: string
+          created_at?: string
+          created_by?: string | null
+          election_year?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          party?: string
+          photo_url?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       electoral_surveys: {
         Row: {
           cargos: string[]

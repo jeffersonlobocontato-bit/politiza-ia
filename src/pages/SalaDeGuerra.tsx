@@ -4,8 +4,9 @@ import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-lea
 import {
   Crosshair, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Users, Activity, Zap, Target,
-  RefreshCw, Bell, CheckCheck, ExternalLink, ChevronRight,
+  RefreshCw, Bell, CheckCheck, ExternalLink, ChevronRight, User,
 } from 'lucide-react';
+import { useCandidate } from '@/contexts/CandidateContext';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
@@ -128,6 +129,7 @@ function AlertCard({ alert, onRead, onResolve }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SalaDeGuerra() {
   const navigate = useNavigate();
+  const { activeCandidate } = useCandidate();
   const { data: kpis, isLoading: kpisLoading, refetch: refetchKPIs } = useDashboardKPIs();
   const { data: alerts = [], isLoading: alertsLoading } = useAlerts();
   const { data: macroStats = {} } = useMacroStats();
@@ -233,8 +235,22 @@ export default function SalaDeGuerra() {
           <Crosshair className="w-5 h-5 text-primary" />
           <div>
             <h1 className="text-base font-bold text-foreground">Sala de Guerra</h1>
-            <p className="text-xs text-muted-foreground">Dashboard Executivo — Campanha Governador do Paraná 2026</p>
+            <p className="text-xs text-muted-foreground">
+              {activeCandidate
+                ? `Campanha ${activeCandidate.cargo} — ${activeCandidate.name} · ${activeCandidate.party} · ${activeCandidate.state} ${activeCandidate.election_year}`
+                : 'Dashboard Executivo — Nenhum candidato ativo'}
+            </p>
           </div>
+          {activeCandidate && (
+            <div className="flex items-center gap-2 ml-2 px-3 py-1.5 rounded-lg border border-primary/30" style={{ background: 'hsl(var(--primary) / 0.06)' }}>
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {activeCandidate.photo_url
+                  ? <img src={activeCandidate.photo_url} alt={activeCandidate.name} className="w-full h-full object-cover" />
+                  : <User className="w-3.5 h-3.5 text-primary" />}
+              </div>
+              <span className="text-xs font-semibold text-primary">{activeCandidate.name}</span>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button
