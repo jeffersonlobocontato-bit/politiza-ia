@@ -151,6 +151,8 @@ export default function Acoes() {
         executed_date: null,
         executed_people_count: null,
         evidence_photos: [],
+        created_by: null,
+        updated_by: null,
       });
     }
     setShowForm(false);
