@@ -295,7 +295,7 @@ export default function AtivosPoliticos() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{getAssetTypeLabel(asset.type)}</span>
+                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{ASSET_TYPES.find(t => t.value === asset.type)?.label ?? asset.type}</span>
                     <span className="text-[10px] text-muted-foreground">{asset.municipality}</span>
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
