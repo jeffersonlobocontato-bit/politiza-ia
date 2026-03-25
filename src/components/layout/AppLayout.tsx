@@ -39,6 +39,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Clock className="w-3.5 h-3.5" />
                 <span>{time.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })}</span>
               </div>
+              {/* Theme toggle */}
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
               <button className="relative p-1.5 rounded-md hover:bg-accent transition-colors">
                 <Bell className="w-4 h-4 text-muted-foreground" />
                 {unreadAlerts > 0 && (
