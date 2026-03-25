@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { CampaignProvider } from "@/contexts/CampaignContext";
 import Login from "./pages/Login";
 import SalaDeGuerra from "./pages/SalaDeGuerra";
 import MapaEstrategico from "./pages/MapaEstrategico";
@@ -51,7 +52,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <CampaignProvider>
+            <AppRoutes />
+          </CampaignProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
