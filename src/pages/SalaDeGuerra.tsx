@@ -206,7 +206,7 @@ export default function SalaDeGuerra() {
     for (const row of pollChartData) {
       for (const [k, v] of Object.entries(row)) {
         if (k === 'label') continue;
-        totals[k] = Math.max(totals[k] ?? 0, v as number);
+        totals[k] = Math.max(totals[k] ?? 0, Number(v));
       }
     }
     return Object.entries(totals)
