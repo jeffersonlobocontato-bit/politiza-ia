@@ -125,6 +125,7 @@ export default function SalaDeGuerra() {
   const { data: macroStats = {} } = useMacroStats();
   const { data: macroRegionsDB = [] } = useMacroRegionsDB();
   const { data: actions = [] } = useActions();
+  const { data: dbSurveys } = useSurveys();
   const markRead = useMarkAlertRead();
   const updateStatus = useUpdateAlertStatus();
   const generateAlerts = useGenerateAlerts();
@@ -161,8 +162,58 @@ export default function SalaDeGuerra() {
     return { ...r, execRate: rate, totalActions: s.total, doneActions: s.done, delayedActions: s.delayed };
   }).sort((a, b) => b.execRate - a.execRate);
 
-  // Poll chart — use DB data if available, fallback to static mock
-  const chartData = pollTimeline;
+  // ── Poll timeline derived from all available survey waves (DB + static seed) ──
+  const EXCLUDED = ['Não sabe/ Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo', 'Poderia votar em todos', 'Não sabe/Não opinou'];
+
+  const allWaves: PollWave[] = [
+    ...(dbSurveys?.waves ?? []),
+    ...pollWaves.filter(w => !(dbSurveys?.waves ?? []).some(dw => dw.id === w.id)),
+  ].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
+
+  const allQuestions: PollQuestion[] = [
+    ...(dbSurveys?.questions ?? []),
+    ...pollQuestions.filter(q => !(dbSurveys?.questions ?? []).some(dq => dq.id === q.id)),
+  ];
+
+  // Pick the best "Cenário 1 estimulada governador" result per wave → build chart rows
+  const pollChartData = (() => {
+    // Collect all candidates that appear across waves (excluding structural ones)
+    const candidateSet = new Set<string>();
+    const waveRows: { label: string; values: Record<string, number> }[] = [];
+
+    for (const wave of allWaves) {
+      const q = allQuestions.find(
+        q => q.waveId === wave.id && q.cargo === 'governador' && q.questionType === 'estimulada',
+      );
+      if (!q) continue;
+      const row: Record<string, number> = {};
+      q.results
+        .filter(r => !EXCLUDED.some(ex => r.candidate.startsWith(ex.split('/')[0].trim())))
+        .forEach(r => {
+          row[r.candidate] = r.percentage;
+          candidateSet.add(r.candidate);
+        });
+      waveRows.push({ label: wave.releaseDate, values: row });
+    }
+
+    // Build final chart rows: { label, [candidateName]: pct, ... }
+    return waveRows.map(({ label, values }) => ({ label, ...values }));
+  })();
+
+  // Top candidates by max percentage across all waves (for lines)
+  const topCandidates = (() => {
+    const totals: Record<string, number> = {};
+    for (const row of pollChartData) {
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'label') continue;
+        totals[k] = Math.max(totals[k] ?? 0, v as number);
+      }
+    }
+    return Object.entries(totals)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name]) => name);
+  })();
 
   const recentlyDone = actions.filter(a => a.status === 'realizada').slice(0, 5);
 
