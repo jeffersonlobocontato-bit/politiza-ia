@@ -197,54 +197,68 @@ export default function AtivosPoliticos() {
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {assets.length > 0 && (
-        <div className="px-6 py-4 border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-4 flex-shrink-0 bg-card/30">
-          {/* Donut — alinhamento */}
-          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Distribuição por Alinhamento</p>
-            <ResponsiveContainer width="100%" height={140}>
-              <PieChart>
-                <Pie data={alignChartData} dataKey="value" cx="40%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={2}>
-                  {alignChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-                <Tooltip
-                  formatter={(v: number, n: string) => [`${v} ativos`, n]}
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, paddingLeft: 4 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="px-6 py-4 border-b border-border flex-shrink-0 bg-card/30">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Donut — alinhamento */}
+            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+              <p className="text-xs font-semibold text-foreground mb-3">Distribuição por Alinhamento</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={alignChartData} dataKey="value" cx="35%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2}>
+                    {alignChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                  <Tooltip
+                    formatter={(v: number, n: string) => [`${v} ativos`, n]}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Legend iconType="circle" iconSize={9} layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11, paddingLeft: 8, lineHeight: '22px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
 
-          {/* Bar — tipo */}
-          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Ativos por Tipo</p>
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={typeChartData} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
-                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
-                <Tooltip
-                  formatter={(v: number) => [`${v}`, 'Qtd']}
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+            {/* Bar — tipo */}
+            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+              <p className="text-xs font-semibold text-foreground mb-3">Ativos por Tipo</p>
+              <ResponsiveContainer width="100%" height={Math.max(200, typeChartData.length * 28 + 20)}>
+                <BarChart data={typeChartData} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barSize={14}>
+                  <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={130}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+                    tickFormatter={(v: string) => v.length > 18 ? v.slice(0, 17) + '…' : v}
+                  />
+                  <Tooltip
+                    formatter={(v: number) => [`${v}`, 'Quantidade']}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
 
-          {/* Bar — macrorregião */}
-          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Ativos por Macrorregião</p>
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
-                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
-                <Tooltip
-                  formatter={(v: number) => [`${v}`, 'Qtd']}
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                />
-                <Bar dataKey="value" fill="hsl(var(--brand-green))" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {/* Bar — macrorregião */}
+            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+              <p className="text-xs font-semibold text-foreground mb-3">Ativos por Macrorregião</p>
+              <ResponsiveContainer width="100%" height={Math.max(200, macroCounts.length * 32 + 20)}>
+                <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barSize={16}>
+                  <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={110}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+                    tickFormatter={(v: string) => v.length > 16 ? v.slice(0, 15) + '…' : v}
+                  />
+                  <Tooltip
+                    formatter={(v: number) => [`${v}`, 'Quantidade']}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Bar dataKey="value" fill="hsl(var(--brand-green))" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
