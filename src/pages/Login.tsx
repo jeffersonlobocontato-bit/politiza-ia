@@ -125,7 +125,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground/50 mt-6">
-          CampanhaOS v2.0 · Backend persistente ativo
+          Gestão Eleitoral v2.0 · Backend persistente ativo
         </p>
       </div>
     </div>
