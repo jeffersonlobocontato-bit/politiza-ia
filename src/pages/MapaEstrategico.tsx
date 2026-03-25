@@ -2,18 +2,12 @@ import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
 import { Map, Filter, X } from 'lucide-react';
 import {
-  municipalities, politicalAssets,
-  getEngagementColor, getStatusColor, getStatusLabel, getActionTypeLabel
-} from '@/data/mockData';
-import { useCampaign } from '@/contexts/CampaignContext';
+import { municipalities, politicalAssets, getEngagementColor, getStatusColor, getStatusLabel } from '@/data/mockData';
+import { useActions } from '@/hooks/useActions';
 
 export default function MapaEstrategico() {
-  const { actions, newActionIds } = useCampaign();
-  const [activeLayer, setActiveLayer] = useState<'engajamento' | 'acoes' | 'ativos' | 'pesquisas'>('acoes');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedAction, setSelectedAction] = useState<any>(null);
-
+  const { data: actions = [] } = useActions();
+  const newActionIds = new Set<string>(); // real-time new IDs no longer needed w/ DB
   const filteredActions = actions.filter(a => statusFilter === 'all' || a.status === statusFilter);
 
   return (
