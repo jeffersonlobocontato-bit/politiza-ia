@@ -11,41 +11,41 @@
 
 @layer base {
   :root {
-    /* Dark command center palette */
-    --background: 222 28% 7%;
-    --foreground: 210 20% 92%;
+    /* Modern dark slate — inspired by Linear, GitHub Dark, Vercel */
+    --background: 220 16% 11%;
+    --foreground: 213 20% 93%;
 
-    --card: 222 25% 10%;
-    --card-foreground: 210 20% 92%;
+    --card: 220 15% 14%;
+    --card-foreground: 213 20% 93%;
 
-    --popover: 222 25% 10%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 220 15% 14%;
+    --popover-foreground: 213 20% 93%;
 
     /* Blue electric primary */
-    --primary: 217 91% 55%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
     /* Slate secondary */
-    --secondary: 222 20% 16%;
-    --secondary-foreground: 210 20% 80%;
+    --secondary: 220 13% 19%;
+    --secondary-foreground: 213 18% 80%;
 
-    --muted: 222 20% 14%;
-    --muted-foreground: 215 15% 52%;
+    --muted: 220 13% 17%;
+    --muted-foreground: 215 13% 55%;
 
-    --accent: 222 20% 18%;
-    --accent-foreground: 210 20% 92%;
+    --accent: 220 13% 21%;
+    --accent-foreground: 213 20% 93%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 20% 16%;
-    --input: 222 20% 14%;
-    --ring: 217 91% 55%;
+    --border: 220 13% 19%;
+    --input: 220 13% 17%;
+    --ring: 217 91% 60%;
 
     --radius: 0.5rem;
 
     /* Brand colors */
-    --brand-blue: 217 91% 55%;
+    --brand-blue: 217 91% 60%;
     --brand-amber: 38 92% 50%;
     --brand-green: 142 72% 45%;
     --brand-red: 0 72% 51%;
@@ -56,26 +56,26 @@
     --risk-high: 0 72% 51%;
     --risk-medium: 38 92% 50%;
     --risk-low: 142 72% 45%;
-    --risk-strong: 217 91% 55%;
+    --risk-strong: 217 91% 60%;
 
-    /* Sidebar */
-    --sidebar-background: 222 30% 6%;
-    --sidebar-foreground: 210 15% 75%;
-    --sidebar-primary: 217 91% 55%;
+    /* Sidebar — slightly darker than main bg for depth */
+    --sidebar-background: 220 18% 8%;
+    --sidebar-foreground: 213 15% 72%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 20% 12%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 222 20% 12%;
-    --sidebar-ring: 217 91% 55%;
+    --sidebar-accent: 220 13% 14%;
+    --sidebar-accent-foreground: 213 20% 93%;
+    --sidebar-border: 220 13% 13%;
+    --sidebar-ring: 217 91% 60%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 55%), hsl(189 85% 52%));
-    --gradient-dark: linear-gradient(180deg, hsl(222 28% 7%), hsl(222 30% 5%));
-    --gradient-card: linear-gradient(135deg, hsl(222 25% 11%), hsl(222 25% 9%));
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(189 85% 52%));
+    --gradient-dark: linear-gradient(180deg, hsl(220 16% 11%), hsl(220 18% 8%));
+    --gradient-card: linear-gradient(135deg, hsl(220 15% 15%), hsl(220 15% 13%));
 
     /* Shadows */
-    --shadow-glow: 0 0 20px hsl(217 91% 55% / 0.3);
-    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
+    --shadow-glow: 0 0 20px hsl(217 91% 60% / 0.25);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
     --shadow-alert: 0 4px 16px hsl(0 72% 51% / 0.25);
   }
 }
