@@ -288,7 +288,7 @@ export default function AtivosPoliticos() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map(asset => {
-              const ac = getAlignmentColor(asset.alignment_status);
+              const ac = ALIGNMENT_COLORS[asset.alignment_status] ?? '#6b7280';
               return (
                 <div key={asset.id} className="rounded-xl border border-border p-4 hover:border-primary/30 transition-all group relative" style={{ background: 'var(--gradient-card)' }}>
                   {/* Actions */}
