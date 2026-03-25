@@ -495,6 +495,45 @@ export default function SalaDeGuerra() {
           </div>
         </div>
 
+        {/* Crisis Card */}
+        {(strategicKPIs?.active ?? 0) > 0 && (
+          <div
+            className="rounded-xl border p-4 flex items-center gap-4 cursor-pointer hover:scale-[1.005] transition-all"
+            style={{ background: 'hsl(var(--brand-red) / 0.07)', borderColor: 'hsl(var(--brand-red) / 0.3)' }}
+            onClick={() => navigate('/sala-de-crise')}
+          >
+            <div className="p-2.5 rounded-xl flex-shrink-0" style={{ backgroundColor: 'hsl(var(--brand-red) / 0.15)' }}>
+              <ShieldAlert className="w-5 h-5 text-brand-red" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-sm font-bold text-foreground">Sala de Crise — IA Estratégica</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30 animate-pulse">
+                  {strategicKPIs.critical} CRÍTICO{strategicKPIs.critical !== 1 ? 'S' : ''}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {strategicKPIs.active} alertas estratégicos ativos · {strategicKPIs.opportunities} oportunidades identificadas
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-3 flex-shrink-0 hidden lg:grid">
+              <div className="text-center">
+                <div className="text-xl font-black text-red-400">{strategicKPIs.active}</div>
+                <div className="text-[10px] text-muted-foreground">Alertas</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-black text-red-400">{strategicKPIs.riskIndex}</div>
+                <div className="text-[10px] text-muted-foreground">Risco</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-black text-brand-green">{strategicKPIs.opportunityIndex}</div>
+                <div className="text-[10px] text-muted-foreground">Opp.</div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-red-400 flex-shrink-0" />
+          </div>
+        )}
+
         {/* Bottom Grid */}
         <div className="grid lg:grid-cols-[1fr_1fr_300px] gap-4">
           {/* Poll Chart — derived from real survey waves */}
