@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import type { AppRole, DbProfile } from '@/integrations/supabase/types';
+import type { AppRole, DbProfile } from '@/types/database';
 
 interface AuthContextValue {
   user: User | null;
@@ -27,18 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadUserData = async (userId: string) => {
     try {
       const [profileRes, rolesRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).single(),
-        supabase.from('user_roles').select('role').eq('user_id', userId),
+        supabase.from('profiles' as any).select('*').eq('id', userId).single(),
+        supabase.from('user_roles' as any).select('role').eq('user_id', userId),
       ]);
       if (profileRes.data) setProfile(profileRes.data as DbProfile);
-      if (rolesRes.data) setRoles(rolesRes.data.map(r => r.role as AppRole));
+      if (rolesRes.data) setRoles((rolesRes.data as any[]).map(r => r.role as AppRole));
     } catch {
-      // ignore
+      // ignore — tables may not exist yet
     }
   };
 
   useEffect(() => {
-    // Set up auth listener BEFORE getSession
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, sess) => {
         setSession(sess);
