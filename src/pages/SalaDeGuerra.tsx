@@ -530,7 +530,12 @@ export default function SalaDeGuerra() {
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-4 h-4 text-brand-cyan" />
               <span className="text-sm font-semibold text-foreground">Ranking Macrorregiões</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">por execução</span>
+              <button
+                onClick={() => navigate('/territorios')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Explorar <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             {macroRanking.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground text-xs">Cadastre ações para ver o ranking.</div>
@@ -539,7 +544,11 @@ export default function SalaDeGuerra() {
                 {macroRanking.map((r, i) => {
                   const color = execRateColor(r.execRate);
                   return (
-                    <div key={r.id} className="flex items-center gap-3">
+                    <div
+                      key={r.id}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/30 rounded-lg px-1 py-0.5 transition-colors"
+                      onClick={() => navigate(`/territorios`)}
+                    >
                       <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0">{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
@@ -567,13 +576,23 @@ export default function SalaDeGuerra() {
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle className="w-4 h-4 text-brand-green" />
               <span className="text-sm font-semibold text-foreground">Últimas Ações Realizadas</span>
+              <button
+                onClick={() => navigate('/acoes?status=realizada')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Ver todas <ExternalLink className="w-3 h-3" />
+              </button>
             </div>
             {recentlyDone.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground text-xs">Nenhuma ação realizada ainda.</div>
             ) : (
               <div className="space-y-2">
                 {recentlyDone.map(action => (
-                  <div key={action.id} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30">
+                  <div
+                    key={action.id}
+                    className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => navigate('/acoes?status=realizada')}
+                  >
                     <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-brand-green" />
                     <div className="min-w-0">
                       <div className="text-xs font-medium text-foreground leading-tight truncate">{action.title}</div>
@@ -587,8 +606,3 @@ export default function SalaDeGuerra() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
