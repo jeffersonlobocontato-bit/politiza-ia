@@ -9,7 +9,12 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
 } from 'recharts';
-import { municipalities, pollTimeline } from '@/data/mockData';
+import { municipalities } from '@/data/mockData';
+import {
+  pollWaves, pollQuestions, CANDIDATE_COLORS,
+  type PollWave, type PollQuestion,
+} from '@/data/pollsData';
+import { useSurveys } from '@/hooks/useSurveys';
 import { useDashboardKPIs, useAlerts, useMacroStats, useMacroRegionsDB, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useActions } from '@/hooks/useActions';
 import type { DbAlert } from '@/types/database';
@@ -120,6 +125,7 @@ export default function SalaDeGuerra() {
   const { data: macroStats = {} } = useMacroStats();
   const { data: macroRegionsDB = [] } = useMacroRegionsDB();
   const { data: actions = [] } = useActions();
+  const { data: dbSurveys } = useSurveys();
   const markRead = useMarkAlertRead();
   const updateStatus = useUpdateAlertStatus();
   const generateAlerts = useGenerateAlerts();
@@ -156,8 +162,58 @@ export default function SalaDeGuerra() {
     return { ...r, execRate: rate, totalActions: s.total, doneActions: s.done, delayedActions: s.delayed };
   }).sort((a, b) => b.execRate - a.execRate);
 
-  // Poll chart — use DB data if available, fallback to static mock
-  const chartData = pollTimeline;
+  // ── Poll timeline derived from all available survey waves (DB + static seed) ──
+  const EXCLUDED = ['Não sabe/ Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo', 'Poderia votar em todos', 'Não sabe/Não opinou'];
+
+  const allWaves: PollWave[] = [
+    ...(dbSurveys?.waves ?? []),
+    ...pollWaves.filter(w => !(dbSurveys?.waves ?? []).some(dw => dw.id === w.id)),
+  ].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
+
+  const allQuestions: PollQuestion[] = [
+    ...(dbSurveys?.questions ?? []),
+    ...pollQuestions.filter(q => !(dbSurveys?.questions ?? []).some(dq => dq.id === q.id)),
+  ];
+
+  // Pick the best "Cenário 1 estimulada governador" result per wave → build chart rows
+  const pollChartData = (() => {
+    // Collect all candidates that appear across waves (excluding structural ones)
+    const candidateSet = new Set<string>();
+    const waveRows: { label: string; values: Record<string, number> }[] = [];
+
+    for (const wave of allWaves) {
+      const q = allQuestions.find(
+        q => q.waveId === wave.id && q.cargo === 'governador' && q.questionType === 'estimulada',
+      );
+      if (!q) continue;
+      const row: Record<string, number> = {};
+      q.results
+        .filter(r => !EXCLUDED.some(ex => r.candidate.startsWith(ex.split('/')[0].trim())))
+        .forEach(r => {
+          row[r.candidate] = r.percentage;
+          candidateSet.add(r.candidate);
+        });
+      waveRows.push({ label: wave.releaseDate, values: row });
+    }
+
+    // Build final chart rows: { label, [candidateName]: pct, ... }
+    return waveRows.map(({ label, values }) => ({ label, ...values }));
+  })();
+
+  // Top candidates by max percentage across all waves (for lines)
+  const topCandidates = (() => {
+    const totals: Record<string, number> = {};
+    for (const row of pollChartData) {
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'label') continue;
+        totals[k] = Math.max(totals[k] ?? 0, Number(v));
+      }
+    }
+    return Object.entries(totals)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name]) => name);
+  })();
 
   const recentlyDone = actions.filter(a => a.status === 'realizada').slice(0, 5);
 
@@ -393,25 +449,45 @@ export default function SalaDeGuerra() {
 
         {/* Bottom Grid */}
         <div className="grid lg:grid-cols-[1fr_1fr_300px] gap-4">
-          {/* Poll Chart */}
+          {/* Poll Chart — derived from real survey waves */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">Evolução das Pesquisas</span>
-              <span className="ml-auto text-xs text-muted-foreground font-medium">Dados históricos</span>
+              <span className="ml-auto text-[10px] text-muted-foreground font-medium">
+                Gov · Estimulada C1 · {allWaves.length} onda{allWaves.length !== 1 ? 's' : ''}
+              </span>
             </div>
-            <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis domain={[0, 60]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Line type="monotone" dataKey="candidate" name="Candidato" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="rival1" name="Rival A" stroke="hsl(var(--brand-red))" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
-                <Line type="monotone" dataKey="rival2" name="Rival B" stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
-              </LineChart>
-            </ResponsiveContainer>
+            {pollChartData.length === 0 ? (
+              <div className="flex items-center justify-center h-[160px] text-xs text-muted-foreground">
+                Nenhuma pesquisa com dados de governador cadastrada.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={pollChartData} margin={{ left: 0, right: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} interval={0} angle={-10} textAnchor="end" height={36} />
+                  <YAxis domain={[0, 60]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} width={32} />
+                  <RechartsTooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                    formatter={(v: number, name: string) => [`${v}%`, name]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  {topCandidates.map((candidate, i) => (
+                    <Line
+                      key={candidate}
+                      type="monotone"
+                      dataKey={candidate}
+                      stroke={CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))'}
+                      strokeWidth={i === 0 ? 2.5 : 1.5}
+                      strokeDasharray={i === 0 ? undefined : '4 2'}
+                      dot={{ r: i === 0 ? 4 : 2.5, fill: CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))' }}
+                      connectNulls
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           {/* Macro Ranking — real data */}
