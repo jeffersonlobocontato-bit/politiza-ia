@@ -21,6 +21,7 @@ import Inteligencia from "./pages/Inteligencia";
 import Hierarquia from "./pages/Hierarquia";
 import Alertas from "./pages/Alertas";
 import Configuracoes from "./pages/Configuracoes";
+import SalaDeCrise from "./pages/SalaDeCrise";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
