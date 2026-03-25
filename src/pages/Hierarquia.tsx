@@ -122,6 +122,24 @@ export default function Hierarquia() {
     await deleteMember.mutateAsync(id);
   };
 
+  // ── Chart data ───────────────────────────────────────────────────────────────
+  const levelChartData = [1,2,3,4,5].map(l => ({
+    name: LEVEL_LABELS[l].replace('Coordenação ', 'Coord. ').replace('Comando ', ''),
+    value: members.filter(m => m.hierarchy_level === l).length,
+    color: LEVEL_COLORS[l],
+  })).filter(d => d.value > 0);
+
+  const statusChartData = [
+    { name: 'Ativo', value: members.filter(m => m.status === 'ativo').length, color: '#22c55e' },
+    { name: 'Inativo', value: members.filter(m => m.status === 'inativo').length, color: '#ef4444' },
+    { name: 'Licença', value: members.filter(m => m.status === 'licenca').length, color: '#f59e0b' },
+  ].filter(d => d.value > 0);
+
+  const macroCounts = macroRegions.map(m => ({
+    name: m.name.replace('Macrorregião ', '').replace('Região ', ''),
+    value: members.filter(x => x.macroregion_id === m.id).length,
+  })).filter(d => d.value > 0);
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -141,6 +159,67 @@ export default function Hierarquia() {
           <Plus className="w-4 h-4" /> Novo Membro
         </button>
       </div>
+
+      {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
+      {members.length > 0 && (
+        <div className="px-6 py-4 border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-4 flex-shrink-0 bg-card/30">
+          {/* Donut — nível hierárquico */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Membros por Nível</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <PieChart>
+                <Pie data={levelChartData} dataKey="value" cx="40%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={2}>
+                  {levelChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                </Pie>
+                <Tooltip
+                  formatter={(v: number, n: string) => [`${v} membros`, n]}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Donut — status */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Membros por Status</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <PieChart>
+                <Pie data={statusChartData} dataKey="value" cx="40%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={2}>
+                  {statusChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                </Pie>
+                <Tooltip
+                  formatter={(v: number, n: string) => [`${v} membros`, n]}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex justify-center gap-3 mt-1 flex-wrap">
+              {statusChartData.map(d => (
+                <span key={d.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: d.color }} />
+                  {d.name} ({d.value})
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Bar — macrorregião */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Membros por Macrorregião</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
+                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
+                <Tooltip
+                  formatter={(v: number) => [`${v}`, 'Membros']}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--brand-amber))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Modal Form */}
       {showForm && (
