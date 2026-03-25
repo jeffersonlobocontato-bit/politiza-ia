@@ -41,6 +41,7 @@ const AppRoutes = () => (
     <Route path="/pesquisas" element={<ProtectedRoute><AppLayout><Pesquisas /></AppLayout></ProtectedRoute>} />
     <Route path="/inteligencia" element={<ProtectedRoute><AppLayout><Inteligencia /></AppLayout></ProtectedRoute>} />
     <Route path="/hierarquia" element={<ProtectedRoute><AppLayout><Hierarquia /></AppLayout></ProtectedRoute>} />
+    <Route path="/alertas" element={<ProtectedRoute><AppLayout><Alertas /></AppLayout></ProtectedRoute>} />
     <Route path="/configuracoes" element={<ProtectedRoute><AppLayout><div className="p-6 text-muted-foreground">Configurações em desenvolvimento.</div></AppLayout></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
