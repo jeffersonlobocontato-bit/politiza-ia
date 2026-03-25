@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';

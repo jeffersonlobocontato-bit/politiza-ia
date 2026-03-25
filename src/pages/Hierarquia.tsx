@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Network, Award, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
 import type { DbCampaignMember } from '@/types/database';
