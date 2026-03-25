@@ -19,6 +19,7 @@ import {
 import { useSurveys } from '@/hooks/useSurveys';
 import { useDashboardKPIs, useAlerts, useMacroStats, useMacroRegionsDB, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useActions } from '@/hooks/useActions';
+import { useStrategicKPIs } from '@/hooks/useStrategicAlerts';
 import type { DbAlert } from '@/types/database';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
