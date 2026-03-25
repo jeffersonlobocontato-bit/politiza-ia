@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { ClipboardList, Plus, Search, MapPin, Calendar, User, Target, Pencil, Trash2, ChevronDown } from 'lucide-react';
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, Legend,
+} from 'recharts';
 import { macroRegions, getStatusColor, getStatusLabel, getActionTypeLabel } from '@/data/mockData';
 import { useActions, useCreateAction, useUpdateAction, useUpdateActionStatus, useDeleteAction } from '@/hooks/useActions';
 import type { DbAction, DbActionStatus, DbActionType, DbPriorityLevel } from '@/types/database';
@@ -170,6 +174,34 @@ export default function Acoes() {
     await deleteAction.mutateAsync(id);
   };
 
+  // ── Chart data ───────────────────────────────────────────────────────────────
+  const STATUS_COLORS: Record<string, string> = {
+    prevista: '#3b82f6', confirmada: '#6366f1', em_andamento: '#f59e0b',
+    realizada: '#22c55e', atrasada: '#ef4444', cancelada: '#6b7280', pendente_validacao: '#a855f7',
+  };
+  const STATUS_LABELS_MAP: Record<string, string> = {
+    prevista: 'Prevista', confirmada: 'Confirmada', em_andamento: 'Em Andamento',
+    realizada: 'Realizada', atrasada: 'Atrasada', cancelada: 'Cancelada', pendente_validacao: 'Pendente',
+  };
+  const statusChartData = STATUS_OPTIONS
+    .map(s => ({ name: STATUS_LABELS_MAP[s] ?? s, value: statusCounts[s] ?? 0, color: STATUS_COLORS[s] }))
+    .filter(d => d.value > 0);
+
+  const typeCounts = TYPE_OPTIONS.reduce((acc, t) => {
+    acc[t.value] = actions.filter(a => a.type === t.value).length;
+    return acc;
+  }, {} as Record<string, number>);
+  const typeChartData = TYPE_OPTIONS
+    .map(t => ({ name: t.label, value: typeCounts[t.value] ?? 0 }))
+    .filter(d => d.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
+
+  const macroCounts = macroRegions.map(m => ({
+    name: m.name.replace('Macrorregião ', '').replace('Região ', ''),
+    value: actions.filter(a => a.macroregion_id === m.id).length,
+  })).filter(d => d.value > 0);
+
   return (
     <div className="h-full flex flex-col" onClick={() => setStatusMenuId(null)}>
       {/* Header */}
@@ -191,6 +223,60 @@ export default function Acoes() {
           <Plus className="w-4 h-4" /> Nova Ação
         </button>
       </div>
+
+      {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
+      {actions.length > 0 && (
+        <div className="px-6 py-4 border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-4 flex-shrink-0 bg-card/30">
+          {/* Donut — status */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Distribuição por Status</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <PieChart>
+                <Pie data={statusChartData} dataKey="value" cx="40%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={2}>
+                  {statusChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                </Pie>
+                <Tooltip
+                  formatter={(v: number, n: string) => [`${v} ações`, n]}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, paddingLeft: 4 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Bar — tipo */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Ações por Tipo</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={typeChartData} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
+                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
+                <Tooltip
+                  formatter={(v: number) => [`${v}`, 'Qtd']}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Bar — macrorregião */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Ações por Macrorregião</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
+                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
+                <Tooltip
+                  formatter={(v: number) => [`${v}`, 'Qtd']}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--brand-cyan))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Status pills */}
       <div className="px-6 py-3 border-b border-border flex gap-2 overflow-x-auto flex-shrink-0">

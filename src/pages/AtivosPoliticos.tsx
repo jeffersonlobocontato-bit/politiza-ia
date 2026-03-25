@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
@@ -157,6 +158,23 @@ export default function AtivosPoliticos() {
     await deleteAsset.mutateAsync(id);
   };
 
+  // ── Chart data ───────────────────────────────────────────────────────────────
+  const alignChartData = ALIGNMENT_OPTIONS.map(a => ({
+    name: a.label,
+    value: assets.filter(x => x.alignment_status === a.value).length,
+    color: ALIGNMENT_COLORS[a.value],
+  })).filter(d => d.value > 0);
+
+  const typeChartData = ASSET_TYPES.map(t => ({
+    name: t.label,
+    value: assets.filter(x => x.type === t.value).length,
+  })).filter(d => d.value > 0).sort((a, b) => b.value - a.value).slice(0, 8);
+
+  const macroCounts = macroRegions.map(m => ({
+    name: m.name.replace('Macrorregião ', '').replace('Região ', ''),
+    value: assets.filter(x => x.macroregion_id === m.id).length,
+  })).filter(d => d.value > 0);
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -176,6 +194,60 @@ export default function AtivosPoliticos() {
           <Plus className="w-4 h-4" /> Novo Ativo
         </button>
       </div>
+
+      {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
+      {assets.length > 0 && (
+        <div className="px-6 py-4 border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-4 flex-shrink-0 bg-card/30">
+          {/* Donut — alinhamento */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Distribuição por Alinhamento</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <PieChart>
+                <Pie data={alignChartData} dataKey="value" cx="40%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={2}>
+                  {alignChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                </Pie>
+                <Tooltip
+                  formatter={(v: number, n: string) => [`${v} ativos`, n]}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, paddingLeft: 4 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Bar — tipo */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Ativos por Tipo</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={typeChartData} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
+                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
+                <Tooltip
+                  formatter={(v: number) => [`${v}`, 'Qtd']}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Bar — macrorregião */}
+          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Ativos por Macrorregião</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
+                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
+                <Tooltip
+                  formatter={(v: number) => [`${v}`, 'Qtd']}
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--brand-green))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="px-6 py-3 border-b border-border flex gap-3 flex-wrap flex-shrink-0">
