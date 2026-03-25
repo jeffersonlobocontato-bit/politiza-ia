@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMapEvents } from 'react-leaflet';
 import { Smartphone, MapPin, Camera, CheckCircle, Navigation } from 'lucide-react';
-import { useCampaign } from '@/contexts/CampaignContext';
+import { useCreateAction } from '@/hooks/useActions';
 
 interface FieldInput {
   actionTitle: string;
