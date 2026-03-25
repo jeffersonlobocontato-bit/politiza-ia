@@ -140,7 +140,7 @@ export default function MapaEstrategico() {
                 <CircleMarker
                   key={action.id}
                   center={[action.lat, action.lng]}
-                  radius={isNew ? 14 : (action.estimatedImpact > 5000 ? 16 : action.estimatedImpact > 1000 ? 12 : 8)}
+                  radius={isNew ? 14 : (action.estimated_impact > 5000 ? 16 : action.estimated_impact > 1000 ? 12 : 8)}
                   fillColor={isNew ? '#22c55e' : getStatusColor(action.status)}
                   color={isNew ? '#ffffff' : '#ffffff'}
                   weight={isNew ? 3 : 2}
