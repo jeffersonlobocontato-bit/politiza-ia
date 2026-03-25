@@ -449,25 +449,45 @@ export default function SalaDeGuerra() {
 
         {/* Bottom Grid */}
         <div className="grid lg:grid-cols-[1fr_1fr_300px] gap-4">
-          {/* Poll Chart */}
+          {/* Poll Chart — derived from real survey waves */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">Evolução das Pesquisas</span>
-              <span className="ml-auto text-xs text-muted-foreground font-medium">Dados históricos</span>
+              <span className="ml-auto text-[10px] text-muted-foreground font-medium">
+                Gov · Estimulada C1 · {allWaves.length} onda{allWaves.length !== 1 ? 's' : ''}
+              </span>
             </div>
-            <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis domain={[0, 60]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Line type="monotone" dataKey="candidate" name="Candidato" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="rival1" name="Rival A" stroke="hsl(var(--brand-red))" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
-                <Line type="monotone" dataKey="rival2" name="Rival B" stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
-              </LineChart>
-            </ResponsiveContainer>
+            {pollChartData.length === 0 ? (
+              <div className="flex items-center justify-center h-[160px] text-xs text-muted-foreground">
+                Nenhuma pesquisa com dados de governador cadastrada.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={pollChartData} margin={{ left: 0, right: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} interval={0} angle={-10} textAnchor="end" height={36} />
+                  <YAxis domain={[0, 60]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} width={32} />
+                  <RechartsTooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                    formatter={(v: number, name: string) => [`${v}%`, name]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  {topCandidates.map((candidate, i) => (
+                    <Line
+                      key={candidate}
+                      type="monotone"
+                      dataKey={candidate}
+                      stroke={CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))'}
+                      strokeWidth={i === 0 ? 2.5 : 1.5}
+                      strokeDasharray={i === 0 ? undefined : '4 2'}
+                      dot={{ r: i === 0 ? 4 : 2.5, fill: CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))' }}
+                      connectNulls
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           {/* Macro Ranking — real data */}
