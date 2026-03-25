@@ -306,7 +306,7 @@ export default function AtivosPoliticos() {
                       <div className="text-xs text-muted-foreground">{asset.position || ASSET_TYPES.find(t => t.value === asset.type)?.label}</div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0" style={{ color: ac, borderColor: `${ac}40`, backgroundColor: `${ac}15` }}>
-                      {getAlignmentLabel(asset.alignment_status)}
+                      {ALIGNMENT_LABELS[asset.alignment_status] ?? asset.alignment_status}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
