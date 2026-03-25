@@ -323,16 +323,25 @@ export default function SalaDeGuerra() {
           <div className="rounded-xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
             <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card/50">
               <span className="text-sm font-semibold text-foreground">Mapa Interativo — Paraná</span>
-              <div className="flex gap-1">
-                {(['calor', 'operacional', 'politico'] as const).map(view => (
-                  <button
-                    key={view}
-                    onClick={() => setMapView(view)}
-                    className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${mapView === view ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
-                  >
-                    {view === 'calor' ? 'Calor' : view === 'operacional' ? 'Operacional' : 'Político'}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {(['calor', 'operacional', 'politico'] as const).map(view => (
+                    <button
+                      key={view}
+                      onClick={() => setMapView(view)}
+                      className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${mapView === view ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {view === 'calor' ? 'Calor' : view === 'operacional' ? 'Operacional' : 'Político'}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => navigate('/mapa')}
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-md font-medium bg-muted text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Expandir
+                </button>
               </div>
             </div>
             <div style={{ height: 380 }}>
