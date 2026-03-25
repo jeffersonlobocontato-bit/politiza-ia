@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
 import {
-  Crosshair, TrendingUp, TrendingDown, Minus, AlertTriangle,
-  CheckCircle, Clock, Users, Activity, MapPin, Zap, Target,
+  Crosshair, TrendingUp, AlertTriangle,
+  CheckCircle, Clock, Users, Activity, Zap, Target,
   RefreshCw, Bell, CheckCheck,
 } from 'lucide-react';
 import {
