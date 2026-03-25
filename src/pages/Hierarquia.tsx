@@ -162,61 +162,63 @@ export default function Hierarquia() {
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {members.length > 0 && (
-        <div className="px-6 py-4 border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-4 flex-shrink-0 bg-card/30">
-          {/* Donut — nível hierárquico */}
-          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Membros por Nível</p>
-            <ResponsiveContainer width="100%" height={140}>
-              <PieChart>
-                <Pie data={levelChartData} dataKey="value" cx="40%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={2}>
-                  {levelChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-                <Tooltip
-                  formatter={(v: number, n: string) => [`${v} membros`, n]}
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Donut — status */}
-          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Membros por Status</p>
-            <ResponsiveContainer width="100%" height={140}>
-              <PieChart>
-                <Pie data={statusChartData} dataKey="value" cx="40%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={2}>
-                  {statusChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-                <Tooltip
-                  formatter={(v: number, n: string) => [`${v} membros`, n]}
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex justify-center gap-3 mt-1 flex-wrap">
-              {statusChartData.map(d => (
-                <span key={d.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: d.color }} />
-                  {d.name} ({d.value})
-                </span>
-              ))}
+        <div className="px-6 py-4 border-b border-border flex-shrink-0 bg-card/30">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Donut — nível hierárquico */}
+            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+              <p className="text-xs font-semibold text-foreground mb-3">Membros por Nível</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={levelChartData} dataKey="value" cx="35%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2}>
+                    {levelChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                  <Tooltip
+                    formatter={(v: number, n: string) => [`${v} membros`, n]}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Legend iconType="circle" iconSize={9} layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11, paddingLeft: 8, lineHeight: '22px' }} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-          </div>
 
-          {/* Bar — macrorregião */}
-          <div className="rounded-xl border border-border p-3" style={{ background: 'var(--gradient-card)' }}>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Membros por Macrorregião</p>
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 20, left: 4, bottom: 0 }}>
-                <XAxis type="number" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }} />
-                <Tooltip
-                  formatter={(v: number) => [`${v}`, 'Membros']}
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                />
-                <Bar dataKey="value" fill="hsl(var(--brand-amber))" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {/* Donut — status */}
+            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+              <p className="text-xs font-semibold text-foreground mb-3">Membros por Status</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={statusChartData} dataKey="value" cx="35%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2}>
+                    {statusChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                  <Tooltip
+                    formatter={(v: number, n: string) => [`${v} membros`, n]}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Legend iconType="circle" iconSize={9} layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11, paddingLeft: 8, lineHeight: '22px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Bar — macrorregião */}
+            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+              <p className="text-xs font-semibold text-foreground mb-3">Membros por Macrorregião</p>
+              <ResponsiveContainer width="100%" height={Math.max(200, macroCounts.length * 32 + 20)}>
+                <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barSize={16}>
+                  <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={110}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+                    tickFormatter={(v: string) => v.length > 16 ? v.slice(0, 15) + '…' : v}
+                  />
+                  <Tooltip
+                    formatter={(v: number) => [`${v}`, 'Membros']}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Bar dataKey="value" fill="hsl(var(--brand-amber))" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
