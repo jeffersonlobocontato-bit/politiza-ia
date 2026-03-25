@@ -37,9 +37,19 @@ const STATES = [
 ];
 
 const PRESET_CANDIDATES = [
-  { name: 'Sergio Moro', party: 'UNIÃO', cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Ex-ministro da Justiça e ex-juiz federal. Candidato ao governo do Paraná.' },
-  { name: 'Ratinho Junior', party: 'PSD', cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Atual governador do Paraná, candidato à reeleição.' },
-  { name: 'Gustavo Fruet', party: 'PDT', cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Ex-prefeito de Curitiba.' },
+  // Governador
+  { name: 'Sergio Moro',       party: 'UNIÃO',   cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Ex-juiz federal e ex-ministro da Justiça. Lidera as pesquisas para o governo do Paraná 2026.' },
+  { name: 'Requião Filho',     party: 'MDB',     cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Filho do ex-governador Roberto Requião. Principal adversário nas pesquisas de intenção de voto.' },
+  { name: 'Alexandre Curi',    party: 'PSD',     cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Deputado Federal e ex-presidente da Assembleia Legislativa do Paraná.' },
+  { name: 'Rafael Greca',      party: 'PSD',     cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Atual prefeito de Curitiba. Aparece nos cenários alternativos das pesquisas.' },
+  { name: 'Giacobo',           party: 'PL',      cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Deputado Federal pelo Paraná. Presente nos cenários estimulados.' },
+  { name: 'Guto Silva',        party: 'PP',      cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Liderança política do interior do Paraná.' },
+  { name: 'Ratinho Junior',    party: 'PSD',     cargo: 'Governador', state: 'PR', election_year: 2026, bio: 'Atual governador do Paraná. Cotado para reeleição.' },
+  // Senador
+  { name: 'Alvaro Dias',       party: 'Podemos', cargo: 'Senador',    state: 'PR', election_year: 2026, bio: 'Senador e ex-governador do Paraná.' },
+  { name: 'Gleisi Hoffmann',   party: 'PT',      cargo: 'Senador',    state: 'PR', election_year: 2026, bio: 'Presidente nacional do PT. Candidata ao Senado pelo Paraná.' },
+  { name: 'Filipe Barros',     party: 'PL',      cargo: 'Senador',    state: 'PR', election_year: 2026, bio: 'Deputado Federal, candidato ao Senado pelo PL.' },
+  { name: 'Cristina Graeml',   party: 'Novo',    cargo: 'Senador',    state: 'PR', election_year: 2026, bio: 'Ex-presidente da Copel, candidata ao Senado.' },
 ];
 
 export default function Configuracoes() {
