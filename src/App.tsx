@@ -52,7 +52,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <CampaignProvider>
+            <AppRoutes />
+          </CampaignProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
