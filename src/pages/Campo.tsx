@@ -67,29 +67,31 @@ export default function Campo() {
     const lat = markedLocation?.lat ?? (-25.4244 + (Math.random() - 0.5) * 2);
     const lng = markedLocation?.lng ?? (-49.2654 + (Math.random() - 0.5) * 4);
 
-    addAction({
+    createAction.mutate({
       title: input.actionTitle || 'Ação de Campo',
       type: 'mobilizacao_comunitaria',
       category: 'Campo',
       description: input.observations || input.result || 'Registro de campo',
       municipality: input.municipality || 'Paraná',
-      microregion: input.municipality || 'Paraná',
-      macroregion: 'rmc',
-      address: '',
+      microregion: input.municipality || null,
+      macroregion_id: 'rmc',
+      address: null,
       lat,
       lng,
       responsible: 'Equipe de Campo',
       team: [],
-      plannedDate: input.executedDate,
-      plannedTime: input.executedTime,
+      planned_date: input.executedDate,
+      planned_time: input.executedTime,
       priority: 'media',
-      targetAudience: 'Público geral',
-      estimatedImpact: parseInt(input.peopleCount) || 0,
+      target_audience: 'Público geral',
+      estimated_impact: parseInt(input.peopleCount) || 0,
       status: 'realizada',
-      executedDate: input.executedDate,
-      executedPeopleCount: parseInt(input.peopleCount) || 0,
-      observations: input.observations,
-      evidencePhotos: photos,
+      executed_date: input.executedDate,
+      executed_people_count: parseInt(input.peopleCount) || 0,
+      observations: input.observations || null,
+      evidence_photos: photos,
+      created_by: null,
+      updated_by: null,
     });
 
     setSubmitted(true);
