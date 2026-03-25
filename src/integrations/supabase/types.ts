@@ -535,6 +535,72 @@ export type Database = {
         }
         Relationships: []
       }
+      strategic_alerts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_read: boolean
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          opportunity_index: number | null
+          recommendation: string | null
+          resolved_at: string | null
+          risk_index: number | null
+          score: number | null
+          severity: number
+          source_data: Json | null
+          status: Database["public"]["Enums"]["strategic_alert_status"]
+          territory: string | null
+          title: string
+          type: Database["public"]["Enums"]["strategic_alert_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_read?: boolean
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          opportunity_index?: number | null
+          recommendation?: string | null
+          resolved_at?: string | null
+          risk_index?: number | null
+          score?: number | null
+          severity?: number
+          source_data?: Json | null
+          status?: Database["public"]["Enums"]["strategic_alert_status"]
+          territory?: string | null
+          title: string
+          type?: Database["public"]["Enums"]["strategic_alert_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_read?: boolean
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          opportunity_index?: number | null
+          recommendation?: string | null
+          resolved_at?: string | null
+          risk_index?: number | null
+          score?: number | null
+          severity?: number
+          source_data?: Json | null
+          status?: Database["public"]["Enums"]["strategic_alert_status"]
+          territory?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["strategic_alert_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       survey_questions: {
         Row: {
           cargo: string
@@ -708,6 +774,16 @@ export type Database = {
         | "influenciador_regional"
         | "coordenador_partidario"
       priority_level: "critica" | "alta" | "media" | "baixa"
+      strategic_alert_status:
+        | "ativo"
+        | "em_analise"
+        | "resolvido"
+        | "descartado"
+      strategic_alert_type:
+        | "risco_operacional"
+        | "risco_eleitoral"
+        | "ineficiencia_atuacao"
+        | "oportunidade_estrategica"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -894,6 +970,18 @@ export const Constants = {
         "coordenador_partidario",
       ],
       priority_level: ["critica", "alta", "media", "baixa"],
+      strategic_alert_status: [
+        "ativo",
+        "em_analise",
+        "resolvido",
+        "descartado",
+      ],
+      strategic_alert_type: [
+        "risco_operacional",
+        "risco_eleitoral",
+        "ineficiencia_atuacao",
+        "oportunidade_estrategica",
+      ],
     },
   },
 } as const
