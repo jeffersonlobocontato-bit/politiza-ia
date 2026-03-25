@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { ClipboardList, Plus, Search, MapPin, Calendar, User, Target, Pencil, Trash2, ChevronDown } from 'lucide-react';
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, Legend,
+} from 'recharts';
 import { macroRegions, getStatusColor, getStatusLabel, getActionTypeLabel } from '@/data/mockData';
 import { useActions, useCreateAction, useUpdateAction, useUpdateActionStatus, useDeleteAction } from '@/hooks/useActions';
 import type { DbAction, DbActionStatus, DbActionType, DbPriorityLevel } from '@/types/database';
