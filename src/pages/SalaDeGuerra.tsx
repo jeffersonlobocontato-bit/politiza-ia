@@ -271,6 +271,7 @@ export default function SalaDeGuerra() {
               value={totalActions}
               icon={Target}
               color="hsl(var(--primary))"
+              onClick={() => navigate('/acoes')}
             />
             <KPICard
               label="Ações Realizadas"
@@ -278,6 +279,7 @@ export default function SalaDeGuerra() {
               sub={`${completionRate}% de execução`}
               icon={CheckCircle}
               color="hsl(var(--brand-green))"
+              onClick={() => navigate('/acoes?status=realizada')}
             />
             <KPICard
               label="Ações Atrasadas"
@@ -285,12 +287,14 @@ export default function SalaDeGuerra() {
               sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined}
               icon={Clock}
               color="hsl(var(--brand-red))"
+              onClick={() => navigate('/acoes?status=atrasada')}
             />
             <KPICard
               label="Em Andamento"
               value={kpis?.in_progress_actions ?? 0}
               icon={Activity}
               color="hsl(var(--brand-amber))"
+              onClick={() => navigate('/acoes?status=em_andamento')}
             />
             <KPICard
               label="Pessoas Impactadas"
@@ -301,12 +305,14 @@ export default function SalaDeGuerra() {
                 : totalImpacted}
               icon={Users}
               color="hsl(var(--brand-cyan))"
+              onClick={() => navigate('/campo')}
             />
             <KPICard
               label="Pendentes Validação"
               value={kpis?.pending_validation ?? 0}
               icon={Bell}
               color="hsl(var(--primary))"
+              onClick={() => navigate('/acoes?status=pendente_validacao')}
             />
           </div>
         )}
