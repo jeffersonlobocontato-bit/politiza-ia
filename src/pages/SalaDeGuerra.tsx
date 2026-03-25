@@ -1,67 +1,165 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
 import {
-  Crosshair, TrendingUp, TrendingDown, Minus, AlertTriangle,
-  CheckCircle, Clock, Users, Activity, MapPin, Zap, Target
+  Crosshair, TrendingUp, AlertTriangle,
+  CheckCircle, Clock, Users, Activity, Zap, Target,
+  RefreshCw, Bell, CheckCheck,
 } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Legend
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
 } from 'recharts';
-import {
-  macroRegions, municipalities, alerts, globalKPIs,
-  pollTimeline, getEngagementColor, getStatusColor
-} from '@/data/mockData';
-import { useCampaign } from '@/contexts/CampaignContext';
+import { municipalities, pollTimeline } from '@/data/mockData';
+import { useDashboardKPIs, useAlerts, useMacroStats, useMacroRegionsDB, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
+import { useActions } from '@/hooks/useActions';
+import type { DbAlert } from '@/types/database';
 
-const KPICard = ({ label, value, sub, icon: Icon, color, trend }: any) => (
-  <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-    <div className="flex items-start justify-between mb-3">
-      <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}20` }}>
-        <Icon className="w-4 h-4" style={{ color }} />
-      </div>
-      {trend !== undefined && (
-        <span className={`text-xs font-semibold ${trend > 0 ? 'text-brand-green' : trend < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
-          {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
-        </span>
-      )}
-    </div>
-    <div className="text-2xl font-black text-foreground">{value}</div>
-    <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
-    {sub && <div className="text-xs text-foreground/60 mt-1 font-medium">{sub}</div>}
-  </div>
-);
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function engagementColor(score: number) {
+  if (score >= 81) return '#22c55e';
+  if (score >= 61) return '#3b82f6';
+  if (score >= 31) return '#f59e0b';
+  return '#ef4444';
+}
 
-const AlertCard = ({ alert }: any) => {
-  const colors: Record<string, { bg: string; border: string; icon: string }> = {
-    critico: { bg: 'hsl(var(--brand-red) / 0.1)', border: 'hsl(var(--brand-red) / 0.3)', icon: 'hsl(var(--brand-red))' },
-    atencao: { bg: 'hsl(var(--brand-amber) / 0.1)', border: 'hsl(var(--brand-amber) / 0.3)', icon: 'hsl(var(--brand-amber))' },
-    oportunidade: { bg: 'hsl(var(--brand-green) / 0.1)', border: 'hsl(var(--brand-green) / 0.3)', icon: 'hsl(var(--brand-green))' },
-    info: { bg: 'hsl(var(--primary) / 0.1)', border: 'hsl(var(--primary) / 0.3)', icon: 'hsl(var(--primary))' },
+function execRateColor(rate: number) {
+  if (rate >= 70) return '#22c55e';
+  if (rate >= 40) return '#f59e0b';
+  return '#ef4444';
+}
+
+function statusDotColor(status: string) {
+  const map: Record<string, string> = {
+    realizada: '#22c55e', prevista: '#3b82f6', confirmada: '#3b82f6',
+    em_andamento: '#f59e0b', atrasada: '#ef4444', cancelada: '#6b7280',
+    pendente_validacao: '#a855f7',
   };
-  const c = colors[alert.level];
+  return map[status] ?? '#6b7280';
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+function KPICard({ label, value, sub, icon: Icon, color, trend }: {
+  label: string; value: string | number; sub?: string;
+  icon: any; color: string; trend?: number;
+}) {
+  return (
+    <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}20` }}>
+          <Icon className="w-4 h-4" style={{ color }} />
+        </div>
+        {trend !== undefined && (
+          <span className={`text-xs font-semibold ${trend > 0 ? 'text-brand-green' : trend < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
+            {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
+          </span>
+        )}
+      </div>
+      <div className="text-2xl font-black text-foreground">{value}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+      {sub && <div className="text-xs text-foreground/60 mt-1 font-medium">{sub}</div>}
+    </div>
+  );
+}
+
+const ALERT_LEVEL_CONFIG: Record<string, { bg: string; border: string; icon: string }> = {
+  critico:     { bg: 'hsl(var(--brand-red) / 0.1)',   border: 'hsl(var(--brand-red) / 0.3)',   icon: 'hsl(var(--brand-red))' },
+  atencao:     { bg: 'hsl(var(--brand-amber) / 0.1)', border: 'hsl(var(--brand-amber) / 0.3)', icon: 'hsl(var(--brand-amber))' },
+  oportunidade:{ bg: 'hsl(var(--brand-green) / 0.1)', border: 'hsl(var(--brand-green) / 0.3)', icon: 'hsl(var(--brand-green))' },
+  info:        { bg: 'hsl(var(--primary) / 0.1)',     border: 'hsl(var(--primary) / 0.3)',     icon: 'hsl(var(--primary))' },
+};
+
+function AlertCard({ alert, onRead, onResolve }: {
+  alert: DbAlert;
+  onRead?: (id: string) => void;
+  onResolve?: (id: string) => void;
+}) {
+  const c = ALERT_LEVEL_CONFIG[alert.level] ?? ALERT_LEVEL_CONFIG.info;
   const Icon = alert.level === 'critico' ? AlertTriangle : alert.level === 'oportunidade' ? Zap : Activity;
   return (
-    <div className={`rounded-lg p-3 border mb-2 transition-all hover:scale-[1.01] cursor-pointer`} style={{ backgroundColor: c.bg, borderColor: c.border }}>
+    <div
+      className="rounded-lg p-3 border mb-2 transition-all hover:scale-[1.01] cursor-pointer group"
+      style={{ backgroundColor: c.bg, borderColor: c.border }}
+      onClick={() => !alert.is_read && onRead?.(alert.id)}
+    >
       <div className="flex items-start gap-2">
         <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: c.icon }} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="text-xs font-semibold text-foreground leading-tight">{alert.title}</div>
           <div className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{alert.description}</div>
-          <div className="text-[10px] mt-1.5 font-medium" style={{ color: c.icon }}>
-            💡 {alert.recommendation.substring(0, 80)}...
+          {alert.recommendation && (
+            <div className="text-[10px] mt-1.5 font-medium line-clamp-1" style={{ color: c.icon }}>
+              💡 {alert.recommendation}
+            </div>
+          )}
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wide">{alert.status}</span>
+            {alert.territory && <span className="text-[9px] text-muted-foreground/60">· {alert.territory}</span>}
           </div>
         </div>
-        {!alert.isRead && <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1" />}
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          {!alert.is_read && <div className="w-2 h-2 rounded-full bg-primary" />}
+          {alert.status !== 'resolvido' && (
+            <button
+              onClick={e => { e.stopPropagation(); onResolve?.(alert.id); }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Marcar como resolvido"
+            >
+              <CheckCheck className="w-3.5 h-3.5 text-muted-foreground hover:text-brand-green" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
-};
+}
 
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SalaDeGuerra() {
-  const { actions } = useCampaign();
+  const { data: kpis, isLoading: kpisLoading, refetch: refetchKPIs } = useDashboardKPIs();
+  const { data: alerts = [], isLoading: alertsLoading } = useAlerts();
+  const { data: macroStats = {} } = useMacroStats();
+  const { data: macroRegionsDB = [] } = useMacroRegionsDB();
+  const { data: actions = [] } = useActions();
+  const markRead = useMarkAlertRead();
+  const updateStatus = useUpdateAlertStatus();
+  const generateAlerts = useGenerateAlerts();
+
   const [mapView, setMapView] = useState<'operacional' | 'calor' | 'politico'>('operacional');
-  const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
-  const completionRate = Math.round((globalKPIs.completedActions / globalKPIs.totalActions) * 100);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Auto-generate alerts on mount (once)
+  useEffect(() => {
+    generateAlerts.mutate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetchKPIs();
+    await generateAlerts.mutateAsync();
+    setLastRefresh(new Date());
+    setIsRefreshing(false);
+  };
+
+  const completionRate = kpis?.completion_rate ?? 0;
+  const totalActions = kpis?.total_actions ?? 0;
+  const completedActions = kpis?.completed_actions ?? 0;
+  const delayedActions = kpis?.delayed_actions ?? 0;
+  const totalImpacted = kpis?.total_people_impacted ?? 0;
+  const unreadAlerts = alerts.filter(a => !a.is_read).length;
+
+  // Build macro ranking from real stats
+  const macroRanking = macroRegionsDB.map(r => {
+    const s = macroStats[r.id] ?? { total: 0, done: 0, delayed: 0, people: 0 };
+    const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+    return { ...r, execRate: rate, totalActions: s.total, doneActions: s.done, delayedActions: s.delayed };
+  }).sort((a, b) => b.execRate - a.execRate);
+
+  // Poll chart — use DB data if available, fallback to static mock
+  const chartData = pollTimeline;
+
+  const recentlyDone = actions.filter(a => a.status === 'realizada').slice(0, 5);
 
   return (
     <div className="h-full flex flex-col">
@@ -75,33 +173,88 @@ export default function SalaDeGuerra() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-green/10 border border-brand-green/20">
-            <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
-            <span className="text-xs font-semibold text-brand-green">AO VIVO</span>
-          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-accent transition-colors text-xs font-medium text-muted-foreground"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">
+              {isRefreshing ? 'Atualizando...' : `Atualizado ${lastRefresh.toLocaleTimeString('pt-BR', { timeStyle: 'short' })}`}
+            </span>
+          </button>
+          {totalActions > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-green/10 border border-brand-green/20">
+              <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
+              <span className="text-xs font-semibold text-brand-green">AO VIVO</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {/* KPIs Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KPICard label="Ações Planejadas" value={globalKPIs.totalActions} icon={Target} color="hsl(var(--primary))" />
-          <KPICard label="Ações Realizadas" value={globalKPIs.completedActions} sub={`${completionRate}% de execução`} icon={CheckCircle} color="hsl(var(--brand-green))" trend={8} />
-          <KPICard label="Ações Atrasadas" value={globalKPIs.delayedActions} icon={Clock} color="hsl(var(--brand-red))" trend={-3} />
-          <KPICard label="Pessoas Impactadas" value={`${(globalKPIs.totalPeopleImpacted / 1000000).toFixed(2)}M`} icon={Users} color="hsl(var(--brand-cyan))" trend={12} />
-          <KPICard label="Municípios Cobertos" value={`${globalKPIs.municipalitiesCovered}/399`} sub="72% do estado" icon={MapPin} color="hsl(var(--brand-amber))" />
-          <KPICard label="Intenção de Voto" value={`${globalKPIs.currentPollScore}%`} sub={`Tendência ${globalKPIs.pollTrend}`} icon={TrendingUp} color="hsl(var(--brand-green))" trend={2} />
-        </div>
+        {kpisLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-border p-4 animate-pulse bg-muted/30 h-24" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <KPICard
+              label="Ações Planejadas"
+              value={totalActions}
+              icon={Target}
+              color="hsl(var(--primary))"
+            />
+            <KPICard
+              label="Ações Realizadas"
+              value={completedActions}
+              sub={`${completionRate}% de execução`}
+              icon={CheckCircle}
+              color="hsl(var(--brand-green))"
+            />
+            <KPICard
+              label="Ações Atrasadas"
+              value={delayedActions}
+              sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined}
+              icon={Clock}
+              color="hsl(var(--brand-red))"
+            />
+            <KPICard
+              label="Em Andamento"
+              value={kpis?.in_progress_actions ?? 0}
+              icon={Activity}
+              color="hsl(var(--brand-amber))"
+            />
+            <KPICard
+              label="Pessoas Impactadas"
+              value={totalImpacted >= 1_000_000
+                ? `${(totalImpacted / 1_000_000).toFixed(2)}M`
+                : totalImpacted >= 1_000
+                ? `${(totalImpacted / 1_000).toFixed(1)}K`
+                : totalImpacted}
+              icon={Users}
+              color="hsl(var(--brand-cyan))"
+            />
+            <KPICard
+              label="Pendentes Validação"
+              value={kpis?.pending_validation ?? 0}
+              icon={Bell}
+              color="hsl(var(--primary))"
+            />
+          </div>
+        )}
 
-        {/* Main Grid */}
+        {/* Main Grid: Map + Alerts */}
         <div className="grid lg:grid-cols-[1fr_300px] gap-4">
           {/* Map */}
           <div className="rounded-xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
-            {/* Map controls */}
             <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card/50">
               <span className="text-sm font-semibold text-foreground">Mapa Interativo — Paraná</span>
               <div className="flex gap-1">
-                {(['calor', 'operacional', 'politico'] as const).map((view) => (
+                {(['calor', 'operacional', 'politico'] as const).map(view => (
                   <button
                     key={view}
                     onClick={() => setMapView(view)}
@@ -113,23 +266,21 @@ export default function SalaDeGuerra() {
               </div>
             </div>
             <div style={{ height: 380 }}>
-              <MapContainer
-                center={[-24.7, -51.5]}
-                zoom={7}
-                style={{ height: '100%', width: '100%' }}
-                zoomControl={true}
-              >
+              <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl>
                 <TileLayer
                   url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   attribution='&copy; <a href="https://carto.com">CARTO</a>'
                 />
-                {municipalities.map((muni) => {
+                {/* Municipality base circles */}
+                {municipalities.map(muni => {
+                  const s = macroStats[muni.macroregion] ?? { total: 0, done: 0 };
+                  const rate = s.total > 0 ? (s.done / s.total) * 100 : 50;
                   const color = mapView === 'calor'
-                    ? getEngagementColor(muni.engagementScore)
+                    ? engagementColor(muni.engagementScore)
                     : mapView === 'operacional'
-                    ? (muni.actionsDelayed > 3 ? '#ef4444' : muni.actionsCompleted > 10 ? '#22c55e' : '#3b82f6')
+                    ? execRateColor(rate)
                     : (muni.pollScore && muni.pollScore > 45 ? '#22c55e' : muni.pollScore && muni.pollScore > 40 ? '#f59e0b' : '#ef4444');
-                  const radius = mapView === 'operacional' ? Math.max(10, muni.actionsPlanned * 0.55) : Math.max(14, muni.engagementScore * 0.22);
+                  const radius = Math.max(8, muni.engagementScore * 0.18);
                   return (
                     <CircleMarker
                       key={muni.id}
@@ -137,29 +288,27 @@ export default function SalaDeGuerra() {
                       radius={radius}
                       fillColor={color}
                       color={color}
-                      weight={2}
-                      opacity={1}
-                      fillOpacity={0.8}
-                      eventHandlers={{ click: () => setSelectedMunicipality(muni.id) }}
+                      weight={1.5}
+                      opacity={0.9}
+                      fillOpacity={0.7}
                     >
-                      <Tooltip permanent={false}>
+                      <Tooltip>
                         <div style={{ color: '#1e293b', minWidth: 140 }}>
                           <strong>{muni.name}</strong><br />
-                          Score: {muni.engagementScore}/100<br />
-                          Ações: {muni.actionsCompleted}/{muni.actionsPlanned}<br />
+                          Engajamento: {muni.engagementScore}/100<br />
                           {muni.pollScore && `Pesquisa: ${muni.pollScore}%`}
                         </div>
                       </Tooltip>
                     </CircleMarker>
                   );
                 })}
-            {/* Action pins */}
-                {mapView === 'operacional' && actions.map((action) => (
+                {/* Real action pins from DB */}
+                {mapView === 'operacional' && actions.filter(a => a.lat && a.lng).map(action => (
                   <CircleMarker
                     key={action.id}
-                    center={[action.lat, action.lng]}
+                    center={[action.lat!, action.lng!]}
                     radius={7}
-                    fillColor={getStatusColor(action.status)}
+                    fillColor={statusDotColor(action.status)}
                     color="#ffffff"
                     weight={2}
                     fillOpacity={0.95}
@@ -168,8 +317,8 @@ export default function SalaDeGuerra() {
                       <div style={{ color: '#1e293b', minWidth: 180 }}>
                         <strong className="text-sm">{action.title}</strong><br />
                         <span className="text-xs">Status: {action.status}</span><br />
-                        <span className="text-xs">📅 {action.plannedDate}</span><br />
-                        <span className="text-xs">👤 {action.responsible}</span>
+                        <span className="text-xs">📅 {action.planned_date}</span><br />
+                        {action.responsible && <span className="text-xs">👤 {action.responsible}</span>}
                       </div>
                     </Popup>
                   </CircleMarker>
@@ -178,6 +327,17 @@ export default function SalaDeGuerra() {
             </div>
             {/* Legend */}
             <div className="px-4 py-2 border-t border-border bg-card/30 flex flex-wrap gap-3">
+              {mapView === 'operacional' && [
+                { color: '#22c55e', label: 'Realizada' },
+                { color: '#3b82f6', label: 'Prevista/Confirmada' },
+                { color: '#f59e0b', label: 'Em Andamento' },
+                { color: '#ef4444', label: 'Atrasada' },
+              ].map(l => (
+                <div key={l.label} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color }} />
+                  <span className="text-[10px] text-muted-foreground">{l.label}</span>
+                </div>
+              ))}
               {mapView === 'calor' && [
                 { color: '#22c55e', label: 'Consolidado (81-100)' },
                 { color: '#3b82f6', label: 'Competitivo (61-80)' },
@@ -189,33 +349,44 @@ export default function SalaDeGuerra() {
                   <span className="text-[10px] text-muted-foreground">{l.label}</span>
                 </div>
               ))}
-              {mapView === 'operacional' && [
-                { color: '#22c55e', label: 'Realizada' },
-                { color: '#3b82f6', label: 'Prevista' },
-                { color: '#f59e0b', label: 'Em Andamento' },
-                { color: '#ef4444', label: 'Atrasada' },
-              ].map(l => (
-                <div key={l.label} className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color }} />
-                  <span className="text-[10px] text-muted-foreground">{l.label}</span>
-                </div>
-              ))}
+              <span className="ml-auto text-[10px] text-muted-foreground">
+                {actions.filter(a => a.lat && a.lng).length} ações no mapa
+              </span>
             </div>
           </div>
 
           {/* Alerts Panel */}
-          <div className="rounded-xl border border-border" style={{ background: 'var(--gradient-card)' }}>
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+          <div className="rounded-xl border border-border flex flex-col" style={{ background: 'var(--gradient-card)' }}>
+            <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-shrink-0">
               <AlertTriangle className="w-4 h-4 text-brand-amber" />
               <span className="text-sm font-semibold text-foreground">Alertas Estratégicos</span>
-              <span className="ml-auto text-[10px] bg-brand-red/20 text-brand-red px-2 py-0.5 rounded-full font-bold">
-                {alerts.filter(a => !a.isRead).length} novos
-              </span>
+              {unreadAlerts > 0 && (
+                <span className="ml-auto text-[10px] bg-brand-red/20 text-brand-red px-2 py-0.5 rounded-full font-bold">
+                  {unreadAlerts} novos
+                </span>
+              )}
             </div>
-            <div className="p-3 overflow-auto" style={{ maxHeight: 380 }}>
-              {alerts.slice(0, 6).map(alert => (
-                <AlertCard key={alert.id} alert={alert} />
-              ))}
+            <div className="p-3 flex-1 overflow-auto" style={{ maxHeight: 380 }}>
+              {alertsLoading ? (
+                <div className="space-y-2">
+                  {[1,2,3].map(i => <div key={i} className="h-16 rounded-lg bg-muted/30 animate-pulse" />)}
+                </div>
+              ) : alerts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-xs">Nenhum alerta ativo.</p>
+                  <button onClick={handleRefresh} className="mt-2 text-xs text-primary hover:underline">Gerar alertas</button>
+                </div>
+              ) : (
+                alerts.slice(0, 8).map(alert => (
+                  <AlertCard
+                    key={alert.id}
+                    alert={alert}
+                    onRead={id => markRead.mutate(id)}
+                    onResolve={id => updateStatus.mutate({ id, status: 'resolvido' })}
+                  />
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -227,10 +398,10 @@ export default function SalaDeGuerra() {
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">Evolução das Pesquisas</span>
-              <span className="ml-auto text-xs text-brand-green font-semibold">+8.7pp desde Jan/24</span>
+              <span className="ml-auto text-xs text-muted-foreground font-medium">Dados históricos</span>
             </div>
             <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={pollTimeline}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis domain={[0, 60]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
@@ -243,55 +414,67 @@ export default function SalaDeGuerra() {
             </ResponsiveContainer>
           </div>
 
-          {/* Macro Regions Ranking */}
+          {/* Macro Ranking — real data */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-4 h-4 text-brand-cyan" />
               <span className="text-sm font-semibold text-foreground">Ranking Macrorregiões</span>
+              <span className="text-[10px] text-muted-foreground ml-auto">por execução</span>
             </div>
-            <div className="space-y-2">
-              {[...macroRegions].sort((a, b) => b.engagementScore - a.engagementScore).map((r, i) => {
-                const color = getEngagementColor(r.engagementScore);
-                const rate = Math.round((r.actionsCompleted / r.actionsPlanned) * 100);
-                return (
-                  <div key={r.id} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-medium text-foreground truncate">{r.name}</span>
-                        <span className="text-xs font-bold ml-2 flex-shrink-0" style={{ color }}>{r.engagementScore}</span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full transition-all" style={{ width: `${r.engagementScore}%`, backgroundColor: color }} />
+            {macroRanking.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground text-xs">Cadastre ações para ver o ranking.</div>
+            ) : (
+              <div className="space-y-2">
+                {macroRanking.map((r, i) => {
+                  const color = execRateColor(r.execRate);
+                  return (
+                    <div key={r.id} className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-xs font-medium text-foreground truncate">{r.name}</span>
+                          <span className="text-xs font-bold ml-2 flex-shrink-0" style={{ color }}>
+                            {r.execRate}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${r.execRate}%`, backgroundColor: color }} />
+                        </div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          {r.doneActions}/{r.totalActions} ações · {r.delayedActions} atrasadas
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-0.5 text-xs flex-shrink-0">
-                      {r.pollTrend === 'up' ? <TrendingUp className="w-3 h-3 text-brand-green" /> : r.pollTrend === 'down' ? <TrendingDown className="w-3 h-3 text-brand-red" /> : <Minus className="w-3 h-3 text-muted-foreground" />}
-                      <span className="text-muted-foreground">{r.pollScore}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Recent Actions */}
+          {/* Recent Completed Actions */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle className="w-4 h-4 text-brand-green" />
-              <span className="text-sm font-semibold text-foreground">Últimas Ações</span>
+              <span className="text-sm font-semibold text-foreground">Últimas Ações Realizadas</span>
             </div>
-            <div className="space-y-2">
-              {actions.filter(a => a.status === 'realizada').slice(0, 5).map(action => (
-                <div key={action.id} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30">
-                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-brand-green" />
-                  <div className="min-w-0">
-                    <div className="text-xs font-medium text-foreground leading-tight truncate">{action.title}</div>
-                    <div className="text-[10px] text-muted-foreground">{action.municipality} · {action.executedPeopleCount?.toLocaleString()} impactados</div>
+            {recentlyDone.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground text-xs">Nenhuma ação realizada ainda.</div>
+            ) : (
+              <div className="space-y-2">
+                {recentlyDone.map(action => (
+                  <div key={action.id} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30">
+                    <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-brand-green" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-foreground leading-tight truncate">{action.title}</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {action.municipality ?? '—'}
+                        {action.executed_people_count ? ` · ${action.executed_people_count.toLocaleString()} impactados` : ''}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

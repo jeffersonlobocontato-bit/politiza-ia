@@ -1,19 +1,16 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
 import { Map, Filter, X } from 'lucide-react';
-import {
-  municipalities, politicalAssets,
-  getEngagementColor, getStatusColor, getStatusLabel, getActionTypeLabel
-} from '@/data/mockData';
-import { useCampaign } from '@/contexts/CampaignContext';
+import { municipalities, politicalAssets, getEngagementColor, getStatusColor, getStatusLabel } from '@/data/mockData';
+import { useActions } from '@/hooks/useActions';
 
 export default function MapaEstrategico() {
-  const { actions, newActionIds } = useCampaign();
+  const { data: actions = [] } = useActions();
+  const newActionIds = new Set<string>();
   const [activeLayer, setActiveLayer] = useState<'engajamento' | 'acoes' | 'ativos' | 'pesquisas'>('acoes');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedAction, setSelectedAction] = useState<any>(null);
-
   const filteredActions = actions.filter(a => statusFilter === 'all' || a.status === statusFilter);
 
   return (
@@ -143,7 +140,7 @@ export default function MapaEstrategico() {
                 <CircleMarker
                   key={action.id}
                   center={[action.lat, action.lng]}
-                  radius={isNew ? 14 : (action.estimatedImpact > 5000 ? 16 : action.estimatedImpact > 1000 ? 12 : 8)}
+                  radius={isNew ? 14 : (action.estimated_impact > 5000 ? 16 : action.estimated_impact > 1000 ? 12 : 8)}
                   fillColor={isNew ? '#22c55e' : getStatusColor(action.status)}
                   color={isNew ? '#ffffff' : '#ffffff'}
                   weight={isNew ? 3 : 2}
@@ -155,9 +152,9 @@ export default function MapaEstrategico() {
                       {isNew && <div style={{ color: '#16a34a', fontWeight: 700, fontSize: 11, marginBottom: 4 }}>🟢 NOVA AÇÃO — AO VIVO</div>}
                       <div style={{ fontWeight: 700, marginBottom: 6 }}>{action.title}</div>
                       <div style={{ fontSize: 12 }}>📍 {action.municipality}</div>
-                      <div style={{ fontSize: 12 }}>📅 {action.plannedDate} às {action.plannedTime}</div>
-                      <div style={{ fontSize: 12 }}>👤 {action.responsible}</div>
-                      <div style={{ fontSize: 12 }}>🎯 ~{action.estimatedImpact.toLocaleString()} impactados</div>
+                       <div style={{ fontSize: 12 }}>📅 {action.planned_date} às {action.planned_time}</div>
+                       <div style={{ fontSize: 12 }}>👤 {action.responsible}</div>
+                       <div style={{ fontSize: 12 }}>🎯 ~{action.estimated_impact.toLocaleString()} impactados</div>
                       <div style={{ fontSize: 12, marginTop: 4 }}>
                         <span style={{ backgroundColor: getStatusColor(action.status), color: 'white', padding: '2px 8px', borderRadius: 4, fontSize: 11 }}>
                           {getStatusLabel(action.status)}
