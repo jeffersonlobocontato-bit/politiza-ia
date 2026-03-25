@@ -1122,17 +1122,32 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
 // ─── Page ─────────────────────────────────────────────────────
 export default function Pesquisas() {
-  const [waves, setWaves] = useState<PollWave[]>(initialWaves);
-  const [questions, setQuestions] = useState<PollQuestion[]>(initialQuestions);
+  const { data: dbData, isLoading: surveysLoading } = useSurveys();
+  const createSurvey = useCreateSurvey();
+  const deleteSurvey = useDeleteSurvey();
+
+  // Merge DB surveys with static seed data (static listed last)
+  const dbWaves = dbData?.waves ?? [];
+  const dbQuestions = dbData?.questions ?? [];
+
+  // IDs from DB to avoid duplicating static seeds that were already imported
+  const dbIds = new Set(dbWaves.map(w => w.id));
+  const staticWavesFiltered = initialWaves.filter(w => !dbIds.has(w.id));
+  const staticQuestionsFiltered = initialQuestions.filter(q => !dbIds.has(q.waveId));
+
+  const waves = [...dbWaves, ...staticWavesFiltered];
+  const questions = [...dbQuestions, ...staticQuestionsFiltered];
 
   const handleAdd = (wave: PollWave, newQuestions: PollQuestion[]) => {
-    setWaves(prev => [wave, ...prev]);
-    setQuestions(prev => [...newQuestions, ...prev]);
+    createSurvey.mutate({ wave, questions: newQuestions });
   };
 
   const handleDelete = (waveId: string) => {
-    setWaves(prev => prev.filter(w => w.id !== waveId));
-    setQuestions(prev => prev.filter(q => q.waveId !== waveId));
+    // Only delete from DB if it's a DB record (UUID format)
+    if (dbIds.has(waveId)) {
+      deleteSurvey.mutate(waveId);
+    }
+    // Static seeds cannot be deleted (they are read-only display data)
   };
 
   return (
@@ -1141,7 +1156,9 @@ export default function Pesquisas() {
         <BarChart2 className="w-5 h-5 text-primary" />
         <div>
           <h1 className="text-base font-bold">Pesquisas Eleitorais</h1>
-          <p className="text-xs text-muted-foreground">{waves.length} pesquisa{waves.length !== 1 ? 's' : ''} registrada{waves.length !== 1 ? 's' : ''} · Paraná 2026</p>
+          <p className="text-xs text-muted-foreground">
+            {surveysLoading ? 'Carregando…' : `${waves.length} pesquisa${waves.length !== 1 ? 's' : ''} registrada${waves.length !== 1 ? 's' : ''} · Paraná 2026`}
+          </p>
         </div>
       </div>
 
