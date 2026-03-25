@@ -293,6 +293,63 @@ export type Database = {
           },
         ]
       }
+      electoral_surveys: {
+        Row: {
+          cargos: string[]
+          collection_end: string | null
+          collection_start: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          file_name: string | null
+          id: string
+          institute: string
+          margin_of_error: number
+          methodology: string | null
+          release_date: string
+          sample_size: number
+          territory: string
+          tse_registration: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargos?: string[]
+          collection_end?: string | null
+          collection_start?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          file_name?: string | null
+          id?: string
+          institute: string
+          margin_of_error?: number
+          methodology?: string | null
+          release_date: string
+          sample_size?: number
+          territory?: string
+          tse_registration?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargos?: string[]
+          collection_end?: string | null
+          collection_start?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          file_name?: string | null
+          id?: string
+          institute?: string
+          margin_of_error?: number
+          methodology?: string | null
+          release_date?: string
+          sample_size?: number
+          territory?: string
+          tse_registration?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       macroregions: {
         Row: {
           center_lat: number | null
@@ -432,6 +489,82 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      survey_questions: {
+        Row: {
+          cargo: string
+          created_at: string
+          id: string
+          note: string | null
+          question_type: string
+          scenario_label: string
+          sort_order: number
+          survey_id: string
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          question_type: string
+          scenario_label?: string
+          sort_order?: number
+          survey_id: string
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          question_type?: string
+          scenario_label?: string
+          sort_order?: number
+          survey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_questions_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_results: {
+        Row: {
+          candidate_name: string
+          created_at: string
+          id: string
+          is_excluded: boolean
+          percentage: number
+          question_id: string
+        }
+        Insert: {
+          candidate_name: string
+          created_at?: string
+          id?: string
+          is_excluded?: boolean
+          percentage?: number
+          question_id: string
+        }
+        Update: {
+          candidate_name?: string
+          created_at?: string
+          id?: string
+          is_excluded?: boolean
+          percentage?: number
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_results_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "survey_questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
