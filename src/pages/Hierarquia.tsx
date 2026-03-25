@@ -98,12 +98,13 @@ export default function Hierarquia() {
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
       municipality: form.municipality || null,
-      supervisor_id: null,
+      supervisor_id: null as string | null,
       actions_managed: 0,
       completion_rate: 0,
       status: form.status,
       observations: form.observations || null,
-      user_id: null,
+      user_id: null as string | null,
+      created_by: null as string | null,
     };
     if (editingId) {
       await updateMember.mutateAsync({ id: editingId, ...payload });

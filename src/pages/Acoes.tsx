@@ -374,7 +374,7 @@ export default function Acoes() {
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md hidden group-hover:block">
-                            {getActionTypeLabel(action.type)}
+                            {TYPE_OPTIONS.find(t => t.value === action.type)?.label ?? action.type}
                           </span>
                           <button
                             onClick={() => openEdit(action)}
