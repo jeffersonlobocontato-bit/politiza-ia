@@ -278,7 +278,6 @@ export default function Alertas() {
         onClose={() => setPendingUpdate(null)}
         onConfirm={confirmStatusChange}
         targetStatus={pendingUpdate?.status ?? ''}
-        members={members}
       />
 
       {/* Header */}
