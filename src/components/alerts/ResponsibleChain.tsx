@@ -1,111 +1,141 @@
-import { User, ChevronRight, UserCheck } from 'lucide-react';
-import type { HierarchyNode } from '@/types/database';
+import { User, UserCheck, Shield, MapPin } from 'lucide-react';
+
+export interface ResponsibleEntry {
+  name: string;
+  role: string;
+  level: 'creator' | 'micro' | 'regional' | 'geral';
+}
 
 interface Props {
-  responsibleName: string | null;
-  responsibleRole: string | null;
-  hierarchyChain: HierarchyNode[] | null;
+  entries: ResponsibleEntry[];
   compact?: boolean;
 }
 
-export function ResponsibleChain({ responsibleName, responsibleRole, hierarchyChain, compact = false }: Props) {
-  if (!responsibleName && (!hierarchyChain || hierarchyChain.length === 0)) return null;
+const LEVEL_CONFIG: Record<ResponsibleEntry['level'], {
+  label: string;
+  icon: typeof User;
+  badge: string;
+  dot: string;
+}> = {
+  creator: {
+    label: 'Quem cadastrou',
+    icon: User,
+    badge: 'bg-muted text-muted-foreground border-border',
+    dot: 'hsl(var(--muted-foreground))',
+  },
+  micro: {
+    label: 'Coord. Microrregional',
+    icon: MapPin,
+    badge: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+    dot: 'hsl(var(--brand-amber))',
+  },
+  regional: {
+    label: 'Coord. Regional',
+    icon: Shield,
+    badge: 'bg-primary/10 text-primary border-primary/30',
+    dot: 'hsl(var(--primary))',
+  },
+  geral: {
+    label: 'Coord. Geral',
+    icon: UserCheck,
+    badge: 'bg-brand-red/10 text-brand-red border-brand-red/30',
+    dot: 'hsl(var(--brand-red))',
+  },
+};
 
-  const chain = hierarchyChain ?? [];
-  // Sort by level descending (highest authority first)
-  const sorted = [...chain].sort((a, b) => a.level - b.level);
+export function ResponsibleChain({ entries, compact = false }: Props) {
+  if (!entries || entries.length === 0) return null;
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <UserCheck className="w-3 h-3 text-primary flex-shrink-0" />
-        {responsibleName && (
-          <span className="text-[10px] font-semibold text-foreground bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-full">
-            {responsibleName}
-            {responsibleRole && <span className="font-normal text-muted-foreground ml-1">({responsibleRole})</span>}
-          </span>
-        )}
-        {sorted.length > 0 && (
-          <>
-            <ChevronRight className="w-3 h-3 text-muted-foreground/40" />
-            {sorted.map((node, i) => (
-              <span key={i} className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                {node.name}
-              </span>
-            ))}
-          </>
-        )}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {entries.map((e, i) => {
+          const cfg = LEVEL_CONFIG[e.level];
+          const Icon = cfg.icon;
+          return (
+            <span
+              key={i}
+              className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border ${cfg.badge}`}
+            >
+              <Icon className="w-2.5 h-2.5 flex-shrink-0" />
+              <span className="font-semibold">{e.name}</span>
+              <span className="opacity-60">· {cfg.label}</span>
+            </span>
+          );
+        })}
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+    <div className="space-y-1.5">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 mb-2">
         <UserCheck className="w-3.5 h-3.5" />
-        Responsável &amp; Cadeia de Comando
+        Equipe responsável — acionar para resolver
       </div>
-
-      {/* Direct responsible */}
-      {responsibleName && (
-        <div className="flex items-center gap-3 p-3 rounded-xl border border-primary/25 bg-primary/5">
-          <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-            <User className="w-4 h-4 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-sm font-bold text-foreground leading-tight">{responsibleName}</div>
-            {responsibleRole && (
-              <div className="text-xs text-primary font-medium">{responsibleRole}</div>
-            )}
-            <div className="text-[10px] text-muted-foreground mt-0.5">Responsável direto — deve ser acionado</div>
-          </div>
-          <div className="ml-auto flex-shrink-0">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-              ACIONAR
+      {entries.map((e, i) => {
+        const cfg = LEVEL_CONFIG[e.level];
+        const Icon = cfg.icon;
+        const isFirst = i === 0;
+        return (
+          <div
+            key={i}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
+              isFirst
+                ? 'border-primary/25 bg-primary/5'
+                : 'border-border bg-muted/20'
+            }`}
+          >
+            {/* level dot */}
+            <div
+              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: cfg.dot }}
+            />
+            {/* icon */}
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `${cfg.dot}20` }}
+            >
+              <Icon className="w-3.5 h-3.5" style={{ color: cfg.dot }} />
+            </div>
+            {/* text */}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold text-foreground leading-tight">{e.name}</div>
+              <div className="text-[10px] text-muted-foreground">{e.role}</div>
+            </div>
+            {/* badge */}
+            <span
+              className={`flex-shrink-0 text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${cfg.badge}`}
+            >
+              {cfg.label}
             </span>
           </div>
-        </div>
-      )}
-
-      {/* Hierarchy chain */}
-      {sorted.length > 0 && (
-        <div className="space-y-1.5">
-          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide px-1">
-            Cadeia hierárquica acima
-          </div>
-          {sorted.map((node, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg border border-border bg-muted/30"
-              style={{ paddingLeft: `${12 + i * 12}px` }}
-            >
-              {i > 0 && (
-                <div className="absolute left-3 flex flex-col items-center">
-                  <div className="w-px h-2 bg-border" />
-                </div>
-              )}
-              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                <User className="w-3 h-3 text-muted-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <span className="text-xs font-semibold text-foreground">{node.name}</span>
-                <span className="text-[10px] text-muted-foreground ml-2">{node.role}</span>
-              </div>
-              <div className="flex-shrink-0">
-                <span className="text-[9px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                  Nível {node.level}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!responsibleName && sorted.length === 0 && (
-        <div className="text-xs text-muted-foreground italic p-3 rounded-lg bg-muted/30 border border-border">
-          Nenhum responsável definido para este alerta.
-        </div>
-      )}
+        );
+      })}
     </div>
   );
+}
+
+// ─── Legacy shim (for any existing callers that still pass old props) ──────────
+// Accepts the old prop shape and converts to new entries
+interface LegacyProps {
+  responsibleName?: string | null;
+  responsibleRole?: string | null;
+  hierarchyChain?: Array<{ name: string; role: string; level: number }> | null;
+  compact?: boolean;
+}
+
+export function ResponsibleChainLegacy({ responsibleName, responsibleRole, hierarchyChain, compact }: LegacyProps) {
+  const entries: ResponsibleEntry[] = [];
+  if (responsibleName) {
+    entries.push({ name: responsibleName, role: responsibleRole ?? '', level: 'creator' });
+  }
+  if (hierarchyChain) {
+    for (const node of [...hierarchyChain].sort((a, b) => a.level - b.level)) {
+      const level: ResponsibleEntry['level'] =
+        node.level <= 2 ? 'geral' : node.level <= 3 ? 'regional' : 'micro';
+      entries.push({ name: node.name, role: node.role, level });
+    }
+  }
+  return <ResponsibleChain entries={entries} compact={compact} />;
 }
