@@ -375,13 +375,12 @@ type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
 type Status = 'all' | 'novo' | 'em_analise' | 'resolvido';
 
 const OP_LEVEL_CONFIG: Record<string, {
-  bg: string; border: string; icon: string; label: string;
-  badge: string; badgeText: string; titleColor: string; bodyColor: string;
+  bgClass: string; borderClass: string; iconClass: string; label: string; badgeClass: string;
 }> = {
-  critico:      { bg: 'hsl(1 79% 96%)',   border: '#E53935', icon: '#E53935', label: 'Crítico',      badge: '#E53935', badgeText: '#fff', titleColor: '#7f1d1d', bodyColor: '#991b1b' },
-  atencao:      { bg: 'hsl(42 96% 96%)',  border: '#FBC02D', icon: '#FBC02D', label: 'Atenção',      badge: '#FBC02D', badgeText: '#fff', titleColor: '#78350f', bodyColor: '#92400e' },
-  oportunidade: { bg: 'hsl(123 46% 95%)', border: '#43A047', icon: '#43A047', label: 'Oportunidade', badge: '#43A047', badgeText: '#fff', titleColor: '#14532d', bodyColor: '#166534' },
-  info:         { bg: 'hsl(210 84% 96%)', border: '#106EBE', icon: '#106EBE', label: 'Info',         badge: '#106EBE', badgeText: '#fff', titleColor: '#1e3a5f', bodyColor: '#1e40af' },
+  critico:      { bgClass: 'bg-status-error-bg',   borderClass: 'border-status-error/50',   iconClass: 'text-status-error',   label: 'Crítico'      , badgeClass: 'bg-status-error text-white'   },
+  atencao:      { bgClass: 'bg-status-warning-bg', borderClass: 'border-status-warning/50', iconClass: 'text-status-warning', label: 'Atenção'      , badgeClass: 'bg-status-warning text-foreground' },
+  oportunidade: { bgClass: 'bg-status-success-bg', borderClass: 'border-status-success/50', iconClass: 'text-status-success', label: 'Oportunidade' , badgeClass: 'bg-status-success text-white'   },
+  info:         { bgClass: 'bg-status-info-bg',    borderClass: 'border-status-info/50',    iconClass: 'text-status-info',    label: 'Info'         , badgeClass: 'bg-status-info text-white'      },
 };
 const OP_STATUS_LABEL: Record<string, string> = { novo: 'Novo', em_analise: 'Em Análise', resolvido: 'Resolvido' };
 
@@ -400,10 +399,10 @@ function difficultyScore(alertsForCoord: DbAlert[]) {
   const resolutionRate = alertsForCoord.filter(a => a.status === 'resolvido').length / alertsForCoord.length;
   return Math.min(100, Math.round((weighted / alertsForCoord.length) * 33 + (1 - resolutionRate) * 67));
 }
-function difficultyLabel(score: number): { label: string; color: string; bg: string; icon: typeof Minus } {
-  if (score >= 70) return { label: 'Atenção Crítica', color: '#E53935', bg: 'hsl(1 79% 96%)', icon: TrendingDown };
-  if (score >= 40) return { label: 'Em Dificuldade', color: '#FBC02D', bg: 'hsl(42 96% 96%)', icon: Minus };
-  return { label: 'Bom Desempenho', color: '#43A047', bg: 'hsl(123 46% 95%)', icon: TrendingUp };
+function difficultyLabel(score: number): { label: string; bgClass: string; iconClass: string; icon: typeof Minus } {
+  if (score >= 70) return { label: 'Atenção Crítica', bgClass: 'bg-status-error-bg',   iconClass: 'text-status-error',   icon: TrendingDown };
+  if (score >= 40) return { label: 'Em Dificuldade',  bgClass: 'bg-status-warning-bg', iconClass: 'text-status-warning', icon: Minus };
+  return            { label: 'Bom Desempenho',         bgClass: 'bg-status-success-bg', iconClass: 'text-status-success', icon: TrendingUp };
 }
 function feedbackMessage(score: number, name: string) {
   if (score >= 70) return `${name} tem alta concentração de alertas críticos em aberto. Recomenda-se contato imediato, revisão do plano de ação e possível reforço de equipe.`;
