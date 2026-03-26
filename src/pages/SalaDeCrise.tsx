@@ -383,6 +383,13 @@ export default function SalaDeCrise() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Resolution Dialog */}
+      <ResolutionDialog
+        open={!!pendingUpdate}
+        onClose={() => setPendingUpdate(null)}
+        onConfirm={confirmUpdate}
+        targetStatus={pendingUpdate?.status ?? ''}
+      />
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
