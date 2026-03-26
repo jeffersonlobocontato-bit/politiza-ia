@@ -56,17 +56,26 @@ function IndexBadge({ value, label, variant }: { value: number; label: string; v
 
 // ─── Alert Detail Panel ───────────────────────────────────────────────────────
 function AlertDetailPanel({
-  alert, onClose, onUpdate,
+  alert, onClose, onUpdate, members,
 }: {
   alert: StrategicAlert;
   onClose: () => void;
   onUpdate: (id: string, status: StrategicAlertStatus) => void;
+  members: ReturnType<typeof useCampaignMembers>['data'] extends infer T ? NonNullable<T> : never;
 }) {
   const cfg = ALERT_TYPE_CONFIG[alert.type];
   const TypeIcon =
     alert.type === 'oportunidade_estrategica' ? Zap :
     alert.type === 'risco_eleitoral' ? BarChart2 :
     alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
+
+  const team = resolveAlertTeam(members, {
+    macroregion_id: alert.macroregion_id,
+    microregion: alert.microregion,
+    municipality: alert.municipality,
+    creatorName: alert.responsible_name ?? undefined,
+    creatorRole: alert.responsible_role ?? undefined,
+  });
 
   return (
     <div className="h-full flex flex-col rounded-xl border overflow-hidden" style={{ background: 'var(--gradient-card)', borderColor: cfg.border }}>
@@ -101,14 +110,10 @@ function AlertDetailPanel({
           </div>
         </div>
 
-        {/* Responsible & Hierarchy — who to call */}
-        {(alert.responsible_name || (alert.hierarchy_chain && alert.hierarchy_chain.length > 0)) && (
+        {/* Responsible chain — who to call */}
+        {team.length > 0 && (
           <div className="rounded-xl border border-border p-4 bg-muted/20">
-            <ResponsibleChain
-              responsibleName={alert.responsible_name}
-              responsibleRole={alert.responsible_role}
-              hierarchyChain={alert.hierarchy_chain}
-            />
+            <ResponsibleChain entries={team} />
           </div>
         )}
 
