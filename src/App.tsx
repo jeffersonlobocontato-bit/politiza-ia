@@ -17,9 +17,7 @@ import Acoes from "./pages/Acoes";
 import Campo from "./pages/Campo";
 import AtivosPoliticos from "./pages/AtivosPoliticos";
 import Pesquisas from "./pages/Pesquisas";
-import Inteligencia from "./pages/Inteligencia";
 import Hierarquia from "./pages/Hierarquia";
-import Alertas from "./pages/Alertas";
 import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
 import NotFound from "./pages/NotFound";
@@ -43,11 +41,12 @@ const AppRoutes = () => (
     <Route path="/campo" element={<ProtectedRoute><AppLayout><Campo /></AppLayout></ProtectedRoute>} />
     <Route path="/ativos" element={<ProtectedRoute><AppLayout><AtivosPoliticos /></AppLayout></ProtectedRoute>} />
     <Route path="/pesquisas" element={<ProtectedRoute><AppLayout><Pesquisas /></AppLayout></ProtectedRoute>} />
-    <Route path="/inteligencia" element={<ProtectedRoute><AppLayout><Inteligencia /></AppLayout></ProtectedRoute>} />
     <Route path="/hierarquia" element={<ProtectedRoute><AppLayout><Hierarquia /></AppLayout></ProtectedRoute>} />
-    <Route path="/alertas" element={<ProtectedRoute><AppLayout><Alertas /></AppLayout></ProtectedRoute>} />
     <Route path="/configuracoes" element={<ProtectedRoute><AppLayout><Configuracoes /></AppLayout></ProtectedRoute>} />
     <Route path="/sala-de-crise" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
+    {/* Legacy redirects */}
+    <Route path="/alertas" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
+    <Route path="/inteligencia" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
