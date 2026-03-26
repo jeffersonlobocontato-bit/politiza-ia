@@ -192,79 +192,46 @@ function AlertsAnalytics({ alerts, members }: {
     <div className="space-y-4">
       {/* Row 1: Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* City chart */}
-        <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1.5 h-4 rounded-full bg-primary" />
-            <span className="text-xs font-bold text-foreground uppercase tracking-wider">Alertas por Cidade</span>
-            <span className="ml-auto text-[10px] text-muted-foreground">top 10</span>
-          </div>
-          {cityData.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-8">Sem dados de território</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={cityData} layout="vertical" margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 22%)" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(215 13% 55%)' }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: 'hsl(213 20% 75%)' }} axisLine={false} tickLine={false} width={80} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="critico" name="Críticos" stackId="a" fill="hsl(0 75% 42%)" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="atencao" name="Atenção" stackId="a" fill="hsl(38 88% 42%)" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="total" name="Total" fill="hsl(217 75% 42%)" radius={[0, 3, 3, 0]}
-                  hide={cityData.every(d => d.critico + d.atencao >= d.total)} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* Regional coordinators chart */}
-        <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1.5 h-4 rounded-full" style={{ background: 'hsl(0 75% 52%)' }} />
-            <span className="text-xs font-bold text-foreground uppercase tracking-wider">Coord. Regionais</span>
-            <span className="ml-auto text-[10px] text-muted-foreground">volume</span>
-          </div>
-          {regionalData.length === 0 ? (
+        <InfographicHBar
+          title="Alertas por Cidade"
+          subtitle="top 10"
+          data={cityData.map(d => ({ name: d.name, value: d.total, color: d.critico > 0 ? '#E53935' : '#106EBE' }))}
+          accentColor="#106EBE"
+        />
+        {regionalData.length > 0 ? (
+          <InfographicVBar
+            title="Coord. Regionais"
+            subtitle="volume"
+            data={regionalData}
+            series={[
+              { key: 'critico', label: 'Críticos', color: '#E53935' },
+              { key: 'atencao', label: 'Atenção', color: '#FBC02D' },
+              { key: 'resolvido', label: 'Resolvidos', color: '#43A047' },
+            ]}
+            height={180}
+          />
+        ) : (
+          <div style={{ background: 'hsl(220 30% 13%)', border: '1px solid hsl(220 20% 22%)', borderRadius: 16, padding: 16 }}>
             <p className="text-xs text-muted-foreground text-center py-8">Sem dados de coordenadores regionais</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={regionalData} margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 22%)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: 'hsl(213 20% 75%)' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: 'hsl(215 13% 55%)' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="critico" name="Críticos" stackId="a" fill="hsl(0 75% 42%)" />
-                <Bar dataKey="atencao" name="Atenção" stackId="a" fill="hsl(38 88% 42%)" />
-                <Bar dataKey="resolvido" name="Resolvidos" fill="hsl(142 60% 32%)" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* Microregional coordinators chart */}
-        <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1.5 h-4 rounded-full" style={{ background: 'hsl(38 90% 52%)' }} />
-            <span className="text-xs font-bold text-foreground uppercase tracking-wider">Coord. Microrregionais</span>
-            <span className="ml-auto text-[10px] text-muted-foreground">volume</span>
           </div>
-          {microData.length === 0 ? (
+        )}
+        {microData.length > 0 ? (
+          <InfographicVBar
+            title="Coord. Microrregionais"
+            subtitle="volume"
+            data={microData}
+            series={[
+              { key: 'critico', label: 'Críticos', color: '#E53935' },
+              { key: 'atencao', label: 'Atenção', color: '#FBC02D' },
+              { key: 'resolvido', label: 'Resolvidos', color: '#43A047' },
+            ]}
+            height={180}
+          />
+        ) : (
+          <div style={{ background: 'hsl(220 30% 13%)', border: '1px solid hsl(220 20% 22%)', borderRadius: 16, padding: 16 }}>
             <p className="text-xs text-muted-foreground text-center py-8">Sem dados de coordenadores microrregionais</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={microData} margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 22%)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: 'hsl(213 20% 75%)' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: 'hsl(215 13% 55%)' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="critico" name="Críticos" stackId="a" fill="hsl(0 75% 42%)" />
-                <Bar dataKey="atencao" name="Atenção" stackId="a" fill="hsl(38 88% 42%)" />
-                <Bar dataKey="resolvido" name="Resolvidos" fill="hsl(142 60% 32%)" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Row 2: Performance ranking */}
