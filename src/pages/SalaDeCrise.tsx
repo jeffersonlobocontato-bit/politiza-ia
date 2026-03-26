@@ -100,14 +100,25 @@ function AlertDetailPanel({
           </div>
         </div>
 
+        {/* Responsible & Hierarchy — who to call */}
+        {(alert.responsible_name || (alert.hierarchy_chain && alert.hierarchy_chain.length > 0)) && (
+          <div className="rounded-xl border border-border p-4 bg-muted/20">
+            <ResponsibleChain
+              responsibleName={alert.responsible_name}
+              responsibleRole={alert.responsible_role}
+              hierarchyChain={alert.hierarchy_chain}
+            />
+          </div>
+        )}
+
         {/* Indices */}
         <div className="grid grid-cols-2 gap-3">
           {alert.risk_index !== null && (
             <div className="rounded-lg p-3 bg-muted/40 border border-border">
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Risco</div>
-              <div className="text-2xl font-black text-red-400">{alert.risk_index?.toFixed(0)}</div>
+              <div className="text-2xl font-black text-destructive">{alert.risk_index?.toFixed(0)}</div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1">
-                <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${alert.risk_index}%` }} />
+                <div className="h-full rounded-full bg-destructive transition-all" style={{ width: `${alert.risk_index}%` }} />
               </div>
             </div>
           )}
@@ -116,7 +127,7 @@ function AlertDetailPanel({
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Oportunidade</div>
               <div className="text-2xl font-black text-brand-green">{alert.opportunity_index?.toFixed(0)}</div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1">
-                <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${alert.opportunity_index}%` }} />
+                <div className="h-full rounded-full bg-brand-green transition-all" style={{ width: `${alert.opportunity_index}%` }} />
               </div>
             </div>
           )}
@@ -169,7 +180,7 @@ function AlertDetailPanel({
         {alert.status !== 'resolvido' && (
           <button
             onClick={() => onUpdate(alert.id, 'resolvido')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-colors ml-auto"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary-foreground transition-colors ml-auto"
             style={{ background: 'var(--gradient-primary)' }}
           >
             <CheckCheck className="w-3.5 h-3.5" /> Marcar Resolvido
@@ -187,6 +198,7 @@ function AlertDetailPanel({
     </div>
   );
 }
+
 
 // ─── Alert Card ────────────────────────────────────────────────────────────────
 function AlertCard({
