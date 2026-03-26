@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, User, ShieldAlert
+  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, ShieldAlert
 } from 'lucide-react';
 import { useCandidate } from '@/contexts/CandidateContext';
 
@@ -35,21 +35,23 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarContent className="bg-sidebar">
         {/* Logo */}
-        <div className={`flex items-center gap-3 px-4 py-5 border-b border-sidebar-border ${collapsed ? 'justify-center px-2' : ''}`}>
-          <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--gradient-primary)' }}>
+        <div className={`flex items-center gap-3 px-4 py-5 border-b border-sidebar-border/30 ${collapsed ? 'justify-center px-2' : ''}`}>
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
             <Crosshair className="w-4 h-4 text-white" />
           </div>
           {!collapsed && (
             <div>
-              <div className="font-black text-sm text-gradient">Gestão Eleitoral</div>
-              <div className="text-[10px] text-sidebar-foreground/50 leading-none mt-0.5">Plataforma de Estratégia Política com IA Integrada</div>
+              <div className="font-black text-sm text-white leading-tight">Gestão Eleitoral</div>
+              <div className="text-[10px] text-sidebar-foreground/60 leading-none mt-0.5">
+                Plataforma de Estratégia Política com IA Integrada
+              </div>
             </div>
           )}
         </div>
 
         <SidebarGroup className="py-3">
           {!collapsed && (
-            <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40 px-4 mb-1">
+            <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/50 px-4 mb-1">
               Módulos
             </SidebarGroupLabel>
           )}
@@ -68,17 +70,19 @@ export function AppSidebar() {
                           collapsed ? 'justify-center px-2' : ''
                         } ${
                           isActive
-                            ? 'bg-primary/15 text-primary font-semibold'
+                            ? 'bg-white/20 text-white font-semibold'
                             : isHighlight
-                            ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                            ? 'text-white/80 hover:bg-red-500/30 hover:text-white'
+                            : 'text-sidebar-foreground/80 hover:bg-white/10 hover:text-white'
                         }`}
                         activeClassName=""
                       >
-                        <item.icon className={`flex-shrink-0 w-4 h-4 ${isActive ? 'text-primary' : isHighlight ? 'text-red-400' : ''}`} />
+                        <item.icon className={`flex-shrink-0 w-4 h-4 ${
+                          isActive ? 'text-white' : isHighlight ? 'text-red-300' : 'text-sidebar-foreground/70'
+                        }`} />
                         {!collapsed && <span>{item.title}</span>}
                         {!collapsed && isActive && (
-                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-secondary" />
                         )}
                         {!collapsed && !isActive && isHighlight && (
                           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
@@ -94,22 +98,22 @@ export function AppSidebar() {
 
         {/* Candidate / User profile bottom */}
         {!collapsed && (
-          <div className="mt-auto p-4 border-t border-sidebar-border">
+          <div className="mt-auto p-4 border-t border-sidebar-border/30">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/20 flex-shrink-0 overflow-hidden">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/20 flex-shrink-0 overflow-hidden">
                 {activeCandidate?.photo_url
                   ? <img src={activeCandidate.photo_url} alt={activeCandidate.name} className="w-full h-full object-cover" />
-                  : <ShieldCheck className="w-4 h-4 text-primary" />}
+                  : <ShieldCheck className="w-4 h-4 text-white" />}
               </div>
               <div className="min-w-0">
                 {activeCandidate ? (
                   <>
-                    <div className="text-xs font-semibold text-sidebar-foreground truncate">{activeCandidate.name}</div>
+                    <div className="text-xs font-semibold text-white truncate">{activeCandidate.name}</div>
                     <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidate.cargo} · {activeCandidate.party}</div>
                   </>
                 ) : (
                   <>
-                    <div className="text-xs font-semibold text-sidebar-foreground/50 truncate">Nenhum candidato ativo</div>
+                    <div className="text-xs font-semibold text-sidebar-foreground/60 truncate">Nenhum candidato ativo</div>
                     <div className="text-[10px] text-sidebar-foreground/40 truncate">Acesse Configurações</div>
                   </>
                 )}

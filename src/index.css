@@ -7,11 +7,96 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CampanhaOS Design System — Dark Command & Control (default) + Light mode */
+/* ═══════════════════════════════════════════════════════
+   Gestão Eleitoral — Design System
+   Primary: #106EBE  |  Secondary/Mint: #0FFCBE
+   ═══════════════════════════════════════════════════════ */
 
 @layer base {
+  /* ── Light theme (default) ─────────────────────────── */
   :root {
-    /* Modern dark slate — inspired by Linear, GitHub Dark, Vercel */
+    /* Backgrounds */
+    --background: 210 25% 97%;          /* #F7F9FB */
+    --foreground: 211 70% 12%;          /* #0A1F33 */
+
+    --card: 0 0% 100%;                  /* #FFFFFF */
+    --card-foreground: 211 70% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 211 70% 12%;
+
+    /* Primary — azul #106EBE */
+    --primary: 210 84% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary — menta #0FFCBE */
+    --secondary: 163 97% 52%;
+    --secondary-foreground: 211 70% 12%;
+
+    --muted: 215 25% 95%;
+    --muted-foreground: 213 13% 55%;    /* #7B8A9A */
+
+    --accent: 163 97% 52%;
+    --accent-foreground: 211 70% 12%;
+
+    --destructive: 1 79% 56%;           /* #E53935 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 25% 91%;              /* #E5EAF0 */
+    --input: 215 25% 91%;
+    --ring: 210 84% 40%;
+
+    --radius: 0.5rem;
+
+    /* Brand */
+    --brand-blue: 210 84% 40%;
+    --brand-amber: 42 96% 58%;          /* #FBC02D */
+    --brand-green: 123 46% 34%;         /* #2E7D32 */
+    --brand-red: 1 79% 56%;             /* #E53935 */
+    --brand-cyan: 163 97% 52%;          /* #0FFCBE mint */
+    --brand-purple: 252 100% 69%;       /* #7B61FF */
+
+    /* Risk / Status scale */
+    --risk-high: 1 79% 56%;
+    --risk-medium: 42 96% 58%;
+    --risk-low: 123 46% 34%;
+    --risk-strong: 210 84% 40%;
+
+    /* Status tokens */
+    --status-error: 1 79% 56%;
+    --status-error-bg: 1 79% 97%;
+    --status-warning: 42 96% 58%;
+    --status-warning-bg: 42 96% 96%;
+    --status-success: 123 46% 34%;
+    --status-success-bg: 123 46% 96%;
+    --status-info: 210 77% 51%;         /* #1E88E5 */
+    --status-info-bg: 210 77% 96%;
+    --status-ai: 252 100% 69%;
+    --status-ai-bg: 252 100% 97%;
+
+    /* Sidebar — azul sólido */
+    --sidebar-background: 210 84% 40%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 163 97% 52%;
+    --sidebar-primary-foreground: 211 70% 12%;
+    --sidebar-accent: 210 84% 34%;      /* #0D5FA4 */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 84% 34%;
+    --sidebar-ring: 163 97% 52%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(210 84% 40%), hsl(163 97% 52%));
+    --gradient-dark: linear-gradient(180deg, hsl(210 25% 97%), hsl(215 25% 94%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(215 25% 98%));
+
+    /* Shadows */
+    --shadow-glow: 0 0 20px hsl(210 84% 40% / 0.2);
+    --shadow-card: 0 2px 16px hsl(211 70% 12% / 0.08);
+    --shadow-alert: 0 4px 16px hsl(1 79% 56% / 0.15);
+  }
+
+  /* ── Dark theme ────────────────────────────────────── */
+  .dark {
     --background: 220 16% 11%;
     --foreground: 213 20% 93%;
 
@@ -21,13 +106,11 @@
     --popover: 220 15% 14%;
     --popover-foreground: 213 20% 93%;
 
-    /* Blue electric primary */
-    --primary: 217 91% 60%;
+    --primary: 210 84% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Slate secondary */
-    --secondary: 220 13% 19%;
-    --secondary-foreground: 213 18% 80%;
+    --secondary: 163 97% 45%;
+    --secondary-foreground: 211 70% 10%;
 
     --muted: 220 13% 17%;
     --muted-foreground: 215 13% 55%;
@@ -35,110 +118,54 @@
     --accent: 220 13% 21%;
     --accent-foreground: 213 20% 93%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 1 79% 56%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 19%;
     --input: 220 13% 17%;
-    --ring: 217 91% 60%;
+    --ring: 210 84% 50%;
 
-    --radius: 0.5rem;
+    --brand-blue: 210 84% 55%;
+    --brand-amber: 42 96% 58%;
+    --brand-green: 123 46% 45%;
+    --brand-red: 1 79% 56%;
+    --brand-cyan: 163 97% 52%;
+    --brand-purple: 252 100% 72%;
 
-    /* Brand colors */
-    --brand-blue: 217 91% 60%;
-    --brand-amber: 38 92% 50%;
-    --brand-green: 142 72% 45%;
-    --brand-red: 0 72% 51%;
-    --brand-cyan: 189 85% 52%;
-    --brand-purple: 262 83% 65%;
+    --risk-high: 1 79% 56%;
+    --risk-medium: 42 96% 58%;
+    --risk-low: 123 46% 45%;
+    --risk-strong: 210 84% 55%;
 
-    /* Engagement tiers */
-    --risk-high: 0 72% 51%;
-    --risk-medium: 38 92% 50%;
-    --risk-low: 142 72% 45%;
-    --risk-strong: 217 91% 60%;
+    --status-error: 1 79% 60%;
+    --status-error-bg: 1 79% 12%;
+    --status-warning: 42 96% 58%;
+    --status-warning-bg: 42 96% 12%;
+    --status-success: 123 46% 45%;
+    --status-success-bg: 123 46% 12%;
+    --status-info: 210 77% 55%;
+    --status-info-bg: 210 77% 12%;
+    --status-ai: 252 100% 72%;
+    --status-ai-bg: 252 100% 12%;
 
-    /* Sidebar — slightly darker than main bg for depth */
     --sidebar-background: 220 18% 8%;
-    --sidebar-foreground: 213 15% 72%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-foreground: 213 15% 80%;
+    --sidebar-primary: 210 84% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 13% 14%;
     --sidebar-accent-foreground: 213 20% 93%;
     --sidebar-border: 220 13% 13%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 163 97% 52%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(189 85% 52%));
+    --gradient-primary: linear-gradient(135deg, hsl(210 84% 50%), hsl(163 97% 45%));
     --gradient-dark: linear-gradient(180deg, hsl(220 16% 11%), hsl(220 18% 8%));
     --gradient-card: linear-gradient(135deg, hsl(220 15% 15%), hsl(220 15% 13%));
 
-    /* Shadows */
-    --shadow-glow: 0 0 20px hsl(217 91% 60% / 0.25);
+    --shadow-glow: 0 0 20px hsl(210 84% 50% / 0.25);
     --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
-    --shadow-alert: 0 4px 16px hsl(0 72% 51% / 0.25);
+    --shadow-alert: 0 4px 16px hsl(1 79% 56% / 0.25);
   }
-  }
-
-  /* ── Light theme ───────────────────────────── */
-  .light {
-    --background: 210 20% 97%;
-    --foreground: 220 20% 12%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 12%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 12%;
-
-    --primary: 217 91% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 215 16% 92%;
-    --secondary-foreground: 220 20% 22%;
-
-    --muted: 215 16% 93%;
-    --muted-foreground: 215 14% 45%;
-
-    --accent: 215 16% 90%;
-    --accent-foreground: 220 20% 12%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 215 16% 87%;
-    --input: 215 16% 90%;
-    --ring: 217 91% 50%;
-
-    --brand-blue: 217 91% 50%;
-    --brand-amber: 38 92% 44%;
-    --brand-green: 142 72% 38%;
-    --brand-red: 0 72% 51%;
-    --brand-cyan: 189 85% 42%;
-    --brand-purple: 262 83% 58%;
-
-    --risk-high: 0 72% 51%;
-    --risk-medium: 38 92% 44%;
-    --risk-low: 142 72% 38%;
-    --risk-strong: 217 91% 50%;
-
-    --sidebar-background: 220 20% 94%;
-    --sidebar-foreground: 220 16% 32%;
-    --sidebar-primary: 217 91% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 16% 88%;
-    --sidebar-accent-foreground: 220 20% 12%;
-    --sidebar-border: 215 16% 86%;
-    --sidebar-ring: 217 91% 50%;
-
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(189 85% 45%));
-    --gradient-dark: linear-gradient(180deg, hsl(210 20% 97%), hsl(215 16% 93%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(215 16% 97%));
-
-    --shadow-glow: 0 0 20px hsl(217 91% 50% / 0.2);
-    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.08);
-    --shadow-alert: 0 4px 16px hsl(0 72% 51% / 0.15);
-  }
+}
 
 @layer base {
   * {
@@ -151,26 +178,20 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    color: hsl(var(--foreground));
+  }
+
   /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
-  }
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
-  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
 }
 
-/* Leaflet overrides for dark theme */
+/* ── Leaflet overrides ──────────────────────────────── */
 .leaflet-container {
-  background: hsl(222 28% 5%) !important;
+  background: hsl(var(--background)) !important;
   font-family: 'Inter', sans-serif !important;
 }
 .leaflet-control-zoom a {
@@ -179,7 +200,7 @@
   border-color: hsl(var(--border)) !important;
 }
 .leaflet-control-zoom a:hover {
-  background-color: hsl(var(--accent)) !important;
+  background-color: hsl(var(--muted)) !important;
 }
 .leaflet-control-attribution {
   background-color: hsl(var(--card) / 0.8) !important;
@@ -193,28 +214,40 @@
   border-radius: 8px !important;
   box-shadow: var(--shadow-card) !important;
 }
-.leaflet-popup-tip {
-  background: hsl(var(--card)) !important;
-}
+.leaflet-popup-tip { background: hsl(var(--card)) !important; }
 
-/* Utility classes */
+/* ── Utility classes ─────────────────────────────────── */
 @layer utilities {
-  .glow-blue {
-    box-shadow: var(--shadow-glow);
-  }
-  .gradient-primary {
-    background: var(--gradient-primary);
-  }
-  .gradient-card {
-    background: var(--gradient-card);
-  }
+  .glow-blue { box-shadow: var(--shadow-glow); }
+  .gradient-primary { background: var(--gradient-primary); }
+  .gradient-card { background: var(--gradient-card); }
   .text-gradient {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .mono {
-    font-family: 'JetBrains Mono', monospace;
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Status alert cards */
+  .alert-critical {
+    background: hsl(var(--status-error-bg));
+    border-left: 4px solid hsl(var(--status-error));
+  }
+  .alert-warning {
+    background: hsl(var(--status-warning-bg));
+    border-left: 4px solid hsl(var(--status-warning));
+  }
+  .alert-success {
+    background: hsl(var(--status-success-bg));
+    border-left: 4px solid hsl(var(--status-success));
+  }
+  .alert-info {
+    background: hsl(var(--status-info-bg));
+    border-left: 4px solid hsl(var(--status-info));
+  }
+  .alert-ai {
+    background: hsl(var(--status-ai-bg));
+    border-left: 4px solid hsl(var(--status-ai));
   }
 }

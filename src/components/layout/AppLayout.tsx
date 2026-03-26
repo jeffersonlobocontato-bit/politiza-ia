@@ -3,7 +3,6 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { Bell, Clock, Sun, Moon } from 'lucide-react';
 import { alerts } from '@/data/mockData';
-import { Badge } from '@/components/ui/badge';
 import { useTheme } from 'next-themes';
 
 interface AppLayoutProps {
@@ -25,8 +24,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Top bar */}
-          <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card/50 backdrop-blur-sm flex-shrink-0">
+          {/* Top bar — white/card background with bottom border */}
+          <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card shadow-sm flex-shrink-0">
             <div className="flex items-center gap-3">
               <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
               <div className="hidden sm:flex items-center gap-2">
@@ -42,21 +41,21 @@ export function AppLayout({ children }: AppLayoutProps) {
               {/* Theme toggle */}
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                 title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
-              <button className="relative p-1.5 rounded-md hover:bg-accent transition-colors">
+              <button className="relative p-1.5 rounded-md hover:bg-muted transition-colors">
                 <Bell className="w-4 h-4 text-muted-foreground" />
                 {unreadAlerts > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-brand-red text-white text-[9px] font-bold">
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-status-error text-white text-[9px] font-bold">
                     {unreadAlerts}
                   </span>
                 )}
               </button>
               <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-border">
-                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center">
                   <span className="text-[10px] font-bold text-primary">JM</span>
                 </div>
               </div>
