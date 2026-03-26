@@ -117,10 +117,14 @@ export function useMarkAlertRead() {
 export function useUpdateAlertStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: DbAlertStatus }) => {
+    mutationFn: async ({ id, status, resolution_note }: { id: string; status: DbAlertStatus; resolution_note: string }) => {
       const { error } = await db
         .from('alerts')
-        .update({ status, resolved_at: status === 'resolvido' ? new Date().toISOString() : null } as any)
+        .update({
+          status,
+          resolution_note,
+          resolved_at: status === 'resolvido' ? new Date().toISOString() : null,
+        } as any)
         .eq('id', id);
       if (error) throw error;
     },
