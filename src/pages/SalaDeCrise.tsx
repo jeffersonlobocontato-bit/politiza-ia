@@ -270,23 +270,6 @@ function AlertCard({
   );
 }
 
-// ─── Build hierarchy chain helper ─────────────────────────────────────────────
-function buildHierarchyChain(
-  memberId: string,
-  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>
-) {
-  const chain: Array<{ name: string; role: string; level: number }> = [];
-  const memberMap = new Map(members.map(m => [m.id, m]));
-  const current = memberMap.get(memberId);
-  if (!current) return chain;
-  let supervisor = current.supervisor_id ? memberMap.get(current.supervisor_id) : undefined;
-  while (supervisor) {
-    chain.push({ name: supervisor.name, role: supervisor.role, level: supervisor.hierarchy_level });
-    supervisor = supervisor.supervisor_id ? memberMap.get(supervisor.supervisor_id) : undefined;
-  }
-  return chain;
-}
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 // ─── Resolution Dialog ─────────────────────────────────────────────────────────
 function ResolutionDialog({
