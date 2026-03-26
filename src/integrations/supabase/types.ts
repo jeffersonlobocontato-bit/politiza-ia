@@ -161,6 +161,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          hierarchy_chain: Json | null
           id: string
           is_auto_generated: boolean
           is_read: boolean
@@ -169,6 +170,8 @@ export type Database = {
           recommendation: string | null
           resolution_note: string | null
           resolved_at: string | null
+          responsible_name: string | null
+          responsible_role: string | null
           severity: number
           status: Database["public"]["Enums"]["alert_status"]
           territory: string | null
@@ -178,6 +181,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          hierarchy_chain?: Json | null
           id?: string
           is_auto_generated?: boolean
           is_read?: boolean
@@ -186,6 +190,8 @@ export type Database = {
           recommendation?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
+          responsible_name?: string | null
+          responsible_role?: string | null
           severity?: number
           status?: Database["public"]["Enums"]["alert_status"]
           territory?: string | null
@@ -195,6 +201,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          hierarchy_chain?: Json | null
           id?: string
           is_auto_generated?: boolean
           is_read?: boolean
@@ -203,6 +210,8 @@ export type Database = {
           recommendation?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
+          responsible_name?: string | null
+          responsible_role?: string | null
           severity?: number
           status?: Database["public"]["Enums"]["alert_status"]
           territory?: string | null
@@ -542,6 +551,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          hierarchy_chain: Json | null
           id: string
           is_read: boolean
           macroregion_id: string | null
@@ -551,6 +561,8 @@ export type Database = {
           recommendation: string | null
           resolution_note: string | null
           resolved_at: string | null
+          responsible_name: string | null
+          responsible_role: string | null
           risk_index: number | null
           score: number | null
           severity: number
@@ -564,6 +576,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          hierarchy_chain?: Json | null
           id?: string
           is_read?: boolean
           macroregion_id?: string | null
@@ -573,6 +586,8 @@ export type Database = {
           recommendation?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
+          responsible_name?: string | null
+          responsible_role?: string | null
           risk_index?: number | null
           score?: number | null
           severity?: number
@@ -586,6 +601,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          hierarchy_chain?: Json | null
           id?: string
           is_read?: boolean
           macroregion_id?: string | null
@@ -595,6 +611,8 @@ export type Database = {
           recommendation?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
+          responsible_name?: string | null
+          responsible_role?: string | null
           risk_index?: number | null
           score?: number | null
           severity?: number
