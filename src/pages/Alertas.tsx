@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   AlertTriangle, Zap, Activity, CheckCheck, Bell, Filter,
-  RefreshCw, CheckCircle, Clock, Search, ClipboardList, User,
+  RefreshCw, CheckCircle, Clock, Search, ClipboardList,
 } from 'lucide-react';
 import { useAlerts, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ResponsibleChain } from '@/components/alerts/ResponsibleChain';
+import { resolveAlertTeam } from '@/lib/alertTeam';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
