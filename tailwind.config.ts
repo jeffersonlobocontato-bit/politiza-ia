@@ -8,9 +8,7 @@ export default {
     container: {
       center: true,
       padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
       fontFamily: {
@@ -26,10 +24,16 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(210 84% 34%)",
+          active: "hsl(210 84% 26%)",
+          light: "hsl(210 84% 96%)",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          hover: "hsl(163 97% 44%)",
+          active: "hsl(163 97% 38%)",
+          light: "hsl(163 97% 96%)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -75,36 +79,43 @@ export default {
           low: "hsl(var(--risk-low))",
           strong: "hsl(var(--risk-strong))",
         },
+        status: {
+          error: "hsl(var(--status-error))",
+          "error-bg": "hsl(var(--status-error-bg))",
+          warning: "hsl(var(--status-warning))",
+          "warning-bg": "hsl(var(--status-warning-bg))",
+          success: "hsl(var(--status-success))",
+          "success-bg": "hsl(var(--status-success-bg))",
+          info: "hsl(var(--status-info))",
+          "info-bg": "hsl(var(--status-info-bg))",
+          ai: "hsl(var(--status-ai))",
+          "ai-bg": "hsl(var(--status-ai-bg))",
+        },
+        /* Text scale */
+        heading: "hsl(211 70% 12%)",
+        body: "hsl(213 22% 37%)",
+        subtle: "hsl(213 13% 55%)",
+        disabled: "hsl(213 13% 63%)",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        glow: "var(--shadow-glow)",
+        alert: "var(--shadow-alert)",
+      },
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-        pulse: {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.4" },
-        },
-        "slide-in-right": {
-          from: { transform: "translateX(100%)", opacity: "0" },
-          to: { transform: "translateX(0)", opacity: "1" },
-        },
-        "fade-in": {
-          from: { opacity: "0", transform: "translateY(8px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
+        "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },
+        "accordion-up": { from: { height: "var(--radix-accordion-content-height)" }, to: { height: "0" } },
+        pulse: { "0%, 100%": { opacity: "1" }, "50%": { opacity: "0.4" } },
+        "slide-in-right": { from: { transform: "translateX(100%)", opacity: "0" }, to: { transform: "translateX(0)", opacity: "1" } },
+        "fade-in": { from: { opacity: "0", transform: "translateY(8px)" }, to: { opacity: "1", transform: "translateY(0)" } },
         glow: {
-          "0%, 100%": { boxShadow: "0 0 8px hsl(217 91% 55% / 0.4)" },
-          "50%": { boxShadow: "0 0 24px hsl(217 91% 55% / 0.8)" },
+          "0%, 100%": { boxShadow: "0 0 8px hsl(210 84% 40% / 0.4)" },
+          "50%": { boxShadow: "0 0 24px hsl(210 84% 40% / 0.8)" },
         },
       },
       animation: {
