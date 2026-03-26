@@ -47,7 +47,6 @@ const ALIGNMENT_OPTIONS: { value: DbAlignmentStatus; label: string }[] = [
 interface AssetForm {
   name: string;
   type: DbAssetType;
-  municipality: string;
   macroregion_id: string;
   position: string;
   influence_level: string;
@@ -62,7 +61,6 @@ interface AssetForm {
 const emptyForm = (): AssetForm => ({
   name: '',
   type: 'lideranca_comunitaria',
-  municipality: '',
   macroregion_id: 'rmc',
   position: '',
   influence_level: '5',

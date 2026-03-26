@@ -29,7 +29,6 @@ interface MemberForm {
   hierarchy_level: string;
   macroregion_id: string;
   microregion: string;
-  municipality: string;
   status: string;
   observations: string;
 }
@@ -42,7 +41,6 @@ const emptyForm = (): MemberForm => ({
   hierarchy_level: '4',
   macroregion_id: 'rmc',
   microregion: '',
-  municipality: '',
   status: 'ativo',
   observations: '',
 });
