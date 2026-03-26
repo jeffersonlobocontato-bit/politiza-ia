@@ -487,7 +487,7 @@ export default function SalaDeGuerra() {
                     key={alert.id}
                     alert={alert}
                     onRead={id => markRead.mutate(id)}
-                    onResolve={id => updateStatus.mutate({ id, status: 'resolvido' })}
+                    onResolve={id => updateStatus.mutate({ id, status: 'resolvido', resolution_note: 'Resolvido via Sala de Guerra.' })}
                   />
                 ))
               )}
