@@ -42,19 +42,23 @@ function ResolutionDialog({
   onClose,
   onConfirm,
   targetStatus,
+  members,
 }: {
   open: boolean;
   onClose: () => void;
-  onConfirm: (note: string) => void;
+  onConfirm: (note: string, responsibleId?: string) => void;
   targetStatus: string;
+  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>;
 }) {
   const [note, setNote] = useState('');
+  const [responsibleId, setResponsibleId] = useState('');
   const isResolve = targetStatus === 'resolvido';
 
   const handleSubmit = () => {
     if (!note.trim()) return;
-    onConfirm(note.trim());
+    onConfirm(note.trim(), responsibleId || undefined);
     setNote('');
+    setResponsibleId('');
   };
 
   return (
@@ -72,6 +76,23 @@ function ResolutionDialog({
               ? 'Descreva obrigatoriamente qual ação foi realizada para solucionar este alerta.'
               : 'Descreva obrigatoriamente qual ação foi planejada para tratar este alerta.'}
           </p>
+          {/* Responsible selector */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-primary" />
+              Responsável pela resolução
+            </label>
+            <select
+              value={responsibleId}
+              onChange={e => setResponsibleId(e.target.value)}
+              className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Selecionar responsável (opcional)</option>
+              {members.map(m => (
+                <option key={m.id} value={m.id}>{m.name} — {m.role}</option>
+              ))}
+            </select>
+          </div>
           <Textarea
             value={note}
             onChange={e => setNote(e.target.value)}
