@@ -100,13 +100,20 @@ function ResolutionDialog({
 }
 
 // ─── Alert Row ────────────────────────────────────────────────────────────────
-function AlertRow({ alert, onRead, onStatusChange }: {
+function AlertRow({ alert, onRead, onStatusChange, members }: {
   alert: DbAlert;
   onRead: (id: string) => void;
   onStatusChange: (id: string, status: string) => void;
+  members: import('@/types/database').DbCampaignMember[];
 }) {
   const c = LEVEL_CONFIG[alert.level] ?? LEVEL_CONFIG.info;
   const Icon = levelIcon(alert.level);
+
+  const team = resolveAlertTeam(members, {
+    macroregion_id: alert.macroregion_id,
+    creatorName: alert.responsible_name ?? undefined,
+    creatorRole: alert.responsible_role ?? undefined,
+  });
 
   return (
     <div
@@ -139,15 +146,10 @@ function AlertRow({ alert, onRead, onStatusChange }: {
             </div>
           )}
 
-          {/* Responsible & hierarchy */}
-          {(alert.responsible_name || (alert.hierarchy_chain && alert.hierarchy_chain.length > 0)) && (
+          {/* Auto-resolved responsible team */}
+          {team.length > 0 && (
             <div className="mt-2 pt-2 border-t" style={{ borderColor: c.border }}>
-              <ResponsibleChain
-                responsibleName={alert.responsible_name}
-                responsibleRole={alert.responsible_role}
-                hierarchyChain={alert.hierarchy_chain}
-                compact
-              />
+              <ResponsibleChain entries={team} compact />
             </div>
           )}
 
