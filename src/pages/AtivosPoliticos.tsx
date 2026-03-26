@@ -84,6 +84,7 @@ export default function AtivosPoliticos() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm());
+  const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
 
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
@@ -99,6 +100,7 @@ export default function AtivosPoliticos() {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
     setShowForm(true);
   };
 
@@ -107,7 +109,6 @@ export default function AtivosPoliticos() {
     setForm({
       name: asset.name,
       type: asset.type,
-      municipality: asset.municipality ?? '',
       macroregion_id: asset.macroregion_id ?? 'rmc',
       position: asset.position ?? '',
       influence_level: String(asset.influence_level),
@@ -118,15 +119,16 @@ export default function AtivosPoliticos() {
       observations: asset.observations ?? '',
       relationship_owner: asset.relationship_owner ?? '',
     });
+    setGeoForm({ city: asset.municipality ?? '', lat: asset.lat ?? null, lng: asset.lng ?? null });
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
-    if (!form.name) return;
+    if (!form.name || !geoForm.city) return;
     const payload = {
       name: form.name,
       type: form.type,
-      municipality: form.municipality || null,
+      municipality: geoForm.city || null,
       microregion: null as string | null,
       macroregion_id: form.macroregion_id || null,
       position: form.position || null,
@@ -135,8 +137,8 @@ export default function AtivosPoliticos() {
       support_status: form.support_status || null,
       phone: form.phone || null,
       email: form.email || null,
-      lat: null as number | null,
-      lng: null as number | null,
+      lat: geoForm.lat,
+      lng: geoForm.lng,
       observations: form.observations || null,
       relationship_owner: form.relationship_owner || null,
       created_by: null as string | null,
@@ -150,6 +152,7 @@ export default function AtivosPoliticos() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
   };
 
   const handleDelete = async (id: string) => {

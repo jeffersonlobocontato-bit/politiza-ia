@@ -54,6 +54,7 @@ export default function Hierarquia() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
+  const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
 
   const byLevel = [1, 2, 3, 4, 5].map(l => ({
     level: l,
@@ -67,6 +68,7 @@ export default function Hierarquia() {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
     setShowForm(true);
   };
 
@@ -80,15 +82,15 @@ export default function Hierarquia() {
       hierarchy_level: String(member.hierarchy_level),
       macroregion_id: member.macroregion_id ?? 'rmc',
       microregion: member.microregion ?? '',
-      municipality: member.municipality ?? '',
       status: member.status,
       observations: member.observations ?? '',
     });
+    setGeoForm({ city: member.municipality ?? '', lat: null, lng: null });
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
-    if (!form.name) return;
+    if (!form.name || !geoForm.city) return;
     const payload = {
       name: form.name,
       email: form.email || null,
@@ -97,7 +99,7 @@ export default function Hierarquia() {
       hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5,
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
-      municipality: form.municipality || null,
+      municipality: geoForm.city || null,
       supervisor_id: null as string | null,
       actions_managed: 0,
       completion_rate: 0,
@@ -114,6 +116,7 @@ export default function Hierarquia() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
   };
 
   const handleDelete = async (id: string) => {
