@@ -215,7 +215,7 @@ export default function Inteligencia() {
   };
 
   const handleResolve = (id: string) => {
-    updateStatus.mutate({ id, status: 'resolvido' });
+    updateStatus.mutate({ id, status: 'resolvido', resolution_note: 'Resolvido via painel de inteligência.' });
     if (selected?.id === id) setSelected(prev => prev ? { ...prev, status: 'resolvido' } : null);
   };
 

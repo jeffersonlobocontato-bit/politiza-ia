@@ -128,11 +128,12 @@ export function useRunStrategicAnalysis() {
 export function useUpdateStrategicAlert() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: StrategicAlertStatus }) => {
+    mutationFn: async ({ id, status, resolution_note }: { id: string; status: StrategicAlertStatus; resolution_note: string }) => {
       const { error } = await (supabase as any)
         .from('strategic_alerts')
         .update({
           status,
+          resolution_note,
           is_read: true,
           resolved_at: status === 'resolvido' ? new Date().toISOString() : null,
         })

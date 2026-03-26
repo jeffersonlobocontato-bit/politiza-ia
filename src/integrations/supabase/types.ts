@@ -167,6 +167,7 @@ export type Database = {
           level: Database["public"]["Enums"]["alert_level"]
           macroregion_id: string | null
           recommendation: string | null
+          resolution_note: string | null
           resolved_at: string | null
           severity: number
           status: Database["public"]["Enums"]["alert_status"]
@@ -183,6 +184,7 @@ export type Database = {
           level?: Database["public"]["Enums"]["alert_level"]
           macroregion_id?: string | null
           recommendation?: string | null
+          resolution_note?: string | null
           resolved_at?: string | null
           severity?: number
           status?: Database["public"]["Enums"]["alert_status"]
@@ -199,6 +201,7 @@ export type Database = {
           level?: Database["public"]["Enums"]["alert_level"]
           macroregion_id?: string | null
           recommendation?: string | null
+          resolution_note?: string | null
           resolved_at?: string | null
           severity?: number
           status?: Database["public"]["Enums"]["alert_status"]
@@ -546,6 +549,7 @@ export type Database = {
           municipality: string | null
           opportunity_index: number | null
           recommendation: string | null
+          resolution_note: string | null
           resolved_at: string | null
           risk_index: number | null
           score: number | null
@@ -567,6 +571,7 @@ export type Database = {
           municipality?: string | null
           opportunity_index?: number | null
           recommendation?: string | null
+          resolution_note?: string | null
           resolved_at?: string | null
           risk_index?: number | null
           score?: number | null
@@ -588,6 +593,7 @@ export type Database = {
           municipality?: string | null
           opportunity_index?: number | null
           recommendation?: string | null
+          resolution_note?: string | null
           resolved_at?: string | null
           risk_index?: number | null
           score?: number | null

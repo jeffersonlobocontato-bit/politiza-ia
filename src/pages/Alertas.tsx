@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import {
   AlertTriangle, Zap, Activity, CheckCheck, Bell, Filter,
-  RefreshCw, CheckCircle, Clock, XCircle, Search,
+  RefreshCw, CheckCircle, Clock, Search, ClipboardList,
 } from 'lucide-react';
 import { useAlerts, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import type { DbAlert } from '@/types/database';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
@@ -27,6 +32,71 @@ function levelIcon(level: string) {
   if (level === 'oportunidade') return Zap;
   if (level === 'atencao') return Bell;
   return Activity;
+}
+
+// ─── Resolution Dialog ────────────────────────────────────────────────────────
+function ResolutionDialog({
+  open,
+  onClose,
+  onConfirm,
+  targetStatus,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (note: string) => void;
+  targetStatus: string;
+}) {
+  const [note, setNote] = useState('');
+  const isResolve = targetStatus === 'resolvido';
+
+  const handleSubmit = () => {
+    if (!note.trim()) return;
+    onConfirm(note.trim());
+    setNote('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-primary" />
+            {isResolve ? 'Registrar Resolução' : 'Registrar Análise'}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-2 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            {isResolve
+              ? 'Descreva obrigatoriamente qual ação foi realizada para solucionar este alerta.'
+              : 'Descreva obrigatoriamente qual ação foi planejada para tratar este alerta.'}
+          </p>
+          <Textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder={isResolve
+              ? 'Ex: Reunião realizada com coordenador regional, redistribuição de equipe aprovada...'
+              : 'Ex: Agendada visita ao município para esta semana, responsável definido...'}
+            className="min-h-[100px] resize-none"
+          />
+          {note.trim().length === 0 && (
+            <p className="text-xs text-destructive">* Campo obrigatório para atualizar o status.</p>
+          )}
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
+          <Button
+            size="sm"
+            disabled={!note.trim()}
+            onClick={handleSubmit}
+            className="bg-gradient-to-r from-primary to-primary/80"
+          >
+            <CheckCheck className="w-3.5 h-3.5 mr-1.5" />
+            Confirmar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 // ─── Alert Row ────────────────────────────────────────────────────────────────
@@ -140,8 +210,8 @@ export default function Alertas() {
   const [search, setSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch all alerts including resolved for this dedicated page
-  const { data: resolvedAlerts = [] } = useAlerts();
+  // Resolution dialog state
+  const [pendingUpdate, setPendingUpdate] = useState<{ id: string; status: string } | null>(null);
 
   const filtered = allAlerts.filter(a => {
     if (levelFilter !== 'all' && a.level !== levelFilter) return false;
@@ -160,6 +230,21 @@ export default function Alertas() {
     setIsRefreshing(false);
   };
 
+  // Intercept status changes — open dialog first
+  const requestStatusChange = (id: string, status: string) => {
+    setPendingUpdate({ id, status });
+  };
+
+  const confirmStatusChange = (note: string) => {
+    if (!pendingUpdate) return;
+    updateStatus.mutate({
+      id: pendingUpdate.id,
+      status: pendingUpdate.status as any,
+      resolution_note: note,
+    });
+    setPendingUpdate(null);
+  };
+
   const criticos = allAlerts.filter(a => a.level === 'critico').length;
   const atencao = allAlerts.filter(a => a.level === 'atencao').length;
   const oportunidades = allAlerts.filter(a => a.level === 'oportunidade').length;
@@ -171,6 +256,14 @@ export default function Alertas() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Resolution Dialog */}
+      <ResolutionDialog
+        open={!!pendingUpdate}
+        onClose={() => setPendingUpdate(null)}
+        onConfirm={confirmStatusChange}
+        targetStatus={pendingUpdate?.status ?? ''}
+      />
+
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -277,7 +370,7 @@ export default function Alertas() {
                   key={alert.id}
                   alert={alert}
                   onRead={id => markRead.mutate(id)}
-                  onStatusChange={(id, status) => updateStatus.mutate({ id, status: status as any })}
+                  onStatusChange={requestStatusChange}
                 />
               ))}
             </>

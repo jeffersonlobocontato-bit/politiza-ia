@@ -3,8 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert, Zap, AlertTriangle, Activity, TrendingUp, TrendingDown,
   Search, Filter, RefreshCw, CheckCheck, Eye, X, MapPin, Clock,
-  Target, Brain, ChevronRight, BarChart2, Info, Flame,
+  Brain, ChevronRight, BarChart2, Flame, ClipboardList,
 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   useStrategicAlerts,
   useStrategicKPIs,
@@ -246,6 +251,63 @@ function AlertCard({
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Resolution Dialog ─────────────────────────────────────────────────────────
+function ResolutionDialog({
+  open, onClose, onConfirm, targetStatus,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (note: string) => void;
+  targetStatus: string;
+}) {
+  const [note, setNote] = useState('');
+  const isResolve = targetStatus === 'resolvido' || targetStatus === 'descartado';
+
+  const handleSubmit = () => {
+    if (!note.trim()) return;
+    onConfirm(note.trim());
+    setNote('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-primary" />
+            {isResolve ? 'Registrar Encerramento' : 'Registrar Ação Planejada'}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-2 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            {isResolve
+              ? 'Descreva obrigatoriamente qual ação foi realizada para resolver este alerta estratégico.'
+              : 'Descreva obrigatoriamente qual ação foi planejada para tratar este alerta.'}
+          </p>
+          <Textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder={isResolve
+              ? 'Ex: Mobilização realizada no município, liderança contatada e ação agendada...'
+              : 'Ex: Reunião estratégica marcada para esta semana com coordenador regional...'}
+            className="min-h-[100px] resize-none"
+          />
+          {note.trim().length === 0 && (
+            <p className="text-xs text-destructive">* Campo obrigatório para atualizar o status.</p>
+          )}
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
+          <Button size="sm" disabled={!note.trim()} onClick={handleSubmit}>
+            <CheckCheck className="w-3.5 h-3.5 mr-1.5" />
+            Confirmar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function SalaDeCrise() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -254,6 +316,7 @@ export default function SalaDeCrise() {
   const [minSeverity, setMinSeverity] = useState<number>(0);
   const [selected, setSelected] = useState<StrategicAlert | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [pendingUpdate, setPendingUpdate] = useState<{ id: string; status: StrategicAlertStatus } | null>(null);
 
   const { data: alerts = [], isLoading, refetch } = useStrategicAlerts({ type: typeFilter });
   const { data: kpis } = useStrategicKPIs();
@@ -272,9 +335,21 @@ export default function SalaDeCrise() {
     }
   };
 
+  // Opens dialog before updating
+  const requestUpdate = (id: string, status: StrategicAlertStatus) => {
+    setPendingUpdate({ id, status });
+  };
+
+  const confirmUpdate = (note: string) => {
+    if (!pendingUpdate) return;
+    updateAlert.mutate({ id: pendingUpdate.id, status: pendingUpdate.status, resolution_note: note });
+    if (selected?.id === pendingUpdate.id) setSelected(prev => prev ? { ...prev, status: pendingUpdate.status } : null);
+    setPendingUpdate(null);
+  };
+
+  // handleUpdate now routes through dialog
   const handleUpdate = (id: string, status: StrategicAlertStatus) => {
-    updateAlert.mutate({ id, status });
-    if (selected?.id === id) setSelected(prev => prev ? { ...prev, status } : null);
+    requestUpdate(id, status);
   };
 
   const handleSelect = (alert: StrategicAlert) => {
@@ -308,6 +383,13 @@ export default function SalaDeCrise() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Resolution Dialog */}
+      <ResolutionDialog
+        open={!!pendingUpdate}
+        onClose={() => setPendingUpdate(null)}
+        onConfirm={confirmUpdate}
+        targetStatus={pendingUpdate?.status ?? ''}
+      />
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
