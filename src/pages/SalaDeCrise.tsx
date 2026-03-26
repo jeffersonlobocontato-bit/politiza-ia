@@ -208,18 +208,25 @@ function AlertDetailPanel({
 
 // ─── Alert Card ────────────────────────────────────────────────────────────────
 function AlertCard({
-  alert, onSelect, isSelected, onUpdate,
+  alert, onSelect, isSelected, onUpdate, members,
 }: {
   alert: StrategicAlert;
   onSelect: (a: StrategicAlert) => void;
   isSelected: boolean;
   onUpdate: (id: string, status: StrategicAlertStatus) => void;
+  members: import('@/types/database').DbCampaignMember[];
 }) {
   const cfg = ALERT_TYPE_CONFIG[alert.type];
   const TypeIcon =
     alert.type === 'oportunidade_estrategica' ? Zap :
     alert.type === 'risco_eleitoral' ? BarChart2 :
     alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
+
+  const team = resolveAlertTeam(members, {
+    macroregion_id: alert.macroregion_id,
+    microregion: alert.microregion,
+    municipality: alert.municipality,
+  });
 
   return (
     <div
@@ -251,6 +258,12 @@ function AlertCard({
             {alert.opportunity_index !== null && <IndexBadge value={Math.round(alert.opportunity_index)} label="Opp" variant="opportunity" />}
           </div>
           <SeverityBar value={alert.severity} />
+          {/* Auto-resolved team */}
+          {team.length > 0 && (
+            <div className="mt-2 pt-2 border-t" style={{ borderColor: cfg.border }}>
+              <ResponsibleChain entries={team} compact />
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: cfg.border }}>
