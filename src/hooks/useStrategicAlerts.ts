@@ -5,6 +5,12 @@ import { toast } from 'sonner';
 export type StrategicAlertType = 'risco_operacional' | 'risco_eleitoral' | 'ineficiencia_atuacao' | 'oportunidade_estrategica';
 export type StrategicAlertStatus = 'ativo' | 'em_analise' | 'resolvido' | 'descartado';
 
+export interface HierarchyNode {
+  name: string;
+  role: string;
+  level: number;
+}
+
 export interface StrategicAlert {
   id: string;
   type: StrategicAlertType;
@@ -25,6 +31,10 @@ export interface StrategicAlert {
   resolved_at: string | null;
   created_at: string;
   updated_at: string;
+  resolution_note: string | null;
+  responsible_name: string | null;
+  responsible_role: string | null;
+  hierarchy_chain: HierarchyNode[] | null;
 }
 
 // ─── Fetch all active strategic alerts ────────────────────────────────────────
