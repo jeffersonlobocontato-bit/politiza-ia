@@ -381,6 +381,7 @@ export default function Alertas() {
                   alert={alert}
                   onRead={id => markRead.mutate(id)}
                   onStatusChange={requestStatusChange}
+                  members={members}
                 />
               ))}
             </>

@@ -252,16 +252,8 @@ function AlertCard({
           </div>
           <SeverityBar value={alert.severity} />
           {/* Responsible compact display */}
-          {alert.responsible_name && (
-            <div className="mt-2 pt-2 border-t" style={{ borderColor: cfg.border }}>
-              <ResponsibleChain
-                responsibleName={alert.responsible_name}
-                responsibleRole={alert.responsible_role}
-                hierarchyChain={alert.hierarchy_chain}
-                compact
-              />
-            </div>
-          )}
+        </div>
+      </div>
         </div>
       </div>
       <div className="flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: cfg.border }}>
