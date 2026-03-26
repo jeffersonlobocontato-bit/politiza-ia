@@ -462,26 +462,26 @@ function OperationalAnalytics({ alerts, members }: { alerts: DbAlert[]; members:
               const resolved = ca.filter(a => a.status === 'resolvido').length;
               const critCount = ca.filter(a => a.level === 'critico').length;
               return (
-                <div key={coord.id} className="rounded-lg border p-3 flex items-start gap-3" style={{ backgroundColor: diff.bg, borderColor: `${diff.color}30` }}>
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-black" style={{ backgroundColor: `${diff.color}20`, color: diff.color }}>{idx + 1}</div>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${diff.color}15` }}><Icon className="w-3.5 h-3.5" style={{ color: diff.color }} /></div>
+                <div key={coord.id} className={`rounded-lg border p-3 flex items-start gap-3 ${diff.bgClass} ${diff.iconClass.replace('text-', 'border-')}/20`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-black bg-muted ${diff.iconClass}`}>{idx + 1}</div>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 bg-muted/60`}><Icon className={`w-3.5 h-3.5 ${diff.iconClass}`} /></div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-0.5">
                       <span className="text-sm font-bold text-foreground">{coord.name}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: `${diff.color}20`, color: diff.color }}>{(coord as any).coordType}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium bg-muted ${diff.iconClass}`}>{(coord as any).coordType}</span>
                     </div>
                     <p className="text-[11px] leading-relaxed mb-2 text-muted-foreground">{feedbackMessage(score, coord.name.split(' ')[0])}</p>
                     <div className="flex items-center gap-3 text-[10px] flex-wrap">
                       <span className="text-muted-foreground">Total: <b className="text-foreground">{ca.length}</b></span>
-                      {critCount > 0 && <span style={{ color: '#E53935' }}><b>{critCount}</b> crítico{critCount !== 1 ? 's' : ''}</span>}
-                      <span style={{ color: '#FBC02D' }}><b>{open}</b> em aberto</span>
-                      <span style={{ color: '#43A047' }}><CheckCircle className="w-2.5 h-2.5 inline mr-0.5" /><b>{resolved}</b> resolvido{resolved !== 1 ? 's' : ''}</span>
+                      {critCount > 0 && <span className="text-status-error"><b>{critCount}</b> crítico{critCount !== 1 ? 's' : ''}</span>}
+                      <span className="text-status-warning"><b>{open}</b> em aberto</span>
+                      <span className="text-status-success"><CheckCircle className="w-2.5 h-2.5 inline mr-0.5" /><b>{resolved}</b> resolvido{resolved !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-center flex-shrink-0 gap-1">
-                    <div className="text-lg font-black" style={{ color: diff.color }}>{score}</div>
+                    <div className={`text-lg font-black ${diff.iconClass}`}>{score}</div>
                     <div className="text-[9px] text-muted-foreground uppercase tracking-wide">índice</div>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${diff.color}20`, color: diff.color }}>{diff.label}</span>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-muted ${diff.iconClass}`}>{diff.label}</span>
                   </div>
                 </div>
               );
