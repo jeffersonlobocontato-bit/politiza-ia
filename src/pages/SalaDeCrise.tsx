@@ -591,6 +591,7 @@ export default function SalaDeCrise() {
                         onSelect={handleSelect}
                         isSelected={selected?.id === alert.id}
                         onUpdate={handleUpdate}
+                        members={members}
                       />
                     ))}
                   </div>
