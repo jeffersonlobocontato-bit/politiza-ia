@@ -568,16 +568,16 @@ function TabAlertas() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { value: criticos, label: 'Críticos', color: '#E53935', icon: AlertTriangle },
-          { value: atencao, label: 'Atenção', color: '#FBC02D', icon: Bell },
-          { value: oportunidades, label: 'Oportunidades', color: '#43A047', icon: Zap },
-          { value: unread, label: 'Não lidos', color: '#106EBE', icon: Activity },
+          { value: criticos,     label: 'Críticos',     iconCls: 'text-status-error',   bgCls: 'bg-status-error-bg',   valCls: 'text-status-error',   icon: AlertTriangle },
+          { value: atencao,      label: 'Atenção',      iconCls: 'text-status-warning', bgCls: 'bg-status-warning-bg', valCls: 'text-status-warning', icon: Bell },
+          { value: oportunidades,label: 'Oportunidades',iconCls: 'text-status-success', bgCls: 'bg-status-success-bg', valCls: 'text-status-success', icon: Zap },
+          { value: unread,       label: 'Não lidos',    iconCls: 'text-primary',        bgCls: 'bg-primary/10',        valCls: 'text-primary',        icon: Activity },
         ].map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="rounded-xl border border-border p-4 flex items-center gap-3" style={{ background: 'var(--gradient-card)' }}>
-              <div className="p-2.5 rounded-lg" style={{ backgroundColor: `${s.color}18` }}><Icon className="w-5 h-5" style={{ color: s.color }} /></div>
-              <div><div className="text-2xl font-black text-foreground">{s.value}</div><div className="text-xs text-muted-foreground">{s.label}</div></div>
+            <div key={s.label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+              <div className={`p-2.5 rounded-lg ${s.bgCls}`}><Icon className={`w-5 h-5 ${s.iconCls}`} /></div>
+              <div><div className={`text-2xl font-black ${s.valCls}`}>{s.value}</div><div className="text-xs text-muted-foreground">{s.label}</div></div>
             </div>
           );
         })}
