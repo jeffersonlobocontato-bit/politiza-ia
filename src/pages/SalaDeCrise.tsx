@@ -266,20 +266,20 @@ function TabIA() {
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 px-6 py-4 border-b border-border flex-shrink-0">
         {[
-          { label: 'Alertas Ativos', value: kpis?.active ?? 0, icon: ShieldAlert, color: 'hsl(var(--primary))', onClick: () => setTypeFilter('all') },
-          { label: 'Críticos (8-10)', value: kpis?.critical ?? 0, icon: AlertTriangle, color: '#E53935', onClick: () => setMinSeverity(8) },
-          { label: 'Oportunidades', value: kpis?.opportunities ?? 0, icon: Zap, color: '#43A047', onClick: () => setTypeFilter('oportunidade_estrategica') },
-          { label: 'Índice de Risco', value: kpis?.riskIndex ?? 0, icon: TrendingDown, color: '#FBC02D', sub: '/100' },
-          { label: 'Índice de Oportunidade', value: kpis?.opportunityIndex ?? 0, icon: TrendingUp, color: '#0FFCBE', sub: '/100' },
+          { label: 'Alertas Ativos', value: kpis?.active ?? 0, icon: ShieldAlert, iconCls: 'text-primary', iconBg: 'bg-primary/10', valCls: 'text-primary', onClick: () => setTypeFilter('all') },
+          { label: 'Críticos (8-10)', value: kpis?.critical ?? 0, icon: AlertTriangle, iconCls: 'text-status-error', iconBg: 'bg-status-error-bg', valCls: 'text-status-error', onClick: () => setMinSeverity(8) },
+          { label: 'Oportunidades', value: kpis?.opportunities ?? 0, icon: Zap, iconCls: 'text-status-success', iconBg: 'bg-status-success-bg', valCls: 'text-status-success', onClick: () => setTypeFilter('oportunidade_estrategica') },
+          { label: 'Índice de Risco', value: kpis?.riskIndex ?? 0, icon: TrendingDown, iconCls: 'text-status-warning', iconBg: 'bg-status-warning-bg', valCls: 'text-status-warning', sub: '/100' },
+          { label: 'Índice de Oportunidade', value: kpis?.opportunityIndex ?? 0, icon: TrendingUp, iconCls: 'text-secondary', iconBg: 'bg-secondary/10', valCls: 'text-secondary', sub: '/100' },
         ].map(s => {
           const Icon = s.icon;
           return (
-            <button key={s.label} onClick={(s as any).onClick} className={`rounded-xl border border-border p-4 text-left transition-all group ${(s as any).onClick ? 'hover:border-primary/40 hover:scale-[1.02] cursor-pointer' : 'cursor-default'}`} style={{ background: 'var(--gradient-card)' }}>
+            <button key={s.label} onClick={(s as any).onClick} className={`rounded-xl border border-border bg-card p-4 text-left transition-all group ${(s as any).onClick ? 'hover:border-primary/40 hover:scale-[1.02] cursor-pointer' : 'cursor-default'}`}>
               <div className="flex items-center justify-between mb-2">
-                <div className="p-1.5 rounded-lg" style={{ backgroundColor: `${s.color}20` }}><Icon className="w-3.5 h-3.5" style={{ color: s.color }} /></div>
+                <div className={`p-1.5 rounded-lg ${s.iconBg}`}><Icon className={`w-3.5 h-3.5 ${s.iconCls}`} /></div>
                 {(s as any).onClick && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary transition-colors" />}
               </div>
-              <div className="text-2xl font-black" style={{ color: s.color }}>{s.value}{(s as any).sub && <span className="text-sm font-normal text-muted-foreground">{(s as any).sub}</span>}</div>
+              <div className={`text-2xl font-black ${s.valCls}`}>{s.value}{(s as any).sub && <span className="text-sm font-normal text-muted-foreground">{(s as any).sub}</span>}</div>
               <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
             </button>
           );
