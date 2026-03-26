@@ -214,25 +214,6 @@ function StatCard({ value, label, color, icon: Icon }: { value: number; label: s
 }
 
 // ─── Build hierarchy chain from members ──────────────────────────────────────
-function buildHierarchyChain(
-  memberId: string,
-  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>
-) {
-  const chain: Array<{ name: string; role: string; level: number }> = [];
-  const memberMap = new Map(members.map(m => [m.id, m]));
-
-  let current = memberMap.get(memberId);
-  if (!current) return chain;
-
-  // Walk up the supervisor chain
-  let supervisor = current.supervisor_id ? memberMap.get(current.supervisor_id) : undefined;
-  while (supervisor) {
-    chain.push({ name: supervisor.name, role: supervisor.role, level: supervisor.hierarchy_level });
-    supervisor = supervisor.supervisor_id ? memberMap.get(supervisor.supervisor_id) : undefined;
-  }
-  return chain;
-}
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Alertas() {
   const { data: allAlerts = [], isLoading, refetch } = useAlerts();
@@ -270,19 +251,12 @@ export default function Alertas() {
     setPendingUpdate({ id, status });
   };
 
-  const confirmStatusChange = (note: string, responsibleId?: string) => {
+  const confirmStatusChange = (note: string) => {
     if (!pendingUpdate) return;
-
-    const responsible = responsibleId ? members.find(m => m.id === responsibleId) : undefined;
-    const hierarchyChain = responsibleId ? buildHierarchyChain(responsibleId, members) : undefined;
-
     updateStatus.mutate({
       id: pendingUpdate.id,
       status: pendingUpdate.status as any,
       resolution_note: note,
-      responsible_name: responsible?.name ?? null,
-      responsible_role: responsible?.role ?? null,
-      hierarchy_chain: hierarchyChain ?? null,
     } as any);
     setPendingUpdate(null);
   };
