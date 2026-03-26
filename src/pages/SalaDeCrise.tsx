@@ -27,25 +27,35 @@ import type { DbAlert } from '@/types/database';
 // ══════════════════════════════════════════════════════════════
 
 function SeverityBar({ value }: { value: number }) {
-  const color = value >= 8 ? '#E53935' : value >= 6 ? '#FBC02D' : value >= 4 ? '#106EBE' : '#43A047';
+  const cls = value >= 8
+    ? 'bg-status-error text-status-error'
+    : value >= 6 ? 'bg-status-warning text-status-warning'
+    : value >= 4 ? 'bg-primary text-primary'
+    : 'bg-status-success text-status-success';
+  const barCls = value >= 8 ? 'bg-status-error' : value >= 6 ? 'bg-status-warning' : value >= 4 ? 'bg-primary' : 'bg-status-success';
+  const textCls = value >= 8 ? 'text-status-error' : value >= 6 ? 'text-status-warning' : value >= 4 ? 'text-primary' : 'text-status-success';
   return (
     <div className="flex items-center gap-1.5">
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${value * 10}%`, backgroundColor: color }} />
+        <div className={`h-full rounded-full transition-all ${barCls}`} style={{ width: `${value * 10}%` }} />
       </div>
-      <span className="text-[10px] font-bold tabular-nums" style={{ color }}>{value}/10</span>
+      <span className={`text-[10px] font-bold tabular-nums ${textCls}`}>{value}/10</span>
     </div>
   );
 }
 
 function IndexBadge({ value, label, variant }: { value: number; label: string; variant: 'risk' | 'opportunity' }) {
-  const color = variant === 'risk'
-    ? (value >= 70 ? '#E53935' : value >= 40 ? '#FBC02D' : '#43A047')
-    : (value >= 60 ? '#43A047' : value >= 30 ? '#106EBE' : '#94a3b8');
+  const riskCls = value >= 70 ? 'bg-status-error-bg text-status-error border-status-error/30'
+    : value >= 40 ? 'bg-status-warning-bg text-status-warning border-status-warning/30'
+    : 'bg-status-success-bg text-status-success border-status-success/30';
+  const oppCls = value >= 60 ? 'bg-status-success-bg text-status-success border-status-success/30'
+    : value >= 30 ? 'bg-status-info-bg text-status-info border-status-info/30'
+    : 'bg-muted text-muted-foreground border-border';
+  const cls = variant === 'risk' ? riskCls : oppCls;
   return (
-    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ backgroundColor: `${color}18`, border: `1px solid ${color}40` }}>
-      {variant === 'risk' ? <TrendingDown className="w-3 h-3" style={{ color }} /> : <TrendingUp className="w-3 h-3" style={{ color }} />}
-      <span className="text-[10px] font-semibold" style={{ color }}>{label}: {value}</span>
+    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${cls}`}>
+      {variant === 'risk' ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+      {label}: {value}
     </div>
   );
 }
