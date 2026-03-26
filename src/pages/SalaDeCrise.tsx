@@ -377,17 +377,12 @@ export default function SalaDeCrise() {
     setPendingUpdate({ id, status });
   };
 
-  const confirmUpdate = (note: string, responsibleId?: string) => {
+  const confirmUpdate = (note: string) => {
     if (!pendingUpdate) return;
-    const responsible = responsibleId ? members.find(m => m.id === responsibleId) : undefined;
-    const hierarchyChain = responsibleId ? buildHierarchyChain(responsibleId, members) : undefined;
     updateAlert.mutate({
       id: pendingUpdate.id,
       status: pendingUpdate.status,
       resolution_note: note,
-      responsible_name: responsible?.name ?? null,
-      responsible_role: responsible?.role ?? null,
-      hierarchy_chain: hierarchyChain ?? null,
     } as any);
     if (selected?.id === pendingUpdate.id) setSelected(prev => prev ? { ...prev, status: pendingUpdate.status } : null);
     setPendingUpdate(null);
