@@ -192,9 +192,11 @@ function StrategicAlertCard({ alert, onSelect, isSelected, onUpdate, members }: 
   const TypeIcon = alert.type === 'oportunidade_estrategica' ? Zap : alert.type === 'risco_eleitoral' ? BarChart2 : alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
   const team = resolveAlertTeam(members, { macroregion_id: alert.macroregion_id, microregion: alert.microregion, municipality: alert.municipality });
   return (
-    <div onClick={() => onSelect(alert)} className={`rounded-xl border p-4 cursor-pointer transition-all hover:scale-[1.01] group ${isSelected ? 'ring-2 ring-primary/50' : ''}`} style={{ backgroundColor: cfg.bg, borderColor: isSelected ? 'hsl(var(--primary))' : cfg.border }}>
+    <div onClick={() => onSelect(alert)} className={`rounded-xl border p-4 cursor-pointer transition-all hover:scale-[1.01] group ${cfg.bgClass} ${isSelected ? `ring-2 ring-primary border-primary ${cfg.borderClass}` : cfg.borderClass}`}>
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg flex-shrink-0 mt-0.5" style={{ backgroundColor: `${cfg.color}20` }}><TypeIcon className="w-3.5 h-3.5" style={{ color: cfg.color }} /></div>
+        <div className={`p-2 rounded-lg flex-shrink-0 mt-0.5 bg-muted/60`}>
+          <TypeIcon className={`w-3.5 h-3.5 ${cfg.iconClass}`} />
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <span className="text-sm font-semibold text-foreground leading-tight line-clamp-2">{alert.title}</span>
@@ -208,11 +210,11 @@ function StrategicAlertCard({ alert, onSelect, isSelected, onUpdate, members }: 
             {alert.opportunity_index !== null && <IndexBadge value={Math.round(alert.opportunity_index)} label="Opp" variant="opportunity" />}
           </div>
           <SeverityBar value={alert.severity} />
-          {team.length > 0 && <div className="mt-2 pt-2 border-t" style={{ borderColor: cfg.border }}><ResponsibleChain entries={team} compact /></div>}
+          {team.length > 0 && <div className={`mt-2 pt-2 border-t ${cfg.borderClass}`}><ResponsibleChain entries={team} compact /></div>}
         </div>
       </div>
-      <div className="flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: cfg.border }}>
-        {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onUpdate(alert.id, 'resolvido'); }} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-brand-green px-2 py-1 rounded hover:bg-muted"><CheckCheck className="w-3 h-3" />Resolver</button>}
+      <div className={`flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity ${cfg.borderClass}`}>
+        {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onUpdate(alert.id, 'resolvido'); }} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-status-success px-2 py-1 rounded hover:bg-muted"><CheckCheck className="w-3 h-3" />Resolver</button>}
         <span className="ml-auto text-[10px] text-muted-foreground/50">{new Date(alert.created_at).toLocaleDateString('pt-BR')}</span>
       </div>
     </div>
