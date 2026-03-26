@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert, Zap, AlertTriangle, Activity, TrendingUp, TrendingDown,
   Search, Filter, RefreshCw, CheckCheck, Eye, X, MapPin, Clock,
-  Brain, ChevronRight, BarChart2, Flame, ClipboardList,
+  Brain, ChevronRight, BarChart2, Flame, ClipboardList, User,
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -22,6 +22,8 @@ import {
   type StrategicAlertStatus,
 } from '@/hooks/useStrategicAlerts';
 import { useMacroRegionsDB } from '@/hooks/useDashboard';
+import { useCampaignMembers } from '@/hooks/useCampaignMembers';
+import { ResponsibleChain } from '@/components/alerts/ResponsibleChain';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function SeverityBar({ value }: { value: number }) {
