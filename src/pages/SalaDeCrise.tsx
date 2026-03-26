@@ -3,8 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert, Zap, AlertTriangle, Activity, TrendingUp, TrendingDown,
   Search, Filter, RefreshCw, CheckCheck, Eye, X, MapPin, Clock,
-  Target, Brain, ChevronRight, BarChart2, Info, Flame,
+  Brain, ChevronRight, BarChart2, Flame, ClipboardList,
 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   useStrategicAlerts,
   useStrategicKPIs,
