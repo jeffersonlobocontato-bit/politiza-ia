@@ -111,11 +111,11 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
   const TypeIcon = alert.type === 'oportunidade_estrategica' ? Zap : alert.type === 'risco_eleitoral' ? BarChart2 : alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
   const team = resolveAlertTeam(members, { macroregion_id: alert.macroregion_id, microregion: alert.microregion, municipality: alert.municipality, creatorName: alert.responsible_name ?? undefined, creatorRole: alert.responsible_role ?? undefined });
   return (
-    <div className="h-full flex flex-col rounded-xl border overflow-hidden" style={{ background: 'var(--gradient-card)', borderColor: cfg.border }}>
-      <div className="px-5 py-4 border-b flex items-start justify-between gap-3 flex-shrink-0" style={{ borderColor: cfg.border, backgroundColor: cfg.bg }}>
+    <div className={`h-full flex flex-col rounded-xl border overflow-hidden bg-card ${cfg.borderClass}`}>
+      <div className={`px-5 py-4 border-b flex items-start justify-between gap-3 flex-shrink-0 ${cfg.bgClass} ${cfg.borderClass}`}>
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className="p-2.5 rounded-xl flex-shrink-0" style={{ backgroundColor: `${cfg.color}20` }}>
-            <TypeIcon className="w-5 h-5" style={{ color: cfg.color }} />
+          <div className={`p-2.5 rounded-xl flex-shrink-0 bg-muted/60`}>
+            <TypeIcon className={`w-5 h-5 ${cfg.iconClass}`} />
           </div>
           <div className="min-w-0">
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.badge} mb-1.5 inline-block`}>{cfg.label}</span>
@@ -124,7 +124,7 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
         </div>
         <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground"><X className="w-4 h-4" /></button>
       </div>
-      <div className="flex-1 overflow-auto p-5 space-y-4">
+      <div className="flex-1 overflow-auto p-5 space-y-4 bg-card">
         <div className="flex flex-wrap gap-2">
           {alert.territory && <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-lg"><MapPin className="w-3.5 h-3.5" />{alert.territory}</div>}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-lg"><Clock className="w-3.5 h-3.5" />{new Date(alert.created_at).toLocaleString('pt-BR')}</div>
@@ -133,17 +133,17 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
         {team.length > 0 && <div className="rounded-xl border border-border p-4 bg-muted/20"><ResponsibleChain entries={team} /></div>}
         <div className="grid grid-cols-2 gap-3">
           {alert.risk_index !== null && (
-            <div className="rounded-lg p-3 bg-muted/40 border border-border">
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Risco</div>
-              <div className="text-2xl font-black text-destructive">{alert.risk_index?.toFixed(0)}</div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-destructive" style={{ width: `${alert.risk_index}%` }} /></div>
+            <div className="rounded-lg p-3 bg-status-error-bg border border-status-error/20">
+              <div className="text-[10px] font-semibold text-status-error uppercase tracking-wide mb-1">Índice de Risco</div>
+              <div className="text-2xl font-black text-status-error">{alert.risk_index?.toFixed(0)}</div>
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-status-error" style={{ width: `${alert.risk_index}%` }} /></div>
             </div>
           )}
           {alert.opportunity_index !== null && (
-            <div className="rounded-lg p-3 bg-muted/40 border border-border">
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Oportunidade</div>
-              <div className="text-2xl font-black text-brand-green">{alert.opportunity_index?.toFixed(0)}</div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-brand-green" style={{ width: `${alert.opportunity_index}%` }} /></div>
+            <div className="rounded-lg p-3 bg-status-success-bg border border-status-success/20">
+              <div className="text-[10px] font-semibold text-status-success uppercase tracking-wide mb-1">Índice de Oportunidade</div>
+              <div className="text-2xl font-black text-status-success">{alert.opportunity_index?.toFixed(0)}</div>
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-status-success" style={{ width: `${alert.opportunity_index}%` }} /></div>
             </div>
           )}
         </div>
@@ -152,8 +152,11 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
           <p className="text-sm text-foreground leading-relaxed">{alert.description}</p>
         </div>
         {alert.recommendation && (
-          <div className="rounded-xl border p-4" style={{ borderColor: cfg.border, backgroundColor: cfg.bg }}>
-            <div className="flex items-center gap-2 mb-2"><Brain className="w-4 h-4" style={{ color: cfg.color }} /><span className="text-xs font-bold uppercase tracking-wide" style={{ color: cfg.color }}>Recomendação IA</span></div>
+          <div className={`rounded-xl border p-4 ${cfg.bgClass} ${cfg.borderClass}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Brain className={`w-4 h-4 ${cfg.iconClass}`} />
+              <span className={`text-xs font-bold uppercase tracking-wide ${cfg.iconClass}`}>Recomendação IA</span>
+            </div>
             <p className="text-sm text-foreground leading-relaxed">{alert.recommendation}</p>
           </div>
         )}
@@ -171,9 +174,9 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
           </div>
         )}
       </div>
-      <div className="px-5 py-4 border-t flex gap-2 flex-shrink-0" style={{ borderColor: cfg.border }}>
+      <div className={`px-5 py-4 border-t flex gap-2 flex-shrink-0 bg-card ${cfg.borderClass}`}>
         {alert.status === 'ativo' && <button onClick={() => onUpdate(alert.id, 'em_analise')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-muted text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"><Eye className="w-3.5 h-3.5" />Em Análise</button>}
-        {alert.status !== 'resolvido' && <button onClick={() => onUpdate(alert.id, 'resolvido')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary-foreground transition-colors ml-auto" style={{ background: 'var(--gradient-primary)' }}><CheckCheck className="w-3.5 h-3.5" />Marcar Resolvido</button>}
+        {alert.status !== 'resolvido' && <button onClick={() => onUpdate(alert.id, 'resolvido')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary-foreground gradient-primary transition-colors ml-auto"><CheckCheck className="w-3.5 h-3.5" />Marcar Resolvido</button>}
         {alert.status !== 'descartado' && <button onClick={() => onUpdate(alert.id, 'descartado')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-muted/50 text-muted-foreground hover:text-destructive transition-colors"><X className="w-3.5 h-3.5" />Descartar</button>}
       </div>
     </div>
