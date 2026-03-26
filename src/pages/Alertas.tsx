@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import {
   AlertTriangle, Zap, Activity, CheckCheck, Bell, Filter,
-  RefreshCw, CheckCircle, Clock, Search, ClipboardList,
+  RefreshCw, CheckCircle, Clock, Search, ClipboardList, User,
 } from 'lucide-react';
 import { useAlerts, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
+import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import type { DbAlert } from '@/types/database';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { ResponsibleChain } from '@/components/alerts/ResponsibleChain';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
@@ -36,23 +38,23 @@ function levelIcon(level: string) {
 
 // ─── Resolution Dialog ────────────────────────────────────────────────────────
 function ResolutionDialog({
-  open,
-  onClose,
-  onConfirm,
-  targetStatus,
+  open, onClose, onConfirm, targetStatus, members,
 }: {
   open: boolean;
   onClose: () => void;
-  onConfirm: (note: string) => void;
+  onConfirm: (note: string, responsibleId?: string) => void;
   targetStatus: string;
+  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>;
 }) {
   const [note, setNote] = useState('');
+  const [responsibleId, setResponsibleId] = useState('');
   const isResolve = targetStatus === 'resolvido';
 
   const handleSubmit = () => {
     if (!note.trim()) return;
-    onConfirm(note.trim());
+    onConfirm(note.trim(), responsibleId || undefined);
     setNote('');
+    setResponsibleId('');
   };
 
   return (
@@ -70,6 +72,22 @@ function ResolutionDialog({
               ? 'Descreva obrigatoriamente qual ação foi realizada para solucionar este alerta.'
               : 'Descreva obrigatoriamente qual ação foi planejada para tratar este alerta.'}
           </p>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-primary" />
+              Responsável pela resolução
+            </label>
+            <select
+              value={responsibleId}
+              onChange={e => setResponsibleId(e.target.value)}
+              className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Selecionar responsável (opcional)</option>
+              {members.map(m => (
+                <option key={m.id} value={m.id}>{m.name} — {m.role}</option>
+              ))}
+            </select>
+          </div>
           <Textarea
             value={note}
             onChange={e => setNote(e.target.value)}
@@ -138,6 +156,19 @@ function AlertRow({ alert, onRead, onStatusChange }: {
               <span>{alert.recommendation}</span>
             </div>
           )}
+
+          {/* Responsible & hierarchy */}
+          {(alert.responsible_name || (alert.hierarchy_chain && alert.hierarchy_chain.length > 0)) && (
+            <div className="mt-2 pt-2 border-t" style={{ borderColor: c.border }}>
+              <ResponsibleChain
+                responsibleName={alert.responsible_name}
+                responsibleRole={alert.responsible_role}
+                hierarchyChain={alert.hierarchy_chain}
+                compact
+              />
+            </div>
+          )}
+
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
               {alert.territory && (
@@ -198,9 +229,30 @@ function StatCard({ value, label, color, icon: Icon }: { value: number; label: s
   );
 }
 
+// ─── Build hierarchy chain from members ──────────────────────────────────────
+function buildHierarchyChain(
+  memberId: string,
+  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>
+) {
+  const chain: Array<{ name: string; role: string; level: number }> = [];
+  const memberMap = new Map(members.map(m => [m.id, m]));
+
+  let current = memberMap.get(memberId);
+  if (!current) return chain;
+
+  // Walk up the supervisor chain
+  let supervisor = current.supervisor_id ? memberMap.get(current.supervisor_id) : undefined;
+  while (supervisor) {
+    chain.push({ name: supervisor.name, role: supervisor.role, level: supervisor.hierarchy_level });
+    supervisor = supervisor.supervisor_id ? memberMap.get(supervisor.supervisor_id) : undefined;
+  }
+  return chain;
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Alertas() {
   const { data: allAlerts = [], isLoading, refetch } = useAlerts();
+  const { data: members = [] } = useCampaignMembers();
   const markRead = useMarkAlertRead();
   const updateStatus = useUpdateAlertStatus();
   const generateAlerts = useGenerateAlerts();
@@ -230,18 +282,24 @@ export default function Alertas() {
     setIsRefreshing(false);
   };
 
-  // Intercept status changes — open dialog first
   const requestStatusChange = (id: string, status: string) => {
     setPendingUpdate({ id, status });
   };
 
-  const confirmStatusChange = (note: string) => {
+  const confirmStatusChange = (note: string, responsibleId?: string) => {
     if (!pendingUpdate) return;
+
+    const responsible = responsibleId ? members.find(m => m.id === responsibleId) : undefined;
+    const hierarchyChain = responsibleId ? buildHierarchyChain(responsibleId, members) : undefined;
+
     updateStatus.mutate({
       id: pendingUpdate.id,
       status: pendingUpdate.status as any,
       resolution_note: note,
-    });
+      responsible_name: responsible?.name ?? null,
+      responsible_role: responsible?.role ?? null,
+      hierarchy_chain: hierarchyChain ?? null,
+    } as any);
     setPendingUpdate(null);
   };
 
@@ -262,6 +320,7 @@ export default function Alertas() {
         onClose={() => setPendingUpdate(null)}
         onConfirm={confirmStatusChange}
         targetStatus={pendingUpdate?.status ?? ''}
+        members={members}
       />
 
       {/* Header */}
@@ -306,8 +365,6 @@ export default function Alertas() {
         {/* Filters */}
         <div className="rounded-xl border border-border p-3 flex flex-wrap gap-3 items-center" style={{ background: 'var(--gradient-card)' }}>
           <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-
-          {/* Search */}
           <div className="relative flex-1 min-w-48">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
@@ -317,8 +374,6 @@ export default function Alertas() {
               className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground"
             />
           </div>
-
-          {/* Level filter */}
           <div className="flex gap-1 flex-wrap">
             {(['all', 'critico', 'atencao', 'oportunidade', 'info'] as Level[]).map(l => (
               <button
@@ -330,8 +385,6 @@ export default function Alertas() {
               </button>
             ))}
           </div>
-
-          {/* Status filter */}
           <div className="flex gap-1 flex-wrap">
             {(['all', 'novo', 'em_analise', 'resolvido'] as Status[]).map(s => (
               <button

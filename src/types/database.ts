@@ -179,6 +179,12 @@ export interface DbSurveyResult {
   created_at: string;
 }
 
+export interface HierarchyNode {
+  name: string;
+  role: string;
+  level: number;
+}
+
 export interface DbAlert {
   id: string;
   level: DbAlertLevel;
@@ -194,6 +200,10 @@ export interface DbAlert {
   created_at: string;
   resolved_at: string | null;
   created_by: string | null;
+  resolution_note: string | null;
+  responsible_name: string | null;
+  responsible_role: string | null;
+  hierarchy_chain: HierarchyNode[] | null;
 }
 
 export interface DashboardKPIs {

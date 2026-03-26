@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert, Zap, AlertTriangle, Activity, TrendingUp, TrendingDown,
   Search, Filter, RefreshCw, CheckCheck, Eye, X, MapPin, Clock,
-  Brain, ChevronRight, BarChart2, Flame, ClipboardList,
+  Brain, ChevronRight, BarChart2, Flame, ClipboardList, User,
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -22,6 +22,8 @@ import {
   type StrategicAlertStatus,
 } from '@/hooks/useStrategicAlerts';
 import { useMacroRegionsDB } from '@/hooks/useDashboard';
+import { useCampaignMembers } from '@/hooks/useCampaignMembers';
+import { ResponsibleChain } from '@/components/alerts/ResponsibleChain';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function SeverityBar({ value }: { value: number }) {
@@ -98,14 +100,25 @@ function AlertDetailPanel({
           </div>
         </div>
 
+        {/* Responsible & Hierarchy — who to call */}
+        {(alert.responsible_name || (alert.hierarchy_chain && alert.hierarchy_chain.length > 0)) && (
+          <div className="rounded-xl border border-border p-4 bg-muted/20">
+            <ResponsibleChain
+              responsibleName={alert.responsible_name}
+              responsibleRole={alert.responsible_role}
+              hierarchyChain={alert.hierarchy_chain}
+            />
+          </div>
+        )}
+
         {/* Indices */}
         <div className="grid grid-cols-2 gap-3">
           {alert.risk_index !== null && (
             <div className="rounded-lg p-3 bg-muted/40 border border-border">
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Risco</div>
-              <div className="text-2xl font-black text-red-400">{alert.risk_index?.toFixed(0)}</div>
+              <div className="text-2xl font-black text-destructive">{alert.risk_index?.toFixed(0)}</div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1">
-                <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${alert.risk_index}%` }} />
+                <div className="h-full rounded-full bg-destructive transition-all" style={{ width: `${alert.risk_index}%` }} />
               </div>
             </div>
           )}
@@ -114,7 +127,7 @@ function AlertDetailPanel({
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Oportunidade</div>
               <div className="text-2xl font-black text-brand-green">{alert.opportunity_index?.toFixed(0)}</div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1">
-                <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${alert.opportunity_index}%` }} />
+                <div className="h-full rounded-full bg-brand-green transition-all" style={{ width: `${alert.opportunity_index}%` }} />
               </div>
             </div>
           )}
@@ -167,7 +180,7 @@ function AlertDetailPanel({
         {alert.status !== 'resolvido' && (
           <button
             onClick={() => onUpdate(alert.id, 'resolvido')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-colors ml-auto"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary-foreground transition-colors ml-auto"
             style={{ background: 'var(--gradient-primary)' }}
           >
             <CheckCheck className="w-3.5 h-3.5" /> Marcar Resolvido
@@ -185,6 +198,7 @@ function AlertDetailPanel({
     </div>
   );
 }
+
 
 // ─── Alert Card ────────────────────────────────────────────────────────────────
 function AlertCard({
@@ -231,6 +245,17 @@ function AlertCard({
             {alert.opportunity_index !== null && <IndexBadge value={Math.round(alert.opportunity_index)} label="Opp" variant="opportunity" />}
           </div>
           <SeverityBar value={alert.severity} />
+          {/* Responsible compact display */}
+          {alert.responsible_name && (
+            <div className="mt-2 pt-2 border-t" style={{ borderColor: cfg.border }}>
+              <ResponsibleChain
+                responsibleName={alert.responsible_name}
+                responsibleRole={alert.responsible_role}
+                hierarchyChain={alert.hierarchy_chain}
+                compact
+              />
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: cfg.border }}>
@@ -250,23 +275,43 @@ function AlertCard({
   );
 }
 
+// ─── Build hierarchy chain helper ─────────────────────────────────────────────
+function buildHierarchyChain(
+  memberId: string,
+  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>
+) {
+  const chain: Array<{ name: string; role: string; level: number }> = [];
+  const memberMap = new Map(members.map(m => [m.id, m]));
+  const current = memberMap.get(memberId);
+  if (!current) return chain;
+  let supervisor = current.supervisor_id ? memberMap.get(current.supervisor_id) : undefined;
+  while (supervisor) {
+    chain.push({ name: supervisor.name, role: supervisor.role, level: supervisor.hierarchy_level });
+    supervisor = supervisor.supervisor_id ? memberMap.get(supervisor.supervisor_id) : undefined;
+  }
+  return chain;
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 // ─── Resolution Dialog ─────────────────────────────────────────────────────────
 function ResolutionDialog({
-  open, onClose, onConfirm, targetStatus,
+  open, onClose, onConfirm, targetStatus, members,
 }: {
   open: boolean;
   onClose: () => void;
-  onConfirm: (note: string) => void;
+  onConfirm: (note: string, responsibleId?: string) => void;
   targetStatus: string;
+  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>;
 }) {
   const [note, setNote] = useState('');
+  const [responsibleId, setResponsibleId] = useState('');
   const isResolve = targetStatus === 'resolvido' || targetStatus === 'descartado';
 
   const handleSubmit = () => {
     if (!note.trim()) return;
-    onConfirm(note.trim());
+    onConfirm(note.trim(), responsibleId || undefined);
     setNote('');
+    setResponsibleId('');
   };
 
   return (
@@ -284,6 +329,22 @@ function ResolutionDialog({
               ? 'Descreva obrigatoriamente qual ação foi realizada para resolver este alerta estratégico.'
               : 'Descreva obrigatoriamente qual ação foi planejada para tratar este alerta.'}
           </p>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-primary" />
+              Responsável pela resolução
+            </label>
+            <select
+              value={responsibleId}
+              onChange={e => setResponsibleId(e.target.value)}
+              className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Selecionar responsável (opcional)</option>
+              {members.map(m => (
+                <option key={m.id} value={m.id}>{m.name} — {m.role}</option>
+              ))}
+            </select>
+          </div>
           <Textarea
             value={note}
             onChange={e => setNote(e.target.value)}
@@ -321,6 +382,7 @@ export default function SalaDeCrise() {
   const { data: alerts = [], isLoading, refetch } = useStrategicAlerts({ type: typeFilter });
   const { data: kpis } = useStrategicKPIs();
   const { data: macroRegions = [] } = useMacroRegionsDB();
+  const { data: members = [] } = useCampaignMembers();
   const runAnalysis = useRunStrategicAnalysis();
   const updateAlert = useUpdateStrategicAlert();
   const markRead = useMarkStrategicAlertRead();
@@ -335,19 +397,26 @@ export default function SalaDeCrise() {
     }
   };
 
-  // Opens dialog before updating
   const requestUpdate = (id: string, status: StrategicAlertStatus) => {
     setPendingUpdate({ id, status });
   };
 
-  const confirmUpdate = (note: string) => {
+  const confirmUpdate = (note: string, responsibleId?: string) => {
     if (!pendingUpdate) return;
-    updateAlert.mutate({ id: pendingUpdate.id, status: pendingUpdate.status, resolution_note: note });
+    const responsible = responsibleId ? members.find(m => m.id === responsibleId) : undefined;
+    const hierarchyChain = responsibleId ? buildHierarchyChain(responsibleId, members) : undefined;
+    updateAlert.mutate({
+      id: pendingUpdate.id,
+      status: pendingUpdate.status,
+      resolution_note: note,
+      responsible_name: responsible?.name ?? null,
+      responsible_role: responsible?.role ?? null,
+      hierarchy_chain: hierarchyChain ?? null,
+    } as any);
     if (selected?.id === pendingUpdate.id) setSelected(prev => prev ? { ...prev, status: pendingUpdate.status } : null);
     setPendingUpdate(null);
   };
 
-  // handleUpdate now routes through dialog
   const handleUpdate = (id: string, status: StrategicAlertStatus) => {
     requestUpdate(id, status);
   };
@@ -368,7 +437,6 @@ export default function SalaDeCrise() {
     return matchSearch && matchMacro && matchSeverity;
   });
 
-  // Group by type priority
   const typeOrder: StrategicAlertType[] = [
     'risco_eleitoral', 'risco_operacional', 'ineficiencia_atuacao', 'oportunidade_estrategica',
   ];
@@ -384,11 +452,13 @@ export default function SalaDeCrise() {
   return (
     <div className="h-full flex flex-col">
       {/* Resolution Dialog */}
+
       <ResolutionDialog
         open={!!pendingUpdate}
         onClose={() => setPendingUpdate(null)}
         onConfirm={confirmUpdate}
         targetStatus={pendingUpdate?.status ?? ''}
+        members={members}
       />
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
