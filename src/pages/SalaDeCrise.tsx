@@ -501,29 +501,29 @@ function AlertOpRow({ alert, onRead, onStatusChange, members }: {
   const Icon = levelIconOp(alert.level);
   const team = resolveAlertTeam(members, { macroregion_id: alert.macroregion_id, creatorName: alert.responsible_name ?? undefined, creatorRole: alert.responsible_role ?? undefined });
   return (
-    <div className="rounded-xl border-l-4 border p-4 transition-all hover:scale-[1.005] group cursor-pointer" style={{ backgroundColor: c.bg, borderLeftColor: c.border, borderColor: `${c.border}55` }} onClick={() => !alert.is_read && onRead(alert.id)}>
+    <div className={`rounded-xl border-l-4 border p-4 transition-all hover:scale-[1.005] group cursor-pointer ${c.bgClass} ${c.borderClass}`} onClick={() => !alert.is_read && onRead(alert.id)}>
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg flex-shrink-0 mt-0.5" style={{ backgroundColor: `${c.badge}22` }}><Icon className="w-4 h-4" style={{ color: c.icon }} /></div>
+        <div className={`p-2 rounded-lg flex-shrink-0 mt-0.5 bg-muted/60`}><Icon className={`w-4 h-4 ${c.iconClass}`} /></div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <div className="font-bold text-sm leading-tight" style={{ color: c.titleColor }}>{alert.title}</div>
+            <div className="font-bold text-sm leading-tight text-foreground">{alert.title}</div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {!alert.is_read && <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
-              <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ backgroundColor: c.badge, color: c.badgeText }}>{c.label}</span>
+              <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${c.badgeClass}`}>{c.label}</span>
             </div>
           </div>
           <p className="text-xs leading-relaxed mb-2 text-muted-foreground">{alert.description}</p>
-          {alert.recommendation && <div className="mb-2 text-xs font-semibold flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: `${c.badge}18`, color: c.icon, border: `1px solid ${c.border}40` }}><span>💡</span><span>{alert.recommendation}</span></div>}
-          {team.length > 0 && <div className="mb-2 pt-2 border-t" style={{ borderColor: `${c.border}40` }}><ResponsibleChain entries={team} compact /></div>}
+          {alert.recommendation && <div className={`mb-2 text-xs font-semibold flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted ${c.iconClass} border ${c.borderClass}`}><span>💡</span><span>{alert.recommendation}</span></div>}
+          {team.length > 0 && <div className={`mb-2 pt-2 border-t ${c.borderClass}`}><ResponsibleChain entries={team} compact /></div>}
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
               {alert.territory && <span>📍 {alert.territory}</span>}
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(alert.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: `${c.badge}25`, color: c.icon }}>{OP_STATUS_LABEL[alert.status] ?? alert.status}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted ${c.iconClass}`}>{OP_STATUS_LABEL[alert.status] ?? alert.status}</span>
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {alert.status === 'novo' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'em_analise'); }} className="text-[10px] px-2.5 py-1 rounded-md font-semibold" style={{ backgroundColor: `${c.badge}25`, color: c.icon }}>Em Análise</button>}
-              {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'resolvido'); }} className="text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold" style={{ backgroundColor: '#43A04720', color: '#43A047' }}><CheckCheck className="w-3 h-3" />Resolver</button>}
+              {alert.status === 'novo' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'em_analise'); }} className={`text-[10px] px-2.5 py-1 rounded-md font-semibold bg-muted ${c.iconClass}`}>Em Análise</button>}
+              {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'resolvido'); }} className="text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold bg-status-success-bg text-status-success"><CheckCheck className="w-3 h-3" />Resolver</button>}
             </div>
           </div>
         </div>
