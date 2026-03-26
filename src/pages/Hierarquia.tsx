@@ -166,61 +166,23 @@ export default function Hierarquia() {
       {members.length > 0 && (
         <div className="px-6 py-4 border-b border-border flex-shrink-0 bg-card/30">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Donut — nível hierárquico */}
-            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-              <p className="text-xs font-semibold text-foreground mb-3">Membros por Nível</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={levelChartData} dataKey="value" cx="35%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2}>
-                    {levelChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                  </Pie>
-                  <Tooltip
-                    formatter={(v: number, n: string) => [`${v} membros`, n]}
-                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Legend iconType="circle" iconSize={9} layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11, paddingLeft: 8, lineHeight: '22px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Donut — status */}
-            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-              <p className="text-xs font-semibold text-foreground mb-3">Membros por Status</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={statusChartData} dataKey="value" cx="35%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2}>
-                    {statusChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                  </Pie>
-                  <Tooltip
-                    formatter={(v: number, n: string) => [`${v} membros`, n]}
-                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Legend iconType="circle" iconSize={9} layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11, paddingLeft: 8, lineHeight: '22px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Bar — macrorregião */}
-            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-              <p className="text-xs font-semibold text-foreground mb-3">Membros por Macrorregião</p>
-              <ResponsiveContainer width="100%" height={Math.max(200, macroCounts.length * 32 + 20)}>
-                <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barSize={16}>
-                  <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={110}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
-                    tickFormatter={(v: string) => v.length > 16 ? v.slice(0, 15) + '…' : v}
-                  />
-                  <Tooltip
-                    formatter={(v: number) => [`${v}`, 'Membros']}
-                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--brand-amber))" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <InfographicDonut
+              title="Membros por Nível"
+              unit="membros"
+              data={levelChartData}
+              height={190}
+            />
+            <InfographicDonut
+              title="Membros por Status"
+              unit="membros"
+              data={statusChartData}
+              height={190}
+            />
+            <InfographicHBar
+              title="Membros por Macrorregião"
+              data={macroCounts}
+              accentColor={CHART_MINT}
+            />
           </div>
         </div>
       )}
