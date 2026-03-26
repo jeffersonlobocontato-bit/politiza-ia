@@ -346,8 +346,8 @@ function TabIA() {
               return (
                 <div key={type} className="space-y-2">
                   <div className="flex items-center gap-2 pt-1 first:pt-0">
-                    <TypeIcon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: cfg.color }}>{cfg.label}</span>
+                    <TypeIcon className={`w-3.5 h-3.5 ${cfg.iconClass}`} />
+                    <span className={`text-xs font-bold uppercase tracking-wide ${cfg.iconClass}`}>{cfg.label}</span>
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{group.length}</span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
