@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import {
   AlertTriangle, Zap, Activity, CheckCheck, Bell, Filter,
-  RefreshCw, CheckCircle, Clock, Search, ClipboardList,
+  RefreshCw, CheckCircle, Clock, Search, ClipboardList, User,
 } from 'lucide-react';
 import { useAlerts, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
+import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import type { DbAlert } from '@/types/database';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { ResponsibleChain } from '@/components/alerts/ResponsibleChain';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
