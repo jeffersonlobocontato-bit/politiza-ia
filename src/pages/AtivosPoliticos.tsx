@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
+import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 
 const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
   alinhado:   '#22c55e',

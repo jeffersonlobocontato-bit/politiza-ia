@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Network, Award, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
 import type { DbCampaignMember } from '@/types/database';
+import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 
 const LEVEL_COLORS: Record<number, string> = {
   1: 'hsl(var(--brand-amber))',
