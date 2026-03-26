@@ -20,10 +20,10 @@ type Status = 'all' | 'novo' | 'em_analise' | 'resolvido';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const LEVEL_CONFIG: Record<string, { bg: string; border: string; icon: string; label: string }> = {
-  critico:     { bg: 'hsl(var(--brand-red) / 0.1)',   border: 'hsl(var(--brand-red) / 0.35)',   icon: 'hsl(var(--brand-red))',   label: 'Crítico' },
-  atencao:     { bg: 'hsl(var(--brand-amber) / 0.1)', border: 'hsl(var(--brand-amber) / 0.35)', icon: 'hsl(var(--brand-amber))', label: 'Atenção' },
-  oportunidade:{ bg: 'hsl(var(--brand-green) / 0.1)', border: 'hsl(var(--brand-green) / 0.35)', icon: 'hsl(var(--brand-green))', label: 'Oportunidade' },
-  info:        { bg: 'hsl(var(--primary) / 0.1)',     border: 'hsl(var(--primary) / 0.35)',     icon: 'hsl(var(--primary))',     label: 'Info' },
+  critico:     { bg: 'hsl(0 60% 18%)',    border: 'hsl(0 72% 45%)',    icon: 'hsl(0 90% 70%)',    label: 'Crítico' },
+  atencao:     { bg: 'hsl(38 60% 16%)',   border: 'hsl(38 85% 45%)',   icon: 'hsl(38 95% 65%)',   label: 'Atenção' },
+  oportunidade:{ bg: 'hsl(142 40% 14%)',  border: 'hsl(142 60% 38%)',  icon: 'hsl(142 70% 58%)',  label: 'Oportunidade' },
+  info:        { bg: 'hsl(217 50% 16%)',  border: 'hsl(217 80% 50%)',  icon: 'hsl(217 91% 72%)',  label: 'Info' },
 };
 
 const STATUS_LABEL: Record<string, string> = {
