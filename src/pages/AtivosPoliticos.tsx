@@ -357,7 +357,7 @@ export default function AtivosPoliticos() {
               <button onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
               <button
                 onClick={handleSubmit}
-                disabled={!form.name || createAsset.isPending || updateAsset.isPending}
+                disabled={!form.name || !geoForm.city || createAsset.isPending || updateAsset.isPending}
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
                 style={{ background: 'var(--gradient-primary)' }}
               >
