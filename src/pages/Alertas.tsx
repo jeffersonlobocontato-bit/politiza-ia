@@ -4,6 +4,7 @@ import {
   RefreshCw, CheckCircle, Clock, Search, ClipboardList,
   TrendingUp, TrendingDown, Minus, Trophy, AlertOctagon, ChevronDown, ChevronUp,
 } from 'lucide-react';
+import { InfographicHBar, InfographicVBar } from '@/components/ui/InfographicCharts';
 import { useAlerts, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import type { DbAlert } from '@/types/database';
