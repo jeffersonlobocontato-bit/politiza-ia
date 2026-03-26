@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMapEvents } from 'react-leaflet';
-import { Smartphone, MapPin, Camera, CheckCircle, Navigation } from 'lucide-react';
+import { Smartphone, Camera, CheckCircle } from 'lucide-react';
 import { useCreateAction } from '@/hooks/useActions';
+import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 
 interface FieldInput {
   actionTitle: string;
-  municipality: string;
   executedDate: string;
   executedTime: string;
   peopleCount: string;
@@ -13,71 +12,39 @@ interface FieldInput {
   result: string;
 }
 
-function LocationPicker({ onLocationPick }: { onLocationPick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click: (e) => onLocationPick(e.latlng.lat, e.latlng.lng)
-  });
-  return null;
-}
-
 export default function Campo() {
   const createAction = useCreateAction();
-  const [step, setStep] = useState<'form' | 'map' | 'photo' | 'confirm'>('form');
+  const [step, setStep] = useState<'form' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
     actionTitle: '',
-    municipality: '',
     executedDate: new Date().toISOString().split('T')[0],
     executedTime: new Date().toTimeString().slice(0, 5),
     peopleCount: '',
     observations: '',
     result: '',
   });
-  const [markedLocation, setMarkedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [geo, setGeo] = useState<GeoValue>({ city: '', lat: null, lng: null });
   const [photos, setPhotos] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
-  const [gpsLoading, setGpsLoading] = useState(false);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
 
-  const handleGPS = () => {
-    if (navigator.geolocation) {
-      setGpsLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setMarkedLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setGpsLoading(false);
-        },
-        () => {
-          // Fallback: random coords within Paraná
-          const lat = -25.4244 + (Math.random() - 0.5) * 2;
-          const lng = -49.2654 + (Math.random() - 0.5) * 4;
-          setMarkedLocation({ lat, lng });
-          setGpsLoading(false);
-        },
-        { timeout: 8000 }
-      );
-    } else {
-      const lat = -25.4244 + (Math.random() - 0.5) * 2;
-      const lng = -49.2654 + (Math.random() - 0.5) * 4;
-      setMarkedLocation({ lat, lng });
-    }
-  };
+  const geoValid = geo.city.trim() !== '' && geo.lat !== null && geo.lng !== null;
 
   const handleSubmit = () => {
-    const lat = markedLocation?.lat ?? (-25.4244 + (Math.random() - 0.5) * 2);
-    const lng = markedLocation?.lng ?? (-49.2654 + (Math.random() - 0.5) * 4);
+    if (!geoValid) return;
 
     createAction.mutate({
       title: input.actionTitle || 'Ação de Campo',
       type: 'mobilizacao_comunitaria',
       category: 'Campo',
       description: input.observations || input.result || 'Registro de campo',
-      municipality: input.municipality || 'Paraná',
-      microregion: input.municipality || null,
+      municipality: geo.city,
+      microregion: geo.city || null,
       macroregion_id: 'rmc',
       address: null,
-      lat,
-      lng,
+      lat: geo.lat!,
+      lng: geo.lng!,
       responsible: 'Equipe de Campo',
       team: [],
       planned_date: input.executedDate,
@@ -98,12 +65,12 @@ export default function Campo() {
     setTimeout(() => setSubmitted(false), 3000);
     setStep('form');
     setInput({
-      actionTitle: '', municipality: '',
+      actionTitle: '',
       executedDate: new Date().toISOString().split('T')[0],
       executedTime: new Date().toTimeString().slice(0, 5),
-      peopleCount: '', observations: '', result: ''
+      peopleCount: '', observations: '', result: '',
     });
-    setMarkedLocation(null);
+    setGeo({ city: '', lat: null, lng: null });
     setPhotos([]);
   };
 
@@ -135,10 +102,9 @@ export default function Campo() {
         </div>
         <div className="flex gap-2 mt-3">
           {[
-            { id: 'form', label: '1. Dados' },
-            { id: 'map', label: '2. Localização' },
-            { id: 'photo', label: '3. Evidências' },
-            { id: 'confirm', label: '4. Enviar' },
+            { id: 'form', label: '1. Dados + Local' },
+            { id: 'photo', label: '2. Evidências' },
+            { id: 'confirm', label: '3. Enviar' },
           ].map(s => (
             <button
               key={s.id}
@@ -152,23 +118,31 @@ export default function Campo() {
       </div>
 
       <div className="flex-1 overflow-auto p-4">
+
+        {/* ── Step 1: Dados + Localização ── */}
         {step === 'form' && (
           <div className="space-y-4 animate-fade-in">
             <h2 className="text-sm font-semibold text-foreground">Dados da Execução</h2>
-            {[
-              { key: 'actionTitle', label: 'Título / Nome da Ação *', placeholder: 'Ex: Panfletagem Centro de Curitiba' },
-              { key: 'municipality', label: 'Município *', placeholder: 'Ex: Curitiba' },
-            ].map(f => (
-              <div key={f.key}>
-                <label className="text-xs text-muted-foreground block mb-1">{f.label}</label>
-                <input
-                  value={(input as any)[f.key]}
-                  onChange={e => update(f.key as any, e.target.value)}
-                  placeholder={f.placeholder}
-                  className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-            ))}
+
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Título / Nome da Ação *</label>
+              <input
+                value={input.actionTitle}
+                onChange={e => update('actionTitle', e.target.value)}
+                placeholder="Ex: Panfletagem Centro de Curitiba"
+                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            {/* Geolocation — obrigatória */}
+            <GeoLocationInput
+              value={geo}
+              onChange={setGeo}
+              required
+              label="Cidade / Localização Exata *"
+              placeholder="Ex: Curitiba, Londrina, Maringá..."
+            />
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Data de Execução</label>
@@ -210,72 +184,17 @@ export default function Campo() {
               />
             </div>
             <button
-              onClick={() => setStep('map')}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground"
+              onClick={() => geoValid && setStep('photo')}
+              disabled={!geoValid}
+              className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'var(--gradient-primary)' }}
             >
-              Próximo: Marcar Localização →
+              {geoValid ? 'Próximo: Adicionar Evidências →' : 'Informe a localização para continuar'}
             </button>
           </div>
         )}
 
-        {step === 'map' && (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">Localização da Ação</h2>
-              {markedLocation && (
-                <span className="text-xs text-brand-green font-semibold">✓ Localização marcada</span>
-              )}
-            </div>
-            <button
-              onClick={handleGPS}
-              disabled={gpsLoading}
-              className="w-full h-11 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/20 transition-colors disabled:opacity-60"
-            >
-              <Navigation className={`w-4 h-4 ${gpsLoading ? 'animate-spin' : ''}`} />
-              {gpsLoading ? 'Obtendo localização...' : 'Usar minha localização atual (GPS)'}
-            </button>
-            <div className="text-xs text-center text-muted-foreground">— ou clique no mapa para marcar manualmente —</div>
-            <div className="rounded-xl overflow-hidden border border-border" style={{ height: 300 }}>
-              <MapContainer
-                center={markedLocation ? [markedLocation.lat, markedLocation.lng] : [-24.7, -51.5]}
-                zoom={markedLocation ? 13 : 7}
-                style={{ height: '100%', width: '100%' }}
-              >
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-                <LocationPicker onLocationPick={(lat, lng) => setMarkedLocation({ lat, lng })} />
-                {markedLocation && (
-                  <CircleMarker
-                    center={[markedLocation.lat, markedLocation.lng]}
-                    radius={12}
-                    fillColor="#22c55e"
-                    color="#ffffff"
-                    weight={2}
-                    fillOpacity={0.9}
-                  >
-                    <Popup>
-                      <strong>Localização da ação</strong><br />
-                      Lat: {markedLocation.lat.toFixed(6)}<br />
-                      Lng: {markedLocation.lng.toFixed(6)}
-                    </Popup>
-                  </CircleMarker>
-                )}
-              </MapContainer>
-            </div>
-            {markedLocation && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-green/10 border border-brand-green/20">
-                <MapPin className="w-4 h-4 text-brand-green" />
-                <span className="text-xs text-brand-green font-medium">
-                  {markedLocation.lat.toFixed(6)}, {markedLocation.lng.toFixed(6)}
-                </span>
-              </div>
-            )}
-            <button onClick={() => setStep('photo')} className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground" style={{ background: 'var(--gradient-primary)' }}>
-              Próximo: Adicionar Evidências →
-            </button>
-          </div>
-        )}
-
+        {/* ── Step 2: Evidências ── */}
         {step === 'photo' && (
           <div className="space-y-4 animate-fade-in">
             <h2 className="text-sm font-semibold text-foreground">Evidências Fotográficas</h2>
@@ -302,17 +221,18 @@ export default function Campo() {
           </div>
         )}
 
+        {/* ── Step 3: Confirmar ── */}
         {step === 'confirm' && (
           <div className="space-y-4 animate-fade-in">
             <h2 className="text-sm font-semibold text-foreground">Confirmar Registro</h2>
             <div className="rounded-xl border border-border p-4 space-y-3" style={{ background: 'var(--gradient-card)' }}>
               {[
                 { label: 'Ação', value: input.actionTitle || '(não informado)' },
-                { label: 'Município', value: input.municipality || '(não informado)' },
+                { label: 'Cidade', value: geo.city || '(não informado)' },
+                { label: 'Coordenadas', value: geo.lat ? `${geo.lat.toFixed(5)}, ${geo.lng?.toFixed(5)}` : 'Não definido' },
                 { label: 'Data/Hora', value: `${input.executedDate} às ${input.executedTime}` },
                 { label: 'Pessoas Impactadas', value: input.peopleCount ? `~${parseInt(input.peopleCount).toLocaleString()}` : '(não informado)' },
                 { label: 'Resultado', value: input.result || '(não informado)' },
-                { label: 'Localização', value: markedLocation ? `${markedLocation.lat.toFixed(4)}, ${markedLocation.lng.toFixed(4)}` : 'Automática (aleatória no Paraná)' },
                 { label: 'Evidências', value: `${photos.length} foto(s)` },
               ].map(item => (
                 <div key={item.label} className="flex items-start justify-between gap-4">
@@ -327,9 +247,15 @@ export default function Campo() {
                 <div className="text-xs text-foreground">{input.observations}</div>
               </div>
             )}
+            {!geoValid && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+                ⚠ Geolocalização não confirmada. Volte ao passo 1 e confirme a cidade.
+              </div>
+            )}
             <button
               onClick={handleSubmit}
-              className="w-full h-12 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2"
+              disabled={!geoValid}
+              className="w-full h-12 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'linear-gradient(135deg, hsl(142 72% 45%), hsl(142 72% 38%))' }}
             >
               <CheckCircle className="w-5 h-5" />

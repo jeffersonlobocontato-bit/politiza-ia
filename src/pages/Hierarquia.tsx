@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Network, Award, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
@@ -28,7 +29,6 @@ interface MemberForm {
   hierarchy_level: string;
   macroregion_id: string;
   microregion: string;
-  municipality: string;
   status: string;
   observations: string;
 }
@@ -41,7 +41,6 @@ const emptyForm = (): MemberForm => ({
   hierarchy_level: '4',
   macroregion_id: 'rmc',
   microregion: '',
-  municipality: '',
   status: 'ativo',
   observations: '',
 });
@@ -55,6 +54,7 @@ export default function Hierarquia() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
+  const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
 
   const byLevel = [1, 2, 3, 4, 5].map(l => ({
     level: l,
@@ -68,6 +68,7 @@ export default function Hierarquia() {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
     setShowForm(true);
   };
 
@@ -81,15 +82,15 @@ export default function Hierarquia() {
       hierarchy_level: String(member.hierarchy_level),
       macroregion_id: member.macroregion_id ?? 'rmc',
       microregion: member.microregion ?? '',
-      municipality: member.municipality ?? '',
       status: member.status,
       observations: member.observations ?? '',
     });
+    setGeoForm({ city: member.municipality ?? '', lat: null, lng: null });
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
-    if (!form.name) return;
+    if (!form.name || !geoForm.city) return;
     const payload = {
       name: form.name,
       email: form.email || null,
@@ -98,7 +99,7 @@ export default function Hierarquia() {
       hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5,
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
-      municipality: form.municipality || null,
+      municipality: geoForm.city || null,
       supervisor_id: null as string | null,
       actions_managed: 0,
       completion_rate: 0,
@@ -115,6 +116,7 @@ export default function Hierarquia() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
   };
 
   const handleDelete = async (id: string) => {
@@ -266,9 +268,14 @@ export default function Hierarquia() {
                 <label className="text-xs text-muted-foreground block mb-1">Microrregião</label>
                 <input value={form.microregion} onChange={e => updateForm('microregion', e.target.value)} placeholder="Ex: Londrina" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Município</label>
-                <input value={form.municipality} onChange={e => updateForm('municipality', e.target.value)} placeholder="Ex: Curitiba" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+              <div className="sm:col-span-2">
+                <GeoLocationInput
+                  value={geoForm}
+                  onChange={setGeoForm}
+                  required
+                  label="Município / Localização Exata *"
+                  placeholder="Ex: Curitiba, Londrina..."
+                />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Status</label>
@@ -287,7 +294,7 @@ export default function Hierarquia() {
               <button onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
               <button
                 onClick={handleSubmit}
-                disabled={!form.name || createMember.isPending || updateMember.isPending}
+                disabled={!form.name || !geoForm.city || createMember.isPending || updateMember.isPending}
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
                 style={{ background: 'var(--gradient-primary)' }}
               >

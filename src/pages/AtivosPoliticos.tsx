@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
@@ -46,7 +47,6 @@ const ALIGNMENT_OPTIONS: { value: DbAlignmentStatus; label: string }[] = [
 interface AssetForm {
   name: string;
   type: DbAssetType;
-  municipality: string;
   macroregion_id: string;
   position: string;
   influence_level: string;
@@ -61,7 +61,6 @@ interface AssetForm {
 const emptyForm = (): AssetForm => ({
   name: '',
   type: 'lideranca_comunitaria',
-  municipality: '',
   macroregion_id: 'rmc',
   position: '',
   influence_level: '5',
@@ -85,6 +84,7 @@ export default function AtivosPoliticos() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm());
+  const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
 
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
@@ -100,6 +100,7 @@ export default function AtivosPoliticos() {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
     setShowForm(true);
   };
 
@@ -108,7 +109,6 @@ export default function AtivosPoliticos() {
     setForm({
       name: asset.name,
       type: asset.type,
-      municipality: asset.municipality ?? '',
       macroregion_id: asset.macroregion_id ?? 'rmc',
       position: asset.position ?? '',
       influence_level: String(asset.influence_level),
@@ -119,15 +119,16 @@ export default function AtivosPoliticos() {
       observations: asset.observations ?? '',
       relationship_owner: asset.relationship_owner ?? '',
     });
+    setGeoForm({ city: asset.municipality ?? '', lat: asset.lat ?? null, lng: asset.lng ?? null });
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
-    if (!form.name) return;
+    if (!form.name || !geoForm.city) return;
     const payload = {
       name: form.name,
       type: form.type,
-      municipality: form.municipality || null,
+      municipality: geoForm.city || null,
       microregion: null as string | null,
       macroregion_id: form.macroregion_id || null,
       position: form.position || null,
@@ -136,8 +137,8 @@ export default function AtivosPoliticos() {
       support_status: form.support_status || null,
       phone: form.phone || null,
       email: form.email || null,
-      lat: null as number | null,
-      lng: null as number | null,
+      lat: geoForm.lat,
+      lng: geoForm.lng,
       observations: form.observations || null,
       relationship_owner: form.relationship_owner || null,
       created_by: null as string | null,
@@ -151,6 +152,7 @@ export default function AtivosPoliticos() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
+    setGeoForm({ city: '', lat: null, lng: null });
   };
 
   const handleDelete = async (id: string) => {
@@ -305,9 +307,14 @@ export default function AtivosPoliticos() {
                 <label className="text-xs text-muted-foreground block mb-1">Cargo/Posição</label>
                 <input value={form.position} onChange={e => updateForm('position', e.target.value)} placeholder="Ex: Prefeito de Curitiba" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Município</label>
-                <input value={form.municipality} onChange={e => updateForm('municipality', e.target.value)} placeholder="Curitiba" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+              <div className="sm:col-span-2">
+                <GeoLocationInput
+                  value={geoForm}
+                  onChange={setGeoForm}
+                  required
+                  label="Município / Localização Exata *"
+                  placeholder="Ex: Curitiba, Londrina..."
+                />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Macrorregião</label>
@@ -350,7 +357,7 @@ export default function AtivosPoliticos() {
               <button onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
               <button
                 onClick={handleSubmit}
-                disabled={!form.name || createAsset.isPending || updateAsset.isPending}
+                disabled={!form.name || !geoForm.city || createAsset.isPending || updateAsset.isPending}
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
                 style={{ background: 'var(--gradient-primary)' }}
               >
