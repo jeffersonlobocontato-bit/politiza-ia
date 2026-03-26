@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMapEvents } from 'react-leaflet';
-import { Smartphone, MapPin, Camera, CheckCircle, Navigation } from 'lucide-react';
+import { Smartphone, MapPin, Camera, CheckCircle } from 'lucide-react';
 import { useCreateAction } from '@/hooks/useActions';
+import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 
 interface FieldInput {
   actionTitle: string;
