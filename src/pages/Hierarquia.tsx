@@ -268,9 +268,14 @@ export default function Hierarquia() {
                 <label className="text-xs text-muted-foreground block mb-1">Microrregião</label>
                 <input value={form.microregion} onChange={e => updateForm('microregion', e.target.value)} placeholder="Ex: Londrina" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Município</label>
-                <input value={form.municipality} onChange={e => updateForm('municipality', e.target.value)} placeholder="Ex: Curitiba" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+              <div className="sm:col-span-2">
+                <GeoLocationInput
+                  value={geoForm}
+                  onChange={setGeoForm}
+                  required
+                  label="Município / Localização Exata *"
+                  placeholder="Ex: Curitiba, Londrina..."
+                />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Status</label>
