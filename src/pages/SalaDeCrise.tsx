@@ -27,25 +27,35 @@ import type { DbAlert } from '@/types/database';
 // ══════════════════════════════════════════════════════════════
 
 function SeverityBar({ value }: { value: number }) {
-  const color = value >= 8 ? '#E53935' : value >= 6 ? '#FBC02D' : value >= 4 ? '#106EBE' : '#43A047';
+  const cls = value >= 8
+    ? 'bg-status-error text-status-error'
+    : value >= 6 ? 'bg-status-warning text-status-warning'
+    : value >= 4 ? 'bg-primary text-primary'
+    : 'bg-status-success text-status-success';
+  const barCls = value >= 8 ? 'bg-status-error' : value >= 6 ? 'bg-status-warning' : value >= 4 ? 'bg-primary' : 'bg-status-success';
+  const textCls = value >= 8 ? 'text-status-error' : value >= 6 ? 'text-status-warning' : value >= 4 ? 'text-primary' : 'text-status-success';
   return (
     <div className="flex items-center gap-1.5">
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${value * 10}%`, backgroundColor: color }} />
+        <div className={`h-full rounded-full transition-all ${barCls}`} style={{ width: `${value * 10}%` }} />
       </div>
-      <span className="text-[10px] font-bold tabular-nums" style={{ color }}>{value}/10</span>
+      <span className={`text-[10px] font-bold tabular-nums ${textCls}`}>{value}/10</span>
     </div>
   );
 }
 
 function IndexBadge({ value, label, variant }: { value: number; label: string; variant: 'risk' | 'opportunity' }) {
-  const color = variant === 'risk'
-    ? (value >= 70 ? '#E53935' : value >= 40 ? '#FBC02D' : '#43A047')
-    : (value >= 60 ? '#43A047' : value >= 30 ? '#106EBE' : '#94a3b8');
+  const riskCls = value >= 70 ? 'bg-status-error-bg text-status-error border-status-error/30'
+    : value >= 40 ? 'bg-status-warning-bg text-status-warning border-status-warning/30'
+    : 'bg-status-success-bg text-status-success border-status-success/30';
+  const oppCls = value >= 60 ? 'bg-status-success-bg text-status-success border-status-success/30'
+    : value >= 30 ? 'bg-status-info-bg text-status-info border-status-info/30'
+    : 'bg-muted text-muted-foreground border-border';
+  const cls = variant === 'risk' ? riskCls : oppCls;
   return (
-    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ backgroundColor: `${color}18`, border: `1px solid ${color}40` }}>
-      {variant === 'risk' ? <TrendingDown className="w-3 h-3" style={{ color }} /> : <TrendingUp className="w-3 h-3" style={{ color }} />}
-      <span className="text-[10px] font-semibold" style={{ color }}>{label}: {value}</span>
+    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${cls}`}>
+      {variant === 'risk' ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+      {label}: {value}
     </div>
   );
 }
@@ -101,11 +111,11 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
   const TypeIcon = alert.type === 'oportunidade_estrategica' ? Zap : alert.type === 'risco_eleitoral' ? BarChart2 : alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
   const team = resolveAlertTeam(members, { macroregion_id: alert.macroregion_id, microregion: alert.microregion, municipality: alert.municipality, creatorName: alert.responsible_name ?? undefined, creatorRole: alert.responsible_role ?? undefined });
   return (
-    <div className="h-full flex flex-col rounded-xl border overflow-hidden" style={{ background: 'var(--gradient-card)', borderColor: cfg.border }}>
-      <div className="px-5 py-4 border-b flex items-start justify-between gap-3 flex-shrink-0" style={{ borderColor: cfg.border, backgroundColor: cfg.bg }}>
+    <div className={`h-full flex flex-col rounded-xl border overflow-hidden bg-card ${cfg.borderClass}`}>
+      <div className={`px-5 py-4 border-b flex items-start justify-between gap-3 flex-shrink-0 ${cfg.bgClass} ${cfg.borderClass}`}>
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className="p-2.5 rounded-xl flex-shrink-0" style={{ backgroundColor: `${cfg.color}20` }}>
-            <TypeIcon className="w-5 h-5" style={{ color: cfg.color }} />
+          <div className={`p-2.5 rounded-xl flex-shrink-0 bg-muted/60`}>
+            <TypeIcon className={`w-5 h-5 ${cfg.iconClass}`} />
           </div>
           <div className="min-w-0">
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.badge} mb-1.5 inline-block`}>{cfg.label}</span>
@@ -114,7 +124,7 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
         </div>
         <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground"><X className="w-4 h-4" /></button>
       </div>
-      <div className="flex-1 overflow-auto p-5 space-y-4">
+      <div className="flex-1 overflow-auto p-5 space-y-4 bg-card">
         <div className="flex flex-wrap gap-2">
           {alert.territory && <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-lg"><MapPin className="w-3.5 h-3.5" />{alert.territory}</div>}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-lg"><Clock className="w-3.5 h-3.5" />{new Date(alert.created_at).toLocaleString('pt-BR')}</div>
@@ -123,17 +133,17 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
         {team.length > 0 && <div className="rounded-xl border border-border p-4 bg-muted/20"><ResponsibleChain entries={team} /></div>}
         <div className="grid grid-cols-2 gap-3">
           {alert.risk_index !== null && (
-            <div className="rounded-lg p-3 bg-muted/40 border border-border">
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Risco</div>
-              <div className="text-2xl font-black text-destructive">{alert.risk_index?.toFixed(0)}</div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-destructive" style={{ width: `${alert.risk_index}%` }} /></div>
+            <div className="rounded-lg p-3 bg-status-error-bg border border-status-error/20">
+              <div className="text-[10px] font-semibold text-status-error uppercase tracking-wide mb-1">Índice de Risco</div>
+              <div className="text-2xl font-black text-status-error">{alert.risk_index?.toFixed(0)}</div>
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-status-error" style={{ width: `${alert.risk_index}%` }} /></div>
             </div>
           )}
           {alert.opportunity_index !== null && (
-            <div className="rounded-lg p-3 bg-muted/40 border border-border">
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Índice de Oportunidade</div>
-              <div className="text-2xl font-black text-brand-green">{alert.opportunity_index?.toFixed(0)}</div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-brand-green" style={{ width: `${alert.opportunity_index}%` }} /></div>
+            <div className="rounded-lg p-3 bg-status-success-bg border border-status-success/20">
+              <div className="text-[10px] font-semibold text-status-success uppercase tracking-wide mb-1">Índice de Oportunidade</div>
+              <div className="text-2xl font-black text-status-success">{alert.opportunity_index?.toFixed(0)}</div>
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1"><div className="h-full rounded-full bg-status-success" style={{ width: `${alert.opportunity_index}%` }} /></div>
             </div>
           )}
         </div>
@@ -142,8 +152,11 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
           <p className="text-sm text-foreground leading-relaxed">{alert.description}</p>
         </div>
         {alert.recommendation && (
-          <div className="rounded-xl border p-4" style={{ borderColor: cfg.border, backgroundColor: cfg.bg }}>
-            <div className="flex items-center gap-2 mb-2"><Brain className="w-4 h-4" style={{ color: cfg.color }} /><span className="text-xs font-bold uppercase tracking-wide" style={{ color: cfg.color }}>Recomendação IA</span></div>
+          <div className={`rounded-xl border p-4 ${cfg.bgClass} ${cfg.borderClass}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Brain className={`w-4 h-4 ${cfg.iconClass}`} />
+              <span className={`text-xs font-bold uppercase tracking-wide ${cfg.iconClass}`}>Recomendação IA</span>
+            </div>
             <p className="text-sm text-foreground leading-relaxed">{alert.recommendation}</p>
           </div>
         )}
@@ -161,9 +174,9 @@ function AlertDetailPanel({ alert, onClose, onUpdate, members }: {
           </div>
         )}
       </div>
-      <div className="px-5 py-4 border-t flex gap-2 flex-shrink-0" style={{ borderColor: cfg.border }}>
+      <div className={`px-5 py-4 border-t flex gap-2 flex-shrink-0 bg-card ${cfg.borderClass}`}>
         {alert.status === 'ativo' && <button onClick={() => onUpdate(alert.id, 'em_analise')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-muted text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"><Eye className="w-3.5 h-3.5" />Em Análise</button>}
-        {alert.status !== 'resolvido' && <button onClick={() => onUpdate(alert.id, 'resolvido')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary-foreground transition-colors ml-auto" style={{ background: 'var(--gradient-primary)' }}><CheckCheck className="w-3.5 h-3.5" />Marcar Resolvido</button>}
+        {alert.status !== 'resolvido' && <button onClick={() => onUpdate(alert.id, 'resolvido')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary-foreground gradient-primary transition-colors ml-auto"><CheckCheck className="w-3.5 h-3.5" />Marcar Resolvido</button>}
         {alert.status !== 'descartado' && <button onClick={() => onUpdate(alert.id, 'descartado')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-muted/50 text-muted-foreground hover:text-destructive transition-colors"><X className="w-3.5 h-3.5" />Descartar</button>}
       </div>
     </div>
@@ -179,9 +192,11 @@ function StrategicAlertCard({ alert, onSelect, isSelected, onUpdate, members }: 
   const TypeIcon = alert.type === 'oportunidade_estrategica' ? Zap : alert.type === 'risco_eleitoral' ? BarChart2 : alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
   const team = resolveAlertTeam(members, { macroregion_id: alert.macroregion_id, microregion: alert.microregion, municipality: alert.municipality });
   return (
-    <div onClick={() => onSelect(alert)} className={`rounded-xl border p-4 cursor-pointer transition-all hover:scale-[1.01] group ${isSelected ? 'ring-2 ring-primary/50' : ''}`} style={{ backgroundColor: cfg.bg, borderColor: isSelected ? 'hsl(var(--primary))' : cfg.border }}>
+    <div onClick={() => onSelect(alert)} className={`rounded-xl border p-4 cursor-pointer transition-all hover:scale-[1.01] group ${cfg.bgClass} ${isSelected ? `ring-2 ring-primary border-primary ${cfg.borderClass}` : cfg.borderClass}`}>
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg flex-shrink-0 mt-0.5" style={{ backgroundColor: `${cfg.color}20` }}><TypeIcon className="w-3.5 h-3.5" style={{ color: cfg.color }} /></div>
+        <div className={`p-2 rounded-lg flex-shrink-0 mt-0.5 bg-muted/60`}>
+          <TypeIcon className={`w-3.5 h-3.5 ${cfg.iconClass}`} />
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <span className="text-sm font-semibold text-foreground leading-tight line-clamp-2">{alert.title}</span>
@@ -195,11 +210,11 @@ function StrategicAlertCard({ alert, onSelect, isSelected, onUpdate, members }: 
             {alert.opportunity_index !== null && <IndexBadge value={Math.round(alert.opportunity_index)} label="Opp" variant="opportunity" />}
           </div>
           <SeverityBar value={alert.severity} />
-          {team.length > 0 && <div className="mt-2 pt-2 border-t" style={{ borderColor: cfg.border }}><ResponsibleChain entries={team} compact /></div>}
+          {team.length > 0 && <div className={`mt-2 pt-2 border-t ${cfg.borderClass}`}><ResponsibleChain entries={team} compact /></div>}
         </div>
       </div>
-      <div className="flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: cfg.border }}>
-        {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onUpdate(alert.id, 'resolvido'); }} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-brand-green px-2 py-1 rounded hover:bg-muted"><CheckCheck className="w-3 h-3" />Resolver</button>}
+      <div className={`flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity ${cfg.borderClass}`}>
+        {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onUpdate(alert.id, 'resolvido'); }} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-status-success px-2 py-1 rounded hover:bg-muted"><CheckCheck className="w-3 h-3" />Resolver</button>}
         <span className="ml-auto text-[10px] text-muted-foreground/50">{new Date(alert.created_at).toLocaleDateString('pt-BR')}</span>
       </div>
     </div>
@@ -251,20 +266,20 @@ function TabIA() {
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 px-6 py-4 border-b border-border flex-shrink-0">
         {[
-          { label: 'Alertas Ativos', value: kpis?.active ?? 0, icon: ShieldAlert, color: 'hsl(var(--primary))', onClick: () => setTypeFilter('all') },
-          { label: 'Críticos (8-10)', value: kpis?.critical ?? 0, icon: AlertTriangle, color: '#E53935', onClick: () => setMinSeverity(8) },
-          { label: 'Oportunidades', value: kpis?.opportunities ?? 0, icon: Zap, color: '#43A047', onClick: () => setTypeFilter('oportunidade_estrategica') },
-          { label: 'Índice de Risco', value: kpis?.riskIndex ?? 0, icon: TrendingDown, color: '#FBC02D', sub: '/100' },
-          { label: 'Índice de Oportunidade', value: kpis?.opportunityIndex ?? 0, icon: TrendingUp, color: '#0FFCBE', sub: '/100' },
+          { label: 'Alertas Ativos', value: kpis?.active ?? 0, icon: ShieldAlert, iconCls: 'text-primary', iconBg: 'bg-primary/10', valCls: 'text-primary', onClick: () => setTypeFilter('all') },
+          { label: 'Críticos (8-10)', value: kpis?.critical ?? 0, icon: AlertTriangle, iconCls: 'text-status-error', iconBg: 'bg-status-error-bg', valCls: 'text-status-error', onClick: () => setMinSeverity(8) },
+          { label: 'Oportunidades', value: kpis?.opportunities ?? 0, icon: Zap, iconCls: 'text-status-success', iconBg: 'bg-status-success-bg', valCls: 'text-status-success', onClick: () => setTypeFilter('oportunidade_estrategica') },
+          { label: 'Índice de Risco', value: kpis?.riskIndex ?? 0, icon: TrendingDown, iconCls: 'text-status-warning', iconBg: 'bg-status-warning-bg', valCls: 'text-status-warning', sub: '/100' },
+          { label: 'Índice de Oportunidade', value: kpis?.opportunityIndex ?? 0, icon: TrendingUp, iconCls: 'text-secondary', iconBg: 'bg-secondary/10', valCls: 'text-secondary', sub: '/100' },
         ].map(s => {
           const Icon = s.icon;
           return (
-            <button key={s.label} onClick={(s as any).onClick} className={`rounded-xl border border-border p-4 text-left transition-all group ${(s as any).onClick ? 'hover:border-primary/40 hover:scale-[1.02] cursor-pointer' : 'cursor-default'}`} style={{ background: 'var(--gradient-card)' }}>
+            <button key={s.label} onClick={(s as any).onClick} className={`rounded-xl border border-border bg-card p-4 text-left transition-all group ${(s as any).onClick ? 'hover:border-primary/40 hover:scale-[1.02] cursor-pointer' : 'cursor-default'}`}>
               <div className="flex items-center justify-between mb-2">
-                <div className="p-1.5 rounded-lg" style={{ backgroundColor: `${s.color}20` }}><Icon className="w-3.5 h-3.5" style={{ color: s.color }} /></div>
+                <div className={`p-1.5 rounded-lg ${s.iconBg}`}><Icon className={`w-3.5 h-3.5 ${s.iconCls}`} /></div>
                 {(s as any).onClick && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary transition-colors" />}
               </div>
-              <div className="text-2xl font-black" style={{ color: s.color }}>{s.value}{(s as any).sub && <span className="text-sm font-normal text-muted-foreground">{(s as any).sub}</span>}</div>
+              <div className={`text-2xl font-black ${s.valCls}`}>{s.value}{(s as any).sub && <span className="text-sm font-normal text-muted-foreground">{(s as any).sub}</span>}</div>
               <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
             </button>
           );
@@ -331,8 +346,8 @@ function TabIA() {
               return (
                 <div key={type} className="space-y-2">
                   <div className="flex items-center gap-2 pt-1 first:pt-0">
-                    <TypeIcon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: cfg.color }}>{cfg.label}</span>
+                    <TypeIcon className={`w-3.5 h-3.5 ${cfg.iconClass}`} />
+                    <span className={`text-xs font-bold uppercase tracking-wide ${cfg.iconClass}`}>{cfg.label}</span>
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{group.length}</span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
@@ -360,13 +375,12 @@ type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
 type Status = 'all' | 'novo' | 'em_analise' | 'resolvido';
 
 const OP_LEVEL_CONFIG: Record<string, {
-  bg: string; border: string; icon: string; label: string;
-  badge: string; badgeText: string; titleColor: string; bodyColor: string;
+  bgClass: string; borderClass: string; iconClass: string; label: string; badgeClass: string;
 }> = {
-  critico:      { bg: 'hsl(1 79% 96%)',   border: '#E53935', icon: '#E53935', label: 'Crítico',      badge: '#E53935', badgeText: '#fff', titleColor: '#7f1d1d', bodyColor: '#991b1b' },
-  atencao:      { bg: 'hsl(42 96% 96%)',  border: '#FBC02D', icon: '#FBC02D', label: 'Atenção',      badge: '#FBC02D', badgeText: '#fff', titleColor: '#78350f', bodyColor: '#92400e' },
-  oportunidade: { bg: 'hsl(123 46% 95%)', border: '#43A047', icon: '#43A047', label: 'Oportunidade', badge: '#43A047', badgeText: '#fff', titleColor: '#14532d', bodyColor: '#166534' },
-  info:         { bg: 'hsl(210 84% 96%)', border: '#106EBE', icon: '#106EBE', label: 'Info',         badge: '#106EBE', badgeText: '#fff', titleColor: '#1e3a5f', bodyColor: '#1e40af' },
+  critico:      { bgClass: 'bg-status-error-bg',   borderClass: 'border-status-error/50',   iconClass: 'text-status-error',   label: 'Crítico'      , badgeClass: 'bg-status-error text-white'   },
+  atencao:      { bgClass: 'bg-status-warning-bg', borderClass: 'border-status-warning/50', iconClass: 'text-status-warning', label: 'Atenção'      , badgeClass: 'bg-status-warning text-foreground' },
+  oportunidade: { bgClass: 'bg-status-success-bg', borderClass: 'border-status-success/50', iconClass: 'text-status-success', label: 'Oportunidade' , badgeClass: 'bg-status-success text-white'   },
+  info:         { bgClass: 'bg-status-info-bg',    borderClass: 'border-status-info/50',    iconClass: 'text-status-info',    label: 'Info'         , badgeClass: 'bg-status-info text-white'      },
 };
 const OP_STATUS_LABEL: Record<string, string> = { novo: 'Novo', em_analise: 'Em Análise', resolvido: 'Resolvido' };
 
@@ -385,10 +399,10 @@ function difficultyScore(alertsForCoord: DbAlert[]) {
   const resolutionRate = alertsForCoord.filter(a => a.status === 'resolvido').length / alertsForCoord.length;
   return Math.min(100, Math.round((weighted / alertsForCoord.length) * 33 + (1 - resolutionRate) * 67));
 }
-function difficultyLabel(score: number): { label: string; color: string; bg: string; icon: typeof Minus } {
-  if (score >= 70) return { label: 'Atenção Crítica', color: '#E53935', bg: 'hsl(1 79% 96%)', icon: TrendingDown };
-  if (score >= 40) return { label: 'Em Dificuldade', color: '#FBC02D', bg: 'hsl(42 96% 96%)', icon: Minus };
-  return { label: 'Bom Desempenho', color: '#43A047', bg: 'hsl(123 46% 95%)', icon: TrendingUp };
+function difficultyLabel(score: number): { label: string; bgClass: string; iconClass: string; icon: typeof Minus } {
+  if (score >= 70) return { label: 'Atenção Crítica', bgClass: 'bg-status-error-bg',   iconClass: 'text-status-error',   icon: TrendingDown };
+  if (score >= 40) return { label: 'Em Dificuldade',  bgClass: 'bg-status-warning-bg', iconClass: 'text-status-warning', icon: Minus };
+  return            { label: 'Bom Desempenho',         bgClass: 'bg-status-success-bg', iconClass: 'text-status-success', icon: TrendingUp };
 }
 function feedbackMessage(score: number, name: string) {
   if (score >= 70) return `${name} tem alta concentração de alertas críticos em aberto. Recomenda-se contato imediato, revisão do plano de ação e possível reforço de equipe.`;
@@ -448,26 +462,26 @@ function OperationalAnalytics({ alerts, members }: { alerts: DbAlert[]; members:
               const resolved = ca.filter(a => a.status === 'resolvido').length;
               const critCount = ca.filter(a => a.level === 'critico').length;
               return (
-                <div key={coord.id} className="rounded-lg border p-3 flex items-start gap-3" style={{ backgroundColor: diff.bg, borderColor: `${diff.color}30` }}>
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-black" style={{ backgroundColor: `${diff.color}20`, color: diff.color }}>{idx + 1}</div>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${diff.color}15` }}><Icon className="w-3.5 h-3.5" style={{ color: diff.color }} /></div>
+                <div key={coord.id} className={`rounded-lg border p-3 flex items-start gap-3 ${diff.bgClass} ${diff.iconClass.replace('text-', 'border-')}/20`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-black bg-muted ${diff.iconClass}`}>{idx + 1}</div>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 bg-muted/60`}><Icon className={`w-3.5 h-3.5 ${diff.iconClass}`} /></div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-0.5">
                       <span className="text-sm font-bold text-foreground">{coord.name}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: `${diff.color}20`, color: diff.color }}>{(coord as any).coordType}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium bg-muted ${diff.iconClass}`}>{(coord as any).coordType}</span>
                     </div>
                     <p className="text-[11px] leading-relaxed mb-2 text-muted-foreground">{feedbackMessage(score, coord.name.split(' ')[0])}</p>
                     <div className="flex items-center gap-3 text-[10px] flex-wrap">
                       <span className="text-muted-foreground">Total: <b className="text-foreground">{ca.length}</b></span>
-                      {critCount > 0 && <span style={{ color: '#E53935' }}><b>{critCount}</b> crítico{critCount !== 1 ? 's' : ''}</span>}
-                      <span style={{ color: '#FBC02D' }}><b>{open}</b> em aberto</span>
-                      <span style={{ color: '#43A047' }}><CheckCircle className="w-2.5 h-2.5 inline mr-0.5" /><b>{resolved}</b> resolvido{resolved !== 1 ? 's' : ''}</span>
+                      {critCount > 0 && <span className="text-status-error"><b>{critCount}</b> crítico{critCount !== 1 ? 's' : ''}</span>}
+                      <span className="text-status-warning"><b>{open}</b> em aberto</span>
+                      <span className="text-status-success"><CheckCircle className="w-2.5 h-2.5 inline mr-0.5" /><b>{resolved}</b> resolvido{resolved !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-center flex-shrink-0 gap-1">
-                    <div className="text-lg font-black" style={{ color: diff.color }}>{score}</div>
+                    <div className={`text-lg font-black ${diff.iconClass}`}>{score}</div>
                     <div className="text-[9px] text-muted-foreground uppercase tracking-wide">índice</div>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${diff.color}20`, color: diff.color }}>{diff.label}</span>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-muted ${diff.iconClass}`}>{diff.label}</span>
                   </div>
                 </div>
               );
@@ -487,29 +501,29 @@ function AlertOpRow({ alert, onRead, onStatusChange, members }: {
   const Icon = levelIconOp(alert.level);
   const team = resolveAlertTeam(members, { macroregion_id: alert.macroregion_id, creatorName: alert.responsible_name ?? undefined, creatorRole: alert.responsible_role ?? undefined });
   return (
-    <div className="rounded-xl border-l-4 border p-4 transition-all hover:scale-[1.005] group cursor-pointer" style={{ backgroundColor: c.bg, borderLeftColor: c.border, borderColor: `${c.border}55` }} onClick={() => !alert.is_read && onRead(alert.id)}>
+    <div className={`rounded-xl border-l-4 border p-4 transition-all hover:scale-[1.005] group cursor-pointer ${c.bgClass} ${c.borderClass}`} onClick={() => !alert.is_read && onRead(alert.id)}>
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg flex-shrink-0 mt-0.5" style={{ backgroundColor: `${c.badge}22` }}><Icon className="w-4 h-4" style={{ color: c.icon }} /></div>
+        <div className={`p-2 rounded-lg flex-shrink-0 mt-0.5 bg-muted/60`}><Icon className={`w-4 h-4 ${c.iconClass}`} /></div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <div className="font-bold text-sm leading-tight" style={{ color: c.titleColor }}>{alert.title}</div>
+            <div className="font-bold text-sm leading-tight text-foreground">{alert.title}</div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {!alert.is_read && <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
-              <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ backgroundColor: c.badge, color: c.badgeText }}>{c.label}</span>
+              <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${c.badgeClass}`}>{c.label}</span>
             </div>
           </div>
           <p className="text-xs leading-relaxed mb-2 text-muted-foreground">{alert.description}</p>
-          {alert.recommendation && <div className="mb-2 text-xs font-semibold flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: `${c.badge}18`, color: c.icon, border: `1px solid ${c.border}40` }}><span>💡</span><span>{alert.recommendation}</span></div>}
-          {team.length > 0 && <div className="mb-2 pt-2 border-t" style={{ borderColor: `${c.border}40` }}><ResponsibleChain entries={team} compact /></div>}
+          {alert.recommendation && <div className={`mb-2 text-xs font-semibold flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted ${c.iconClass} border ${c.borderClass}`}><span>💡</span><span>{alert.recommendation}</span></div>}
+          {team.length > 0 && <div className={`mb-2 pt-2 border-t ${c.borderClass}`}><ResponsibleChain entries={team} compact /></div>}
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
               {alert.territory && <span>📍 {alert.territory}</span>}
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(alert.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: `${c.badge}25`, color: c.icon }}>{OP_STATUS_LABEL[alert.status] ?? alert.status}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted ${c.iconClass}`}>{OP_STATUS_LABEL[alert.status] ?? alert.status}</span>
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {alert.status === 'novo' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'em_analise'); }} className="text-[10px] px-2.5 py-1 rounded-md font-semibold" style={{ backgroundColor: `${c.badge}25`, color: c.icon }}>Em Análise</button>}
-              {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'resolvido'); }} className="text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold" style={{ backgroundColor: '#43A04720', color: '#43A047' }}><CheckCheck className="w-3 h-3" />Resolver</button>}
+              {alert.status === 'novo' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'em_analise'); }} className={`text-[10px] px-2.5 py-1 rounded-md font-semibold bg-muted ${c.iconClass}`}>Em Análise</button>}
+              {alert.status !== 'resolvido' && <button onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'resolvido'); }} className="text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold bg-status-success-bg text-status-success"><CheckCheck className="w-3 h-3" />Resolver</button>}
             </div>
           </div>
         </div>
@@ -554,16 +568,16 @@ function TabAlertas() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { value: criticos, label: 'Críticos', color: '#E53935', icon: AlertTriangle },
-          { value: atencao, label: 'Atenção', color: '#FBC02D', icon: Bell },
-          { value: oportunidades, label: 'Oportunidades', color: '#43A047', icon: Zap },
-          { value: unread, label: 'Não lidos', color: '#106EBE', icon: Activity },
+          { value: criticos,     label: 'Críticos',     iconCls: 'text-status-error',   bgCls: 'bg-status-error-bg',   valCls: 'text-status-error',   icon: AlertTriangle },
+          { value: atencao,      label: 'Atenção',      iconCls: 'text-status-warning', bgCls: 'bg-status-warning-bg', valCls: 'text-status-warning', icon: Bell },
+          { value: oportunidades,label: 'Oportunidades',iconCls: 'text-status-success', bgCls: 'bg-status-success-bg', valCls: 'text-status-success', icon: Zap },
+          { value: unread,       label: 'Não lidos',    iconCls: 'text-primary',        bgCls: 'bg-primary/10',        valCls: 'text-primary',        icon: Activity },
         ].map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="rounded-xl border border-border p-4 flex items-center gap-3" style={{ background: 'var(--gradient-card)' }}>
-              <div className="p-2.5 rounded-lg" style={{ backgroundColor: `${s.color}18` }}><Icon className="w-5 h-5" style={{ color: s.color }} /></div>
-              <div><div className="text-2xl font-black text-foreground">{s.value}</div><div className="text-xs text-muted-foreground">{s.label}</div></div>
+            <div key={s.label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+              <div className={`p-2.5 rounded-lg ${s.bgCls}`}><Icon className={`w-5 h-5 ${s.iconCls}`} /></div>
+              <div><div className={`text-2xl font-black ${s.valCls}`}>{s.value}</div><div className="text-xs text-muted-foreground">{s.label}</div></div>
             </div>
           );
         })}
