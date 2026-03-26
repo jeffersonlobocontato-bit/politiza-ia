@@ -19,11 +19,37 @@ type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
 type Status = 'all' | 'novo' | 'em_analise' | 'resolvido';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const LEVEL_CONFIG: Record<string, { bg: string; border: string; icon: string; label: string }> = {
-  critico:     { bg: 'hsl(0 60% 18%)',    border: 'hsl(0 72% 45%)',    icon: 'hsl(0 90% 70%)',    label: 'Crítico' },
-  atencao:     { bg: 'hsl(38 60% 16%)',   border: 'hsl(38 85% 45%)',   icon: 'hsl(38 95% 65%)',   label: 'Atenção' },
-  oportunidade:{ bg: 'hsl(142 40% 14%)',  border: 'hsl(142 60% 38%)',  icon: 'hsl(142 70% 58%)',  label: 'Oportunidade' },
-  info:        { bg: 'hsl(217 50% 16%)',  border: 'hsl(217 80% 50%)',  icon: 'hsl(217 91% 72%)',  label: 'Info' },
+// bg: card background | border: left-accent / border color | icon: icon & accent color
+// badge: pill background | badgeText: pill text (always white or near-white for contrast)
+// title / body: text colors always high-contrast regardless of theme
+const LEVEL_CONFIG: Record<string, {
+  bg: string; border: string; icon: string; label: string;
+  badge: string; badgeText: string; titleColor: string; bodyColor: string;
+}> = {
+  critico:     {
+    bg: 'hsl(0 55% 15%)',        border: 'hsl(0 75% 52%)',
+    icon: 'hsl(0 90% 72%)',      label: 'Crítico',
+    badge: 'hsl(0 75% 42%)',     badgeText: '#fff',
+    titleColor: 'hsl(0 30% 95%)',bodyColor: 'hsl(0 20% 75%)',
+  },
+  atencao:     {
+    bg: 'hsl(35 55% 14%)',       border: 'hsl(38 90% 52%)',
+    icon: 'hsl(38 95% 68%)',     label: 'Atenção',
+    badge: 'hsl(38 88% 42%)',    badgeText: '#fff',
+    titleColor: 'hsl(38 30% 95%)',bodyColor: 'hsl(38 20% 72%)',
+  },
+  oportunidade:{
+    bg: 'hsl(142 40% 12%)',      border: 'hsl(142 65% 42%)',
+    icon: 'hsl(142 70% 60%)',    label: 'Oportunidade',
+    badge: 'hsl(142 60% 32%)',   badgeText: '#fff',
+    titleColor: 'hsl(142 20% 95%)',bodyColor: 'hsl(142 15% 70%)',
+  },
+  info:        {
+    bg: 'hsl(217 48% 15%)',      border: 'hsl(217 85% 58%)',
+    icon: 'hsl(217 91% 74%)',    label: 'Info',
+    badge: 'hsl(217 75% 42%)',   badgeText: '#fff',
+    titleColor: 'hsl(217 20% 95%)',bodyColor: 'hsl(217 18% 72%)',
+  },
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -117,44 +143,53 @@ function AlertRow({ alert, onRead, onStatusChange, members }: {
 
   return (
     <div
-      className="rounded-xl border p-4 transition-all hover:scale-[1.005] group"
-      style={{ backgroundColor: c.bg, borderColor: c.border }}
+      className="rounded-xl border-l-4 border border-opacity-60 p-4 transition-all hover:scale-[1.005] group cursor-pointer"
+      style={{ backgroundColor: c.bg, borderLeftColor: c.border, borderColor: `${c.border}55` }}
       onClick={() => !alert.is_read && onRead(alert.id)}
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: `${c.icon.replace(')', ' / 0.15)')}` }}>
+        {/* Level icon */}
+        <div className="p-2 rounded-lg flex-shrink-0 mt-0.5" style={{ backgroundColor: `${c.badge}33` }}>
           <Icon className="w-4 h-4" style={{ color: c.icon }} />
         </div>
+
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="font-semibold text-sm text-foreground leading-tight">{alert.title}</div>
+          {/* Title row */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="font-bold text-sm leading-tight" style={{ color: c.titleColor }}>{alert.title}</div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {!alert.is_read && <div className="w-2 h-2 rounded-full bg-primary" />}
+              {!alert.is_read && <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
               <span
-                className="text-[10px] uppercase tracking-wide font-bold px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: c.border, color: c.icon }}
+                className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+                style={{ backgroundColor: c.badge, color: c.badgeText }}
               >
-                {LEVEL_CONFIG[alert.level]?.label}
+                {c.label}
               </span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>
+
+          {/* Description */}
+          <p className="text-xs leading-relaxed mb-2" style={{ color: c.bodyColor }}>{alert.description}</p>
+
+          {/* Recommendation */}
           {alert.recommendation && (
-            <div className="mt-2 text-xs font-medium flex items-start gap-1" style={{ color: c.icon }}>
+            <div className="mb-2 text-xs font-semibold flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg"
+              style={{ backgroundColor: `${c.badge}25`, color: c.icon, border: `1px solid ${c.border}40` }}>
               <span>💡</span>
               <span>{alert.recommendation}</span>
             </div>
           )}
 
-          {/* Auto-resolved responsible team */}
+          {/* Responsible team */}
           {team.length > 0 && (
-            <div className="mt-2 pt-2 border-t" style={{ borderColor: c.border }}>
+            <div className="mb-2 pt-2 border-t" style={{ borderColor: `${c.border}40` }}>
               <ResponsibleChain entries={team} compact />
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+          {/* Footer row */}
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-3 text-[11px]" style={{ color: c.bodyColor }}>
               {alert.territory && (
                 <span className="flex items-center gap-1">
                   <span>📍</span>{alert.territory}
@@ -165,8 +200,8 @@ function AlertRow({ alert, onRead, onStatusChange, members }: {
                 {new Date(alert.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </span>
               <span
-                className="px-2 py-0.5 rounded-full text-[10px] font-medium border"
-                style={{ borderColor: c.border, color: c.icon }}
+                className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                style={{ backgroundColor: `${c.badge}30`, color: c.icon, border: `1px solid ${c.border}60` }}
               >
                 {STATUS_LABEL[alert.status] ?? alert.status}
               </span>
@@ -175,7 +210,8 @@ function AlertRow({ alert, onRead, onStatusChange, members }: {
               {alert.status === 'novo' && (
                 <button
                   onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'em_analise'); }}
-                  className="text-[10px] px-2 py-1 rounded-md bg-muted hover:bg-accent text-muted-foreground transition-colors"
+                  className="text-[10px] px-2.5 py-1 rounded-md font-semibold transition-colors"
+                  style={{ backgroundColor: `${c.badge}30`, color: c.icon }}
                 >
                   Em Análise
                 </button>
@@ -183,8 +219,8 @@ function AlertRow({ alert, onRead, onStatusChange, members }: {
               {alert.status !== 'resolvido' && (
                 <button
                   onClick={e => { e.stopPropagation(); onStatusChange(alert.id, 'resolvido'); }}
-                  className="text-[10px] px-2 py-1 rounded-md flex items-center gap-1"
-                  style={{ backgroundColor: 'hsl(var(--brand-green) / 0.15)', color: 'hsl(var(--brand-green))' }}
+                  className="text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold"
+                  style={{ backgroundColor: 'hsl(142 60% 28%)', color: 'hsl(142 70% 70%)' }}
                 >
                   <CheckCheck className="w-3 h-3" />
                   Resolver
