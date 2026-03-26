@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert, Zap, AlertTriangle, Activity, TrendingUp, TrendingDown,
   Search, Filter, RefreshCw, CheckCheck, Eye, X, MapPin, Clock,
-  Brain, ChevronRight, BarChart2, Flame, ClipboardList, User,
+  Brain, ChevronRight, BarChart2, Flame, ClipboardList,
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -24,6 +24,7 @@ import {
 import { useMacroRegionsDB } from '@/hooks/useDashboard';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import { ResponsibleChain } from '@/components/alerts/ResponsibleChain';
+import { resolveAlertTeam } from '@/lib/alertTeam';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function SeverityBar({ value }: { value: number }) {
@@ -55,17 +56,26 @@ function IndexBadge({ value, label, variant }: { value: number; label: string; v
 
 // ─── Alert Detail Panel ───────────────────────────────────────────────────────
 function AlertDetailPanel({
-  alert, onClose, onUpdate,
+  alert, onClose, onUpdate, members,
 }: {
   alert: StrategicAlert;
   onClose: () => void;
   onUpdate: (id: string, status: StrategicAlertStatus) => void;
+  members: ReturnType<typeof useCampaignMembers>['data'] extends infer T ? NonNullable<T> : never;
 }) {
   const cfg = ALERT_TYPE_CONFIG[alert.type];
   const TypeIcon =
     alert.type === 'oportunidade_estrategica' ? Zap :
     alert.type === 'risco_eleitoral' ? BarChart2 :
     alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
+
+  const team = resolveAlertTeam(members, {
+    macroregion_id: alert.macroregion_id,
+    microregion: alert.microregion,
+    municipality: alert.municipality,
+    creatorName: alert.responsible_name ?? undefined,
+    creatorRole: alert.responsible_role ?? undefined,
+  });
 
   return (
     <div className="h-full flex flex-col rounded-xl border overflow-hidden" style={{ background: 'var(--gradient-card)', borderColor: cfg.border }}>
@@ -100,14 +110,10 @@ function AlertDetailPanel({
           </div>
         </div>
 
-        {/* Responsible & Hierarchy — who to call */}
-        {(alert.responsible_name || (alert.hierarchy_chain && alert.hierarchy_chain.length > 0)) && (
+        {/* Responsible chain — who to call */}
+        {team.length > 0 && (
           <div className="rounded-xl border border-border p-4 bg-muted/20">
-            <ResponsibleChain
-              responsibleName={alert.responsible_name}
-              responsibleRole={alert.responsible_role}
-              hierarchyChain={alert.hierarchy_chain}
-            />
+            <ResponsibleChain entries={team} />
           </div>
         )}
 
@@ -202,18 +208,25 @@ function AlertDetailPanel({
 
 // ─── Alert Card ────────────────────────────────────────────────────────────────
 function AlertCard({
-  alert, onSelect, isSelected, onUpdate,
+  alert, onSelect, isSelected, onUpdate, members,
 }: {
   alert: StrategicAlert;
   onSelect: (a: StrategicAlert) => void;
   isSelected: boolean;
   onUpdate: (id: string, status: StrategicAlertStatus) => void;
+  members: import('@/types/database').DbCampaignMember[];
 }) {
   const cfg = ALERT_TYPE_CONFIG[alert.type];
   const TypeIcon =
     alert.type === 'oportunidade_estrategica' ? Zap :
     alert.type === 'risco_eleitoral' ? BarChart2 :
     alert.type === 'ineficiencia_atuacao' ? Activity : AlertTriangle;
+
+  const team = resolveAlertTeam(members, {
+    macroregion_id: alert.macroregion_id,
+    microregion: alert.microregion,
+    municipality: alert.municipality,
+  });
 
   return (
     <div
@@ -245,15 +258,10 @@ function AlertCard({
             {alert.opportunity_index !== null && <IndexBadge value={Math.round(alert.opportunity_index)} label="Opp" variant="opportunity" />}
           </div>
           <SeverityBar value={alert.severity} />
-          {/* Responsible compact display */}
-          {alert.responsible_name && (
+          {/* Auto-resolved team */}
+          {team.length > 0 && (
             <div className="mt-2 pt-2 border-t" style={{ borderColor: cfg.border }}>
-              <ResponsibleChain
-                responsibleName={alert.responsible_name}
-                responsibleRole={alert.responsible_role}
-                hierarchyChain={alert.hierarchy_chain}
-                compact
-              />
+              <ResponsibleChain entries={team} compact />
             </div>
           )}
         </div>
@@ -275,43 +283,23 @@ function AlertCard({
   );
 }
 
-// ─── Build hierarchy chain helper ─────────────────────────────────────────────
-function buildHierarchyChain(
-  memberId: string,
-  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>
-) {
-  const chain: Array<{ name: string; role: string; level: number }> = [];
-  const memberMap = new Map(members.map(m => [m.id, m]));
-  const current = memberMap.get(memberId);
-  if (!current) return chain;
-  let supervisor = current.supervisor_id ? memberMap.get(current.supervisor_id) : undefined;
-  while (supervisor) {
-    chain.push({ name: supervisor.name, role: supervisor.role, level: supervisor.hierarchy_level });
-    supervisor = supervisor.supervisor_id ? memberMap.get(supervisor.supervisor_id) : undefined;
-  }
-  return chain;
-}
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 // ─── Resolution Dialog ─────────────────────────────────────────────────────────
 function ResolutionDialog({
-  open, onClose, onConfirm, targetStatus, members,
+  open, onClose, onConfirm, targetStatus,
 }: {
   open: boolean;
   onClose: () => void;
-  onConfirm: (note: string, responsibleId?: string) => void;
+  onConfirm: (note: string) => void;
   targetStatus: string;
-  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>;
 }) {
   const [note, setNote] = useState('');
-  const [responsibleId, setResponsibleId] = useState('');
   const isResolve = targetStatus === 'resolvido' || targetStatus === 'descartado';
 
   const handleSubmit = () => {
     if (!note.trim()) return;
-    onConfirm(note.trim(), responsibleId || undefined);
+    onConfirm(note.trim());
     setNote('');
-    setResponsibleId('');
   };
 
   return (
@@ -329,29 +317,13 @@ function ResolutionDialog({
               ? 'Descreva obrigatoriamente qual ação foi realizada para resolver este alerta estratégico.'
               : 'Descreva obrigatoriamente qual ação foi planejada para tratar este alerta.'}
           </p>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-primary" />
-              Responsável pela resolução
-            </label>
-            <select
-              value={responsibleId}
-              onChange={e => setResponsibleId(e.target.value)}
-              className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">Selecionar responsável (opcional)</option>
-              {members.map(m => (
-                <option key={m.id} value={m.id}>{m.name} — {m.role}</option>
-              ))}
-            </select>
-          </div>
           <Textarea
             value={note}
             onChange={e => setNote(e.target.value)}
             placeholder={isResolve
               ? 'Ex: Mobilização realizada no município, liderança contatada e ação agendada...'
               : 'Ex: Reunião estratégica marcada para esta semana com coordenador regional...'}
-            className="min-h-[100px] resize-none"
+            className="min-h-[120px] resize-none"
           />
           {note.trim().length === 0 && (
             <p className="text-xs text-destructive">* Campo obrigatório para atualizar o status.</p>
@@ -401,17 +373,12 @@ export default function SalaDeCrise() {
     setPendingUpdate({ id, status });
   };
 
-  const confirmUpdate = (note: string, responsibleId?: string) => {
+  const confirmUpdate = (note: string) => {
     if (!pendingUpdate) return;
-    const responsible = responsibleId ? members.find(m => m.id === responsibleId) : undefined;
-    const hierarchyChain = responsibleId ? buildHierarchyChain(responsibleId, members) : undefined;
     updateAlert.mutate({
       id: pendingUpdate.id,
       status: pendingUpdate.status,
       resolution_note: note,
-      responsible_name: responsible?.name ?? null,
-      responsible_role: responsible?.role ?? null,
-      hierarchy_chain: hierarchyChain ?? null,
     } as any);
     if (selected?.id === pendingUpdate.id) setSelected(prev => prev ? { ...prev, status: pendingUpdate.status } : null);
     setPendingUpdate(null);
@@ -458,7 +425,6 @@ export default function SalaDeCrise() {
         onClose={() => setPendingUpdate(null)}
         onConfirm={confirmUpdate}
         targetStatus={pendingUpdate?.status ?? ''}
-        members={members}
       />
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
@@ -625,6 +591,7 @@ export default function SalaDeCrise() {
                         onSelect={handleSelect}
                         isSelected={selected?.id === alert.id}
                         onUpdate={handleUpdate}
+                        members={members}
                       />
                     ))}
                   </div>
@@ -640,6 +607,7 @@ export default function SalaDeCrise() {
                 alert={selected}
                 onClose={() => setSelected(null)}
                 onUpdate={handleUpdate}
+                members={members}
               />
             </div>
           )}

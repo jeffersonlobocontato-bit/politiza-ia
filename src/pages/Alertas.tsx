@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   AlertTriangle, Zap, Activity, CheckCheck, Bell, Filter,
-  RefreshCw, CheckCircle, Clock, Search, ClipboardList, User,
+  RefreshCw, CheckCircle, Clock, Search, ClipboardList,
 } from 'lucide-react';
 import { useAlerts, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ResponsibleChain } from '@/components/alerts/ResponsibleChain';
+import { resolveAlertTeam } from '@/lib/alertTeam';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Level = 'all' | 'critico' | 'atencao' | 'oportunidade' | 'info';
@@ -38,23 +39,20 @@ function levelIcon(level: string) {
 
 // ─── Resolution Dialog ────────────────────────────────────────────────────────
 function ResolutionDialog({
-  open, onClose, onConfirm, targetStatus, members,
+  open, onClose, onConfirm, targetStatus,
 }: {
   open: boolean;
   onClose: () => void;
-  onConfirm: (note: string, responsibleId?: string) => void;
+  onConfirm: (note: string) => void;
   targetStatus: string;
-  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>;
 }) {
   const [note, setNote] = useState('');
-  const [responsibleId, setResponsibleId] = useState('');
   const isResolve = targetStatus === 'resolvido';
 
   const handleSubmit = () => {
     if (!note.trim()) return;
-    onConfirm(note.trim(), responsibleId || undefined);
+    onConfirm(note.trim());
     setNote('');
-    setResponsibleId('');
   };
 
   return (
@@ -72,29 +70,13 @@ function ResolutionDialog({
               ? 'Descreva obrigatoriamente qual ação foi realizada para solucionar este alerta.'
               : 'Descreva obrigatoriamente qual ação foi planejada para tratar este alerta.'}
           </p>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-primary" />
-              Responsável pela resolução
-            </label>
-            <select
-              value={responsibleId}
-              onChange={e => setResponsibleId(e.target.value)}
-              className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">Selecionar responsável (opcional)</option>
-              {members.map(m => (
-                <option key={m.id} value={m.id}>{m.name} — {m.role}</option>
-              ))}
-            </select>
-          </div>
           <Textarea
             value={note}
             onChange={e => setNote(e.target.value)}
             placeholder={isResolve
               ? 'Ex: Reunião realizada com coordenador regional, redistribuição de equipe aprovada...'
               : 'Ex: Agendada visita ao município para esta semana, responsável definido...'}
-            className="min-h-[100px] resize-none"
+            className="min-h-[120px] resize-none"
           />
           {note.trim().length === 0 && (
             <p className="text-xs text-destructive">* Campo obrigatório para atualizar o status.</p>
@@ -118,13 +100,20 @@ function ResolutionDialog({
 }
 
 // ─── Alert Row ────────────────────────────────────────────────────────────────
-function AlertRow({ alert, onRead, onStatusChange }: {
+function AlertRow({ alert, onRead, onStatusChange, members }: {
   alert: DbAlert;
   onRead: (id: string) => void;
   onStatusChange: (id: string, status: string) => void;
+  members: import('@/types/database').DbCampaignMember[];
 }) {
   const c = LEVEL_CONFIG[alert.level] ?? LEVEL_CONFIG.info;
   const Icon = levelIcon(alert.level);
+
+  const team = resolveAlertTeam(members, {
+    macroregion_id: alert.macroregion_id,
+    creatorName: alert.responsible_name ?? undefined,
+    creatorRole: alert.responsible_role ?? undefined,
+  });
 
   return (
     <div
@@ -157,15 +146,10 @@ function AlertRow({ alert, onRead, onStatusChange }: {
             </div>
           )}
 
-          {/* Responsible & hierarchy */}
-          {(alert.responsible_name || (alert.hierarchy_chain && alert.hierarchy_chain.length > 0)) && (
+          {/* Auto-resolved responsible team */}
+          {team.length > 0 && (
             <div className="mt-2 pt-2 border-t" style={{ borderColor: c.border }}>
-              <ResponsibleChain
-                responsibleName={alert.responsible_name}
-                responsibleRole={alert.responsible_role}
-                hierarchyChain={alert.hierarchy_chain}
-                compact
-              />
+              <ResponsibleChain entries={team} compact />
             </div>
           )}
 
@@ -230,25 +214,6 @@ function StatCard({ value, label, color, icon: Icon }: { value: number; label: s
 }
 
 // ─── Build hierarchy chain from members ──────────────────────────────────────
-function buildHierarchyChain(
-  memberId: string,
-  members: Array<{ id: string; name: string; role: string; hierarchy_level: number; supervisor_id: string | null }>
-) {
-  const chain: Array<{ name: string; role: string; level: number }> = [];
-  const memberMap = new Map(members.map(m => [m.id, m]));
-
-  let current = memberMap.get(memberId);
-  if (!current) return chain;
-
-  // Walk up the supervisor chain
-  let supervisor = current.supervisor_id ? memberMap.get(current.supervisor_id) : undefined;
-  while (supervisor) {
-    chain.push({ name: supervisor.name, role: supervisor.role, level: supervisor.hierarchy_level });
-    supervisor = supervisor.supervisor_id ? memberMap.get(supervisor.supervisor_id) : undefined;
-  }
-  return chain;
-}
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Alertas() {
   const { data: allAlerts = [], isLoading, refetch } = useAlerts();
@@ -286,19 +251,12 @@ export default function Alertas() {
     setPendingUpdate({ id, status });
   };
 
-  const confirmStatusChange = (note: string, responsibleId?: string) => {
+  const confirmStatusChange = (note: string) => {
     if (!pendingUpdate) return;
-
-    const responsible = responsibleId ? members.find(m => m.id === responsibleId) : undefined;
-    const hierarchyChain = responsibleId ? buildHierarchyChain(responsibleId, members) : undefined;
-
     updateStatus.mutate({
       id: pendingUpdate.id,
       status: pendingUpdate.status as any,
       resolution_note: note,
-      responsible_name: responsible?.name ?? null,
-      responsible_role: responsible?.role ?? null,
-      hierarchy_chain: hierarchyChain ?? null,
     } as any);
     setPendingUpdate(null);
   };
@@ -320,7 +278,6 @@ export default function Alertas() {
         onClose={() => setPendingUpdate(null)}
         onConfirm={confirmStatusChange}
         targetStatus={pendingUpdate?.status ?? ''}
-        members={members}
       />
 
       {/* Header */}
@@ -424,6 +381,7 @@ export default function Alertas() {
                   alert={alert}
                   onRead={id => markRead.mutate(id)}
                   onStatusChange={requestStatusChange}
+                  members={members}
                 />
               ))}
             </>
