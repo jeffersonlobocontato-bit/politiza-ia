@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
+import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 
 const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
   alinhado:   '#22c55e',
@@ -201,66 +201,23 @@ export default function AtivosPoliticos() {
       {assets.length > 0 && (
         <div className="px-6 py-4 border-b border-border flex-shrink-0 bg-card/30">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Donut — alinhamento */}
-            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-              <p className="text-xs font-semibold text-foreground mb-3">Distribuição por Alinhamento</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={alignChartData} dataKey="value" cx="35%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2}>
-                    {alignChartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                  </Pie>
-                  <Tooltip
-                    formatter={(v: number, n: string) => [`${v} ativos`, n]}
-                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Legend iconType="circle" iconSize={9} layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11, paddingLeft: 8, lineHeight: '22px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Bar — tipo */}
-            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-              <p className="text-xs font-semibold text-foreground mb-3">Ativos por Tipo</p>
-              <ResponsiveContainer width="100%" height={Math.max(200, typeChartData.length * 28 + 20)}>
-                <BarChart data={typeChartData} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barSize={14}>
-                  <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={130}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
-                    tickFormatter={(v: string) => v.length > 18 ? v.slice(0, 17) + '…' : v}
-                  />
-                  <Tooltip
-                    formatter={(v: number) => [`${v}`, 'Quantidade']}
-                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Bar — macrorregião */}
-            <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-              <p className="text-xs font-semibold text-foreground mb-3">Ativos por Macrorregião</p>
-              <ResponsiveContainer width="100%" height={Math.max(200, macroCounts.length * 32 + 20)}>
-                <BarChart data={macroCounts} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barSize={16}>
-                  <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={110}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
-                    tickFormatter={(v: string) => v.length > 16 ? v.slice(0, 15) + '…' : v}
-                  />
-                  <Tooltip
-                    formatter={(v: number) => [`${v}`, 'Quantidade']}
-                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--brand-green))" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <InfographicDonut
+              title="Distribuição por Alinhamento"
+              unit="ativos"
+              data={alignChartData}
+              height={190}
+            />
+            <InfographicHBar
+              title="Ativos por Tipo"
+              subtitle="top 8"
+              data={typeChartData}
+              accentColor={CHART_PRIMARY}
+            />
+            <InfographicHBar
+              title="Ativos por Macrorregião"
+              data={macroCounts}
+              accentColor={CHART_MINT}
+            />
           </div>
         </div>
       )}
