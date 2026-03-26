@@ -429,7 +429,6 @@ export default function SalaDeCrise() {
         onClose={() => setPendingUpdate(null)}
         onConfirm={confirmUpdate}
         targetStatus={pendingUpdate?.status ?? ''}
-        members={members}
       />
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
