@@ -610,6 +610,7 @@ export default function SalaDeCrise() {
                 alert={selected}
                 onClose={() => setSelected(null)}
                 onUpdate={handleUpdate}
+                members={members}
               />
             </div>
           )}
