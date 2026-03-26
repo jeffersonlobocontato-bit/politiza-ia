@@ -251,9 +251,6 @@ function AlertCard({
             {alert.opportunity_index !== null && <IndexBadge value={Math.round(alert.opportunity_index)} label="Opp" variant="opportunity" />}
           </div>
           <SeverityBar value={alert.severity} />
-          {/* Responsible compact display */}
-        </div>
-      </div>
         </div>
       </div>
       <div className="flex items-center gap-2 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: cfg.border }}>
