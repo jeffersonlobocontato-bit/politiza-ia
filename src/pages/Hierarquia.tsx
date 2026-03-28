@@ -11,15 +11,28 @@ const LEVEL_COLORS: Record<number, string> = {
   2: 'hsl(var(--primary))',
   3: 'hsl(var(--brand-cyan))',
   4: 'hsl(var(--brand-green))',
-  5: 'hsl(var(--muted-foreground))',
+  5: 'hsl(var(--chart-4))',
+  6: 'hsl(var(--muted-foreground))',
 };
 const LEVEL_LABELS: Record<number, string> = {
   1: 'Comando Estadual',
-  2: 'Coordenação Macrorregional',
-  3: 'Coordenação Microrregional',
-  4: 'Coordenação Municipal',
-  5: 'Lideranças Locais',
+  2: 'Coordenação Setorial',
+  3: 'Coordenação Macrorregional',
+  4: 'Coordenação Microrregional',
+  5: 'Coordenação Municipal',
+  6: 'Lideranças Locais',
 };
+
+const SECTORAL_ROLES = [
+  'Coordenador Jurídico Eleitoral',
+  'Coordenador de Mobilização e Articulação',
+  'Coordenador de Comunicação',
+  'Coordenador Político',
+  'Coordenador Financeiro',
+  'Coordenador de Logística',
+  'Coordenador de Inteligência Política',
+  'Coordenador de Segurança',
+];
 
 interface MemberForm {
   name: string;
