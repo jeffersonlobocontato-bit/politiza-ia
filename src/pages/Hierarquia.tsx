@@ -11,15 +11,28 @@ const LEVEL_COLORS: Record<number, string> = {
   2: 'hsl(var(--primary))',
   3: 'hsl(var(--brand-cyan))',
   4: 'hsl(var(--brand-green))',
-  5: 'hsl(var(--muted-foreground))',
+  5: 'hsl(var(--chart-4))',
+  6: 'hsl(var(--muted-foreground))',
 };
 const LEVEL_LABELS: Record<number, string> = {
   1: 'Comando Estadual',
-  2: 'Coordenação Macrorregional',
-  3: 'Coordenação Microrregional',
-  4: 'Coordenação Municipal',
-  5: 'Lideranças Locais',
+  2: 'Coordenação Setorial',
+  3: 'Coordenação Macrorregional',
+  4: 'Coordenação Microrregional',
+  5: 'Coordenação Municipal',
+  6: 'Lideranças Locais',
 };
+
+const SECTORAL_ROLES = [
+  'Coordenador Jurídico Eleitoral',
+  'Coordenador de Mobilização e Articulação',
+  'Coordenador de Comunicação',
+  'Coordenador Político',
+  'Coordenador Financeiro',
+  'Coordenador de Logística',
+  'Coordenador de Inteligência Política',
+  'Coordenador de Segurança',
+];
 
 interface MemberForm {
   name: string;
@@ -38,7 +51,7 @@ const emptyForm = (): MemberForm => ({
   email: '',
   phone: '',
   role: 'Coordenador Municipal',
-  hierarchy_level: '4',
+  hierarchy_level: '5',
   macroregion_id: 'rmc',
   microregion: '',
   status: 'ativo',
@@ -56,7 +69,7 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
 
-  const byLevel = [1, 2, 3, 4, 5].map(l => ({
+  const byLevel = [1, 2, 3, 4, 5, 6].map(l => ({
     level: l,
     members: members.filter(m => m.hierarchy_level === l),
   }));
@@ -96,7 +109,7 @@ export default function Hierarquia() {
       email: form.email || null,
       phone: form.phone || null,
       role: form.role,
-      hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5,
+      hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5|6,
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
       municipality: geoForm.city || null,
@@ -125,7 +138,7 @@ export default function Hierarquia() {
   };
 
   // ── Chart data ───────────────────────────────────────────────────────────────
-  const levelChartData = [1,2,3,4,5].map(l => ({
+  const levelChartData = [1,2,3,4,5,6].map(l => ({
     name: LEVEL_LABELS[l].replace('Coordenação ', 'Coord. ').replace('Comando ', ''),
     value: members.filter(m => m.hierarchy_level === l).length,
     color: LEVEL_COLORS[l],
@@ -204,12 +217,21 @@ export default function Hierarquia() {
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Cargo/Função</label>
-                <input value={form.role} onChange={e => updateForm('role', e.target.value)} placeholder="Coordenador Regional" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                {form.hierarchy_level === '2' ? (
+                  <select value={form.role} onChange={e => updateForm('role', e.target.value)} className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+                    {SECTORAL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                ) : (
+                  <input value={form.role} onChange={e => updateForm('role', e.target.value)} placeholder="Coordenador Regional" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                )}
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Nível Hierárquico</label>
-                <select value={form.hierarchy_level} onChange={e => updateForm('hierarchy_level', e.target.value)} className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
-                  {[1,2,3,4,5].map(l => <option key={l} value={l}>{l} — {LEVEL_LABELS[l]}</option>)}
+                <select value={form.hierarchy_level} onChange={e => {
+                  updateForm('hierarchy_level', e.target.value);
+                  if (e.target.value === '2') updateForm('role', SECTORAL_ROLES[0]);
+                }} className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+                  {[1,2,3,4,5,6].map(l => <option key={l} value={l}>{l} — {LEVEL_LABELS[l]}</option>)}
                 </select>
               </div>
               <div>
