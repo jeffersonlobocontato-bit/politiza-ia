@@ -446,8 +446,8 @@ export default function Hierarquia() {
                     </div>
                   ))}
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Ranking */}
             {ranked.length > 0 && (
