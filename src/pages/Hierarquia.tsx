@@ -51,7 +51,7 @@ const emptyForm = (): MemberForm => ({
   email: '',
   phone: '',
   role: 'Coordenador Municipal',
-  hierarchy_level: '4',
+  hierarchy_level: '5',
   macroregion_id: 'rmc',
   microregion: '',
   status: 'ativo',
