@@ -157,7 +157,7 @@ export const macroRegions: MacroRegion[] = [
   },
   {
     id: 'norte_central',
-    name: 'Norte Central',
+    name: 'Norte',
     coordinator: 'Fernanda Rocha',
     municipalities: 79,
     engagementScore: 65,
@@ -260,6 +260,21 @@ export const macroRegions: MacroRegion[] = [
     centerLat: -23.5000,
     centerLng: -50.4000,
   },
+  {
+    id: 'litoral',
+    name: 'Litoral',
+    coordinator: 'Ricardo Almeida',
+    municipalities: 37,
+    engagementScore: 52,
+    actionsPlanned: 64,
+    actionsCompleted: 35,
+    actionsDelayed: 14,
+    peopleImpacted: 95000,
+    pollScore: 40.5,
+    pollTrend: 'stable' as const,
+    centerLat: -25.5200,
+    centerLng: -48.5100,
+  },
 ];
 
 // =====================================================
@@ -282,7 +297,9 @@ export const municipalities: Municipality[] = [
   { id: 'cornelio_procopio', name: 'Cornélio Procópio', macroregion: 'norte_pioneiro', microregion: 'Norte Pioneiro', lat: -23.1829, lng: -50.6449, population: 48025, electoralVoters: 32000, engagementScore: 39, actionsPlanned: 8, actionsCompleted: 3, actionsDelayed: 4, peopleImpacted: 5500, pollScore: 36.9, coordinator: 'Sônia Batista' },
   { id: 'toledo', name: 'Toledo', macroregion: 'oeste', microregion: 'Toledo', lat: -24.7260, lng: -53.7435, population: 145371, electoralVoters: 96000, engagementScore: 74, actionsPlanned: 13, actionsCompleted: 10, actionsDelayed: 1, peopleImpacted: 22000, pollScore: 45.9, coordinator: 'Ana Paula Ferreira' },
   { id: 'medianeira', name: 'Medianeira', macroregion: 'oeste', microregion: 'Foz do Iguaçu', lat: -25.2947, lng: -54.0958, population: 47564, electoralVoters: 30000, engagementScore: 66, actionsPlanned: 8, actionsCompleted: 5, actionsDelayed: 2, peopleImpacted: 7800, pollScore: 43.5, coordinator: 'Ana Paula Ferreira' },
-  { id: 'paranagua', name: 'Paranaguá', macroregion: 'rmc', microregion: 'Litoral', lat: -25.5196, lng: -48.5073, population: 154936, electoralVoters: 96000, engagementScore: 57, actionsPlanned: 11, actionsCompleted: 7, actionsDelayed: 3, peopleImpacted: 13000, pollScore: 41.2, coordinator: 'Carlos Mendonça' },
+  { id: 'paranagua', name: 'Paranaguá', macroregion: 'litoral', microregion: 'Litoral', lat: -25.5196, lng: -48.5073, population: 154936, electoralVoters: 96000, engagementScore: 57, actionsPlanned: 11, actionsCompleted: 7, actionsDelayed: 3, peopleImpacted: 13000, pollScore: 41.2, coordinator: 'Ricardo Almeida' },
+  { id: 'guaratuba', name: 'Guaratuba', macroregion: 'litoral', microregion: 'Litoral', lat: -25.8818, lng: -48.5755, population: 37527, electoralVoters: 24000, engagementScore: 48, actionsPlanned: 8, actionsCompleted: 4, actionsDelayed: 3, peopleImpacted: 6500, pollScore: 39.0, coordinator: 'Ricardo Almeida' },
+  { id: 'matinhos', name: 'Matinhos', macroregion: 'litoral', microregion: 'Litoral', lat: -25.8181, lng: -48.5434, population: 34720, electoralVoters: 22000, engagementScore: 44, actionsPlanned: 7, actionsCompleted: 3, actionsDelayed: 3, peopleImpacted: 5200, pollScore: 38.4, coordinator: 'Ricardo Almeida' },
   { id: 'jacarezinho', name: 'Jacarezinho', macroregion: 'norte_pioneiro', microregion: 'Norte Pioneiro', lat: -23.1597, lng: -49.9707, population: 40694, electoralVoters: 27000, engagementScore: 46, actionsPlanned: 7, actionsCompleted: 4, actionsDelayed: 2, peopleImpacted: 6200, pollScore: 38.5, coordinator: 'Sônia Batista' },
   { id: 'campo_mourao', name: 'Campo Mourão', macroregion: 'norte_central', microregion: 'Campo Mourão', lat: -24.0457, lng: -52.3836, population: 94622, electoralVoters: 63000, engagementScore: 60, actionsPlanned: 11, actionsCompleted: 7, actionsDelayed: 2, peopleImpacted: 12500, pollScore: 41.7, coordinator: 'Fernanda Rocha' },
   { id: 'irati', name: 'Irati', macroregion: 'centro_sul', microregion: 'Irati', lat: -25.4680, lng: -50.6534, population: 60282, electoralVoters: 39000, engagementScore: 54, actionsPlanned: 9, actionsCompleted: 6, actionsDelayed: 2, peopleImpacted: 9200, pollScore: 40.1, coordinator: 'Juliana Teixeira' },
