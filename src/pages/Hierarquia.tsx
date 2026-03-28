@@ -32,6 +32,7 @@ const SECTORAL_ROLES = [
   'Coordenador de Logística',
   'Coordenador de Inteligência Política',
   'Coordenador de Segurança',
+  'Coordenador de Agenda',
 ];
 
 interface MemberForm {
