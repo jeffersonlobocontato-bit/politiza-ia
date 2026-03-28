@@ -157,7 +157,7 @@ export const macroRegions: MacroRegion[] = [
   },
   {
     id: 'norte_central',
-    name: 'Norte Central',
+    name: 'Norte',
     coordinator: 'Fernanda Rocha',
     municipalities: 79,
     engagementScore: 65,
