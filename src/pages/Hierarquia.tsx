@@ -39,6 +39,7 @@ const SECTORAL_GROUPS = [
     roles: [
       'Coordenador de Comunicação',
       'Coordenador de Inteligência Política',
+      'Coordenador de Plano de Governo',
     ],
   },
   {
