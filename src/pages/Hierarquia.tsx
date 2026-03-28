@@ -31,6 +31,8 @@ const SECTORAL_GROUPS = [
       'Coordenador Jurídico Eleitoral',
       'Coordenador Financeiro',
       'Coordenador de Agenda',
+      'Coordenador de Logística',
+      'Coordenador de Segurança',
     ],
   },
   {
@@ -47,8 +49,6 @@ const SECTORAL_GROUPS = [
     color: 'hsl(var(--brand-green))',
     roles: [
       'Coordenador de Mobilização e Articulação',
-      'Coordenador de Logística',
-      'Coordenador de Segurança',
     ],
   },
 ];
