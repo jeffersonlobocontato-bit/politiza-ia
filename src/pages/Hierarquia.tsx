@@ -23,17 +23,36 @@ const LEVEL_LABELS: Record<number, string> = {
   6: 'Lideranças Locais',
 };
 
-const SECTORAL_ROLES = [
-  'Coordenador Jurídico Eleitoral',
-  'Coordenador de Mobilização e Articulação',
-  'Coordenador de Comunicação',
-  'Coordenador Político',
-  'Coordenador Financeiro',
-  'Coordenador de Logística',
-  'Coordenador de Inteligência Política',
-  'Coordenador de Segurança',
-  'Coordenador de Agenda',
+const SECTORAL_GROUPS = [
+  {
+    label: 'Áreas Meio',
+    color: 'hsl(var(--brand-amber))',
+    roles: [
+      'Coordenador Jurídico Eleitoral',
+      'Coordenador Financeiro',
+      'Coordenador de Agenda',
+    ],
+  },
+  {
+    label: 'Áreas Estratégicas',
+    color: 'hsl(var(--brand-cyan))',
+    roles: [
+      'Coordenador de Comunicação',
+      'Coordenador de Inteligência Política',
+    ],
+  },
+  {
+    label: 'Áreas Operacionais',
+    color: 'hsl(var(--brand-green))',
+    roles: [
+      'Coordenador de Mobilização e Articulação',
+      'Coordenador de Logística',
+      'Coordenador de Segurança',
+    ],
+  },
 ];
+
+const SECTORAL_ROLES = SECTORAL_GROUPS.flatMap(g => g.roles);
 
 interface MemberForm {
   name: string;
