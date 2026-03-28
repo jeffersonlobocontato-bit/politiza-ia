@@ -35,7 +35,7 @@ export default function Territorios() {
         {/* State KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
-            { label: 'Macrorregiões', value: '8', icon: Globe, color: 'hsl(var(--primary))' },
+            { label: 'Macrorregiões', value: '9', icon: Globe, color: 'hsl(var(--primary))' },
             { label: 'Municípios', value: '399', icon: Activity, color: 'hsl(var(--brand-cyan))' },
             { label: 'Municípios Cobertos', value: '287', icon: Activity, color: 'hsl(var(--brand-green))' },
             { label: 'Engajamento Médio', value: '61/100', icon: TrendingUp, color: 'hsl(var(--brand-amber))' },
