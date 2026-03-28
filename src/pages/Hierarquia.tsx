@@ -301,7 +301,100 @@ export default function Hierarquia() {
           </div>
         ) : (
           <>
-            {byLevel.map(({ level, members: lvlMembers }) => lvlMembers.length > 0 && (
+            {byLevel.map(({ level, members: lvlMembers }) => {
+              // For level 2 (Setorial), always show all 8 roles even if empty
+              if (level === 2) {
+                const sectoralCards = SECTORAL_ROLES.map(role => {
+                  const assigned = lvlMembers.find(m => m.role === role);
+                  return { role, member: assigned ?? null };
+                });
+                // Also include any level-2 members with non-standard roles
+                const extraMembers = lvlMembers.filter(m => !SECTORAL_ROLES.includes(m.role));
+
+                return (
+                  <div key={level}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white" style={{ backgroundColor: LEVEL_COLORS[level] }}>
+                        {level}
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">{LEVEL_LABELS[level]}</span>
+                      <span className="text-xs text-muted-foreground">({lvlMembers.length} / {SECTORAL_ROLES.length})</span>
+                    </div>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {sectoralCards.map(({ role, member }) => (
+                        <div key={role} className={`rounded-xl border p-4 group relative ${member ? 'border-border' : 'border-dashed border-muted-foreground/30'}`} style={{ background: member ? 'var(--gradient-card)' : undefined }}>
+                          {member ? (
+                            <>
+                              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => openEdit(member)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDelete(member.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-3 mb-2 pr-12">
+                                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
+                                  {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-sm font-semibold text-foreground truncate">{member.name}</div>
+                                  <div className="text-[10px] text-muted-foreground truncate">{member.phone || member.email || ''}</div>
+                                </div>
+                              </div>
+                              <div className="text-xs font-medium truncate" style={{ color: LEVEL_COLORS[level] }}>{role.replace('Coordenador ', '').replace('de ', '')}</div>
+                              <div className="mt-2">
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${member.status === 'ativo' ? 'bg-brand-green/15 text-brand-green' : 'bg-muted text-muted-foreground'}`}>
+                                  {member.status}
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setEditingId(null);
+                                setForm({ ...emptyForm(), hierarchy_level: '2', role });
+                                setGeoForm({ city: '', lat: null, lng: null });
+                                setShowForm(true);
+                              }}
+                              className="w-full flex flex-col items-center justify-center py-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                            >
+                              <Plus className="w-5 h-5 mb-1" />
+                              <span className="text-xs font-medium text-center">{role.replace('Coordenador ', '').replace('de ', '')}</span>
+                              <span className="text-[10px] mt-0.5">Vaga aberta</span>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {extraMembers.map(m => (
+                        <div key={m.id} className="rounded-xl border border-border p-4 group relative" style={{ background: 'var(--gradient-card)' }}>
+                          <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => openEdit(m)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleDelete(m.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-3 mb-2 pr-12">
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
+                              {m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-foreground truncate">{m.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">{m.role}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
+              if (lvlMembers.length === 0) return null;
+
+              return (
               <div key={level}>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white" style={{ backgroundColor: LEVEL_COLORS[level] }}>
