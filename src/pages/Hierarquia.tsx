@@ -69,7 +69,7 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
 
-  const byLevel = [1, 2, 3, 4, 5].map(l => ({
+  const byLevel = [1, 2, 3, 4, 5, 6].map(l => ({
     level: l,
     members: members.filter(m => m.hierarchy_level === l),
   }));
