@@ -138,7 +138,7 @@ export default function Hierarquia() {
   };
 
   // ── Chart data ───────────────────────────────────────────────────────────────
-  const levelChartData = [1,2,3,4,5].map(l => ({
+  const levelChartData = [1,2,3,4,5,6].map(l => ({
     name: LEVEL_LABELS[l].replace('Coordenação ', 'Coord. ').replace('Comando ', ''),
     value: members.filter(m => m.hierarchy_level === l).length,
     color: LEVEL_COLORS[l],
