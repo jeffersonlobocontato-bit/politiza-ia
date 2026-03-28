@@ -109,7 +109,7 @@ export default function Hierarquia() {
       email: form.email || null,
       phone: form.phone || null,
       role: form.role,
-      hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5,
+      hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5|6,
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
       municipality: geoForm.city || null,
