@@ -260,6 +260,21 @@ export const macroRegions: MacroRegion[] = [
     centerLat: -23.5000,
     centerLng: -50.4000,
   },
+  {
+    id: 'litoral',
+    name: 'Litoral',
+    coordinator: 'Ricardo Almeida',
+    municipalities: 37,
+    engagementScore: 52,
+    actionsPlanned: 64,
+    actionsCompleted: 35,
+    actionsDelayed: 14,
+    peopleImpacted: 95000,
+    pollScore: 40.5,
+    pollTrend: 'stable' as const,
+    centerLat: -25.5200,
+    centerLng: -48.5100,
+  },
 ];
 
 // =====================================================
