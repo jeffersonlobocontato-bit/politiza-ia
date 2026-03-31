@@ -128,6 +128,7 @@ export default function AtivosPoliticos() {
       relationship_owner: asset.relationship_owner ?? '',
     });
     setGeoForm({ city: asset.municipality ?? '', lat: asset.lat ?? null, lng: asset.lng ?? null });
+    setSelectedProfileIds(assetLinks.filter(l => l.asset_id === asset.id).map(l => l.profile_id));
     setShowForm(true);
   };
 
