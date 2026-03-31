@@ -153,15 +153,21 @@ export default function AtivosPoliticos() {
       created_by: null as string | null,
       updated_by: null as string | null,
     };
+    let assetId = editingId;
     if (editingId) {
       await updateAsset.mutateAsync({ id: editingId, ...payload });
     } else {
-      await createAsset.mutateAsync(payload);
+      const result = await createAsset.mutateAsync(payload);
+      assetId = (result as any)?.id ?? null;
+    }
+    if (assetId) {
+      await setAssetProfiles.mutateAsync({ assetId, profileIds: selectedProfileIds });
     }
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedProfileIds([]);
   };
 
   const handleDelete = async (id: string) => {
