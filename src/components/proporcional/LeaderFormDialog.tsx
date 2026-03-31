@@ -12,6 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { useCreateLeader, useUpdateLeader, Leader } from '@/hooks/useLeaders';
 import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
 import { useSetLeaderProfiles } from '@/hooks/useLeaders';
+import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
 import { Plus, X, User, MapPin, Handshake, History, Building2, Zap } from 'lucide-react';
 
