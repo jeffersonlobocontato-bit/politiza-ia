@@ -81,7 +81,7 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
         });
       } else {
         await create.mutateAsync({
-          candidate_id: form.candidate_id,
+          candidate_id: activeCandidate.id,
           leader_id: form.leader_id,
           candidacy_type: form.candidacy_type,
           municipality: form.municipality || null,
