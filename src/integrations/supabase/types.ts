@@ -443,6 +443,256 @@ export type Database = {
         }
         Relationships: []
       }
+      leader_leadership_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          leader_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leader_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leader_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leader_leadership_profiles_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "leaders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leader_leadership_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leader_party_history: {
+        Row: {
+          created_at: string
+          end_year: number | null
+          id: string
+          leader_id: string
+          observations: string | null
+          party_name: string
+          start_year: number | null
+        }
+        Insert: {
+          created_at?: string
+          end_year?: number | null
+          id?: string
+          leader_id: string
+          observations?: string | null
+          party_name: string
+          start_year?: number | null
+        }
+        Update: {
+          created_at?: string
+          end_year?: number | null
+          id?: string
+          leader_id?: string
+          observations?: string | null
+          party_name?: string
+          start_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leader_party_history_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "leaders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leader_political_history: {
+        Row: {
+          created_at: string
+          election_years: string[] | null
+          electoral_performance: string | null
+          held_mandate: boolean | null
+          id: string
+          leader_id: string
+          mandate_count: number | null
+          observations: string | null
+          positions_disputed: string[] | null
+          positions_held: string[] | null
+          times_candidate: number | null
+          updated_at: string
+          was_candidate: boolean | null
+          was_councilperson: boolean | null
+          was_neighborhood_president: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          election_years?: string[] | null
+          electoral_performance?: string | null
+          held_mandate?: boolean | null
+          id?: string
+          leader_id: string
+          mandate_count?: number | null
+          observations?: string | null
+          positions_disputed?: string[] | null
+          positions_held?: string[] | null
+          times_candidate?: number | null
+          updated_at?: string
+          was_candidate?: boolean | null
+          was_councilperson?: boolean | null
+          was_neighborhood_president?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          election_years?: string[] | null
+          electoral_performance?: string | null
+          held_mandate?: boolean | null
+          id?: string
+          leader_id?: string
+          mandate_count?: number | null
+          observations?: string | null
+          positions_disputed?: string[] | null
+          positions_held?: string[] | null
+          times_candidate?: number | null
+          updated_at?: string
+          was_candidate?: boolean | null
+          was_councilperson?: boolean | null
+          was_neighborhood_president?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leader_political_history_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "leaders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaders: {
+        Row: {
+          alignment_status: string | null
+          candidate_id: string | null
+          coordinator_id: string | null
+          coverage_type: string
+          created_at: string
+          created_by: string | null
+          current_party: string | null
+          deleted_at: string | null
+          email: string | null
+          entry_date: string | null
+          estimated_supporters: number
+          id: string
+          influence_level: number
+          local_reputation: number
+          macroregion_id: string | null
+          microregion: string | null
+          mobilization_capacity: number
+          municipality: string | null
+          name: string
+          neighborhood: string | null
+          observations: string | null
+          phone: string | null
+          photo_url: string | null
+          political_reliability: number
+          relationship_owner: string | null
+          secondary_territories: Json | null
+          status: string
+          support_status: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          alignment_status?: string | null
+          candidate_id?: string | null
+          coordinator_id?: string | null
+          coverage_type?: string
+          created_at?: string
+          created_by?: string | null
+          current_party?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          entry_date?: string | null
+          estimated_supporters?: number
+          id?: string
+          influence_level?: number
+          local_reputation?: number
+          macroregion_id?: string | null
+          microregion?: string | null
+          mobilization_capacity?: number
+          municipality?: string | null
+          name: string
+          neighborhood?: string | null
+          observations?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          political_reliability?: number
+          relationship_owner?: string | null
+          secondary_territories?: Json | null
+          status?: string
+          support_status?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          alignment_status?: string | null
+          candidate_id?: string | null
+          coordinator_id?: string | null
+          coverage_type?: string
+          created_at?: string
+          created_by?: string | null
+          current_party?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          entry_date?: string | null
+          estimated_supporters?: number
+          id?: string
+          influence_level?: number
+          local_reputation?: number
+          macroregion_id?: string | null
+          microregion?: string | null
+          mobilization_capacity?: number
+          municipality?: string | null
+          name?: string
+          neighborhood?: string | null
+          observations?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          political_reliability?: number
+          relationship_owner?: string | null
+          secondary_territories?: Json | null
+          status?: string
+          support_status?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaders_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaders_coordinator_id_fkey"
+            columns: ["coordinator_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leadership_profiles: {
         Row: {
           active: boolean
@@ -799,6 +1049,143 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vote_projection_revisions: {
+        Row: {
+          id: string
+          new_intermediate: number
+          new_optimistic: number
+          new_pessimistic: number
+          prev_intermediate: number
+          prev_optimistic: number
+          prev_pessimistic: number
+          projection_id: string
+          revised_at: string
+          revised_by: string | null
+          revision_reason: string | null
+        }
+        Insert: {
+          id?: string
+          new_intermediate: number
+          new_optimistic: number
+          new_pessimistic: number
+          prev_intermediate: number
+          prev_optimistic: number
+          prev_pessimistic: number
+          projection_id: string
+          revised_at?: string
+          revised_by?: string | null
+          revision_reason?: string | null
+        }
+        Update: {
+          id?: string
+          new_intermediate?: number
+          new_optimistic?: number
+          new_pessimistic?: number
+          prev_intermediate?: number
+          prev_optimistic?: number
+          prev_pessimistic?: number
+          projection_id?: string
+          revised_at?: string
+          revised_by?: string | null
+          revision_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vote_projection_revisions_projection_id_fkey"
+            columns: ["projection_id"]
+            isOneToOne: false
+            referencedRelation: "vote_projections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vote_projections: {
+        Row: {
+          candidacy_type: string
+          candidate_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          intermediate: number
+          justification: string | null
+          leader_id: string
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          neighborhood: string | null
+          observations: string | null
+          optimistic: number
+          pessimistic: number
+          projection_date: string
+          reliability_index: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          candidacy_type?: string
+          candidate_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          intermediate: number
+          justification?: string | null
+          leader_id: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          neighborhood?: string | null
+          observations?: string | null
+          optimistic: number
+          pessimistic: number
+          projection_date?: string
+          reliability_index?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          candidacy_type?: string
+          candidate_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          intermediate?: number
+          justification?: string | null
+          leader_id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          neighborhood?: string | null
+          observations?: string | null
+          optimistic?: number
+          pessimistic?: number
+          projection_date?: string
+          reliability_index?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vote_projections_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vote_projections_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "leaders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
