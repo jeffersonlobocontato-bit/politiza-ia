@@ -62,7 +62,7 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
   const set = (key: string, value: any) => setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = async () => {
-    if (!form.candidate_id) { toast.error('Selecione um candidato'); return; }
+    if (!activeCandidate) { toast.error('Nenhum candidato ativo. Configure em Configurações.'); return; }
     if (!form.leader_id) { toast.error('Selecione uma liderança'); return; }
     if (form.optimistic < form.intermediate) { toast.error('Cenário otimista deve ser ≥ intermediário'); return; }
     if (form.intermediate < form.pessimistic) { toast.error('Cenário intermediário deve ser ≥ pessimista'); return; }
