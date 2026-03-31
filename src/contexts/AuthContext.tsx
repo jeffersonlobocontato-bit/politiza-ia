@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabaseRaw.auth.signOut();
+    await supabaseClient.auth.signOut();
   };
 
   const isAdmin = roles.some(r => ['admin_master', 'coordenador_geral', 'coordenador_estadual'].includes(r));
