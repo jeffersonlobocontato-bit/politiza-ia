@@ -1,8 +1,4 @@
-// Central Supabase client — use this everywhere in the app
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
-export const db = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-  { auth: { storage: localStorage, persistSession: true, autoRefreshToken: true } }
-);
+// Shared Supabase client — avoid creating a second auth client instance
+export const db = supabase as any;
