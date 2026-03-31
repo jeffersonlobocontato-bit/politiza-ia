@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag } from 'lucide-react';
+import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag, Upload, ImageIcon } from 'lucide-react';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
 import { useAuth } from '@/contexts/AuthContext';
