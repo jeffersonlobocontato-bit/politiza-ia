@@ -21,16 +21,15 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  // Majoritária-only
-  { title: 'Sala de Guerra', url: '/', icon: Crosshair, scope: 'majoritaria' },
-  { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'majoritaria' },
-  { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'majoritaria' },
-  { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'majoritaria' },
-  { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'majoritaria' },
-  { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'majoritaria' },
+  // Shared (always visible)
+  { title: 'Sala de Guerra', url: '/', icon: Crosshair, scope: 'shared' },
+  { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'shared' },
+  { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'shared' },
+  { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
+  { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
+  { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
   // Proporcional-only
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
-  // Shared (always visible)
   { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
   { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
