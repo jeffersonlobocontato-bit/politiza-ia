@@ -377,9 +377,58 @@ export default function Configuracoes() {
                 <Label>Ano da eleição</Label>
                 <Input type="number" {...form.register('election_year')} />
               </div>
-              <div className="col-span-2 space-y-1.5">
-                <Label>URL da foto</Label>
-                <Input placeholder="https://..." {...form.register('photo_url')} />
+              <div className="col-span-2 space-y-2">
+                <Label>Foto do candidato</Label>
+                <div className="flex items-start gap-4">
+                  {/* Preview */}
+                  <div
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-border bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {photoPreview ? (
+                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoSelect}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      {photoFile ? 'Trocar foto' : 'Upload de foto'}
+                    </Button>
+                    {photoFile && (
+                      <p className="text-[10px] text-muted-foreground truncate">{photoFile.name}</p>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground">ou cole um link:</span>
+                    </div>
+                    <Input
+                      placeholder="https://..."
+                      {...form.register('photo_url')}
+                      className="h-8 text-xs"
+                      onChange={e => {
+                        form.register('photo_url').onChange(e);
+                        if (e.target.value) {
+                          setPhotoFile(null);
+                          setPhotoPreview(e.target.value);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
               <div className="col-span-2 space-y-1.5">
                 <Label>Biografia / contexto</Label>
