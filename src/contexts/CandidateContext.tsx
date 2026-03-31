@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
-import { supabase } from '@/contexts/AuthContext';
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import { supabase, useAuth } from '@/contexts/AuthContext';
 
 export type CampaignType = 'majoritaria' | 'proporcional' | null;
 
@@ -39,45 +39,72 @@ interface CandidateContextValue {
 const CandidateContext = createContext<CandidateContextValue | null>(null);
 
 export function CandidateProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchCandidates = async () => {
+    if (!user) {
+      setCandidates([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     try {
-      const { data } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from('candidates')
         .select('*')
         .order('created_at', { ascending: false });
-      if (data) setCandidates(data as Candidate[]);
-    } catch {
-      // table may not exist yet
+
+      if (error) throw error;
+      setCandidates((data ?? []) as Candidate[]);
+    } catch (error) {
+      console.warn('fetchCandidates error:', error);
+      setCandidates([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCandidates();
-  }, []);
+    if (authLoading) return;
+    void fetchCandidates();
+  }, [authLoading, user?.id]);
 
   const setActive = async (id: string) => {
     setCandidates(prev => prev.map(c => ({ ...c, is_active: c.id === id })));
+
     await (supabase as any)
       .from('candidates')
       .update({ is_active: false })
       .neq('id', id);
+
     await (supabase as any)
       .from('candidates')
       .update({ is_active: true })
       .eq('id', id);
+
     await fetchCandidates();
   };
 
   const activeCandidate = candidates.find(c => c.is_active) ?? null;
-  const campaignType = useMemo(() => activeCandidate ? getCampaignType(activeCandidate.cargo) : null, [activeCandidate]);
+  const campaignType = useMemo(
+    () => (activeCandidate ? getCampaignType(activeCandidate.cargo) : null),
+    [activeCandidate]
+  );
 
   return (
-    <CandidateContext.Provider value={{ activeCandidate, campaignType, candidates, loading, setActive, refetch: fetchCandidates }}>
+    <CandidateContext.Provider
+      value={{
+        activeCandidate,
+        campaignType,
+        candidates,
+        loading: authLoading || loading,
+        setActive,
+        refetch: fetchCandidates,
+      }}
+    >
       {children}
     </CandidateContext.Provider>
   );
