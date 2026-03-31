@@ -11,6 +11,7 @@ import { useVoteProjections, useProjectionStats, VoteProjection } from '@/hooks/
 import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
 import { LeaderFormDialog } from '@/components/proporcional/LeaderFormDialog';
 import { ProjectionFormDialog } from '@/components/proporcional/ProjectionFormDialog';
+import { useCandidate } from '@/contexts/CandidateContext';
 import { supabase } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -48,18 +49,19 @@ export default function Proporcional() {
   const [editLeader, setEditLeader] = useState<Leader | undefined>();
   const [editProjection, setEditProjection] = useState<VoteProjection | undefined>();
 
-  const { data: leaders = [], isLoading: loadingLeaders } = useLeaders();
-  const { data: projections = [], isLoading: loadingProj } = useVoteProjections();
+  const { activeCandidate } = useCandidate();
+  const { data: allLeaders = [], isLoading: loadingLeaders } = useLeaders();
+  const { data: projections = [], isLoading: loadingProj } = useVoteProjections(
+    activeCandidate ? { candidate_id: activeCandidate.id } : undefined
+  );
   const { data: profiles = [] } = useLeadershipProfiles();
-  const stats = useProjectionStats();
+  const stats = useProjectionStats(activeCandidate?.id);
 
-  const { data: candidates = [] } = useQuery({
-    queryKey: ['candidates-all-prop'],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('candidates').select('*').order('name');
-      return data ?? [];
-    },
-  });
+  // Filter leaders linked to active candidate
+  const leaders = useMemo(() => {
+    if (!activeCandidate) return allLeaders;
+    return allLeaders.filter(l => l.candidate_id === activeCandidate.id);
+  }, [allLeaders, activeCandidate]);
 
   // Leader profiles junction
   const { data: leaderProfileLinks = [] } = useQuery({
@@ -81,9 +83,9 @@ export default function Proporcional() {
 
   const candidateMap = useMemo(() => {
     const m: Record<string, any> = {};
-    candidates.forEach((c: any) => { m[c.id] = c; });
+    if (activeCandidate) m[activeCandidate.id] = activeCandidate;
     return m;
-  }, [candidates]);
+  }, [activeCandidate]);
 
   const leaderMap = useMemo(() => {
     const m: Record<string, Leader> = {};
@@ -180,7 +182,28 @@ export default function Proporcional() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Projeção de votos, lideranças e análise territorial</p>
         </div>
+        {activeCandidate && (
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-card border border-border/50">
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {activeCandidate.photo_url
+                ? <img src={activeCandidate.photo_url} alt={activeCandidate.name} className="w-full h-full object-cover" />
+                : <span className="text-sm font-bold text-primary">{activeCandidate.name.charAt(0)}</span>}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{activeCandidate.name}</p>
+              <p className="text-xs text-muted-foreground">{activeCandidate.cargo} · {activeCandidate.party}</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {!activeCandidate && (
+        <Card className="bg-amber-500/10 border-amber-500/30">
+          <CardContent className="p-4 text-center">
+            <p className="text-sm text-amber-300">Nenhum candidato ativo. Acesse <strong>Configurações</strong> para ativar um candidato.</p>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="bg-muted/50">

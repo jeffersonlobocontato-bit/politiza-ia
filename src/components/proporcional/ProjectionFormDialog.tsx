@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateVoteProjection, useUpdateVoteProjection, VoteProjection } from '@/hooks/useVoteProjections';
 import { useLeaders } from '@/hooks/useLeaders';
-import { supabase } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
@@ -42,17 +41,9 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
   const create = useCreateVoteProjection();
   const update = useUpdateVoteProjection();
   const { data: leaders } = useLeaders({ status: 'ativo' });
-
-  const { data: candidates } = useQuery({
-    queryKey: ['candidates-active'],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('candidates').select('*').order('name');
-      return data ?? [];
-    },
-  });
+  const { activeCandidate } = useCandidate();
 
   const [form, setForm] = useState({
-    candidate_id: projection?.candidate_id ?? '',
     leader_id: projection?.leader_id ?? '',
     candidacy_type: projection?.candidacy_type ?? 'vereador',
     municipality: projection?.municipality ?? '',
@@ -70,7 +61,7 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
   const set = (key: string, value: any) => setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = async () => {
-    if (!form.candidate_id) { toast.error('Selecione um candidato'); return; }
+    if (!activeCandidate) { toast.error('Nenhum candidato ativo. Configure em Configurações.'); return; }
     if (!form.leader_id) { toast.error('Selecione uma liderança'); return; }
     if (form.optimistic < form.intermediate) { toast.error('Cenário otimista deve ser ≥ intermediário'); return; }
     if (form.intermediate < form.pessimistic) { toast.error('Cenário intermediário deve ser ≥ pessimista'); return; }
@@ -89,7 +80,7 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
         });
       } else {
         await create.mutateAsync({
-          candidate_id: form.candidate_id,
+          candidate_id: activeCandidate.id,
           leader_id: form.leader_id,
           candidacy_type: form.candidacy_type,
           municipality: form.municipality || null,
@@ -130,19 +121,21 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Candidate + Leader + Type */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Candidato *</Label>
-              <Select value={form.candidate_id} onValueChange={v => set('candidate_id', v)} disabled={isEdit}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {(candidates ?? []).map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name} ({c.party})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Active Candidate Banner */}
+          {activeCandidate && (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                {activeCandidate.name.charAt(0)}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{activeCandidate.name}</p>
+                <p className="text-xs text-muted-foreground">{activeCandidate.cargo} · {activeCandidate.party}</p>
+              </div>
             </div>
+          )}
+
+          {/* Leader + Type */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Tipo de Candidatura *</Label>
               <Select value={form.candidacy_type} onValueChange={v => set('candidacy_type', v)} disabled={isEdit}>

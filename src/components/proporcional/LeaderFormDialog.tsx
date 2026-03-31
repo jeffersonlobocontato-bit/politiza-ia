@@ -12,6 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { useCreateLeader, useUpdateLeader, Leader } from '@/hooks/useLeaders';
 import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
 import { useSetLeaderProfiles } from '@/hooks/useLeaders';
+import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
 import { Plus, X, User, MapPin, Handshake, History, Building2, Zap } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
   const updateLeader = useUpdateLeader();
   const setProfiles = useSetLeaderProfiles();
   const { data: profiles } = useLeadershipProfiles();
+  const { activeCandidate } = useCandidate();
 
   const [form, setForm] = useState({
     name: leader?.name ?? '',
@@ -86,9 +88,11 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
 
   const handleSubmit = async () => {
     if (!form.name.trim()) { toast.error('Nome é obrigatório'); return; }
+    if (!activeCandidate) { toast.error('Nenhum candidato ativo. Configure em Configurações.'); return; }
     try {
       const payload = {
         name: form.name,
+        candidate_id: activeCandidate.id,
         phone: form.phone || null,
         email: form.email || null,
         status: form.status,
