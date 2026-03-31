@@ -1,5 +1,16 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { supabase } from '@/contexts/AuthContext';
+
+export type CampaignType = 'majoritaria' | 'proporcional' | null;
+
+const MAJORITARIA_CARGOS = ['Prefeito', 'Governador', 'Presidente'];
+const PROPORCIONAL_CARGOS = ['Vereador', 'Deputado Estadual', 'Deputado Federal', 'Senador'];
+
+export function getCampaignType(cargo: string): CampaignType {
+  if (MAJORITARIA_CARGOS.includes(cargo)) return 'majoritaria';
+  if (PROPORCIONAL_CARGOS.includes(cargo)) return 'proporcional';
+  return null;
+}
 
 export interface Candidate {
   id: string;
@@ -18,6 +29,7 @@ export interface Candidate {
 
 interface CandidateContextValue {
   activeCandidate: Candidate | null;
+  campaignType: CampaignType;
   candidates: Candidate[];
   loading: boolean;
   setActive: (id: string) => Promise<void>;
@@ -49,7 +61,6 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setActive = async (id: string) => {
-    // Optimistic update
     setCandidates(prev => prev.map(c => ({ ...c, is_active: c.id === id })));
     await (supabase as any)
       .from('candidates')
@@ -63,9 +74,10 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
   };
 
   const activeCandidate = candidates.find(c => c.is_active) ?? null;
+  const campaignType = useMemo(() => activeCandidate ? getCampaignType(activeCandidate.cargo) : null, [activeCandidate]);
 
   return (
-    <CandidateContext.Provider value={{ activeCandidate, candidates, loading, setActive, refetch: fetchCandidates }}>
+    <CandidateContext.Provider value={{ activeCandidate, campaignType, candidates, loading, setActive, refetch: fetchCandidates }}>
       {children}
     </CandidateContext.Provider>
   );
