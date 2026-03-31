@@ -64,7 +64,7 @@ export function LeadershipProfilesManager() {
         name: form.name.trim(),
         description: form.description || null,
         category: form.category || null,
-        level: form.level,
+        level: form.level as 'local' | 'regional' | 'estadual',
         color: form.color,
         active: form.active,
       };
