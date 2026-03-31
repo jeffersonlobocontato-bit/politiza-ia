@@ -6,29 +6,50 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, ShieldAlert, Vote
+  Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote
 } from 'lucide-react';
-import { useCandidate } from '@/contexts/CandidateContext';
+import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 
-const navItems = [
-  { title: 'Sala de Guerra', url: '/', icon: Crosshair },
-  { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true },
-  { title: 'Proporcional', url: '/proporcional', icon: Vote },
-  { title: 'Mapa Estratégico', url: '/mapa', icon: Map },
-  { title: 'Territórios', url: '/territorios', icon: Globe },
-  { title: 'Ações', url: '/acoes', icon: ClipboardList },
-  { title: 'Campo', url: '/campo', icon: Smartphone },
-  { title: 'Ativos Políticos', url: '/ativos', icon: Users },
-  { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2 },
-  { title: 'Hierarquia', url: '/hierarquia', icon: Network },
-  { title: 'Configurações', url: '/configuracoes', icon: Settings },
+type ModuleScope = 'majoritaria' | 'proporcional' | 'shared';
+
+interface NavItem {
+  title: string;
+  url: string;
+  icon: any;
+  highlight?: boolean;
+  scope: ModuleScope;
+}
+
+const navItems: NavItem[] = [
+  // Majoritária-only
+  { title: 'Sala de Guerra', url: '/', icon: Crosshair, scope: 'majoritaria' },
+  { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'majoritaria' },
+  { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'majoritaria' },
+  { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'majoritaria' },
+  { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'majoritaria' },
+  { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'majoritaria' },
+  // Proporcional-only
+  { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
+  // Shared (always visible)
+  { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
+  { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
+  { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
+  { title: 'Configurações', url: '/configuracoes', icon: Settings, scope: 'shared' },
 ];
+
+function isItemVisible(item: NavItem, campaignType: CampaignType): boolean {
+  if (item.scope === 'shared') return true;
+  if (!campaignType) return true; // No active candidate → show all
+  return item.scope === campaignType;
+}
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { activeCandidate } = useCandidate();
+  const { activeCandidate, campaignType } = useCandidate();
+
+  const visibleItems = navItems.filter(item => isItemVisible(item, campaignType));
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -56,9 +77,9 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5 px-2">
-              {navItems.map((item) => {
+              {visibleItems.map((item) => {
                 const isActive = location.pathname === item.url;
-                const isHighlight = (item as any).highlight;
+                const isHighlight = item.highlight;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
@@ -95,9 +116,18 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Candidate / User profile bottom */}
+        {/* Candidate / campaign type badge + profile */}
         {!collapsed && (
           <div className="mt-auto p-4 border-t border-sidebar-border/30">
+            {campaignType && (
+              <div className={`mb-3 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-center ${
+                campaignType === 'majoritaria'
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              }`}>
+                {campaignType === 'majoritaria' ? 'Campanha Majoritária' : 'Campanha Proporcional'}
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/20 flex-shrink-0 overflow-hidden">
                 {activeCandidate?.photo_url
