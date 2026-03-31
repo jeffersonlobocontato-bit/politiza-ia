@@ -79,6 +79,10 @@ export default function AtivosPoliticos() {
   const createAsset = useCreateAsset();
   const updateAsset = useUpdateAsset();
   const deleteAsset = useDeleteAsset();
+  const { data: leadershipProfiles = [] } = useLeadershipProfiles(true);
+  const assetIds = useMemo(() => assets.map(a => a.id), [assets]);
+  const { data: assetLinks = [] } = useAssetLeadershipLinks(assetIds);
+  const setAssetProfiles = useSetAssetProfiles();
 
   const [search, setSearch] = useState('');
   const [macroFilter, setMacroFilter] = useState('all');
@@ -87,6 +91,7 @@ export default function AtivosPoliticos() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
+  const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
 
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
