@@ -20,6 +20,7 @@ import Pesquisas from "./pages/Pesquisas";
 import Hierarquia from "./pages/Hierarquia";
 import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
+import Proporcional from "./pages/Proporcional";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
