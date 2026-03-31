@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateVoteProjection, useUpdateVoteProjection, VoteProjection } from '@/hooks/useVoteProjections';
 import { useLeaders } from '@/hooks/useLeaders';
-import { supabase } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
