@@ -91,10 +91,48 @@ export default function Configuracoes() {
     setDialogOpen(true);
   };
 
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A foto deve ter no máximo 5MB');
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    form.setValue('photo_url', ''); // clear URL when uploading file
+  };
+
+  const uploadPhoto = async (candidateName: string): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split('.').pop() || 'jpg';
+    const fileName = `${candidateName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
+    const { data, error } = await (supabase as any).storage
+      .from('candidate-photos')
+      .upload(fileName, photoFile, { upsert: true });
+    if (error) {
+      console.error('Upload error:', error);
+      toast.error('Erro ao fazer upload da foto');
+      return null;
+    }
+    const { data: urlData } = (supabase as any).storage
+      .from('candidate-photos')
+      .getPublicUrl(data.path);
+    return urlData?.publicUrl || null;
+  };
+
   const onSubmit = async (data: CandidateForm) => {
     setSaving(true);
     try {
-      const payload = { ...data, bio: data.bio || null, photo_url: data.photo_url || null };
+      let photoUrl = data.photo_url || null;
+
+      // Upload file if selected
+      if (photoFile) {
+        const uploadedUrl = await uploadPhoto(data.name);
+        if (uploadedUrl) photoUrl = uploadedUrl;
+      }
+
+      const payload = { ...data, bio: data.bio || null, photo_url: photoUrl };
       if (editingId) {
         await (supabase as any).from('candidates').update(payload).eq('id', editingId);
         toast.success('Candidato atualizado!');
