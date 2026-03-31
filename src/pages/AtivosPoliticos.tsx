@@ -380,9 +380,20 @@ export default function AtivosPoliticos() {
                       {ALIGNMENT_LABELS[asset.alignment_status] ?? asset.alignment_status}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{ASSET_TYPES.find(t => t.value === asset.type)?.label ?? asset.type}</span>
                     <span className="text-[10px] text-muted-foreground">{asset.municipality}</span>
+                    {assetLinks
+                      .filter(l => l.asset_id === asset.id)
+                      .map(l => {
+                        const prof = leadershipProfiles.find(p => p.id === l.profile_id);
+                        if (!prof) return null;
+                        return (
+                          <span key={l.id} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full border" style={{ color: prof.color, borderColor: `${prof.color}40`, backgroundColor: `${prof.color}12` }}>
+                            {prof.name}
+                          </span>
+                        );
+                      })}
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
                     <div>
