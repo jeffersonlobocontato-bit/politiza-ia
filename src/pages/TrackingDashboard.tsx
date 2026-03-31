@@ -263,12 +263,50 @@ export default function TrackingDashboard() {
                       {questions.length > 0 && (
                         <div className="space-y-2 mb-3">
                           {questions.map((q, idx) => (
-                            <div key={idx} className="flex items-center gap-2 p-2 rounded border bg-muted/30">
-                              <span className="text-sm flex-1">{q.label}</span>
-                              <Badge variant="outline" className="text-xs">{q.question_type}</Badge>
-                              <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeQuestion(idx)}>
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
+                            <div key={idx} className="rounded border bg-muted/30">
+                              <div className="flex items-center gap-2 p-2">
+                                <span className="text-sm flex-1 font-medium">{q.label}</span>
+                                <Button type="button" size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => toggleQuestionType(idx)}>
+                                  {q.question_type === 'text' ? 'Texto' : q.question_type === 'select' ? 'Opções' : 'Candidato'}
+                                </Button>
+                                <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingOptionsIdx(editingOptionsIdx === idx ? null : idx)}>
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                                <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeQuestion(idx)}>
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              {/* Options list */}
+                              {q.options.length > 0 && (
+                                <div className="px-3 pb-2 flex flex-wrap gap-1">
+                                  {q.options.map((opt, oi) => (
+                                    <Badge key={oi} variant="secondary" className="text-xs gap-1">
+                                      {opt}
+                                      <button type="button" className="ml-0.5 hover:text-destructive" onClick={() => removeOptionFromQuestion(idx, oi)}>×</button>
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {/* Add option input */}
+                              {editingOptionsIdx === idx && (
+                                <div className="px-3 pb-2 flex gap-2">
+                                  <Input
+                                    value={newOption}
+                                    onChange={e => setNewOption(e.target.value)}
+                                    placeholder="Adicionar opção de resposta..."
+                                    className="h-8 text-sm"
+                                    onKeyDown={e => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        addOptionToQuestion(idx);
+                                      }
+                                    }}
+                                  />
+                                  <Button type="button" size="sm" className="h-8" onClick={() => addOptionToQuestion(idx)} disabled={!newOption.trim()}>
+                                    +
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
