@@ -41,14 +41,7 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
   const create = useCreateVoteProjection();
   const update = useUpdateVoteProjection();
   const { data: leaders } = useLeaders({ status: 'ativo' });
-
-  const { data: candidates } = useQuery({
-    queryKey: ['candidates-active'],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('candidates').select('*').order('name');
-      return data ?? [];
-    },
-  });
+  const { activeCandidate } = useCandidate();
 
   const [form, setForm] = useState({
     candidate_id: projection?.candidate_id ?? '',
