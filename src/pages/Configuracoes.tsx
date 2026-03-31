@@ -276,6 +276,8 @@ export default function Configuracoes() {
           </div>
         )}
 
+        {tab === 'perfis_lideranca' && <LeadershipProfilesManager />}
+
         {tab === 'conta' && (
           <div className="max-w-md space-y-6">
             <div className="rounded-xl border border-border p-6 flex items-center gap-4">
