@@ -94,7 +94,7 @@ export function useAlerts() {
         .order('created_at', { ascending: false })
         .limit(30);
       if (error) throw error;
-      return (data ?? []) as DbAlert[];
+      return (data ?? []) as unknown as DbAlert[];
     },
     refetchInterval: 60_000,
   });

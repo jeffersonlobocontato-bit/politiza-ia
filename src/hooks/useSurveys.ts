@@ -100,9 +100,9 @@ export function useSurveys() {
         return { waves: [] as PollWave[], questions: [] as PollQuestion[] };
       }
 
-      const waves: PollWave[] = (surveys as DbSurvey[] ?? []).map(dbSurveyToWave);
-      const dbQuestions = (questions as DbSurveyQuestion[]) ?? [];
-      const dbResults = (results as DbSurveyResult[]) ?? [];
+      const waves: PollWave[] = ((surveys as unknown as DbSurvey[]) ?? []).map(dbSurveyToWave);
+      const dbQuestions = ((questions as unknown as DbSurveyQuestion[]) ?? []);
+      const dbResults = ((results as unknown as DbSurveyResult[]) ?? []);
 
       const pollQuestions: PollQuestion[] = dbQuestions.map(q =>
         dbQuestionToPoll(q, dbResults),
