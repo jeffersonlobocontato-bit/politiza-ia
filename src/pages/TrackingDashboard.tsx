@@ -77,11 +77,15 @@ export default function TrackingDashboard() {
     toast.success('Link copiado!');
   };
 
+  const [editingOptionsIdx, setEditingOptionsIdx] = useState<number | null>(null);
+  const [newOption, setNewOption] = useState('');
+
   const addAllPresets = () => {
     const existing = new Set(questions.map(q => q.question_key));
     const toAdd = QUESTION_PRESETS.filter(p => !existing.has(p.question_key)).map(p => ({
       ...p,
       is_required: true,
+      options: [] as string[],
     }));
     setQuestions(prev => [...prev, ...toAdd]);
   };
@@ -89,9 +93,30 @@ export default function TrackingDashboard() {
   const addCustomQuestion = () => {
     if (!customLabel.trim()) return;
     const key = customKey.trim() || customLabel.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    setQuestions(prev => [...prev, { question_key: key, label: customLabel.trim(), question_type: 'text', is_required: false }]);
+    setQuestions(prev => [...prev, { question_key: key, label: customLabel.trim(), question_type: 'select', is_required: false, options: [] }]);
     setCustomLabel('');
     setCustomKey('');
+    // Auto-open options editor for the new question
+    setTimeout(() => setEditingOptionsIdx(questions.length), 0);
+  };
+
+  const addOptionToQuestion = (idx: number) => {
+    if (!newOption.trim()) return;
+    setQuestions(prev => prev.map((q, i) => i === idx ? { ...q, options: [...q.options, newOption.trim()] } : q));
+    setNewOption('');
+  };
+
+  const removeOptionFromQuestion = (qIdx: number, optIdx: number) => {
+    setQuestions(prev => prev.map((q, i) => i === qIdx ? { ...q, options: q.options.filter((_, oi) => oi !== optIdx) } : q));
+  };
+
+  const toggleQuestionType = (idx: number) => {
+    setQuestions(prev => prev.map((q, i) => {
+      if (i !== idx) return q;
+      const types = ['text', 'select', 'candidate_name'];
+      const next = types[(types.indexOf(q.question_type) + 1) % types.length];
+      return { ...q, question_type: next };
+    }));
   };
 
   const removeQuestion = (idx: number) => {
