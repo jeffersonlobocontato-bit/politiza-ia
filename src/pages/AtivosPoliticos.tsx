@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
+import { useLeadershipProfiles, useAssetLeadershipLinks, useSetAssetProfiles } from '@/hooks/useLeadershipProfiles';
+import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 
@@ -77,6 +79,10 @@ export default function AtivosPoliticos() {
   const createAsset = useCreateAsset();
   const updateAsset = useUpdateAsset();
   const deleteAsset = useDeleteAsset();
+  const { data: leadershipProfiles = [] } = useLeadershipProfiles(true);
+  const assetIds = useMemo(() => assets.map(a => a.id), [assets]);
+  const { data: assetLinks = [] } = useAssetLeadershipLinks(assetIds);
+  const setAssetProfiles = useSetAssetProfiles();
 
   const [search, setSearch] = useState('');
   const [macroFilter, setMacroFilter] = useState('all');
@@ -85,6 +91,7 @@ export default function AtivosPoliticos() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
+  const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
 
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
@@ -101,6 +108,7 @@ export default function AtivosPoliticos() {
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedProfileIds([]);
     setShowForm(true);
   };
 
@@ -120,6 +128,7 @@ export default function AtivosPoliticos() {
       relationship_owner: asset.relationship_owner ?? '',
     });
     setGeoForm({ city: asset.municipality ?? '', lat: asset.lat ?? null, lng: asset.lng ?? null });
+    setSelectedProfileIds(assetLinks.filter(l => l.asset_id === asset.id).map(l => l.profile_id));
     setShowForm(true);
   };
 
@@ -144,15 +153,21 @@ export default function AtivosPoliticos() {
       created_by: null as string | null,
       updated_by: null as string | null,
     };
+    let assetId = editingId;
     if (editingId) {
       await updateAsset.mutateAsync({ id: editingId, ...payload });
     } else {
-      await createAsset.mutateAsync(payload);
+      const result = await createAsset.mutateAsync(payload);
+      assetId = (result as any)?.id ?? null;
+    }
+    if (assetId) {
+      await setAssetProfiles.mutateAsync({ assetId, profileIds: selectedProfileIds });
     }
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedProfileIds([]);
   };
 
   const handleDelete = async (id: string) => {
@@ -306,6 +321,12 @@ export default function AtivosPoliticos() {
                 <input value={form.relationship_owner} onChange={e => updateForm('relationship_owner', e.target.value)} placeholder="Coordenador responsável" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
               <div className="sm:col-span-2">
+                <LeadershipProfileSelect
+                  selectedIds={selectedProfileIds}
+                  onChange={setSelectedProfileIds}
+                />
+              </div>
+              <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground block mb-1">Observações Estratégicas</label>
                 <textarea value={form.observations} onChange={e => updateForm('observations', e.target.value)} rows={3} placeholder="Notas estratégicas sobre este ativo..." className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none" />
               </div>
@@ -359,9 +380,20 @@ export default function AtivosPoliticos() {
                       {ALIGNMENT_LABELS[asset.alignment_status] ?? asset.alignment_status}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{ASSET_TYPES.find(t => t.value === asset.type)?.label ?? asset.type}</span>
                     <span className="text-[10px] text-muted-foreground">{asset.municipality}</span>
+                    {assetLinks
+                      .filter(l => l.asset_id === asset.id)
+                      .map(l => {
+                        const prof = leadershipProfiles.find(p => p.id === l.profile_id);
+                        if (!prof) return null;
+                        return (
+                          <span key={l.id} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full border" style={{ color: prof.color, borderColor: `${prof.color}40`, backgroundColor: `${prof.color}12` }}>
+                            {prof.name}
+                          </span>
+                        );
+                      })}
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
                     <div>

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag } from 'lucide-react';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
+import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -55,7 +56,7 @@ const PRESET_CANDIDATES = [
 export default function Configuracoes() {
   const { candidates, activeCandidate, setActive, refetch } = useCandidate();
   const { isAdmin } = useAuth();
-  const [tab, setTab] = useState<'candidatos' | 'conta'>('candidatos');
+  const [tab, setTab] = useState<'candidatos' | 'perfis_lideranca' | 'conta'>('candidatos');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -134,15 +135,19 @@ export default function Configuracoes() {
 
       {/* Tabs */}
       <div className="px-6 border-b border-border flex gap-1 flex-shrink-0">
-        {(['candidatos', 'conta'] as const).map(t => (
+        {([
+          { key: 'candidatos', label: 'Candidatos' },
+          { key: 'perfis_lideranca', label: 'Perfis de Liderança' },
+          { key: 'conta', label: 'Minha Conta' },
+        ] as const).map(t => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize ${
-              tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              tab === t.key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            {t === 'candidatos' ? 'Candidatos' : 'Minha Conta'}
+            {t.label}
           </button>
         ))}
       </div>
@@ -270,6 +275,8 @@ export default function Configuracoes() {
             )}
           </div>
         )}
+
+        {tab === 'perfis_lideranca' && <LeadershipProfilesManager />}
 
         {tab === 'conta' && (
           <div className="max-w-md space-y-6">
