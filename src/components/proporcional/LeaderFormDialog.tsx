@@ -88,6 +88,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
 
   const handleSubmit = async () => {
     if (!form.name.trim()) { toast.error('Nome é obrigatório'); return; }
+    if (!activeCandidate) { toast.error('Nenhum candidato ativo. Configure em Configurações.'); return; }
     try {
       const payload = {
         name: form.name,
