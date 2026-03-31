@@ -39,8 +39,8 @@ export default function TrackingForm() {
 
   // Use dynamic questions if available, fallback to static presets
   const displayQuestions = roundQuestions.length > 0
-    ? roundQuestions.map(q => ({ key: q.question_key, label: q.label, type: q.question_type }))
-    : TRACKING_QUESTION_KEYS.map(q => ({ key: q.key, label: q.label, type: 'text' }));
+    ? roundQuestions.map(q => ({ key: q.question_key, label: q.label, type: q.question_type, options: (q.options as string[] | null) || [] }))
+    : TRACKING_QUESTION_KEYS.map(q => ({ key: q.key, label: q.label, type: 'text', options: [] as string[] }));
 
   useEffect(() => {
     if (activeRounds.length > 0 && !selectedRoundId) {
@@ -240,11 +240,22 @@ export default function TrackingForm() {
           {displayQuestions.map(q => (
             <div key={q.key}>
               <Label>{q.label}</Label>
-              <Input
-                value={answers[q.key] || ''}
-                onChange={e => setAnswers(prev => ({ ...prev, [q.key]: e.target.value }))}
-                placeholder={`Resposta para ${q.label}`}
-              />
+              {q.options.length > 0 ? (
+                <Select value={answers[q.key] || ''} onValueChange={v => setAnswers(prev => ({ ...prev, [q.key]: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {q.options.map(opt => (
+                      <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={answers[q.key] || ''}
+                  onChange={e => setAnswers(prev => ({ ...prev, [q.key]: e.target.value }))}
+                  placeholder={`Resposta para ${q.label}`}
+                />
+              )}
             </div>
           ))}
         </CardContent>
