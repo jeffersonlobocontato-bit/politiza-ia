@@ -227,6 +227,42 @@ export type Database = {
           },
         ]
       }
+      asset_leadership_profiles: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_leadership_profiles_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "political_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_leadership_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_members: {
         Row: {
           actions_managed: number
@@ -403,6 +439,42 @@ export type Database = {
           sample_size?: number
           territory?: string
           tse_registration?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leadership_profiles: {
+        Row: {
+          active: boolean
+          category: string | null
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          level: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          level?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          level?: string
+          name?: string
           updated_at?: string
         }
         Relationships: []
