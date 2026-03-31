@@ -71,6 +71,8 @@ export default function Configuracoes() {
 
   const openCreate = (preset?: typeof PRESET_CANDIDATES[0]) => {
     setEditingId(null);
+    setPhotoFile(null);
+    setPhotoPreview(null);
     form.reset(preset
       ? { ...preset, bio: preset.bio, photo_url: '' }
       : { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
@@ -80,6 +82,8 @@ export default function Configuracoes() {
 
   const openEdit = (c: Candidate) => {
     setEditingId(c.id);
+    setPhotoFile(null);
+    setPhotoPreview(c.photo_url || null);
     form.reset({
       name: c.name, party: c.party, cargo: c.cargo, state: c.state,
       election_year: c.election_year, bio: c.bio ?? '', photo_url: c.photo_url ?? '',
