@@ -92,6 +92,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
     try {
       const payload = {
         name: form.name,
+        candidate_id: activeCandidate.id,
         phone: form.phone || null,
         email: form.email || null,
         status: form.status,
