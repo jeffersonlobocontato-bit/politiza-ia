@@ -41,6 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let initialised = false;
+
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
       async (_event, sess) => {
         setSession(sess);
@@ -51,18 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
           setRoles([]);
         }
-        setLoading(false);
+        if (initialised) setLoading(false);
       }
     );
 
-    supabaseClient.auth.getSession().then(({ data: { session: sess } }) => {
+    supabaseClient.auth.getSession().then(async ({ data: { session: sess } }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        loadUserData(sess.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
+        await loadUserData(sess.user.id);
       }
+      setLoading(false);
+      initialised = true;
     });
 
     return () => subscription.unsubscribe();
