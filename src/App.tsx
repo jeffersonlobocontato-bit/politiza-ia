@@ -22,6 +22,9 @@ import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
 import Proporcional from "./pages/Proporcional";
 import NotFound from "./pages/NotFound";
+import TrackingForm from "./pages/TrackingForm";
+import TrackingDashboard from "./pages/TrackingDashboard";
+import TrackingInsights from "./pages/TrackingInsights";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +49,9 @@ const AppRoutes = () => (
     <Route path="/configuracoes" element={<ProtectedRoute><AppLayout><Configuracoes /></AppLayout></ProtectedRoute>} />
     <Route path="/sala-de-crise" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
     <Route path="/proporcional" element={<ProtectedRoute><AppLayout><Proporcional /></AppLayout></ProtectedRoute>} />
+    <Route path="/tracking" element={<ProtectedRoute><AppLayout><TrackingForm /></AppLayout></ProtectedRoute>} />
+    <Route path="/tracking/dashboard" element={<ProtectedRoute><AppLayout><TrackingDashboard /></AppLayout></ProtectedRoute>} />
+    <Route path="/tracking/apontamentos" element={<ProtectedRoute><AppLayout><TrackingInsights /></AppLayout></ProtectedRoute>} />
     {/* Legacy redirects */}
     <Route path="/alertas" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
     <Route path="/inteligencia" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />

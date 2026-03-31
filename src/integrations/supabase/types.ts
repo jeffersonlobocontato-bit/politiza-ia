@@ -1023,6 +1023,321 @@ export type Database = {
           },
         ]
       }
+      tracking_ai_alerts: {
+        Row: {
+          alert_type: Database["public"]["Enums"]["tracking_alert_type"]
+          candidate_id: string
+          capillarity_index: number | null
+          created_at: string
+          description: string | null
+          field_actions_count: number | null
+          generated_from: Json | null
+          id: string
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          priority_score: number | null
+          recommendation: string | null
+          resolution_note: string | null
+          round_id: string
+          severity: number
+          status: Database["public"]["Enums"]["tracking_insight_status"]
+          title: string
+          tracking_variation: number | null
+          updated_at: string
+        }
+        Insert: {
+          alert_type?: Database["public"]["Enums"]["tracking_alert_type"]
+          candidate_id: string
+          capillarity_index?: number | null
+          created_at?: string
+          description?: string | null
+          field_actions_count?: number | null
+          generated_from?: Json | null
+          id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          priority_score?: number | null
+          recommendation?: string | null
+          resolution_note?: string | null
+          round_id: string
+          severity?: number
+          status?: Database["public"]["Enums"]["tracking_insight_status"]
+          title: string
+          tracking_variation?: number | null
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: Database["public"]["Enums"]["tracking_alert_type"]
+          candidate_id?: string
+          capillarity_index?: number | null
+          created_at?: string
+          description?: string | null
+          field_actions_count?: number | null
+          generated_from?: Json | null
+          id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          priority_score?: number | null
+          recommendation?: string | null
+          resolution_note?: string | null
+          round_id?: string
+          severity?: number
+          status?: Database["public"]["Enums"]["tracking_insight_status"]
+          title?: string
+          tracking_variation?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_ai_alerts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_ai_alerts_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_ai_insights: {
+        Row: {
+          candidate_id: string
+          capillarity_score: number | null
+          created_at: string
+          description: string | null
+          efficiency_score: number | null
+          id: string
+          insight_type: Database["public"]["Enums"]["tracking_insight_type"]
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          priority_score: number | null
+          recommendation: string | null
+          resolution_note: string | null
+          round_id: string
+          severity: number
+          source_data: Json | null
+          status: Database["public"]["Enums"]["tracking_insight_status"]
+          territory_scope: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          capillarity_score?: number | null
+          created_at?: string
+          description?: string | null
+          efficiency_score?: number | null
+          id?: string
+          insight_type?: Database["public"]["Enums"]["tracking_insight_type"]
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          priority_score?: number | null
+          recommendation?: string | null
+          resolution_note?: string | null
+          round_id: string
+          severity?: number
+          source_data?: Json | null
+          status?: Database["public"]["Enums"]["tracking_insight_status"]
+          territory_scope?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          capillarity_score?: number | null
+          created_at?: string
+          description?: string | null
+          efficiency_score?: number | null
+          id?: string
+          insight_type?: Database["public"]["Enums"]["tracking_insight_type"]
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          priority_score?: number | null
+          recommendation?: string | null
+          resolution_note?: string | null
+          round_id?: string
+          severity?: number
+          source_data?: Json | null
+          status?: Database["public"]["Enums"]["tracking_insight_status"]
+          territory_scope?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_ai_insights_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_ai_insights_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_interview_answers: {
+        Row: {
+          answer_value: string
+          candidate_name: string | null
+          created_at: string
+          id: string
+          interview_id: string
+          question_key: string
+        }
+        Insert: {
+          answer_value: string
+          candidate_name?: string | null
+          created_at?: string
+          id?: string
+          interview_id: string
+          question_key: string
+        }
+        Update: {
+          answer_value?: string
+          candidate_name?: string | null
+          created_at?: string
+          id?: string
+          interview_id?: string
+          question_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_interview_answers_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_interviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_interviews: {
+        Row: {
+          created_at: string
+          id: string
+          interviewer_id: string
+          lat: number | null
+          lng: number | null
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
+          respondent_age_range: string | null
+          respondent_education: string | null
+          respondent_gender: string | null
+          respondent_income: string | null
+          round_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interviewer_id: string
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          respondent_age_range?: string | null
+          respondent_education?: string | null
+          respondent_gender?: string | null
+          respondent_income?: string | null
+          round_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interviewer_id?: string
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
+          respondent_age_range?: string | null
+          respondent_education?: string | null
+          respondent_gender?: string | null
+          respondent_income?: string | null
+          round_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_interviews_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_rounds: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          start_date: string
+          status: Database["public"]["Enums"]["tracking_round_status"]
+          target_interviews: number
+          territory_scope: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["tracking_round_status"]
+          target_interviews?: number
+          territory_scope?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["tracking_round_status"]
+          target_interviews?: number
+          territory_scope?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_rounds_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -1267,6 +1582,23 @@ export type Database = {
         | "risco_eleitoral"
         | "ineficiencia_atuacao"
         | "oportunidade_estrategica"
+      tracking_alert_type:
+        | "baixa_capilaridade"
+        | "queda_tracking"
+        | "oportunidade_expansao"
+        | "baixa_eficiencia"
+        | "indecisos_altos"
+      tracking_insight_status:
+        | "novo"
+        | "visualizado"
+        | "em_analise"
+        | "resolvido"
+      tracking_insight_type:
+        | "performance"
+        | "eficiencia"
+        | "capilaridade"
+        | "oportunidade"
+      tracking_round_status: "aberta" | "fechada" | "em_analise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1465,6 +1797,26 @@ export const Constants = {
         "ineficiencia_atuacao",
         "oportunidade_estrategica",
       ],
+      tracking_alert_type: [
+        "baixa_capilaridade",
+        "queda_tracking",
+        "oportunidade_expansao",
+        "baixa_eficiencia",
+        "indecisos_altos",
+      ],
+      tracking_insight_status: [
+        "novo",
+        "visualizado",
+        "em_analise",
+        "resolvido",
+      ],
+      tracking_insight_type: [
+        "performance",
+        "eficiencia",
+        "capilaridade",
+        "oportunidade",
+      ],
+      tracking_round_status: ["aberta", "fechada", "em_analise"],
     },
   },
 } as const
