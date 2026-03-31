@@ -22,6 +22,9 @@ import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
 import Proporcional from "./pages/Proporcional";
 import NotFound from "./pages/NotFound";
+import TrackingForm from "./pages/TrackingForm";
+import TrackingDashboard from "./pages/TrackingDashboard";
+import TrackingInsights from "./pages/TrackingInsights";
 
 const queryClient = new QueryClient({
   defaultOptions: {
