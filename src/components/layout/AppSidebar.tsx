@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, ShieldAlert
+  Users, BarChart2, Brain, Network, Settings, ShieldCheck, AlertTriangle, ShieldAlert, Vote
 } from 'lucide-react';
 import { useCandidate } from '@/contexts/CandidateContext';
 
