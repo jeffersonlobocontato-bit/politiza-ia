@@ -49,18 +49,19 @@ export default function Proporcional() {
   const [editLeader, setEditLeader] = useState<Leader | undefined>();
   const [editProjection, setEditProjection] = useState<VoteProjection | undefined>();
 
-  const { data: leaders = [], isLoading: loadingLeaders } = useLeaders();
-  const { data: projections = [], isLoading: loadingProj } = useVoteProjections();
+  const { activeCandidate } = useCandidate();
+  const { data: allLeaders = [], isLoading: loadingLeaders } = useLeaders();
+  const { data: projections = [], isLoading: loadingProj } = useVoteProjections(
+    activeCandidate ? { candidate_id: activeCandidate.id } : undefined
+  );
   const { data: profiles = [] } = useLeadershipProfiles();
-  const stats = useProjectionStats();
+  const stats = useProjectionStats(activeCandidate?.id);
 
-  const { data: candidates = [] } = useQuery({
-    queryKey: ['candidates-all-prop'],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('candidates').select('*').order('name');
-      return data ?? [];
-    },
-  });
+  // Filter leaders linked to active candidate
+  const leaders = useMemo(() => {
+    if (!activeCandidate) return allLeaders;
+    return allLeaders.filter(l => l.candidate_id === activeCandidate.id);
+  }, [allLeaders, activeCandidate]);
 
   // Leader profiles junction
   const { data: leaderProfileLinks = [] } = useQuery({
