@@ -45,7 +45,6 @@ export function ProjectionFormDialog({ open, onOpenChange, projection }: Props) 
 
   const [form, setForm] = useState({
     leader_id: projection?.leader_id ?? '',
-    leader_id: projection?.leader_id ?? '',
     candidacy_type: projection?.candidacy_type ?? 'vereador',
     municipality: projection?.municipality ?? '',
     microregion: projection?.microregion ?? '',
