@@ -34,9 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (supabaseClient as any).from('user_roles').select('role').eq('user_id', userId),
       ]);
       if (profileRes.data) setProfile(profileRes.data as DbProfile);
-      if (rolesRes.data) setRoles((rolesRes.data as any[]).map(r => r.role as AppRole));
-    } catch {
-      // tables not migrated yet — silently ignore
+      if (rolesRes.data && rolesRes.data.length > 0) {
+        setRoles(rolesRes.data.map((r: any) => r.role as AppRole));
+      }
+    } catch (err) {
+      console.warn('loadUserData error:', err);
     }
   };
 
