@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
+import { useLeadershipProfiles, useAssetLeadershipLinks, useSetAssetProfiles } from '@/hooks/useLeadershipProfiles';
+import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 
