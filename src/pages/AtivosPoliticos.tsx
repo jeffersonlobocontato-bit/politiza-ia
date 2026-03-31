@@ -321,6 +321,12 @@ export default function AtivosPoliticos() {
                 <input value={form.relationship_owner} onChange={e => updateForm('relationship_owner', e.target.value)} placeholder="Coordenador responsável" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
               <div className="sm:col-span-2">
+                <LeadershipProfileSelect
+                  selectedIds={selectedProfileIds}
+                  onChange={setSelectedProfileIds}
+                />
+              </div>
+              <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground block mb-1">Observações Estratégicas</label>
                 <textarea value={form.observations} onChange={e => updateForm('observations', e.target.value)} rows={3} placeholder="Notas estratégicas sobre este ativo..." className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none" />
               </div>
