@@ -39,8 +39,8 @@ export default function TrackingForm() {
 
   // Use dynamic questions if available, fallback to static presets
   const displayQuestions = roundQuestions.length > 0
-    ? roundQuestions.map(q => ({ key: q.question_key, label: q.label, type: q.question_type }))
-    : TRACKING_QUESTION_KEYS.map(q => ({ key: q.key, label: q.label, type: 'text' }));
+    ? roundQuestions.map(q => ({ key: q.question_key, label: q.label, type: q.question_type, options: (q.options as string[] | null) || [] }))
+    : TRACKING_QUESTION_KEYS.map(q => ({ key: q.key, label: q.label, type: 'text', options: [] as string[] }));
 
   useEffect(() => {
     if (activeRounds.length > 0 && !selectedRoundId) {
