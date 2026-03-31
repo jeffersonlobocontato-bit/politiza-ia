@@ -1282,6 +1282,50 @@ export type Database = {
           },
         ]
       }
+      tracking_round_questions: {
+        Row: {
+          created_at: string
+          id: string
+          is_required: boolean
+          label: string
+          options: Json | null
+          question_key: string
+          question_type: string
+          round_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          label: string
+          options?: Json | null
+          question_key: string
+          question_type?: string
+          round_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          label?: string
+          options?: Json | null
+          question_key?: string
+          question_type?: string
+          round_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_round_questions_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tracking_rounds: {
         Row: {
           candidate_id: string
@@ -1291,6 +1335,9 @@ export type Database = {
           description: string | null
           end_date: string | null
           id: string
+          macroregion_id: string | null
+          microregion: string | null
+          municipality: string | null
           start_date: string
           status: Database["public"]["Enums"]["tracking_round_status"]
           target_interviews: number
@@ -1306,6 +1353,9 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["tracking_round_status"]
           target_interviews?: number
@@ -1321,6 +1371,9 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
+          macroregion_id?: string | null
+          microregion?: string | null
+          municipality?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["tracking_round_status"]
           target_interviews?: number
