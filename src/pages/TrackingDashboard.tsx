@@ -25,6 +25,7 @@ interface NewQuestion {
   label: string;
   question_type: string;
   is_required: boolean;
+  options: string[];
 }
 
 export default function TrackingDashboard() {
