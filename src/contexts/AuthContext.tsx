@@ -1,15 +1,10 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session, createClient } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import type { AppRole, DbProfile } from '@/types/database';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
-// Raw untyped client to bypass auto-generated empty types
-const supabaseRaw = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-  { auth: { storage: localStorage, persistSession: true, autoRefreshToken: true } }
-);
-
-export { supabaseRaw as supabase };
+// Re-export so existing imports from AuthContext keep working
+export const supabase = supabaseClient;
 
 interface AuthContextValue {
   user: User | null;
