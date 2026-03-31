@@ -11,6 +11,7 @@ import { useVoteProjections, useProjectionStats, VoteProjection } from '@/hooks/
 import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
 import { LeaderFormDialog } from '@/components/proporcional/LeaderFormDialog';
 import { ProjectionFormDialog } from '@/components/proporcional/ProjectionFormDialog';
+import { useCandidate } from '@/contexts/CandidateContext';
 import { supabase } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import {
