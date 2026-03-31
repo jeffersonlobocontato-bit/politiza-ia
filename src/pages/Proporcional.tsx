@@ -83,9 +83,9 @@ export default function Proporcional() {
 
   const candidateMap = useMemo(() => {
     const m: Record<string, any> = {};
-    candidates.forEach((c: any) => { m[c.id] = c; });
+    if (activeCandidate) m[activeCandidate.id] = activeCandidate;
     return m;
-  }, [candidates]);
+  }, [activeCandidate]);
 
   const leaderMap = useMemo(() => {
     const m: Record<string, Leader> = {};
