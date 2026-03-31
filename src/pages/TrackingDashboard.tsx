@@ -142,7 +142,7 @@ export default function TrackingDashboard() {
           question_key: q.question_key,
           label: q.label,
           question_type: q.question_type,
-          options: null,
+          options: q.options.length > 0 ? q.options : null,
           sort_order: i,
           is_required: q.is_required,
         }))
