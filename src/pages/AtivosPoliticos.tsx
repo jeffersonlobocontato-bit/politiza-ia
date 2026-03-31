@@ -108,6 +108,7 @@ export default function AtivosPoliticos() {
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedProfileIds([]);
     setShowForm(true);
   };
 
