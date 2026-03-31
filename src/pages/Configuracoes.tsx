@@ -56,7 +56,7 @@ const PRESET_CANDIDATES = [
 export default function Configuracoes() {
   const { candidates, activeCandidate, setActive, refetch } = useCandidate();
   const { isAdmin } = useAuth();
-  const [tab, setTab] = useState<'candidatos' | 'conta'>('candidatos');
+  const [tab, setTab] = useState<'candidatos' | 'perfis_lideranca' | 'conta'>('candidatos');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
