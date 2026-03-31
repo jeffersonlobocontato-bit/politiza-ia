@@ -13,6 +13,7 @@ import { useCandidate } from '@/contexts/CandidateContext';
 const navItems = [
   { title: 'Sala de Guerra', url: '/', icon: Crosshair },
   { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true },
+  { title: 'Proporcional', url: '/proporcional', icon: Vote },
   { title: 'Mapa Estratégico', url: '/mapa', icon: Map },
   { title: 'Territórios', url: '/territorios', icon: Globe },
   { title: 'Ações', url: '/acoes', icon: ClipboardList },
