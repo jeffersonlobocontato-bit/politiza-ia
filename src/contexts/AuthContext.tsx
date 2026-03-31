@@ -34,30 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (supabaseClient as any).from('user_roles').select('role').eq('user_id', userId),
       ]);
       if (profileRes.data) setProfile(profileRes.data as DbProfile);
-      if (rolesRes.data && rolesRes.data.length > 0) {
-        setRoles(rolesRes.data.map((r: any) => r.role as AppRole));
-      }
-    } catch (err) {
-      console.warn('loadUserData error:', err);
+      if (rolesRes.data) setRoles((rolesRes.data as any[]).map(r => r.role as AppRole));
+    } catch {
+      // tables not migrated yet — silently ignore
     }
   };
 
   useEffect(() => {
-    // Load session first, then subscribe to changes
-    supabaseClient.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) {
-        loadUserData(sess.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
-
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-      async (event, sess) => {
-        // Skip INITIAL_SESSION since we handle it above
-        if (event === 'INITIAL_SESSION') return;
+      async (_event, sess) => {
         setSession(sess);
         setUser(sess?.user ?? null);
         if (sess?.user) {
@@ -69,6 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     );
+
+    supabaseClient.auth.getSession().then(({ data: { session: sess } }) => {
+      setSession(sess);
+      setUser(sess?.user ?? null);
+      if (sess?.user) {
+        loadUserData(sess.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, []);

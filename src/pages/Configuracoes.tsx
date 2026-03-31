@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag, Upload, ImageIcon } from 'lucide-react';
+import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag } from 'lucide-react';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,9 +61,7 @@ export default function Configuracoes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activating, setActivating] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
     defaultValues: { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
@@ -71,8 +69,6 @@ export default function Configuracoes() {
 
   const openCreate = (preset?: typeof PRESET_CANDIDATES[0]) => {
     setEditingId(null);
-    setPhotoFile(null);
-    setPhotoPreview(null);
     form.reset(preset
       ? { ...preset, bio: preset.bio, photo_url: '' }
       : { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
@@ -82,8 +78,6 @@ export default function Configuracoes() {
 
   const openEdit = (c: Candidate) => {
     setEditingId(c.id);
-    setPhotoFile(null);
-    setPhotoPreview(c.photo_url || null);
     form.reset({
       name: c.name, party: c.party, cargo: c.cargo, state: c.state,
       election_year: c.election_year, bio: c.bio ?? '', photo_url: c.photo_url ?? '',
@@ -91,48 +85,10 @@ export default function Configuracoes() {
     setDialogOpen(true);
   };
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('A foto deve ter no máximo 5MB');
-      return;
-    }
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
-    form.setValue('photo_url', ''); // clear URL when uploading file
-  };
-
-  const uploadPhoto = async (candidateName: string): Promise<string | null> => {
-    if (!photoFile) return null;
-    const ext = photoFile.name.split('.').pop() || 'jpg';
-    const fileName = `${candidateName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
-    const { data, error } = await (supabase as any).storage
-      .from('candidate-photos')
-      .upload(fileName, photoFile, { upsert: true });
-    if (error) {
-      console.error('Upload error:', error);
-      toast.error('Erro ao fazer upload da foto');
-      return null;
-    }
-    const { data: urlData } = (supabase as any).storage
-      .from('candidate-photos')
-      .getPublicUrl(data.path);
-    return urlData?.publicUrl || null;
-  };
-
   const onSubmit = async (data: CandidateForm) => {
     setSaving(true);
     try {
-      let photoUrl = data.photo_url || null;
-
-      // Upload file if selected
-      if (photoFile) {
-        const uploadedUrl = await uploadPhoto(data.name);
-        if (uploadedUrl) photoUrl = uploadedUrl;
-      }
-
-      const payload = { ...data, bio: data.bio || null, photo_url: photoUrl };
+      const payload = { ...data, bio: data.bio || null, photo_url: data.photo_url || null };
       if (editingId) {
         await (supabase as any).from('candidates').update(payload).eq('id', editingId);
         toast.success('Candidato atualizado!');
@@ -377,58 +333,9 @@ export default function Configuracoes() {
                 <Label>Ano da eleição</Label>
                 <Input type="number" {...form.register('election_year')} />
               </div>
-              <div className="col-span-2 space-y-2">
-                <Label>Foto do candidato</Label>
-                <div className="flex items-start gap-4">
-                  {/* Preview */}
-                  <div
-                    className="w-20 h-20 rounded-xl border-2 border-dashed border-border bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {photoPreview ? (
-                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoSelect}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 text-xs"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      {photoFile ? 'Trocar foto' : 'Upload de foto'}
-                    </Button>
-                    {photoFile && (
-                      <p className="text-[10px] text-muted-foreground truncate">{photoFile.name}</p>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground">ou cole um link:</span>
-                    </div>
-                    <Input
-                      placeholder="https://..."
-                      {...form.register('photo_url')}
-                      className="h-8 text-xs"
-                      onChange={e => {
-                        form.register('photo_url').onChange(e);
-                        if (e.target.value) {
-                          setPhotoFile(null);
-                          setPhotoPreview(e.target.value);
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>URL da foto</Label>
+                <Input placeholder="https://..." {...form.register('photo_url')} />
               </div>
               <div className="col-span-2 space-y-1.5">
                 <Label>Biografia / contexto</Label>

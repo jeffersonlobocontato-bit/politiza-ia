@@ -21,15 +21,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { title: 'Sala de Guerra', url: '/', icon: Crosshair, scope: 'shared' },
-  { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
+  // Majoritária-only
+  { title: 'Sala de Guerra', url: '/', icon: Crosshair, scope: 'majoritaria' },
+  { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'majoritaria' },
+  { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'majoritaria' },
+  { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'majoritaria' },
+  { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'majoritaria' },
+  { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'majoritaria' },
+  // Proporcional-only
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
-  { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'shared' },
+  // Shared (always visible)
+  { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
   { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
-  { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'shared' },
-  { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
-  { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
-  { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
   { title: 'Configurações', url: '/configuracoes', icon: Settings, scope: 'shared' },
 ];
