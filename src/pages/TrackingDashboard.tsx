@@ -1,21 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTrackingRounds, useCreateRound, useUpdateRound } from '@/hooks/useTracking';
 import { useTrackingDashboardData, useTrackingAlerts, useTrackingInsights, useRunTrackingAnalysis, useActiveAlertCount } from '@/hooks/useTrackingInsights';
+import { useCreateRoundQuestions, QUESTION_PRESETS } from '@/hooks/useTrackingQuestions';
 import { useCandidate } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Activity, Users, MapPin, AlertTriangle, TrendingUp, Plus, Brain, Eye } from 'lucide-react';
+import { Activity, Users, MapPin, AlertTriangle, TrendingUp, Plus, Brain, Eye, Link2, Trash2, CheckSquare } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16'];
+
+interface NewQuestion {
+  question_key: string;
+  label: string;
+  question_type: string;
+  is_required: boolean;
+}
 
 export default function TrackingDashboard() {
   const navigate = useNavigate();
@@ -31,11 +41,21 @@ export default function TrackingDashboard() {
   const { data: activeAlertCount = 0 } = useActiveAlertCount();
   const runAnalysis = useRunTrackingAnalysis();
   const createRound = useCreateRound();
+  const createQuestions = useCreateRoundQuestions();
 
   const [newRoundTitle, setNewRoundTitle] = useState('');
   const [newRoundDesc, setNewRoundDesc] = useState('');
   const [newRoundTarget, setNewRoundTarget] = useState(100);
+  const [newRoundScope, setNewRoundScope] = useState('estado');
+  const [newRoundMacro, setNewRoundMacro] = useState('');
+  const [newRoundMicro, setNewRoundMicro] = useState('');
+  const [newRoundMunicipality, setNewRoundMunicipality] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Questions state
+  const [questions, setQuestions] = useState<NewQuestion[]>([]);
+  const [customLabel, setCustomLabel] = useState('');
+  const [customKey, setCustomKey] = useState('');
 
   const activeAlerts = alerts.filter(a => ['novo', 'em_analise'].includes(a.status));
   const lowCapAlerts = alerts.filter(a => a.alert_type === 'baixa_capilaridade' && a.status !== 'resolvido');
@@ -50,19 +70,68 @@ export default function TrackingDashboard() {
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
 
+  const copyRoundLink = (rId: string) => {
+    const url = `${window.location.origin}/tracking?round=${rId}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Link copiado!');
+  };
+
+  const addAllPresets = () => {
+    const existing = new Set(questions.map(q => q.question_key));
+    const toAdd = QUESTION_PRESETS.filter(p => !existing.has(p.question_key)).map(p => ({
+      ...p,
+      is_required: true,
+    }));
+    setQuestions(prev => [...prev, ...toAdd]);
+  };
+
+  const addCustomQuestion = () => {
+    if (!customLabel.trim()) return;
+    const key = customKey.trim() || customLabel.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    setQuestions(prev => [...prev, { question_key: key, label: customLabel.trim(), question_type: 'text', is_required: false }]);
+    setCustomLabel('');
+    setCustomKey('');
+  };
+
+  const removeQuestion = (idx: number) => {
+    setQuestions(prev => prev.filter((_, i) => i !== idx));
+  };
+
   const handleCreateRound = async () => {
     if (!activeCandidate?.id || !newRoundTitle.trim()) return;
-    await createRound.mutateAsync({
+    const round = await createRound.mutateAsync({
       candidate_id: activeCandidate.id,
       title: newRoundTitle.trim(),
       description: newRoundDesc.trim() || null,
       target_interviews: newRoundTarget,
+      territory_scope: newRoundScope,
       created_by: user?.id,
-    });
+    } as any);
+
+    // Create questions for this round
+    if (questions.length > 0 && round?.id) {
+      await createQuestions.mutateAsync(
+        questions.map((q, i) => ({
+          round_id: round.id,
+          question_key: q.question_key,
+          label: q.label,
+          question_type: q.question_type,
+          options: null,
+          sort_order: i,
+          is_required: q.is_required,
+        }))
+      );
+    }
+
     setDialogOpen(false);
     setNewRoundTitle('');
     setNewRoundDesc('');
     setNewRoundTarget(100);
+    setNewRoundScope('estado');
+    setNewRoundMacro('');
+    setNewRoundMicro('');
+    setNewRoundMunicipality('');
+    setQuestions([]);
   };
 
   return (
@@ -73,7 +142,7 @@ export default function TrackingDashboard() {
           <h1 className="text-2xl font-bold">Dashboard de Tracking</h1>
           <p className="text-sm text-muted-foreground">Análise consolidada das rodadas de pesquisa de campo</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Select value={roundId || ''} onValueChange={setSelectedRoundId}>
             <SelectTrigger className="w-[220px]">
               <SelectValue placeholder="Selecionar rodada" />
@@ -87,13 +156,19 @@ export default function TrackingDashboard() {
             </SelectContent>
           </Select>
 
+          {roundId && (
+            <Button size="sm" variant="ghost" onClick={() => copyRoundLink(roundId)} title="Copiar link do formulário">
+              <Link2 className="w-4 h-4" />
+            </Button>
+          )}
+
           {isAdmin && (
             <>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Nova Rodada</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Criar Nova Rodada</DialogTitle>
                   </DialogHeader>
@@ -106,11 +181,95 @@ export default function TrackingDashboard() {
                       <Label>Descrição</Label>
                       <Textarea value={newRoundDesc} onChange={e => setNewRoundDesc(e.target.value)} placeholder="Descrição da rodada..." />
                     </div>
-                    <div>
-                      <Label>Meta de Entrevistas</Label>
-                      <Input type="number" value={newRoundTarget} onChange={e => setNewRoundTarget(Number(e.target.value))} />
+
+                    {/* Territory */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Escopo Territorial</Label>
+                        <Select value={newRoundScope} onValueChange={setNewRoundScope}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="estado">Estado</SelectItem>
+                            <SelectItem value="macrorregiao">Macrorregião</SelectItem>
+                            <SelectItem value="microrregiao">Microrregião</SelectItem>
+                            <SelectItem value="municipio">Município</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Meta de Entrevistas</Label>
+                        <Input type="number" value={newRoundTarget} onChange={e => setNewRoundTarget(Number(e.target.value))} />
+                      </div>
                     </div>
-                    <Button onClick={handleCreateRound} disabled={createRound.isPending} className="w-full">Criar Rodada</Button>
+
+                    {newRoundScope !== 'estado' && (
+                      <div className="grid grid-cols-1 gap-3">
+                        {['macrorregiao', 'microrregiao', 'municipio'].includes(newRoundScope) && (
+                          <div>
+                            <Label>Macrorregião</Label>
+                            <Input value={newRoundMacro} onChange={e => setNewRoundMacro(e.target.value)} placeholder="Ex: Norte Pioneiro" />
+                          </div>
+                        )}
+                        {['microrregiao', 'municipio'].includes(newRoundScope) && (
+                          <div>
+                            <Label>Microrregião</Label>
+                            <Input value={newRoundMicro} onChange={e => setNewRoundMicro(e.target.value)} placeholder="Ex: Londrina" />
+                          </div>
+                        )}
+                        {newRoundScope === 'municipio' && (
+                          <div>
+                            <Label>Município</Label>
+                            <Input value={newRoundMunicipality} onChange={e => setNewRoundMunicipality(e.target.value)} placeholder="Ex: Curitiba" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Questions */}
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-base font-semibold">Perguntas da Rodada</Label>
+                        <Button type="button" size="sm" variant="outline" onClick={addAllPresets}>
+                          <CheckSquare className="w-3 h-3 mr-1" /> Adicionar Padrão
+                        </Button>
+                      </div>
+
+                      {questions.length > 0 && (
+                        <div className="space-y-2 mb-3">
+                          {questions.map((q, idx) => (
+                            <div key={idx} className="flex items-center gap-2 p-2 rounded border bg-muted/30">
+                              <span className="text-sm flex-1">{q.label}</span>
+                              <Badge variant="outline" className="text-xs">{q.question_type}</Badge>
+                              <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeQuestion(idx)}>
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <Input
+                          value={customLabel}
+                          onChange={e => setCustomLabel(e.target.value)}
+                          placeholder="Nova pergunta personalizada..."
+                          className="flex-1"
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomQuestion())}
+                        />
+                        <Button type="button" size="sm" variant="secondary" onClick={addCustomQuestion} disabled={!customLabel.trim()}>
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      {questions.length === 0 && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Clique em "Adicionar Padrão" para incluir as perguntas tradicionais ou crie perguntas personalizadas.
+                        </p>
+                      )}
+                    </div>
+
+                    <Button onClick={handleCreateRound} disabled={createRound.isPending} className="w-full">
+                      {createRound.isPending ? 'Criando...' : 'Criar Rodada'}
+                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -125,6 +284,31 @@ export default function TrackingDashboard() {
           )}
         </div>
       </div>
+
+      {/* Rounds list with copy link */}
+      {rounds.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Rodadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {rounds.slice(0, 5).map(r => (
+                <div key={r.id} className="flex items-center gap-3 p-2 rounded border">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{r.title}</p>
+                    <p className="text-xs text-muted-foreground">{r.territory_scope} • Meta: {r.target_interviews}</p>
+                  </div>
+                  <Badge variant={r.status === 'aberta' ? 'default' : 'secondary'}>{r.status}</Badge>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copyRoundLink(r.id)} title="Copiar link">
+                    <Link2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Big Numbers */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -165,7 +349,6 @@ export default function TrackingDashboard() {
 
       {/* Charts Row */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Vote ranking */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Ranking - Intenção de Voto Estimulada</CardTitle>
@@ -187,7 +370,6 @@ export default function TrackingDashboard() {
           </CardContent>
         </Card>
 
-        {/* Rejection pie */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Rejeição</CardTitle>
@@ -209,7 +391,7 @@ export default function TrackingDashboard() {
         </Card>
       </div>
 
-      {/* Alerts Card - clickable */}
+      {/* Alerts Card */}
       {activeAlerts.length > 0 && (
         <Card className="border-destructive/30 cursor-pointer hover:border-destructive/60 transition-colors" onClick={() => navigate('/tracking/apontamentos')}>
           <CardHeader>
