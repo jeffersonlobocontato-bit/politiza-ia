@@ -240,11 +240,22 @@ export default function TrackingForm() {
           {displayQuestions.map(q => (
             <div key={q.key}>
               <Label>{q.label}</Label>
-              <Input
-                value={answers[q.key] || ''}
-                onChange={e => setAnswers(prev => ({ ...prev, [q.key]: e.target.value }))}
-                placeholder={`Resposta para ${q.label}`}
-              />
+              {q.options.length > 0 ? (
+                <Select value={answers[q.key] || ''} onValueChange={v => setAnswers(prev => ({ ...prev, [q.key]: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {q.options.map(opt => (
+                      <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={answers[q.key] || ''}
+                  onChange={e => setAnswers(prev => ({ ...prev, [q.key]: e.target.value }))}
+                  placeholder={`Resposta para ${q.label}`}
+                />
+              )}
             </div>
           ))}
         </CardContent>
