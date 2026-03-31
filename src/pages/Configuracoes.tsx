@@ -61,7 +61,9 @@ export default function Configuracoes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activating, setActivating] = useState<string | null>(null);
-
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
     defaultValues: { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
