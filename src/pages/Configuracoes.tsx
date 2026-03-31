@@ -135,15 +135,19 @@ export default function Configuracoes() {
 
       {/* Tabs */}
       <div className="px-6 border-b border-border flex gap-1 flex-shrink-0">
-        {(['candidatos', 'conta'] as const).map(t => (
+        {([
+          { key: 'candidatos', label: 'Candidatos' },
+          { key: 'perfis_lideranca', label: 'Perfis de Liderança' },
+          { key: 'conta', label: 'Minha Conta' },
+        ] as const).map(t => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize ${
-              tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              tab === t.key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            {t === 'candidatos' ? 'Candidatos' : 'Minha Conta'}
+            {t.label}
           </button>
         ))}
       </div>
