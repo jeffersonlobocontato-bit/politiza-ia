@@ -7,17 +7,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveRounds, useCreateInterview, useRoundInterviewCount } from '@/hooks/useTracking';
-import { TRACKING_QUESTION_KEYS, AGE_RANGES, GENDERS, INCOME_RANGES, EDUCATION_LEVELS } from '@/types/tracking';
-import { MapPin, CheckCircle, ClipboardList } from 'lucide-react';
+import { useRoundQuestions, QUESTION_PRESETS } from '@/hooks/useTrackingQuestions';
+import { AGE_RANGES, GENDERS, INCOME_RANGES, EDUCATION_LEVELS, TRACKING_QUESTION_KEYS } from '@/types/tracking';
+import { MapPin, CheckCircle, ClipboardList, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 
 export default function TrackingForm() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const roundFromUrl = searchParams.get('round');
+
   const { data: activeRounds = [], isLoading: loadingRounds } = useActiveRounds();
   const createInterview = useCreateInterview();
 
   const [selectedRoundId, setSelectedRoundId] = useState<string>('');
   const { data: interviewCount = 0 } = useRoundInterviewCount(selectedRoundId || undefined);
+  const { data: roundQuestions = [] } = useRoundQuestions(selectedRoundId || undefined);
 
   const [municipality, setMunicipality] = useState('');
   const [lat, setLat] = useState<number | null>(null);
@@ -31,11 +37,20 @@ export default function TrackingForm() {
 
   const selectedRound = activeRounds.find(r => r.id === selectedRoundId);
 
+  // Use dynamic questions if available, fallback to static presets
+  const displayQuestions = roundQuestions.length > 0
+    ? roundQuestions.map(q => ({ key: q.question_key, label: q.label, type: q.question_type }))
+    : TRACKING_QUESTION_KEYS.map(q => ({ key: q.key, label: q.label, type: 'text' }));
+
   useEffect(() => {
     if (activeRounds.length > 0 && !selectedRoundId) {
-      setSelectedRoundId(activeRounds[0].id);
+      if (roundFromUrl && activeRounds.some(r => r.id === roundFromUrl)) {
+        setSelectedRoundId(roundFromUrl);
+      } else {
+        setSelectedRoundId(activeRounds[0].id);
+      }
     }
-  }, [activeRounds, selectedRoundId]);
+  }, [activeRounds, selectedRoundId, roundFromUrl]);
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -54,12 +69,16 @@ export default function TrackingForm() {
       return;
     }
 
+    const candidateQuestionKeys = roundQuestions.length > 0
+      ? roundQuestions.filter(q => q.question_type === 'candidate_name').map(q => q.question_key)
+      : ['intencao_voto_espontanea', 'intencao_voto_estimulada', 'rejeicao', 'conhecimento'];
+
     const answersList = Object.entries(answers)
       .filter(([, v]) => v.trim())
       .map(([key, value]) => ({
         question_key: key,
         answer_value: value,
-        candidate_name: ['intencao_voto_espontanea', 'intencao_voto_estimulada', 'rejeicao', 'conhecimento'].includes(key) ? value : null,
+        candidate_name: candidateQuestionKeys.includes(key) ? value : null,
       }));
 
     await createInterview.mutateAsync({
@@ -147,9 +166,17 @@ export default function TrackingForm() {
           )}
 
           {selectedRound && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{selectedRound.title}</span>
-              <Badge variant="secondary">{interviewCount} / {selectedRound.target_interviews}</Badge>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">{selectedRound.title}</span>
+                <Badge variant="secondary">{interviewCount} / {selectedRound.target_interviews}</Badge>
+              </div>
+              {selectedRound.territory_scope !== 'estado' && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Info className="w-3 h-3" />
+                  Escopo: {selectedRound.territory_scope}
+                </div>
+              )}
             </div>
           )}
 
@@ -204,13 +231,13 @@ export default function TrackingForm() {
         </CardContent>
       </Card>
 
-      {/* Questions */}
+      {/* Questions - dynamic */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Perguntas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {TRACKING_QUESTION_KEYS.map(q => (
+          {displayQuestions.map(q => (
             <div key={q.key}>
               <Label>{q.label}</Label>
               <Input
