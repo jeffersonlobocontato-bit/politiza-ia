@@ -30,8 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadUserData = async (userId: string) => {
     try {
       const [profileRes, rolesRes] = await Promise.all([
-        supabaseRaw.from('profiles').select('*').eq('id', userId).single(),
-        supabaseRaw.from('user_roles').select('role').eq('user_id', userId),
+        (supabaseClient as any).from('profiles').select('*').eq('id', userId).single(),
+        (supabaseClient as any).from('user_roles').select('role').eq('user_id', userId),
       ]);
       if (profileRes.data) setProfile(profileRes.data as DbProfile);
       if (rolesRes.data) setRoles((rolesRes.data as any[]).map(r => r.role as AppRole));
