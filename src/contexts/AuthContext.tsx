@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    supabaseRaw.auth.getSession().then(({ data: { session: sess } }) => {
+    supabaseClient.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
