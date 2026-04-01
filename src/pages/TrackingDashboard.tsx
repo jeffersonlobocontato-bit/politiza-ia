@@ -575,6 +575,7 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
         <TabsTrigger value="rodadas">Rodadas</TabsTrigger>
+        <TabsTrigger value="entrevistadores">Entrevistadores</TabsTrigger>
         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
         <TabsTrigger value="mapa">Mapa</TabsTrigger>
         <TabsTrigger value="ia">IA Analítica</TabsTrigger>
