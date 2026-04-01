@@ -240,7 +240,7 @@ export default function TrackingDashboard() {
           </DialogTrigger>
            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle>Criar Rodada de Tracking</DialogTitle>
+              <DialogTitle>{editingRoundId ? 'Editar Rodada' : 'Criar Rodada de Tracking'}</DialogTitle>
             </DialogHeader>
             <ScrollArea className="flex-1 max-h-[calc(90vh-140px)] pr-4">
               <div className="space-y-6 pb-4">
