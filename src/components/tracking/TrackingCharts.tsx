@@ -1,8 +1,13 @@
 import { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line, Legend, AreaChart, Area,
+} from 'recharts';
+import {
+  Users, MapPin, BarChart3, TrendingUp, Target, Percent,
+} from 'lucide-react';
 
 interface Interview {
   id: string;
@@ -54,16 +59,53 @@ interface Props {
 }
 
 const CHART_COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
+  '#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935',
   '#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#fb923c',
 ];
 
+const GRADIENT_CARDS = [
+  { bg: 'from-[hsl(210,84%,30%)] to-[hsl(210,84%,45%)]', icon: 'text-blue-200' },
+  { bg: 'from-[hsl(163,97%,35%)] to-[hsl(163,60%,45%)]', icon: 'text-emerald-200' },
+  { bg: 'from-[hsl(280,70%,45%)] to-[hsl(310,60%,50%)]', icon: 'text-purple-200' },
+  { bg: 'from-[hsl(210,84%,25%)] to-[hsl(220,60%,40%)]', icon: 'text-cyan-200' },
+];
+
+function KpiCard({ title, value, subtitle, icon: Icon, gradientIndex }: {
+  title: string; value: string | number; subtitle?: string; icon: any; gradientIndex: number;
+}) {
+  const g = GRADIENT_CARDS[gradientIndex % GRADIENT_CARDS.length];
+  return (
+    <div className={`relative rounded-xl bg-gradient-to-br ${g.bg} p-5 overflow-hidden shadow-lg`}>
+      <div className="absolute top-3 right-3 opacity-20">
+        <Icon className={`w-12 h-12 ${g.icon}`} />
+      </div>
+      <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">{title}</p>
+      <p className="text-3xl font-black text-white">{value}</p>
+      {subtitle && <p className="text-xs text-white/70 mt-1">{subtitle}</p>}
+    </div>
+  );
+}
+
+function ChartCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] shadow-lg overflow-hidden ${className}`}>
+      <div className="px-5 pt-4 pb-2">
+        <h3 className="text-sm font-semibold text-white/90">{title}</h3>
+      </div>
+      <div className="px-4 pb-4">{children}</div>
+    </div>
+  );
+}
+
+const tooltipStyle = {
+  backgroundColor: 'hsl(220, 18%, 16%)',
+  border: '1px solid hsl(220, 15%, 25%)',
+  borderRadius: 10,
+  fontSize: 12,
+  color: '#fff',
+};
+
 export function TrackingCharts({ rounds, interviews, answers, questions, selectedRoundId, onRoundChange, filters, onFiltersChange }: Props) {
-  // Filter interviews by round
   const filteredInterviews = useMemo(() => {
     let items = interviews;
     if (selectedRoundId) items = items.filter(i => i.round_id === selectedRoundId);
@@ -77,11 +119,9 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
     [answers, filteredInterviewIds]
   );
 
-  // Vote intention (select type questions with candidate_name)
   const voteIntentionData = useMemo(() => {
     const selectQs = questions.filter(q => q.question_type === 'select');
     if (!selectQs.length) return [];
-
     const firstQ = selectQs[0];
     const qAnswers = filteredAnswers.filter(a => a.question_key === firstQ.question_key);
     const counts: Record<string, number> = {};
@@ -95,7 +135,6 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
       .sort((a, b) => b.count - a.count);
   }, [filteredAnswers, questions]);
 
-  // City comparison
   const cityComparisonData = useMemo(() => {
     const cities: Record<string, number> = {};
     filteredInterviews.forEach(i => {
@@ -108,13 +147,11 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
       .slice(0, 10);
   }, [filteredInterviews]);
 
-  // Evolution by round
   const evolutionData = useMemo(() => {
     if (rounds.length < 2) return [];
     const selectQs = questions.filter(q => q.question_type === 'select');
     if (!selectQs.length) return [];
     const firstQ = selectQs[0];
-
     return rounds
       .filter(r => interviews.some(i => i.round_id === r.id))
       .sort((a, b) => a.start_date.localeCompare(b.start_date))
@@ -124,7 +161,6 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
         const total = roundAnswers.length || 1;
         const counts: Record<string, number> = {};
         roundAnswers.forEach(a => { counts[a.answer_value] = (counts[a.answer_value] || 0) + 1; });
-
         const point: any = { round: round.title?.slice(0, 20) || round.city || 'Rodada' };
         Object.entries(counts).forEach(([name, count]) => {
           point[name] = Math.round((count / total) * 100);
@@ -141,7 +177,6 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
     return Array.from(names);
   }, [evolutionData]);
 
-  // Demographics
   const genderData = useMemo(() => {
     const counts: Record<string, number> = {};
     filteredInterviews.forEach(i => {
@@ -168,156 +203,215 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
   const gpsCount = filteredInterviews.filter(i => i.lat != null && i.lng != null).length;
   const gpsRate = filteredInterviews.length > 0 ? Math.round((gpsCount / filteredInterviews.length) * 100) : 0;
 
+  const leader = voteIntentionData[0];
+  const leaderPct = leader ? `${leader.pct}%` : '—';
+
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      {/* Filters bar */}
+      <div className="flex flex-wrap gap-3 items-center">
         <Select value={selectedRoundId || 'all'} onValueChange={v => onRoundChange(v === 'all' ? null : v)}>
-          <SelectTrigger className="w-52"><SelectValue placeholder="Todas as rodadas" /></SelectTrigger>
+          <SelectTrigger className="w-52 bg-[hsl(220,15%,14%)] border-[hsl(220,15%,22%)] text-foreground">
+            <SelectValue placeholder="Todas as rodadas" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as rodadas</SelectItem>
             {rounds.map(r => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.city || 'all'} onValueChange={v => onFiltersChange({ ...filters, city: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Todas as cidades" /></SelectTrigger>
+          <SelectTrigger className="w-44 bg-[hsl(220,15%,14%)] border-[hsl(220,15%,22%)] text-foreground">
+            <SelectValue placeholder="Todas as cidades" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as cidades</SelectItem>
             {uniqueCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Badge variant="outline" className="self-center text-xs">
-          {filteredInterviews.length} entrevistas · {gpsRate}% com GPS
+        <Badge variant="outline" className="self-center text-xs border-[hsl(220,15%,25%)] text-muted-foreground">
+          {filteredInterviews.length} entrevistas · {gpsRate}% GPS
         </Badge>
       </div>
 
       {filteredInterviews.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Nenhuma entrevista registrada{selectedRoundId ? ' nesta rodada' : ''}.
-          </CardContent>
-        </Card>
+        <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-dashed border-[hsl(220,15%,25%)] py-16 text-center text-muted-foreground">
+          Nenhuma entrevista registrada{selectedRoundId ? ' nesta rodada' : ''}.
+        </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Vote Intention */}
-          {voteIntentionData.length > 0 && (
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Intenção de Voto</CardTitle>
-              </CardHeader>
-              <CardContent>
+        <>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <KpiCard
+              title="Total Entrevistas"
+              value={filteredInterviews.length}
+              subtitle={`${gpsRate}% com geolocalização`}
+              icon={Users}
+              gradientIndex={0}
+            />
+            <KpiCard
+              title="Cidades Cobertas"
+              value={uniqueCities.length}
+              subtitle={`${cityComparisonData.length} com dados`}
+              icon={MapPin}
+              gradientIndex={1}
+            />
+            <KpiCard
+              title="Líder"
+              value={leaderPct}
+              subtitle={leader?.name || '—'}
+              icon={TrendingUp}
+              gradientIndex={2}
+            />
+            <KpiCard
+              title="Taxa GPS"
+              value={`${gpsRate}%`}
+              subtitle={`${gpsCount} geolocalizadas`}
+              icon={Target}
+              gradientIndex={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Vote Intention — horizontal bar with gradient bg */}
+            {voteIntentionData.length > 0 && (
+              <ChartCard title="Intenção de Voto" className="lg:col-span-2">
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={voteIntentionData} layout="vertical" margin={{ left: 100 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} width={95} />
+                    <BarChart data={voteIntentionData} layout="vertical" margin={{ left: 110, right: 50 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: '#8899aa' }} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#dde4ec' }} width={105} />
                       <Tooltip
-                        contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
+                        contentStyle={tooltipStyle}
                         formatter={(val: number, _: string, entry: any) => [`${val} (${entry.payload.pct}%)`, 'Votos']}
                       />
-                      <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                      <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={24}>
                         {voteIntentionData.map((_, i) => (
-                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} fillOpacity={0.9} />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </ChartCard>
+            )}
 
-          {/* Evolution */}
-          {evolutionData.length > 1 && (
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Evolução por Rodada (%)</CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Evolution — area chart */}
+            {evolutionData.length > 1 && (
+              <ChartCard title="Evolução por Rodada (%)" className="lg:col-span-2">
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={evolutionData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="round" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
-                      <Legend />
+                    <AreaChart data={evolutionData}>
+                      <defs>
+                        {candidateNames.map((name, i) => (
+                          <linearGradient key={name} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.4} />
+                            <stop offset="95%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.05} />
+                          </linearGradient>
+                        ))}
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
+                      <XAxis dataKey="round" tick={{ fontSize: 10, fill: '#8899aa' }} />
+                      <YAxis tick={{ fontSize: 11, fill: '#8899aa' }} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Legend wrapperStyle={{ fontSize: 11, color: '#dde4ec' }} />
                       {candidateNames.map((name, i) => (
-                        <Line key={name} type="monotone" dataKey={name} stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2} dot={{ r: 4 }} />
+                        <Area
+                          key={name}
+                          type="monotone"
+                          dataKey={name}
+                          stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                          fill={`url(#grad-${i})`}
+                          strokeWidth={2}
+                          dot={{ r: 4, fill: CHART_COLORS[i % CHART_COLORS.length] }}
+                        />
                       ))}
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </ChartCard>
+            )}
 
-          {/* City comparison */}
-          {cityComparisonData.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Entrevistas por Cidade</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={cityComparisonData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="city" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} angle={-30} textAnchor="end" height={60} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+            {/* City comparison — styled table + bars */}
+            {cityComparisonData.length > 0 && (
+              <ChartCard title="Entrevistas por Cidade">
+                <div className="space-y-2 mt-2">
+                  {cityComparisonData.map((item, i) => {
+                    const maxCount = cityComparisonData[0]?.count || 1;
+                    const widthPct = Math.round((item.count / maxCount) * 100);
+                    return (
+                      <div key={item.city} className="flex items-center gap-3">
+                        <span className="text-xs text-white/70 w-28 truncate text-right">{item.city}</span>
+                        <div className="flex-1 h-5 bg-[hsl(220,15%,18%)] rounded-md overflow-hidden">
+                          <div
+                            className="h-full rounded-md transition-all"
+                            style={{
+                              width: `${widthPct}%`,
+                              background: `linear-gradient(90deg, ${CHART_COLORS[i % 5]}, ${CHART_COLORS[i % 5]}88)`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs font-bold text-white/90 w-10 text-right">{item.count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </ChartCard>
+            )}
 
-          {/* Gender pie */}
-          {genderData.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Gênero dos Entrevistados</CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Gender — donut */}
+            {genderData.length > 0 && (
+              <ChartCard title="Gênero dos Entrevistados">
                 <div className="h-64 flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
-                        {genderData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      <Pie
+                        data={genderData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={85}
+                        paddingAngle={3}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                      >
+                        {genderData.map((_, i) => (
+                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="none" />
+                        ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={tooltipStyle} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </ChartCard>
+            )}
 
-          {/* Age distribution */}
-          {ageData.length > 0 && (
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Faixa Etária</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48">
+            {/* Age distribution */}
+            {ageData.length > 0 && (
+              <ChartCard title="Faixa Etária" className="lg:col-span-2">
+                <div className="h-52">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={ageData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
-                      <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                      <defs>
+                        <linearGradient id="ageGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0FFCBE" stopOpacity={0.9} />
+                          <stop offset="95%" stopColor="#0FFCBE" stopOpacity={0.3} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#8899aa' }} />
+                      <YAxis tick={{ fontSize: 11, fill: '#8899aa' }} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="value" fill="url(#ageGrad)" radius={[6, 6, 0, 0]} barSize={32} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </ChartCard>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
