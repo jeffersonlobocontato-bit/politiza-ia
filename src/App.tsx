@@ -21,6 +21,7 @@ import Hierarquia from "./pages/Hierarquia";
 import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
 import Proporcional from "./pages/Proporcional";
+import TrackingDashboard from "./pages/TrackingDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
