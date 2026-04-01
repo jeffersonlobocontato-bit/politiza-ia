@@ -1107,6 +1107,41 @@ export type Database = {
           },
         ]
       }
+      tracking_ai_config: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          model: string
+          system_instructions: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          model?: string
+          system_instructions?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          model?: string
+          system_instructions?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_ai_config_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tracking_ai_insights: {
         Row: {
           candidate_id: string
@@ -1187,6 +1222,82 @@ export type Database = {
             columns: ["round_id"]
             isOneToOne: false
             referencedRelation: "tracking_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_ai_knowledge: {
+        Row: {
+          candidate_id: string
+          content_text: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          candidate_id: string
+          content_text?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number
+          id?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          content_text?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_ai_knowledge_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_ai_messages: {
+        Row: {
+          candidate_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          candidate_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role: string
+        }
+        Update: {
+          candidate_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_ai_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
         ]
