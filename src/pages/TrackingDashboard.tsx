@@ -504,7 +504,7 @@ export default function TrackingDashboard() {
 }
 
 /* ─── Tabs Section (extracted to keep main component clean) ─── */
-function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, interviewCounts, resetForm, setDialogOpen, copyLink, updateRoundStatus, activeCandidate }: any) {
+function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, interviewCounts, resetForm, setDialogOpen, copyLink, updateRoundStatus, activeCandidate, loadRoundForEdit }: any) {
   const [chartRoundId, setChartRoundId] = useState<string | null>(null);
   const [chartFilters, setChartFilters] = useState({ city: '', neighborhood: '', interviewer: '' });
 
