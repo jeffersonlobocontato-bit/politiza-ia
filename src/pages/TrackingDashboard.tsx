@@ -453,9 +453,9 @@ export default function TrackingDashboard() {
               </div>
             </ScrollArea>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleCreate} disabled={createRound.isPending}>
-                {createRound.isPending ? 'Criando...' : 'Criar Rodada'}
+              <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
+              <Button onClick={handleSave} disabled={createRound.isPending || updateRound.isPending}>
+                {(createRound.isPending || updateRound.isPending) ? 'Salvando...' : editingRoundId ? 'Salvar Alterações' : 'Criar Rodada'}
               </Button>
             </DialogFooter>
           </DialogContent>
