@@ -418,8 +418,8 @@ export default function TrackingDashboard() {
                                   <div className="grid grid-cols-2 gap-2 mt-1">
                                     <div>
                                       <Select
-                                        value={q.conditional_question_key}
-                                        onValueChange={v => updateQuestion(idx, 'conditional_question_key', v)}
+                                        value={q.conditional_question_key || '__none__'}
+                                        onValueChange={v => updateQuestion(idx, 'conditional_question_key', v === '__none__' ? '' : v)}
                                       >
                                         <SelectTrigger className="text-xs"><SelectValue placeholder="Mostrar se..." /></SelectTrigger>
                                         <SelectContent>
