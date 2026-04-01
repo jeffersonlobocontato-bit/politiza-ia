@@ -30,8 +30,6 @@ const navItems: NavItem[] = [
   { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
   // Proporcional-only
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
-  // Tracking
-  { title: 'Tracking', url: '/tracking/dashboard', icon: Activity, scope: 'shared' },
   { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
   { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
