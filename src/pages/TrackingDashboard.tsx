@@ -671,6 +671,10 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
         )}
       </TabsContent>
 
+      <TabsContent value="entrevistadores" className="mt-4">
+        <TrackingInterviewers />
+      </TabsContent>
+
       <TabsContent value="graficos" className="mt-4">
         <TrackingCharts
           rounds={rounds}
