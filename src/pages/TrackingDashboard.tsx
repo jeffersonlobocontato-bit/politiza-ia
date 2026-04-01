@@ -105,15 +105,51 @@ export default function TrackingDashboard() {
     setTitle(''); setDescription(''); setCity(''); setState('PR');
     setStartDate(''); setEndDate(''); setStartTime(''); setEndTime('');
     setTargetInterviews('100'); setQuestions([]); setNewOptionText({});
-    setExpandedQ(null);
+    setExpandedQ(null); setEditingRoundId(null);
   };
 
-  const handleCreate = async () => {
+  const loadRoundForEdit = async (round: any) => {
+    setEditingRoundId(round.id);
+    setTitle(round.title || '');
+    setDescription(round.description || '');
+    setCity(round.city || '');
+    setState(round.state || 'PR');
+    setStartDate(round.start_date || '');
+    setEndDate(round.end_date || '');
+    setStartTime(round.start_time?.slice(0, 5) || '');
+    setEndTime(round.end_time?.slice(0, 5) || '');
+    setTargetInterviews(String(round.target_interviews || 100));
+
+    // Load questions
+    const { data } = await (supabase as any)
+      .from('tracking_round_questions')
+      .select('*')
+      .eq('round_id', round.id)
+      .order('sort_order');
+    
+    const loadedQs: NewQuestion[] = (data || []).map((q: any) => ({
+      question_key: q.question_key,
+      label: q.label || '',
+      description: q.description || '',
+      question_type: q.question_type || 'select',
+      options: Array.isArray(q.options) ? q.options : [],
+      is_required: q.is_required ?? true,
+      allow_other: q.allow_other ?? false,
+      conditional_question_key: q.conditional_question_key || '',
+      conditional_value: q.conditional_value || '',
+    }));
+    setQuestions(loadedQs);
+    setNewOptionText({});
+    setExpandedQ(null);
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     if (!title.trim() || !startDate) {
       toast({ title: 'Preencha o nome e data de início', variant: 'destructive' });
       return;
     }
-    await createRound.mutateAsync({
+    const payload = {
       title: title.trim(),
       description: description.trim() || undefined,
       city: city.trim() || undefined,
@@ -135,7 +171,13 @@ export default function TrackingDashboard() {
         conditional_question_key: q.conditional_question_key || null,
         conditional_value: q.conditional_value || null,
       })),
-    });
+    };
+
+    if (editingRoundId) {
+      await updateRound.mutateAsync({ id: editingRoundId, ...payload });
+    } else {
+      await createRound.mutateAsync(payload);
+    }
     resetForm();
     setDialogOpen(false);
   };
