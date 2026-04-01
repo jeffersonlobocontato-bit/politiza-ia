@@ -1337,6 +1337,53 @@ export type Database = {
           },
         ]
       }
+      tracking_interviewers: {
+        Row: {
+          candidate_id: string
+          city: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_interviewers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tracking_interviews: {
         Row: {
           created_at: string

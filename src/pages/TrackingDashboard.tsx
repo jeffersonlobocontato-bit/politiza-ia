@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TrackingCharts } from '@/components/tracking/TrackingCharts';
 import { TrackingMap } from '@/components/tracking/TrackingMap';
 import { TrackingAI } from '@/components/tracking/TrackingAI';
+import { TrackingInterviewers } from '@/components/tracking/TrackingInterviewers';
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   rascunho: { label: 'Rascunho', color: 'bg-muted text-muted-foreground' },
@@ -84,6 +85,21 @@ export default function TrackingDashboard() {
   const [questions, setQuestions] = useState<NewQuestion[]>([]);
   const [newOptionText, setNewOptionText] = useState<Record<number, string>>({});
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
+
+  // Interviewer count
+  const { data: interviewerCount = 0 } = useQuery({
+    queryKey: ['tracking-interviewer-count', activeCandidate?.id],
+    queryFn: async () => {
+      if (!activeCandidate?.id) return 0;
+      const { count } = await (supabase as any)
+        .from('tracking_interviewers')
+        .select('*', { count: 'exact', head: true })
+        .eq('candidate_id', activeCandidate.id)
+        .eq('status', 'ativo');
+      return count || 0;
+    },
+    enabled: !!activeCandidate?.id,
+  });
 
   if (!activeCandidate) {
     return (
@@ -469,7 +485,7 @@ export default function TrackingDashboard() {
           { label: 'Rodadas Ativas', value: activeRounds, icon: Target, color: 'text-green-400' },
           { label: 'Cidades', value: uniqueCities, icon: MapPin, color: 'text-blue-400' },
           { label: 'Entrevistas', value: totalInterviews, icon: ClipboardCheck, color: 'text-amber-400' },
-          { label: 'Entrevistadores', value: '-', icon: Users, color: 'text-purple-400' },
+          { label: 'Entrevistadores', value: interviewerCount, icon: Users, color: 'text-purple-400' },
         ].map(kpi => (
           <Card key={kpi.label} className="bg-card border-border">
             <CardContent className="p-4 flex items-center gap-3">
@@ -559,6 +575,7 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
         <TabsTrigger value="rodadas">Rodadas</TabsTrigger>
+        <TabsTrigger value="entrevistadores">Entrevistadores</TabsTrigger>
         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
         <TabsTrigger value="mapa">Mapa</TabsTrigger>
         <TabsTrigger value="ia">IA Analítica</TabsTrigger>
@@ -652,6 +669,10 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
             })}
           </div>
         )}
+      </TabsContent>
+
+      <TabsContent value="entrevistadores" className="mt-4">
+        <TrackingInterviewers />
       </TabsContent>
 
       <TabsContent value="graficos" className="mt-4">
