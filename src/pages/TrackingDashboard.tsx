@@ -485,7 +485,7 @@ export default function TrackingDashboard() {
           { label: 'Rodadas Ativas', value: activeRounds, icon: Target, color: 'text-green-400' },
           { label: 'Cidades', value: uniqueCities, icon: MapPin, color: 'text-blue-400' },
           { label: 'Entrevistas', value: totalInterviews, icon: ClipboardCheck, color: 'text-amber-400' },
-          { label: 'Entrevistadores', value: '-', icon: Users, color: 'text-purple-400' },
+          { label: 'Entrevistadores', value: interviewerCount, icon: Users, color: 'text-purple-400' },
         ].map(kpi => (
           <Card key={kpi.label} className="bg-card border-border">
             <CardContent className="p-4 flex items-center gap-3">
