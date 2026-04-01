@@ -65,9 +65,10 @@ const emptyQuestion = (): NewQuestion => ({
 
 export default function TrackingDashboard() {
   const { activeCandidate } = useCandidate();
-  const { rounds, isLoading, interviewCounts, createRound, updateRoundStatus } = useTrackingRounds();
+  const { rounds, isLoading, interviewCounts, createRound, updateRound, updateRoundStatus } = useTrackingRounds();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('rodadas');
 
   // Form state
