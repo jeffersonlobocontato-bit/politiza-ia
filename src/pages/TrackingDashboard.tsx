@@ -497,6 +497,7 @@ export default function TrackingDashboard() {
         copyLink={copyLink}
         updateRoundStatus={updateRoundStatus}
         activeCandidate={activeCandidate}
+        loadRoundForEdit={loadRoundForEdit}
       />
     </div>
   );
