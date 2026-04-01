@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TrackingCharts } from '@/components/tracking/TrackingCharts';
 import { TrackingMap } from '@/components/tracking/TrackingMap';
 import { TrackingAI } from '@/components/tracking/TrackingAI';
+import { TrackingInterviewers } from '@/components/tracking/TrackingInterviewers';
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   rascunho: { label: 'Rascunho', color: 'bg-muted text-muted-foreground' },
