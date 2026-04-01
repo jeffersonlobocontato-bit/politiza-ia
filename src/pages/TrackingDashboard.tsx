@@ -20,6 +20,9 @@ import {
   Trash2, ChevronDown, ChevronUp, FileText,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { TrackingCharts } from '@/components/tracking/TrackingCharts';
+import { TrackingMap } from '@/components/tracking/TrackingMap';
+import { TrackingAI } from '@/components/tracking/TrackingAI';
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   rascunho: { label: 'Rascunho', color: 'bg-muted text-muted-foreground' },
