@@ -423,7 +423,7 @@ export default function TrackingDashboard() {
                                       >
                                         <SelectTrigger className="text-xs"><SelectValue placeholder="Mostrar se..." /></SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="">Sempre visível</SelectItem>
+                                          <SelectItem value="__none__">Sempre visível</SelectItem>
                                           {questions.slice(0, idx).map(pq => (
                                             <SelectItem key={pq.question_key} value={pq.question_key}>
                                               {pq.label || `Pergunta ${questions.indexOf(pq) + 1}`}
