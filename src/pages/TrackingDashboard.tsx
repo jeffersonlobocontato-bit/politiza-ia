@@ -451,7 +451,7 @@ export default function TrackingDashboard() {
                   </div>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
               <Button onClick={handleSave} disabled={createRound.isPending || updateRound.isPending}>
