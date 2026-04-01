@@ -17,7 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Plus, Copy, BarChart3, MapPin, Users, ClipboardCheck,
   Calendar, Clock, Target, ExternalLink, GripVertical,
-  Trash2, ChevronDown, ChevronUp, FileText,
+  Trash2, ChevronDown, ChevronUp, FileText, Pencil,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TrackingCharts } from '@/components/tracking/TrackingCharts';
@@ -65,9 +65,10 @@ const emptyQuestion = (): NewQuestion => ({
 
 export default function TrackingDashboard() {
   const { activeCandidate } = useCandidate();
-  const { rounds, isLoading, interviewCounts, createRound, updateRoundStatus } = useTrackingRounds();
+  const { rounds, isLoading, interviewCounts, createRound, updateRound, updateRoundStatus } = useTrackingRounds();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('rodadas');
 
   // Form state
@@ -104,15 +105,51 @@ export default function TrackingDashboard() {
     setTitle(''); setDescription(''); setCity(''); setState('PR');
     setStartDate(''); setEndDate(''); setStartTime(''); setEndTime('');
     setTargetInterviews('100'); setQuestions([]); setNewOptionText({});
-    setExpandedQ(null);
+    setExpandedQ(null); setEditingRoundId(null);
   };
 
-  const handleCreate = async () => {
+  const loadRoundForEdit = async (round: any) => {
+    setEditingRoundId(round.id);
+    setTitle(round.title || '');
+    setDescription(round.description || '');
+    setCity(round.city || '');
+    setState(round.state || 'PR');
+    setStartDate(round.start_date || '');
+    setEndDate(round.end_date || '');
+    setStartTime(round.start_time?.slice(0, 5) || '');
+    setEndTime(round.end_time?.slice(0, 5) || '');
+    setTargetInterviews(String(round.target_interviews || 100));
+
+    // Load questions
+    const { data } = await (supabase as any)
+      .from('tracking_round_questions')
+      .select('*')
+      .eq('round_id', round.id)
+      .order('sort_order');
+    
+    const loadedQs: NewQuestion[] = (data || []).map((q: any) => ({
+      question_key: q.question_key,
+      label: q.label || '',
+      description: q.description || '',
+      question_type: q.question_type || 'select',
+      options: Array.isArray(q.options) ? q.options : [],
+      is_required: q.is_required ?? true,
+      allow_other: q.allow_other ?? false,
+      conditional_question_key: q.conditional_question_key || '',
+      conditional_value: q.conditional_value || '',
+    }));
+    setQuestions(loadedQs);
+    setNewOptionText({});
+    setExpandedQ(null);
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     if (!title.trim() || !startDate) {
       toast({ title: 'Preencha o nome e data de início', variant: 'destructive' });
       return;
     }
-    await createRound.mutateAsync({
+    const payload = {
       title: title.trim(),
       description: description.trim() || undefined,
       city: city.trim() || undefined,
@@ -134,7 +171,13 @@ export default function TrackingDashboard() {
         conditional_question_key: q.conditional_question_key || null,
         conditional_value: q.conditional_value || null,
       })),
-    });
+    };
+
+    if (editingRoundId) {
+      await updateRound.mutateAsync({ id: editingRoundId, ...payload });
+    } else {
+      await createRound.mutateAsync(payload);
+    }
     resetForm();
     setDialogOpen(false);
   };
@@ -197,7 +240,7 @@ export default function TrackingDashboard() {
           </DialogTrigger>
            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle>Criar Rodada de Tracking</DialogTitle>
+              <DialogTitle>{editingRoundId ? 'Editar Rodada' : 'Criar Rodada de Tracking'}</DialogTitle>
             </DialogHeader>
             <ScrollArea className="flex-1 max-h-[calc(90vh-140px)] pr-4">
               <div className="space-y-6 pb-4">
@@ -410,9 +453,9 @@ export default function TrackingDashboard() {
               </div>
             </ScrollArea>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleCreate} disabled={createRound.isPending}>
-                {createRound.isPending ? 'Criando...' : 'Criar Rodada'}
+              <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
+              <Button onClick={handleSave} disabled={createRound.isPending || updateRound.isPending}>
+                {(createRound.isPending || updateRound.isPending) ? 'Salvando...' : editingRoundId ? 'Salvar Alterações' : 'Criar Rodada'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -454,13 +497,14 @@ export default function TrackingDashboard() {
         copyLink={copyLink}
         updateRoundStatus={updateRoundStatus}
         activeCandidate={activeCandidate}
+        loadRoundForEdit={loadRoundForEdit}
       />
     </div>
   );
 }
 
 /* ─── Tabs Section (extracted to keep main component clean) ─── */
-function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, interviewCounts, resetForm, setDialogOpen, copyLink, updateRoundStatus, activeCandidate }: any) {
+function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, interviewCounts, resetForm, setDialogOpen, copyLink, updateRoundStatus, activeCandidate, loadRoundForEdit }: any) {
   const [chartRoundId, setChartRoundId] = useState<string | null>(null);
   const [chartFilters, setChartFilters] = useState({ city: '', neighborhood: '', interviewer: '' });
 
@@ -580,6 +624,10 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
                       </div>
                     </div>
                     <div className="flex items-center gap-2 pt-1">
+                      <Button size="sm" variant="outline" className="gap-1 text-xs"
+                        onClick={() => loadRoundForEdit(round)}>
+                        <Pencil className="w-3 h-3" /> Editar
+                      </Button>
                       {round.share_code && (
                         <Button size="sm" variant="outline" className="gap-1 text-xs flex-1" onClick={() => copyLink(round)}>
                           <Copy className="w-3 h-3" /> Copiar Link

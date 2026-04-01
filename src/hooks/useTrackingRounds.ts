@@ -171,11 +171,70 @@ export function useTrackingRounds() {
     },
   });
 
+  const updateRound = useMutation({
+    mutationFn: async (input: {
+      id: string;
+      title: string;
+      description?: string;
+      city?: string;
+      state?: string;
+      start_date: string;
+      end_date?: string;
+      start_time?: string;
+      end_time?: string;
+      target_interviews: number;
+      questions: Omit<TrackingRoundQuestion, 'id' | 'round_id'>[];
+    }) => {
+      const { id, questions, ...roundData } = input;
+
+      const { error } = await (supabase as any)
+        .from('tracking_rounds')
+        .update(roundData)
+        .eq('id', id);
+      if (error) throw error;
+
+      // Replace questions: delete old, insert new
+      await (supabase as any)
+        .from('tracking_round_questions')
+        .delete()
+        .eq('round_id', id);
+
+      if (questions.length > 0) {
+        const qRows = questions.map((q, i) => ({
+          round_id: id,
+          question_key: q.question_key,
+          label: q.label,
+          description: q.description || null,
+          question_type: q.question_type,
+          options: q.options,
+          sort_order: i,
+          is_required: q.is_required,
+          allow_other: q.allow_other ?? false,
+          conditional_question_key: q.conditional_question_key || null,
+          conditional_value: q.conditional_value || null,
+        }));
+        const { error: qErr } = await (supabase as any)
+          .from('tracking_round_questions')
+          .insert(qRows);
+        if (qErr) throw qErr;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tracking-rounds'] });
+      qc.invalidateQueries({ queryKey: ['tracking-questions'] });
+      toast({ title: 'Rodada atualizada com sucesso!' });
+    },
+    onError: (e: any) => {
+      toast({ title: 'Erro ao atualizar rodada', description: e.message, variant: 'destructive' });
+    },
+  });
+
   return {
     rounds: roundsQuery.data || [],
     isLoading: roundsQuery.isLoading,
     interviewCounts: interviewCountsQuery.data || {},
     createRound,
+    updateRound,
     updateRoundStatus,
   };
 }
