@@ -1284,7 +1284,11 @@ export type Database = {
       }
       tracking_round_questions: {
         Row: {
+          allow_other: boolean | null
+          conditional_question_key: string | null
+          conditional_value: string | null
           created_at: string
+          description: string | null
           id: string
           is_required: boolean
           label: string
@@ -1295,7 +1299,11 @@ export type Database = {
           sort_order: number
         }
         Insert: {
+          allow_other?: boolean | null
+          conditional_question_key?: string | null
+          conditional_value?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_required?: boolean
           label: string
@@ -1306,7 +1314,11 @@ export type Database = {
           sort_order?: number
         }
         Update: {
+          allow_other?: boolean | null
+          conditional_question_key?: string | null
+          conditional_value?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_required?: boolean
           label?: string
@@ -1329,16 +1341,21 @@ export type Database = {
       tracking_rounds: {
         Row: {
           candidate_id: string
+          city: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
           description: string | null
           end_date: string | null
+          end_time: string | null
           id: string
           macroregion_id: string | null
           microregion: string | null
           municipality: string | null
+          share_code: string | null
           start_date: string
+          start_time: string | null
+          state: string | null
           status: Database["public"]["Enums"]["tracking_round_status"]
           target_interviews: number
           territory_scope: string
@@ -1347,16 +1364,21 @@ export type Database = {
         }
         Insert: {
           candidate_id: string
+          city?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
           end_date?: string | null
+          end_time?: string | null
           id?: string
           macroregion_id?: string | null
           microregion?: string | null
           municipality?: string | null
+          share_code?: string | null
           start_date?: string
+          start_time?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["tracking_round_status"]
           target_interviews?: number
           territory_scope?: string
@@ -1365,16 +1387,21 @@ export type Database = {
         }
         Update: {
           candidate_id?: string
+          city?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
           end_date?: string | null
+          end_time?: string | null
           id?: string
           macroregion_id?: string | null
           microregion?: string | null
           municipality?: string | null
+          share_code?: string | null
           start_date?: string
+          start_time?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["tracking_round_status"]
           target_interviews?: number
           territory_scope?: string
@@ -1651,7 +1678,7 @@ export type Database = {
         | "eficiencia"
         | "capilaridade"
         | "oportunidade"
-      tracking_round_status: "aberta" | "fechada" | "em_analise"
+      tracking_round_status: "rascunho" | "aberta" | "fechada" | "em_analise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1869,7 +1896,7 @@ export const Constants = {
         "capilaridade",
         "oportunidade",
       ],
-      tracking_round_status: ["aberta", "fechada", "em_analise"],
+      tracking_round_status: ["rascunho", "aberta", "fechada", "em_analise"],
     },
   },
 } as const
