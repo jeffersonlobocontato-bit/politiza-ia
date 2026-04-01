@@ -238,11 +238,11 @@ export default function TrackingDashboard() {
               <Plus className="w-4 h-4" /> Nova Rodada
             </Button>
           </DialogTrigger>
-           <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-            <DialogHeader>
+           <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>{editingRoundId ? 'Editar Rodada' : 'Criar Rodada de Tracking'}</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="flex-1 max-h-[calc(90vh-140px)] pr-4">
+            <div className="flex-1 overflow-y-auto pr-2 min-h-0">
               <div className="space-y-6 pb-4">
                 {/* Basic info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
