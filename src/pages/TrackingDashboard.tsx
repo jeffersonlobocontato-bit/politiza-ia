@@ -418,12 +418,12 @@ export default function TrackingDashboard() {
                                   <div className="grid grid-cols-2 gap-2 mt-1">
                                     <div>
                                       <Select
-                                        value={q.conditional_question_key}
-                                        onValueChange={v => updateQuestion(idx, 'conditional_question_key', v)}
+                                        value={q.conditional_question_key || '__none__'}
+                                        onValueChange={v => updateQuestion(idx, 'conditional_question_key', v === '__none__' ? '' : v)}
                                       >
                                         <SelectTrigger className="text-xs"><SelectValue placeholder="Mostrar se..." /></SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="">Sempre visível</SelectItem>
+                                          <SelectItem value="__none__">Sempre visível</SelectItem>
                                           {questions.slice(0, idx).map(pq => (
                                             <SelectItem key={pq.question_key} value={pq.question_key}>
                                               {pq.label || `Pergunta ${questions.indexOf(pq) + 1}`}
@@ -629,8 +629,8 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
                         <Pencil className="w-3 h-3" /> Editar
                       </Button>
                       {round.share_code && (
-                        <Button size="sm" variant="outline" className="gap-1 text-xs flex-1" onClick={() => copyLink(round)}>
-                          <Copy className="w-3 h-3" /> Copiar Link
+                        <Button size="sm" variant="default" className="gap-1 text-xs flex-1 bg-primary hover:bg-primary/90 font-bold" onClick={() => copyLink(round)}>
+                          <Copy className="w-3 h-3" /> 📋 COPIAR LINK DA COLETA
                         </Button>
                       )}
                       {round.status === 'rascunho' && (
