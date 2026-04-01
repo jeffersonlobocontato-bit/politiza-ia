@@ -22,6 +22,7 @@ import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
 import Proporcional from "./pages/Proporcional";
 import TrackingDashboard from "./pages/TrackingDashboard";
+import TrackingColeta from "./pages/TrackingColeta";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
