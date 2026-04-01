@@ -85,15 +85,44 @@ export default function TrackingColeta() {
         return;
       }
 
-      // Check time window
+      // Check date + time window
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+
+      // Check if current date is within the round's date range
+      if (data.start_date && todayStr < data.start_date) {
+        setError(`Coleta disponível a partir de ${data.start_date}.`);
+        setLoading(false);
+        return;
+      }
+      if (data.end_date && todayStr > data.end_date) {
+        setError('Esta rodada já foi encerrada.');
+        setLoading(false);
+        return;
+      }
+
+      // Check time window only on boundary days
       if (data.start_time && data.end_time) {
-        const now = new Date();
         const [sh, sm] = data.start_time.split(':').map(Number);
         const [eh, em] = data.end_time.split(':').map(Number);
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const startMins = sh * 60 + sm;
         const endMins = eh * 60 + em;
-        if (currentMins < startMins || currentMins > endMins) {
+
+        const isStartDay = todayStr === data.start_date;
+        const isEndDay = todayStr === data.end_date;
+
+        if (isStartDay && !isEndDay && currentMins < startMins) {
+          setError(`Coleta disponível a partir das ${data.start_time.slice(0, 5)} de hoje.`);
+          setLoading(false);
+          return;
+        }
+        if (isEndDay && !isStartDay && currentMins > endMins) {
+          setError(`Coleta encerrada às ${data.end_time.slice(0, 5)} de hoje.`);
+          setLoading(false);
+          return;
+        }
+        if (isStartDay && isEndDay && (currentMins < startMins || currentMins > endMins)) {
           setError(`Coleta disponível apenas entre ${data.start_time.slice(0, 5)} e ${data.end_time.slice(0, 5)}.`);
           setLoading(false);
           return;
