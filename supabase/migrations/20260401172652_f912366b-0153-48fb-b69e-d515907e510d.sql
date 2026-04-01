@@ -1,0 +1,1 @@
+UPDATE tracking_rounds SET share_code = upper(substr(md5(random()::text), 1, 8)) WHERE share_code IS NULL OR share_code = '';
