@@ -17,7 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Plus, Copy, BarChart3, MapPin, Users, ClipboardCheck,
   Calendar, Clock, Target, ExternalLink, GripVertical,
-  Trash2, ChevronDown, ChevronUp, FileText,
+  Trash2, ChevronDown, ChevronUp, FileText, Pencil,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TrackingCharts } from '@/components/tracking/TrackingCharts';
