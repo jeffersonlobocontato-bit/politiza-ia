@@ -86,6 +86,21 @@ export default function TrackingDashboard() {
   const [newOptionText, setNewOptionText] = useState<Record<number, string>>({});
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
 
+  // Interviewer count
+  const { data: interviewerCount = 0 } = useQuery({
+    queryKey: ['tracking-interviewer-count', activeCandidate?.id],
+    queryFn: async () => {
+      if (!activeCandidate?.id) return 0;
+      const { count } = await (supabase as any)
+        .from('tracking_interviewers')
+        .select('*', { count: 'exact', head: true })
+        .eq('candidate_id', activeCandidate.id)
+        .eq('status', 'ativo');
+      return count || 0;
+    },
+    enabled: !!activeCandidate?.id,
+  });
+
   if (!activeCandidate) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
