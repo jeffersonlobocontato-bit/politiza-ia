@@ -624,6 +624,10 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
                       </div>
                     </div>
                     <div className="flex items-center gap-2 pt-1">
+                      <Button size="sm" variant="outline" className="gap-1 text-xs"
+                        onClick={() => loadRoundForEdit(round)}>
+                        <Pencil className="w-3 h-3" /> Editar
+                      </Button>
                       {round.share_code && (
                         <Button size="sm" variant="outline" className="gap-1 text-xs flex-1" onClick={() => copyLink(round)}>
                           <Copy className="w-3 h-3" /> Copiar Link
