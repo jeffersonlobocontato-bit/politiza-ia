@@ -629,8 +629,8 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
                         <Pencil className="w-3 h-3" /> Editar
                       </Button>
                       {round.share_code && (
-                        <Button size="sm" variant="outline" className="gap-1 text-xs flex-1" onClick={() => copyLink(round)}>
-                          <Copy className="w-3 h-3" /> Copiar Link
+                        <Button size="sm" variant="default" className="gap-1 text-xs flex-1 bg-primary hover:bg-primary/90 font-bold" onClick={() => copyLink(round)}>
+                          <Copy className="w-3 h-3" /> 📋 COPIAR LINK DA COLETA
                         </Button>
                       )}
                       {round.status === 'rascunho' && (
