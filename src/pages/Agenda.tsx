@@ -1,12 +1,39 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, List, Clock, MapPin, User, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useAgendaEvents, type AgendaEvent } from '@/hooks/useAgenda';
+import { useCreateAction } from '@/hooks/useActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import type { DbActionType, DbPriorityLevel } from '@/types/database';
+
+const TYPE_OPTIONS: { value: DbActionType; label: string }[] = [
+  { value: 'reuniao_politica', label: 'Reunião Política' },
+  { value: 'visita_institucional', label: 'Visita Institucional' },
+  { value: 'mobilizacao_comunitaria', label: 'Mobilização Comunitária' },
+  { value: 'adesivacao', label: 'Adesivação' },
+  { value: 'panfletagem', label: 'Panfletagem' },
+  { value: 'carreata', label: 'Carreata' },
+  { value: 'evento_regional', label: 'Evento Regional' },
+  { value: 'agenda_candidato', label: 'Agenda Candidato' },
+  { value: 'reuniao_empresarios', label: 'Reunião Empresários' },
+  { value: 'encontro_liderancas', label: 'Encontro Lideranças' },
+  { value: 'acao_digital', label: 'Ação Digital' },
+];
+const PRIORITY_OPTIONS: { value: DbPriorityLevel; label: string }[] = [
+  { value: 'critica', label: 'Crítica' },
+  { value: 'alta', label: 'Alta' },
+  { value: 'media', label: 'Média' },
+  { value: 'baixa', label: 'Baixa' },
+];
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
