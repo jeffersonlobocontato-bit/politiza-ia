@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, List, Clock, MapPin, User, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
