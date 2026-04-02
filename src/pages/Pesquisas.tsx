@@ -754,10 +754,10 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
 
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={aprovacao.rows.map(r => ({ wave: r.wave, ...r.values }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="wave" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} formatter={(v: any) => [`${v}%`]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
+                  <XAxis dataKey="wave" tick={{ fontSize: 11, fill: '#8899aa' }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#8899aa' }} tickFormatter={v => `${v}%`} />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }} formatter={(v: any) => [`${v}%`]} />
                   <Legend />
                   <Line type="monotone" dataKey="Aprova" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4 }} />
                   <Line type="monotone" dataKey="Desaprova" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="5 3" />
@@ -768,10 +768,10 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                 <div className="text-xs font-semibold text-muted-foreground mb-3">Avaliação Detalhada</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={aprovacao.rows.map(r => ({ wave: r.wave, ...r.values }))}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="wave" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis domain={[0, 50]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} formatter={(v: any) => [`${v}%`]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
+                    <XAxis dataKey="wave" tick={{ fontSize: 11, fill: '#8899aa' }} />
+                    <YAxis domain={[0, 50]} tick={{ fontSize: 11, fill: '#8899aa' }} tickFormatter={v => `${v}%`} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }} formatter={(v: any) => [`${v}%`]} />
                     <Legend />
                     <Line type="monotone" dataKey="Ótima" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} />
                     <Line type="monotone" dataKey="Boa" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
@@ -1023,10 +1023,10 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
           <ResponsiveContainer width="100%" height={270}>
             <LineChart data={chartData} margin={{ left: 0, right: 24 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 10, fill: '#8899aa' }}
                 interval={0}
                 angle={-20}
                 textAnchor="end"
@@ -1034,11 +1034,11 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               />
               <YAxis
                 domain={[0, 60]}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: '#8899aa' }}
                 tickFormatter={v => `${v}%`}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
+                contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }}
                 formatter={(v: any, name: string) => [`${v}%`, name]}
               />
               {allSelectedCandidates.map((c, i) => (
