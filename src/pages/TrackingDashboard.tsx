@@ -532,17 +532,22 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
       if (!roundIds.length) return [];
       const results: any[] = [];
       for (let offset = 0; ; offset += 1000) {
-        const { data } = await (supabase as any)
+        const { data, error } = await (supabase as any)
           .from('tracking_interviews')
           .select('*')
           .in('round_id', roundIds)
           .range(offset, offset + 999);
+        if (error) throw error;
         if (data) results.push(...data);
         if (!data || data.length < 1000) break;
       }
       return results;
     },
     enabled: rounds.length > 0,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const { data: allAnswers = [] } = useQuery({
