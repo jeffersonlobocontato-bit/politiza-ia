@@ -404,52 +404,40 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
               </ChartCard>
             )}
 
-            {/* Gender — donut */}
-            {genderData.length > 0 && (
-              <ChartCard title="Gênero dos Entrevistados">
-                <div className="h-64 flex items-center justify-center">
+            {/* Gender × Vote — stacked horizontal bar */}
+            {genderVoteData.length > 0 && allCandidateNames.length > 0 && (
+              <ChartCard title="Intenção de Voto por Gênero (%)">
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={genderData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={85}
-                        paddingAngle={3}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={false}
-                      >
-                        {genderData.map((_, i) => (
-                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="none" />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={tooltipStyle} />
-                    </PieChart>
+                    <BarChart data={genderVoteData} layout="vertical" margin={{ left: 80, right: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: '#8899aa' }} unit="%" />
+                      <YAxis type="category" dataKey="dimension" tick={{ fontSize: 12, fill: '#dde4ec' }} width={75} />
+                      <Tooltip contentStyle={tooltipStyle} formatter={(val: number) => `${val}%`} />
+                      <Legend wrapperStyle={{ fontSize: 11, color: '#dde4ec' }} />
+                      {allCandidateNames.map((name, i) => (
+                        <Bar key={name} dataKey={name} stackId="gender" fill={CHART_COLORS[i % CHART_COLORS.length]} barSize={28} />
+                      ))}
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </ChartCard>
             )}
 
-            {/* Age distribution */}
-            {ageData.length > 0 && (
-              <ChartCard title="Faixa Etária" className="lg:col-span-2">
-                <div className="h-52">
+            {/* Age × Vote — stacked vertical bar */}
+            {ageVoteData.length > 0 && allCandidateNames.length > 0 && (
+              <ChartCard title="Intenção de Voto por Faixa Etária (%)" className="lg:col-span-2">
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ageData}>
-                      <defs>
-                        <linearGradient id="ageGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#0FFCBE" stopOpacity={0.9} />
-                          <stop offset="95%" stopColor="#0FFCBE" stopOpacity={0.3} />
-                        </linearGradient>
-                      </defs>
+                    <BarChart data={ageVoteData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
-                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#8899aa' }} />
-                      <YAxis tick={{ fontSize: 11, fill: '#8899aa' }} />
-                      <Tooltip contentStyle={tooltipStyle} />
-                      <Bar dataKey="value" fill="url(#ageGrad)" radius={[6, 6, 0, 0]} barSize={32} />
+                      <XAxis dataKey="dimension" tick={{ fontSize: 10, fill: '#8899aa' }} />
+                      <YAxis tick={{ fontSize: 11, fill: '#8899aa' }} unit="%" />
+                      <Tooltip contentStyle={tooltipStyle} formatter={(val: number) => `${val}%`} />
+                      <Legend wrapperStyle={{ fontSize: 11, color: '#dde4ec' }} />
+                      {allCandidateNames.map((name, i) => (
+                        <Bar key={name} dataKey={name} stackId="age" fill={CHART_COLORS[i % CHART_COLORS.length]} radius={i === allCandidateNames.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
+                      ))}
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
