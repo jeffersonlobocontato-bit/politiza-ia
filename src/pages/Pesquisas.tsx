@@ -284,7 +284,7 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
             {[1, 2, 3].map(s => (
               <div
                 key={s}
-                className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-muted'}`}
+                className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-[hsl(220,18%,16%)]'}`}
               />
             ))}
           </div>
@@ -293,14 +293,14 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
           {step === 1 && (
             <div className="space-y-4">
               <div className="text-sm font-semibold text-muted-foreground">Arquivo selecionado</div>
-              <div className="flex items-center gap-3 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-muted/30">
+              <div className="flex items-center gap-3 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-[hsl(220,18%,16%)]">
                 <FileText className="w-8 h-8 text-primary shrink-0" />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{fileName}</div>
                   <div className="text-xs text-muted-foreground">PDF · Pronto para importar</div>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3 space-y-1">
+              <div className="text-xs text-muted-foreground bg-[hsl(220,18%,16%)] rounded-lg p-3 space-y-1">
                 <div className="font-semibold text-foreground mb-1">Padrões reconhecidos:</div>
                 <div>• Relatório completo (Paraná Pesquisas) — Espontânea, Estimulada por cenários, Rejeição, Aprovação + Comparativo</div>
                 <div>• Tabulação cruzada colorida — sub/sobre-representação por segmento</div>
@@ -589,7 +589,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
               className={`px-4 py-2 capitalize font-medium transition-colors ${
                 cargo === c
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-background text-muted-foreground hover:bg-muted'
+                  : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
               }`}
             >
               {c}
@@ -608,7 +608,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── ESPONTÂNEA ── */}
       {espontanea && (
         <Collapsible open={openSections.espontanea} onOpenChange={() => toggleSection('espontanea')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2"><Search className="w-4 h-4 text-primary" /> Espontânea</span>
             {openSections.espontanea ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
@@ -624,7 +624,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── ESTIMULADA ── */}
       {estimuladas.length > 0 && (
         <Collapsible open={openSections.estimulada} onOpenChange={() => toggleSection('estimulada')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Estimulada</span>
             {openSections.estimulada ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
@@ -639,7 +639,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                     className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
                       (activeScenario === q.id || (!activeScenario && estimuladas[0]?.id === q.id))
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-muted'
+                        : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                     }`}
                   >
                     {q.scenarioLabel}
@@ -670,7 +670,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                                 className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
                                   activeFilter === f.value
                                     ? 'bg-primary/10 border-primary text-primary'
-                                    : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-muted'
+                                    : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                                 }`}
                               >
                                 {f.label}
@@ -695,7 +695,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── REJEIÇÃO ── */}
       {rejeicao && (
         <Collapsible open={openSections.rejeicao} onOpenChange={() => toggleSection('rejeicao')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2">
               <X className="w-4 h-4 text-brand-red" /> Rejeição
               {rejeicao.note && <span className="text-[10px] font-normal text-muted-foreground">{rejeicao.note}</span>}
@@ -721,7 +721,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                             className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
                               activeFilter === f.value
                                 ? 'bg-brand-red/10 border-brand-red text-brand-red'
-                                : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-muted'
+                                : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                             }`}
                           >
                             {f.label}
@@ -744,7 +744,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── APROVAÇÃO (comparativo) ── */}
       {aprovacao && (
         <Collapsible open={openSections.aprovacao} onOpenChange={() => toggleSection('aprovacao')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-brand-green" /> Avaliação / Aprovação — Comparativo</span>
             {openSections.aprovacao ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
@@ -892,7 +892,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                   selectedWaves.includes(w.id)
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-muted'
+                    : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                 }`}
               >
                 {w.institute} · {w.releaseDate}
@@ -911,7 +911,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   key={c}
                   onClick={() => setTargetCargo(c)}
                   className={`flex-1 py-1.5 capitalize font-medium transition-colors text-xs ${
-                    targetCargo === c ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'
+                    targetCargo === c ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                   }`}
                 >
                   {c}
@@ -927,7 +927,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   key={m.v}
                   onClick={() => setMetricType(m.v as any)}
                   className={`flex-1 py-1.5 font-medium transition-colors ${
-                    metricType === m.v ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'
+                    metricType === m.v ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                   }`}
                 >
                   {m.l}
