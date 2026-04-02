@@ -524,14 +524,23 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
   const [chartRoundId, setChartRoundId] = useState<string | null>(null);
   const [chartFilters, setChartFilters] = useState({ city: '', neighborhood: '', interviewer: '' });
 
-  // Load all interviews and answers for charts/map
+  // Load all interviews — paginated to overcome 1000-row limit
   const { data: allInterviews = [] } = useQuery({
-    queryKey: ['tracking-all-interviews', activeCandidate?.id],
+    queryKey: ['tracking-all-interviews', activeCandidate?.id, rounds.length],
     queryFn: async () => {
       const roundIds = rounds.map((r: any) => r.id);
       if (!roundIds.length) return [];
-      const { data } = await (supabase as any).from('tracking_interviews').select('*').in('round_id', roundIds);
-      return data || [];
+      const results: any[] = [];
+      for (let offset = 0; ; offset += 1000) {
+        const { data } = await (supabase as any)
+          .from('tracking_interviews')
+          .select('*')
+          .in('round_id', roundIds)
+          .range(offset, offset + 999);
+        if (data) results.push(...data);
+        if (!data || data.length < 1000) break;
+      }
+      return results;
     },
     enabled: rounds.length > 0,
   });
@@ -541,12 +550,19 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
     queryFn: async () => {
       const ids = allInterviews.map((i: any) => i.id);
       if (!ids.length) return [];
-      // Batch in chunks of 200
+      // Batch in chunks of 200 IDs, paginate each chunk
       const results: any[] = [];
       for (let i = 0; i < ids.length; i += 200) {
         const chunk = ids.slice(i, i + 200);
-        const { data } = await (supabase as any).from('tracking_interview_answers').select('*').in('interview_id', chunk);
-        if (data) results.push(...data);
+        for (let offset = 0; ; offset += 1000) {
+          const { data } = await (supabase as any)
+            .from('tracking_interview_answers')
+            .select('*')
+            .in('interview_id', chunk)
+            .range(offset, offset + 999);
+          if (data) results.push(...data);
+          if (!data || data.length < 1000) break;
+        }
       }
       return results;
     },
