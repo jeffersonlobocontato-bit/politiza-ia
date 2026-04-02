@@ -23,6 +23,7 @@ import SalaDeCrise from "./pages/SalaDeCrise";
 import Proporcional from "./pages/Proporcional";
 import TrackingDashboard from "./pages/TrackingDashboard";
 import TrackingColeta from "./pages/TrackingColeta";
+import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
