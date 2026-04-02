@@ -11,6 +11,10 @@ interface Interview {
   lat: number | null;
   lng: number | null;
   created_at: string;
+  respondent_gender: string | null;
+  respondent_age_range: string | null;
+  respondent_income: string | null;
+  respondent_education: string | null;
 }
 
 interface Round {
@@ -91,13 +95,26 @@ export function TrackingMap({ interviews, rounds, selectedRoundId, onRoundChange
         fillOpacity: 0.8,
       }).addTo(map);
 
-      marker.bindPopup(`
-        <div style="font-size:12px;">
-          <strong>${interview.municipality || 'Local'}</strong><br/>
-          <span style="color:#666;">${new Date(interview.created_at).toLocaleString('pt-BR')}</span><br/>
-          <span style="font-size:10px;">📍 ${interview.lat?.toFixed(5)}, ${interview.lng?.toFixed(5)}</span>
+      const gender = interview.respondent_gender || '—';
+      const age = interview.respondent_age_range || '—';
+      const income = interview.respondent_income || '—';
+      const education = interview.respondent_education || '—';
+
+      marker.bindTooltip(`
+        <div style="font-size:12px;background:hsl(220,20%,13%);color:#c8d6e5;padding:10px 12px;border-radius:8px;min-width:180px;border:1px solid hsl(220,15%,22%);">
+          <div style="font-weight:700;color:#0FFCBE;margin-bottom:6px;font-size:13px;">📍 ${interview.municipality || 'Local'}</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <span>👤 ${gender}</span>
+            <span>🎂 ${age}</span>
+            <span>💰 ${income}</span>
+            <span>🎓 ${education}</span>
+          </div>
+          <div style="margin-top:6px;padding-top:5px;border-top:1px solid hsl(220,15%,25%);font-size:10px;color:#8899aa;">
+            📅 ${new Date(interview.created_at).toLocaleString('pt-BR')}<br/>
+            ${interview.lat?.toFixed(5)}, ${interview.lng?.toFixed(5)}
+          </div>
         </div>
-      `);
+      `, { direction: 'top', offset: [0, -8], opacity: 1, className: 'tracking-tooltip-clean' });
     });
 
     // Simple heatmap via overlapping circles with low opacity

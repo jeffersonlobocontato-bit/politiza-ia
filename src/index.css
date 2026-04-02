@@ -3,6 +3,16 @@
 /* Leaflet CSS — must come before Tailwind directives */
 @import "leaflet/dist/leaflet.css";
 
+.tracking-tooltip-clean {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.tracking-tooltip-clean::before {
+  display: none !important;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
