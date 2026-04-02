@@ -1,61 +1,35 @@
 
 
-# Ajustes nos Gráficos do Tracking
+# Tooltip com dados demográficos no mapa do Tracking
 
-## Problema 1: Respostas órfãs de perguntas excluídas
+## O que será feito
 
-Atualmente, os gráficos buscam **todas as respostas** (`tracking_interview_answers`) das entrevistas, independentemente de a pergunta ainda existir em `tracking_round_questions`. Quando o usuário exclui uma pergunta da rodada, as respostas antigas continuam no banco e são exibidas nos gráficos.
+Quando o usuário passar o mouse sobre um pin no mapa de geolocalização, o tooltip/popup mostrará os dados demográficos do entrevistado: município, gênero, faixa etária, renda e escolaridade (além da data e coordenadas já existentes).
 
-**Solução:** No `TrackingCharts`, filtrar `filteredAnswers` para considerar apenas respostas cujo `question_key` existe na lista de `questions` (perguntas ativas). Isso garante que perguntas excluídas não poluam os gráficos.
+## Alterações
 
-**Arquivo:** `src/components/tracking/TrackingCharts.tsx`
-- Criar um `Set` de `question_keys` válidos a partir das `questions` recebidas
-- Filtrar `filteredAnswers` para incluir apenas respostas com `question_key` presente nesse Set
+### 1. Expandir a interface `Interview` no TrackingMap
 
----
+A interface atual só tem `id`, `round_id`, `municipality`, `lat`, `lng`, `created_at`. Adicionar os campos demográficos que já existem na tabela `tracking_interviews`:
+- `respondent_gender`
+- `respondent_age_range`
+- `respondent_income`
+- `respondent_education`
 
-## Problema 2: Gênero — mostrar % de votos por candidato dentro de cada gênero
+### 2. Atualizar o popup do marcador
 
-O card "Gênero dos Entrevistados" hoje mostra apenas a distribuição Masculino/Feminino (donut simples). Precisa mostrar, dentro de cada gênero, a intenção de voto por candidato.
+Trocar `bindPopup` por `bindTooltip` (para aparecer no hover, não no click) ou manter popup mas exibir os dados demográficos com ícones visuais:
+- 👤 Gênero
+- 🎂 Faixa etária
+- 💰 Renda
+- 🎓 Escolaridade
+- 📍 Município
+- 📅 Data/hora
 
-**Solução:** Substituir o donut por um **stacked bar chart horizontal** (ou grouped bar), onde cada barra é um gênero e os segmentos representam os candidatos com suas respectivas %.
+Manter o design system navy/dark do tracking nos estilos inline do tooltip.
 
-**Arquivo:** `src/components/tracking/TrackingCharts.tsx`
-- Criar `genderVoteData`: para cada gênero, cruzar as entrevistas com as respostas de intenção de voto (perguntas `select` válidas), calculando % por candidato
-- Trocar o `PieChart` por um `BarChart` stacked horizontal com uma barra por gênero e segmentos coloridos por candidato
-- Manter legenda com os nomes dos candidatos
+### Arquivo editado
+- `src/components/tracking/TrackingMap.tsx` — interface `Interview` e conteúdo do popup/tooltip
 
----
-
-## Problema 3: Faixa Etária — mostrar % de votos por candidato em cada faixa
-
-O card "Faixa Etária" hoje mostra apenas quantas entrevistas por faixa. Precisa mostrar a intenção de voto por candidato dentro de cada faixa.
-
-**Solução:** Transformar em **stacked bar chart vertical**, onde cada barra é uma faixa etária e os segmentos são os candidatos.
-
-**Arquivo:** `src/components/tracking/TrackingCharts.tsx`
-- Criar `ageVoteData`: para cada faixa etária, cruzar entrevistas com respostas de voto, calcular % por candidato
-- Trocar o `Bar` único por múltiplos `Bar` (um por candidato) com `stackId="age"`
-- Usar as mesmas cores `CHART_COLORS` já atribuídas aos candidatos
-
----
-
-## Detalhes técnicos
-
-### Lógica de cruzamento gênero/idade × voto
-
-Para ambos os gráficos, a lógica é similar:
-1. Agrupar entrevistas filtradas por dimensão (gênero ou faixa etária)
-2. Para cada grupo, encontrar as respostas de perguntas `select` válidas
-3. Contar votos por candidato e calcular % sobre o total do grupo
-4. Montar array de objetos `{ dimension, candidato1: %, candidato2: %, ... }`
-
-### Filtragem de perguntas válidas (problema 1)
-
-```text
-validKeys = Set(questions.map(q => q.question_key))
-filteredAnswers = answers.filter(a => validKeys.has(a.question_key) && interviewIds.has(a.interview_id))
-```
-
-Isso resolve os 3 problemas com edições apenas em `src/components/tracking/TrackingCharts.tsx`.
+Nenhuma alteração no `TrackingDashboard.tsx` é necessária, pois `allInterviews` já retorna todos os campos da tabela via `select('*')`.
 
