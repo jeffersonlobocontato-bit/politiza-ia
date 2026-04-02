@@ -389,11 +389,11 @@ export default function Hierarquia() {
                                       setGeoForm({ city: '', lat: null, lng: null });
                                       setShowForm(true);
                                     }}
-                                    className="w-full flex flex-col items-center justify-center py-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                                    className="w-full flex flex-col items-center justify-center py-3 text-muted-foreground hover:text-foreground transition-colors"
                                   >
                                     <Plus className="w-5 h-5 mb-1" />
-                                    <span className="text-xs font-medium text-center">{role.replace('Coordenador ', '').replace('de ', '')}</span>
-                                    <span className="text-[10px] mt-0.5">Vaga aberta</span>
+                                    <span className="text-xs font-medium text-center text-foreground/70">{role.replace('Coordenador ', '').replace('de ', '')}</span>
+                                    <span className="text-[10px] mt-0.5 text-foreground/60">Vaga aberta</span>
                                   </button>
                                 )}
                               </div>
