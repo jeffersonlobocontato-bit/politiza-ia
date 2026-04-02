@@ -40,11 +40,11 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
 // ─── WaveCard ────────────────────────────────────────────────
 function WaveCard({ wave, onDelete }: { wave: PollWave; onDelete?: () => void }) {
   return (
-    <div className="rounded-xl border border-border p-4 flex flex-col gap-3 relative" style={{ background: 'var(--gradient-card)' }}>
+    <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] p-4 flex flex-col gap-3 relative shadow-lg">
       {onDelete && (
         <button
           onClick={onDelete}
-          className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors"
+          className="absolute top-3 right-3 text-[#8899aa] hover:text-[#E53935] transition-colors"
           title="Remover pesquisa"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -52,29 +52,29 @@ function WaveCard({ wave, onDelete }: { wave: PollWave; onDelete?: () => void })
       )}
       <div className="flex items-start justify-between gap-2 pr-6">
         <div>
-          <div className="text-xs font-bold text-primary">{wave.institute}</div>
-          <div className="text-sm font-semibold text-foreground mt-0.5">{wave.territory}</div>
+          <div className="text-xs font-bold text-[#0FFCBE]">{wave.institute}</div>
+          <div className="text-sm font-semibold text-white mt-0.5">{wave.territory}</div>
         </div>
-        <Badge variant="outline" className="text-[10px] shrink-0">{wave.releaseDate}</Badge>
+        <Badge variant="outline" className="text-[10px] shrink-0 border-[hsl(220,15%,25%)] text-[#8899aa]">{wave.releaseDate}</Badge>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center border-t border-border pt-3">
+      <div className="grid grid-cols-3 gap-2 text-center border-t border-[hsl(220,15%,20%)] pt-3">
         <div>
-          <div className="text-[10px] text-muted-foreground">Amostra</div>
-          <div className="text-sm font-bold">{wave.sampleSize.toLocaleString()}</div>
+          <div className="text-[10px] text-[#8899aa]">Amostra</div>
+          <div className="text-sm font-bold text-white">{wave.sampleSize.toLocaleString()}</div>
         </div>
         <div>
-          <div className="text-[10px] text-muted-foreground">Margem</div>
-          <div className="text-sm font-bold">±{wave.marginOfError}pp</div>
+          <div className="text-[10px] text-[#8899aa]">Margem</div>
+          <div className="text-sm font-bold text-white">±{wave.marginOfError}pp</div>
         </div>
         <div>
-          <div className="text-[10px] text-muted-foreground">Cargos</div>
-          <div className="text-sm font-bold capitalize">{wave.cargos.map(c => c === 'governador' ? 'Gov' : 'Sen').join(', ')}</div>
+          <div className="text-[10px] text-[#8899aa]">Cargos</div>
+          <div className="text-sm font-bold text-white capitalize">{wave.cargos.map(c => c === 'governador' ? 'Gov' : 'Sen').join(', ')}</div>
         </div>
       </div>
-      <div className="text-[10px] text-muted-foreground border-t border-border pt-2">
+      <div className="text-[10px] text-[#8899aa] border-t border-[hsl(220,15%,20%)] pt-2">
         TSE: {wave.tseRegistration}
       </div>
-      <div className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
+      <div className="text-[10px] text-[#8899aa] leading-relaxed line-clamp-2">
         {wave.methodology}
       </div>
     </div>
@@ -240,20 +240,19 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
 
       {/* Upload area */}
       <div
-        className="rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center gap-3 cursor-pointer"
-        style={{ background: 'var(--gradient-card)' }}
+        className="rounded-xl border-2 border-dashed border-[hsl(220,15%,25%)] hover:border-[#0FFCBE]/50 transition-colors p-8 flex flex-col items-center gap-3 cursor-pointer bg-[hsl(220,20%,13%)]"
         onClick={handleFileClick}
       >
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-          <Upload className="w-5 h-5 text-primary" />
+        <div className="w-12 h-12 rounded-full bg-[#0FFCBE]/10 flex items-center justify-center">
+          <Upload className="w-5 h-5 text-[#0FFCBE]" />
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold">Importar PDF de Pesquisa</div>
-          <div className="text-xs text-muted-foreground mt-1">
+          <div className="text-sm font-semibold text-white">Importar PDF de Pesquisa</div>
+          <div className="text-xs text-[#8899aa] mt-1">
             Arraste o arquivo ou clique para selecionar — padrão Paraná Pesquisas / tabulação
           </div>
         </div>
-        <div className="text-[10px] text-muted-foreground border border-border rounded px-2 py-1">
+        <div className="text-[10px] text-[#8899aa] border border-[hsl(220,15%,25%)] rounded px-2 py-1">
           Formatos suportados: Relatório completo · Tabulação cruzada
         </div>
       </div>
@@ -274,7 +273,7 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary" />
+              <FileText className="w-4 h-4 text-[#0FFCBE]" />
               Importar Pesquisa
               <Badge variant="outline" className="ml-auto text-[10px]">Passo {step} / 3</Badge>
             </DialogTitle>
@@ -285,7 +284,7 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
             {[1, 2, 3].map(s => (
               <div
                 key={s}
-                className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-muted'}`}
+                className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-[hsl(220,18%,16%)]'}`}
               />
             ))}
           </div>
@@ -294,14 +293,14 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
           {step === 1 && (
             <div className="space-y-4">
               <div className="text-sm font-semibold text-muted-foreground">Arquivo selecionado</div>
-              <div className="flex items-center gap-3 rounded-lg border border-border p-3 bg-muted/30">
-                <FileText className="w-8 h-8 text-primary shrink-0" />
+              <div className="flex items-center gap-3 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-[hsl(220,18%,16%)]">
+                <FileText className="w-8 h-8 text-[#0FFCBE] shrink-0" />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{fileName}</div>
                   <div className="text-xs text-muted-foreground">PDF · Pronto para importar</div>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3 space-y-1">
+              <div className="text-xs text-muted-foreground bg-[hsl(220,18%,16%)] rounded-lg p-3 space-y-1">
                 <div className="font-semibold text-foreground mb-1">Padrões reconhecidos:</div>
                 <div>• Relatório completo (Paraná Pesquisas) — Espontânea, Estimulada por cenários, Rejeição, Aprovação + Comparativo</div>
                 <div>• Tabulação cruzada colorida — sub/sobre-representação por segmento</div>
@@ -582,15 +581,15 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex rounded-lg border border-border overflow-hidden text-sm">
+        <div className="flex rounded-lg border border-[hsl(220,15%,20%)] overflow-hidden text-sm">
           {(['governador', 'senador'] as Cargo[]).map(c => (
             <button
               key={c}
               onClick={() => setCargo(c)}
               className={`px-4 py-2 capitalize font-medium transition-colors ${
                 cargo === c
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background text-muted-foreground hover:bg-muted'
+                  ? 'bg-primary text-[#0FFCBE]-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
               }`}
             >
               {c}
@@ -600,7 +599,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       </div>
 
       {wave && (
-        <div className="text-xs text-muted-foreground flex items-center gap-1.5 bg-muted/30 rounded-lg px-3 py-2">
+        <div className="text-xs text-[#8899aa] flex items-center gap-1.5 bg-[hsl(220,18%,16%)] rounded-lg px-3 py-2 border border-[hsl(220,15%,20%)]">
           <Info className="w-3.5 h-3.5 shrink-0" />
           {wave.sampleSize.toLocaleString()} entrevistados · {wave.collectionStart} a {wave.collectionEnd} · Margem ±{wave.marginOfError}pp · {wave.methodology.slice(0, 80)}…
         </div>
@@ -609,12 +608,12 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── ESPONTÂNEA ── */}
       {espontanea && (
         <Collapsible open={openSections.espontanea} onOpenChange={() => toggleSection('espontanea')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
-            <span className="flex items-center gap-2"><Search className="w-4 h-4 text-primary" /> Espontânea</span>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
+            <span className="flex items-center gap-2"><Search className="w-4 h-4 text-[#0FFCBE]" /> Espontânea</span>
             {openSections.espontanea ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-[hsl(220,15%,20%)] p-4 bg-[hsl(220,20%,13%)] shadow-lg">
               <div className="text-xs text-muted-foreground mb-3">BASE: {wave?.sampleSize.toLocaleString()} eleitores</div>
               <CandidateBarChart results={espontanea.results} height={280} />
             </div>
@@ -625,12 +624,12 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── ESTIMULADA ── */}
       {estimuladas.length > 0 && (
         <Collapsible open={openSections.estimulada} onOpenChange={() => toggleSection('estimulada')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
-            <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Estimulada</span>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
+            <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-[#0FFCBE]" /> Estimulada</span>
             {openSections.estimulada ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-[hsl(220,15%,20%)] p-4 space-y-4 bg-[hsl(220,20%,13%)] shadow-lg">
               {/* Scenario tabs */}
               <div className="flex gap-2 flex-wrap">
                 {estimuladas.map(q => (
@@ -639,8 +638,8 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                     onClick={() => setActiveScenario(q.id)}
                     className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
                       (activeScenario === q.id || (!activeScenario && estimuladas[0]?.id === q.id))
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-border text-muted-foreground hover:bg-muted'
+                        ? 'bg-primary text-[#0FFCBE]-foreground border-primary'
+                        : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                     }`}
                   >
                     {q.scenarioLabel}
@@ -657,7 +656,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
 
                   {/* CrossTab filter */}
                   {currentEstimulada.crossTabs.length > 0 && (
-                    <div className="space-y-3 border-t border-border pt-4">
+                    <div className="space-y-3 border-t border-[hsl(220,15%,20%)] pt-4">
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="text-xs font-semibold text-muted-foreground">Tabulação por:</span>
                         <div className="flex gap-1.5 flex-wrap">
@@ -670,8 +669,8 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                                 onClick={() => setActiveFilter(f.value)}
                                 className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
                                   activeFilter === f.value
-                                    ? 'bg-primary/10 border-primary text-primary'
-                                    : 'border-border text-muted-foreground hover:bg-muted'
+                                    ? 'bg-[#0FFCBE]/10 border-[#0FFCBE] text-[#0FFCBE]'
+                                    : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                                 }`}
                               >
                                 {f.label}
@@ -696,7 +695,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── REJEIÇÃO ── */}
       {rejeicao && (
         <Collapsible open={openSections.rejeicao} onOpenChange={() => toggleSection('rejeicao')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2">
               <X className="w-4 h-4 text-brand-red" /> Rejeição
               {rejeicao.note && <span className="text-[10px] font-normal text-muted-foreground">{rejeicao.note}</span>}
@@ -704,11 +703,11 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
             {openSections.rejeicao ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-[hsl(220,15%,20%)] p-4 space-y-4 bg-[hsl(220,20%,13%)] shadow-lg">
               <CandidateBarChart results={rejeicao.results} hideNeutral height={240} />
 
               {rejeicao.crossTabs.length > 0 && (
-                <div className="space-y-3 border-t border-border pt-4">
+                <div className="space-y-3 border-t border-[hsl(220,15%,20%)] pt-4">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-xs font-semibold text-muted-foreground">Tabulação por:</span>
                     <div className="flex gap-1.5 flex-wrap">
@@ -722,7 +721,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                             className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
                               activeFilter === f.value
                                 ? 'bg-brand-red/10 border-brand-red text-brand-red'
-                                : 'border-border text-muted-foreground hover:bg-muted'
+                                : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                             }`}
                           >
                             {f.label}
@@ -745,34 +744,34 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── APROVAÇÃO (comparativo) ── */}
       {aprovacao && (
         <Collapsible open={openSections.aprovacao} onOpenChange={() => toggleSection('aprovacao')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-brand-green" /> Avaliação / Aprovação — Comparativo</span>
             {openSections.aprovacao ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-[hsl(220,15%,20%)] p-4 space-y-4 bg-[hsl(220,20%,13%)] shadow-lg">
               <div className="text-xs text-muted-foreground">Ratinho Junior — Evolução da avaliação da administração estadual</div>
 
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={aprovacao.rows.map(r => ({ wave: r.wave, ...r.values }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="wave" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} formatter={(v: any) => [`${v}%`]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
+                  <XAxis dataKey="wave" tick={{ fontSize: 11, fill: '#8899aa' }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#8899aa' }} tickFormatter={v => `${v}%`} />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }} formatter={(v: any) => [`${v}%`]} />
                   <Legend />
                   <Line type="monotone" dataKey="Aprova" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4 }} />
                   <Line type="monotone" dataKey="Desaprova" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="5 3" />
                 </LineChart>
               </ResponsiveContainer>
 
-              <div className="border-t border-border pt-4">
+              <div className="border-t border-[hsl(220,15%,20%)] pt-4">
                 <div className="text-xs font-semibold text-muted-foreground mb-3">Avaliação Detalhada</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={aprovacao.rows.map(r => ({ wave: r.wave, ...r.values }))}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="wave" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis domain={[0, 50]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} formatter={(v: any) => [`${v}%`]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
+                    <XAxis dataKey="wave" tick={{ fontSize: 11, fill: '#8899aa' }} />
+                    <YAxis domain={[0, 50]} tick={{ fontSize: 11, fill: '#8899aa' }} tickFormatter={v => `${v}%`} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }} formatter={(v: any) => [`${v}%`]} />
                     <Legend />
                     <Line type="monotone" dataKey="Ótima" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} />
                     <Line type="monotone" dataKey="Boa" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
@@ -788,7 +787,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       )}
 
       {questions.length === 0 && (
-        <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-center" style={{ background: 'var(--gradient-card)' }}>
+        <div className="rounded-xl border border-[hsl(220,15%,20%)] p-8 flex flex-col items-center gap-3 text-center bg-[hsl(220,20%,13%)] shadow-lg">
           <Search className="w-8 h-8 text-muted-foreground/40" />
           <div className="text-sm text-muted-foreground">Nenhuma pergunta encontrada para este cargo nesta pesquisa.</div>
         </div>
@@ -877,9 +876,9 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   return (
     <div className="space-y-4">
       {/* Config panel */}
-      <div className="rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+      <div className="rounded-xl border border-[hsl(220,15%,20%)] p-4 space-y-4 bg-[hsl(220,20%,13%)] shadow-lg">
         <div className="text-sm font-semibold flex items-center gap-2">
-          <GitCompare className="w-4 h-4 text-primary" /> Configurar Cruzamento
+          <GitCompare className="w-4 h-4 text-[#0FFCBE]" /> Configurar Cruzamento
         </div>
 
         {/* Wave selector */}
@@ -892,8 +891,8 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                 onClick={() => toggleWave(w.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                   selectedWaves.includes(w.id)
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-border text-muted-foreground hover:bg-muted'
+                    ? 'bg-primary text-[#0FFCBE]-foreground border-primary'
+                    : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                 }`}
               >
                 {w.institute} · {w.releaseDate}
@@ -906,13 +905,13 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Cargo:</div>
-            <div className="flex rounded-lg border border-border overflow-hidden text-sm">
+            <div className="flex rounded-lg border border-[hsl(220,15%,20%)] overflow-hidden text-sm">
               {(['governador', 'senador'] as Cargo[]).map(c => (
                 <button
                   key={c}
                   onClick={() => setTargetCargo(c)}
                   className={`flex-1 py-1.5 capitalize font-medium transition-colors text-xs ${
-                    targetCargo === c ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'
+                    targetCargo === c ? 'bg-primary text-[#0FFCBE]-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                   }`}
                 >
                   {c}
@@ -922,13 +921,13 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
           </div>
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Métrica:</div>
-            <div className="flex rounded-lg border border-border overflow-hidden text-xs">
+            <div className="flex rounded-lg border border-[hsl(220,15%,20%)] overflow-hidden text-xs">
               {[{ v: 'estimulada', l: 'Estimulada' }, { v: 'rejeicao', l: 'Rejeição' }].map(m => (
                 <button
                   key={m.v}
                   onClick={() => setMetricType(m.v as any)}
                   className={`flex-1 py-1.5 font-medium transition-colors ${
-                    metricType === m.v ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'
+                    metricType === m.v ? 'bg-primary text-[#0FFCBE]-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                   }`}
                 >
                   {m.l}
@@ -1000,7 +999,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
       {/* Chart + table */}
       {chartData.length > 0 ? (
-        <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+        <div className="rounded-xl border border-[hsl(220,15%,20%)] p-4 bg-[hsl(220,20%,13%)] shadow-lg">
           {/* Legend */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4">
             {allSelectedCandidates.map((c, i) => (
@@ -1024,10 +1023,10 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
           <ResponsiveContainer width="100%" height={270}>
             <LineChart data={chartData} margin={{ left: 0, right: 24 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 10, fill: '#8899aa' }}
                 interval={0}
                 angle={-20}
                 textAnchor="end"
@@ -1035,11 +1034,11 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               />
               <YAxis
                 domain={[0, 60]}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: '#8899aa' }}
                 tickFormatter={v => `${v}%`}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
+                contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }}
                 formatter={(v: any, name: string) => [`${v}%`, name]}
               />
               {allSelectedCandidates.map((c, i) => (
@@ -1060,12 +1059,12 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
           {/* Variation table */}
           {chartData.length > 1 && (
-            <div className="mt-4 border-t border-border pt-4">
+            <div className="mt-4 border-t border-[hsl(220,15%,20%)] pt-4">
               <div className="text-xs font-semibold text-muted-foreground mb-3">Variação entre cenários</div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-border">
+                    <tr className="border-b border-[hsl(220,15%,20%)]">
                       <th className="py-1.5 px-2 text-left text-muted-foreground whitespace-nowrap">Onda / Cenário</th>
                       {allSelectedCandidates.map(c => (
                         <th key={c} className="py-1.5 px-2 text-right text-muted-foreground whitespace-nowrap">
@@ -1082,7 +1081,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   </thead>
                   <tbody>
                     {chartData.map((row, i) => (
-                      <tr key={i} className="border-b border-border last:border-0">
+                      <tr key={i} className="border-b border-[hsl(220,15%,20%)] last:border-0">
                         <td className="py-1.5 px-2 text-muted-foreground">{row.label}</td>
                         {allSelectedCandidates.map(c => {
                           const val: number | undefined = row[c];
@@ -1112,7 +1111,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
           )}
         </div>
       ) : (
-        <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-center" style={{ background: 'var(--gradient-card)' }}>
+        <div className="rounded-xl border border-[hsl(220,15%,20%)] p-8 flex flex-col items-center gap-3 text-center bg-[hsl(220,20%,13%)] shadow-lg">
           <GitCompare className="w-8 h-8 text-muted-foreground/40" />
           <div className="text-sm text-muted-foreground">Selecione ao menos uma pesquisa e um candidato com dados disponíveis para o cargo e métrica escolhidos.</div>
         </div>
@@ -1153,8 +1152,8 @@ export default function Pesquisas() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-6 py-4 border-b border-border flex items-center gap-3 flex-shrink-0">
-        <BarChart2 className="w-5 h-5 text-primary" />
+      <div className="px-6 py-4 border-b border-[hsl(220,15%,20%)] flex items-center gap-3 flex-shrink-0">
+        <BarChart2 className="w-5 h-5 text-[#0FFCBE]" />
         <div>
           <h1 className="text-base font-bold">Pesquisas Eleitorais</h1>
           <p className="text-xs text-muted-foreground">

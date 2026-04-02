@@ -10,6 +10,14 @@ interface CandidateBarChartProps {
 
 const NEUTRAL = ['Não sabe/ Não opinou', 'Não sabe/Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo'];
 
+const tooltipStyle = {
+  backgroundColor: 'hsl(220, 18%, 16%)',
+  border: '1px solid hsl(220, 15%, 25%)',
+  borderRadius: 10,
+  fontSize: 12,
+  color: '#fff',
+};
+
 const CustomLabel = (props: any) => {
   const { x, y, width, value } = props;
   if (value === 0) return null;
@@ -17,7 +25,7 @@ const CustomLabel = (props: any) => {
     <text
       x={x + width + 6}
       y={y + 10}
-      fill="hsl(var(--foreground))"
+      fill="#dde4ec"
       fontSize={12}
       fontWeight={600}
     >
@@ -33,32 +41,32 @@ export function CandidateBarChart({ results, hideNeutral = false, height = 320 }
     .map(r => ({
       name: r.candidate,
       value: r.percentage,
-      color: CANDIDATE_COLORS[r.candidate] ?? 'hsl(var(--muted-foreground))',
+      color: CANDIDATE_COLORS[r.candidate] ?? '#8899aa',
     }));
 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} layout="vertical" margin={{ top: 4, right: 64, left: 8, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" horizontal={false} />
         <XAxis
           type="number"
           domain={[0, Math.ceil((data[0]?.value ?? 50) / 10) * 10 + 10]}
-          tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 11, fill: '#8899aa' }}
           tickFormatter={v => `${v}%`}
         />
         <YAxis
           type="category"
           dataKey="name"
           width={150}
-          tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+          tick={{ fontSize: 12, fill: '#dde4ec' }}
         />
         <Tooltip
           formatter={(v: number) => [`${v}%`, 'Intenção']}
-          contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 13 }}
+          contentStyle={tooltipStyle}
         />
-        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+        <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
           {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color} fillOpacity={0.85} />
+            <Cell key={i} fill={entry.color} fillOpacity={0.9} />
           ))}
           <LabelList dataKey="value" content={<CustomLabel />} />
         </Bar>

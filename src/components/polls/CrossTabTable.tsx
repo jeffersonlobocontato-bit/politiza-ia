@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface CrossTabTableProps {
   crossTab: CrossTab;
-  highlightCandidate?: string; // highlight one column
+  highlightCandidate?: string;
 }
 
 function getIntensity(value: number, rowValues: number[]): 'high' | 'mid' | 'low' | 'neutral' {
@@ -22,11 +22,11 @@ export function CrossTabTable({ crossTab, highlightCandidate }: CrossTabTablePro
   const { candidates, rows } = crossTab;
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-lg border border-[hsl(220,15%,20%)]">
       <table className="w-full text-xs border-collapse">
         <thead>
-          <tr className="border-b border-border bg-muted/50">
-            <th className="py-2 px-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[130px]">
+          <tr className="border-b border-[hsl(220,15%,20%)] bg-[hsl(220,18%,16%)]">
+            <th className="py-2 px-3 text-left font-semibold text-[#8899aa] whitespace-nowrap min-w-[130px]">
               {crossTab.filterLabel}
             </th>
             {candidates.map(c => (
@@ -34,7 +34,7 @@ export function CrossTabTable({ crossTab, highlightCandidate }: CrossTabTablePro
                 key={c}
                 className={cn(
                   'py-2 px-2 text-center font-semibold whitespace-nowrap',
-                  highlightCandidate === c ? 'text-primary' : 'text-muted-foreground',
+                  highlightCandidate === c ? 'text-[#0FFCBE]' : 'text-[#8899aa]',
                 )}
                 style={{ borderLeft: `3px solid ${CANDIDATE_COLORS[c] ?? 'transparent'}` }}
               >
@@ -49,17 +49,20 @@ export function CrossTabTable({ crossTab, highlightCandidate }: CrossTabTablePro
             return (
               <tr
                 key={ri}
-                className={cn('border-b border-border last:border-0', ri % 2 === 0 ? 'bg-background' : 'bg-muted/20')}
+                className={cn(
+                  'border-b border-[hsl(220,15%,20%)] last:border-0',
+                  ri % 2 === 0 ? 'bg-[hsl(220,20%,13%)]' : 'bg-[hsl(220,18%,15%)]'
+                )}
               >
-                <td className="py-1.5 px-3 font-medium text-foreground whitespace-nowrap">{row.label}</td>
+                <td className="py-1.5 px-3 font-medium text-[#dde4ec] whitespace-nowrap">{row.label}</td>
                 {candidates.map((c, ci) => {
                   const val = row.values[c] ?? 0;
                   const intensity = getIntensity(val, rowNums);
                   const isHighlighted = highlightCandidate === c;
 
                   let cellBg = '';
-                  if (intensity === 'high') cellBg = 'bg-brand-green/20';
-                  else if (intensity === 'low') cellBg = 'bg-brand-red/20';
+                  if (intensity === 'high') cellBg = 'bg-[#0FFCBE]/15';
+                  else if (intensity === 'low') cellBg = 'bg-[#E53935]/15';
 
                   return (
                     <td
@@ -67,8 +70,8 @@ export function CrossTabTable({ crossTab, highlightCandidate }: CrossTabTablePro
                       className={cn(
                         'py-1.5 px-2 text-center font-semibold tabular-nums transition-colors',
                         cellBg,
-                        isHighlighted && 'ring-1 ring-inset ring-primary/40',
-                        intensity === 'high' ? 'text-brand-green' : intensity === 'low' ? 'text-brand-red' : 'text-foreground',
+                        isHighlighted && 'ring-1 ring-inset ring-[#0FFCBE]/40',
+                        intensity === 'high' ? 'text-[#0FFCBE]' : intensity === 'low' ? 'text-[#E53935]' : 'text-[#dde4ec]',
                       )}
                     >
                       {val > 0 ? `${val.toFixed(1)}%` : '—'}
