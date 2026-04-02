@@ -599,7 +599,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       </div>
 
       {wave && (
-        <div className="text-xs text-muted-foreground flex items-center gap-1.5 bg-muted/30 rounded-lg px-3 py-2">
+        <div className="text-xs text-[#8899aa] flex items-center gap-1.5 bg-[hsl(220,18%,16%)] rounded-lg px-3 py-2 border border-[hsl(220,15%,20%)]">
           <Info className="w-3.5 h-3.5 shrink-0" />
           {wave.sampleSize.toLocaleString()} entrevistados · {wave.collectionStart} a {wave.collectionEnd} · Margem ±{wave.marginOfError}pp · {wave.methodology.slice(0, 80)}…
         </div>
