@@ -436,66 +436,109 @@ export default function Agenda() {
                 Nenhum evento neste dia
               </p>
             )}
-            {selectedEvents.map(e => (
-              <div
-                key={e.id}
-                className={cn(
-                  "rounded-lg border p-3 space-y-2 transition-all hover:bg-white/5",
-                  e.type === 'action' ? "border-blue-500/20"
-                    : e.type === 'tracking_round' ? "border-emerald-500/20"
-                    : "border-red-500/20"
-                )}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-foreground truncate">{e.title}</div>
-                    {e.category && (
-                      <div className="text-[10px] text-muted-foreground">
-                        {ACTION_TYPE_LABELS[e.category] ?? e.category}
-                      </div>
+            {selectedEvents.map(e => {
+              const isExpanded = expandedEventId === e.id;
+              const raw = e.rawAction;
+              return (
+                <button
+                  key={e.id}
+                  onClick={() => toggleExpand(e.id)}
+                  className={cn(
+                    "w-full text-left rounded-lg border p-3 space-y-2 transition-all hover:bg-white/5 cursor-pointer",
+                    e.type === 'action' ? "border-blue-500/20"
+                      : e.type === 'tracking_round' ? "border-emerald-500/20"
+                      : "border-red-500/20"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className={cn("text-sm font-semibold text-foreground", isExpanded ? "" : "truncate")}>{e.title}</div>
+                      {e.category && (
+                        <div className="text-[10px] text-muted-foreground">
+                          {ACTION_TYPE_LABELS[e.category] ?? e.category}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {e.priority && (
+                        <span className={cn("w-2 h-2 rounded-full", PRIORITY_COLORS[e.priority])} />
+                      )}
+                      {e.status && (
+                        <Badge variant="outline" className={cn("text-[9px] h-5 border", STATUS_COLORS[e.status] ?? 'border-border/30')}>
+                          {e.status?.replace(/_/g, ' ')}
+                        </Badge>
+                      )}
+                      <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                    {e.time && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {e.time.slice(0, 5)}
+                      </span>
+                    )}
+                    {e.municipality && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> {e.municipality}
+                      </span>
+                    )}
+                    {e.responsible && (
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3" /> {e.responsible}
+                      </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    {e.priority && (
-                      <span className={cn("w-2 h-2 rounded-full", PRIORITY_COLORS[e.priority])} />
-                    )}
-                    {e.status && (
-                      <Badge variant="outline" className={cn("text-[9px] h-5 border", STATUS_COLORS[e.status] ?? 'border-border/30')}>
-                        {e.status?.replace(/_/g, ' ')}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
 
-                <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
-                  {e.time && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {e.time.slice(0, 5)}
-                    </span>
+                  {!isExpanded && e.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{e.description}</p>
                   )}
-                  {e.municipality && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {e.municipality}
-                    </span>
-                  )}
-                  {e.responsible && (
-                    <span className="flex items-center gap-1">
-                      <User className="w-3 h-3" /> {e.responsible}
-                    </span>
-                  )}
-                </div>
 
-                {e.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">{e.description}</p>
-                )}
+                  {isExpanded && (
+                    <div className="space-y-2 pt-1 border-t border-border/20 mt-1">
+                      {e.description && (
+                        <p className="text-xs text-muted-foreground whitespace-pre-wrap">{e.description}</p>
+                      )}
 
-                {e.type === 'tracking_round' && e.endDate && (
-                  <div className="text-[10px] text-emerald-400">
-                    Período: {new Date(e.date + 'T12:00:00').toLocaleDateString('pt-BR')} — {new Date(e.endDate + 'T12:00:00').toLocaleDateString('pt-BR')}
-                  </div>
-                )}
-              </div>
-            ))}
+                      {raw && (
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
+                          {raw.address && (
+                            <div><span className="text-muted-foreground">Endereço:</span> <span className="text-foreground/80">{raw.address}</span></div>
+                          )}
+                          {raw.microregion && (
+                            <div><span className="text-muted-foreground">Microrregião:</span> <span className="text-foreground/80">{raw.microregion}</span></div>
+                          )}
+                          {raw.target_audience && (
+                            <div><span className="text-muted-foreground">Público-alvo:</span> <span className="text-foreground/80">{raw.target_audience}</span></div>
+                          )}
+                          {raw.estimated_impact > 0 && (
+                            <div><span className="text-muted-foreground">Impacto estimado:</span> <span className="text-foreground/80">{raw.estimated_impact} pessoas</span></div>
+                          )}
+                          {raw.executed_people_count != null && raw.executed_people_count > 0 && (
+                            <div><span className="text-muted-foreground">Pessoas alcançadas:</span> <span className="text-foreground/80">{raw.executed_people_count}</span></div>
+                          )}
+                          {raw.executed_date && (
+                            <div><span className="text-muted-foreground">Executada em:</span> <span className="text-foreground/80">{new Date(raw.executed_date + 'T12:00:00').toLocaleDateString('pt-BR')}</span></div>
+                          )}
+                          {raw.team?.length > 0 && (
+                            <div className="col-span-2"><span className="text-muted-foreground">Equipe:</span> <span className="text-foreground/80">{raw.team.join(', ')}</span></div>
+                          )}
+                          {raw.observations && (
+                            <div className="col-span-2"><span className="text-muted-foreground">Observações:</span> <span className="text-foreground/80">{raw.observations}</span></div>
+                          )}
+                        </div>
+                      )}
+
+                      {e.type === 'tracking_round' && e.endDate && (
+                        <div className="text-[10px] text-emerald-400">
+                          Período: {new Date(e.date + 'T12:00:00').toLocaleDateString('pt-BR')} — {new Date(e.endDate + 'T12:00:00').toLocaleDateString('pt-BR')}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </CardContent>
         </Card>
       </div>
