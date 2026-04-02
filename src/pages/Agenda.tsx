@@ -1,12 +1,39 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, List, Clock, MapPin, User, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useAgendaEvents, type AgendaEvent } from '@/hooks/useAgenda';
+import { useCreateAction } from '@/hooks/useActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import type { DbActionType, DbPriorityLevel } from '@/types/database';
+
+const TYPE_OPTIONS: { value: DbActionType; label: string }[] = [
+  { value: 'reuniao_politica', label: 'Reunião Política' },
+  { value: 'visita_institucional', label: 'Visita Institucional' },
+  { value: 'mobilizacao_comunitaria', label: 'Mobilização Comunitária' },
+  { value: 'adesivacao', label: 'Adesivação' },
+  { value: 'panfletagem', label: 'Panfletagem' },
+  { value: 'carreata', label: 'Carreata' },
+  { value: 'evento_regional', label: 'Evento Regional' },
+  { value: 'agenda_candidato', label: 'Agenda Candidato' },
+  { value: 'reuniao_empresarios', label: 'Reunião Empresários' },
+  { value: 'encontro_liderancas', label: 'Encontro Lideranças' },
+  { value: 'acao_digital', label: 'Ação Digital' },
+];
+const PRIORITY_OPTIONS: { value: DbPriorityLevel; label: string }[] = [
+  { value: 'critica', label: 'Crítica' },
+  { value: 'alta', label: 'Alta' },
+  { value: 'media', label: 'Média' },
+  { value: 'baixa', label: 'Baixa' },
+];
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -88,9 +115,56 @@ export default function Agenda() {
   }, []);
 
   const { isAdmin } = useAuth();
+  const createAction = useCreateAction();
   const { data, isLoading } = useAgendaEvents(currentMonth, currentYear);
   const events = data?.events ?? [];
   const scope = data?.scope;
+
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [taskForm, setTaskForm] = useState({
+    title: '', type: 'mobilizacao_comunitaria' as DbActionType, municipality: '',
+    responsible: '', planned_date: '', planned_time: '09:00',
+    priority: 'media' as DbPriorityLevel, description: '',
+  });
+
+  const openNewTask = (date?: string) => {
+    setTaskForm({
+      title: '', type: 'mobilizacao_comunitaria', municipality: '',
+      responsible: '', planned_date: date || selectedDate || new Date().toISOString().split('T')[0],
+      planned_time: '09:00', priority: 'media', description: '',
+    });
+    setShowNewTask(true);
+  };
+
+  const handleCreateTask = async () => {
+    if (!taskForm.title) return;
+    await createAction.mutateAsync({
+      title: taskForm.title,
+      type: taskForm.type,
+      category: 'Campo',
+      description: taskForm.description || null,
+      municipality: taskForm.municipality || null,
+      microregion: null,
+      macroregion_id: null,
+      address: null,
+      lat: null, lng: null,
+      responsible: taskForm.responsible || 'A definir',
+      team: [],
+      planned_date: taskForm.planned_date,
+      planned_time: taskForm.planned_time || null,
+      priority: taskForm.priority,
+      target_audience: 'Público geral',
+      estimated_impact: 0,
+      status: 'prevista',
+      observations: null,
+      executed_date: null,
+      executed_people_count: null,
+      evidence_photos: [],
+      created_by: null,
+      updated_by: null,
+    });
+    setShowNewTask(false);
+  };
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
@@ -168,6 +242,9 @@ export default function Agenda() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => openNewTask()} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Plus className="w-4 h-4 mr-1" /> Nova Tarefa
+          </Button>
           {isAdmin && (
             <Button
               variant="outline"
@@ -554,6 +631,66 @@ export default function Agenda() {
           </span>
         )}
       </div>
+      {/* New Task Dialog */}
+      <Dialog open={showNewTask} onOpenChange={setShowNewTask}>
+        <DialogContent className="sm:max-w-lg bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Nova Tarefa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Título *</Label>
+              <Input value={taskForm.title} onChange={e => setTaskForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Reunião com lideranças" className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Tipo</Label>
+                <Select value={taskForm.type} onValueChange={v => setTaskForm(f => ({ ...f, type: v as DbActionType }))}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>{TYPE_OPTIONS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                <Select value={taskForm.priority} onValueChange={v => setTaskForm(f => ({ ...f, priority: v as DbPriorityLevel }))}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>{PRIORITY_OPTIONS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Data *</Label>
+                <Input type="date" value={taskForm.planned_date} onChange={e => setTaskForm(f => ({ ...f, planned_date: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Horário</Label>
+                <Input type="time" value={taskForm.planned_time} onChange={e => setTaskForm(f => ({ ...f, planned_time: e.target.value }))} className="mt-1" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Município</Label>
+                <Input value={taskForm.municipality} onChange={e => setTaskForm(f => ({ ...f, municipality: e.target.value }))} placeholder="Ex: Curitiba" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Responsável</Label>
+                <Input value={taskForm.responsible} onChange={e => setTaskForm(f => ({ ...f, responsible: e.target.value }))} placeholder="Ex: João Silva" className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Descrição</Label>
+              <Textarea value={taskForm.description} onChange={e => setTaskForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes da tarefa..." className="mt-1" rows={3} />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setShowNewTask(false)}>Cancelar</Button>
+              <Button size="sm" onClick={handleCreateTask} disabled={!taskForm.title || createAction.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
+                {createAction.isPending ? 'Salvando...' : 'Criar Tarefa'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
