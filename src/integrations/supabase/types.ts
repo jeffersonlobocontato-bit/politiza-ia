@@ -1746,6 +1746,10 @@ export type Database = {
     }
     Functions: {
       get_dashboard_kpis: { Args: never; Returns: Json }
+      get_tracking_evolution: {
+        Args: { p_candidate_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
