@@ -81,6 +81,11 @@ export default function Agenda() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [showLayers, setShowLayers] = useState({ actions: true, tracking: true, alerts: true });
+  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedEventId(prev => prev === id ? null : id);
+  }, []);
 
   const { isAdmin } = useAuth();
   const { data, isLoading } = useAgendaEvents(currentMonth, currentYear);
