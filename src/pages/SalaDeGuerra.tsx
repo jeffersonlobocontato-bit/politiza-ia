@@ -5,10 +5,11 @@ import {
   Crosshair, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Users, Activity, Zap, Target,
   RefreshCw, Bell, CheckCheck, ExternalLink, ChevronRight, User, ShieldAlert,
+  BarChart3,
 } from 'lucide-react';
 import { useCandidate } from '@/contexts/CandidateContext';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
 } from 'recharts';
 import { municipalities } from '@/data/mockData';
