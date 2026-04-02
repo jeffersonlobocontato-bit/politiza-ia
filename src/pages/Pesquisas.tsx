@@ -608,12 +608,12 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── ESPONTÂNEA ── */}
       {espontanea && (
         <Collapsible open={openSections.espontanea} onOpenChange={() => toggleSection('espontanea')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" className="bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2"><Search className="w-4 h-4 text-primary" /> Espontânea</span>
             {openSections.espontanea ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-border p-4" className="bg-[hsl(220,20%,13%)] shadow-lg">
               <div className="text-xs text-muted-foreground mb-3">BASE: {wave?.sampleSize.toLocaleString()} eleitores</div>
               <CandidateBarChart results={espontanea.results} height={280} />
             </div>
@@ -624,12 +624,12 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── ESTIMULADA ── */}
       {estimuladas.length > 0 && (
         <Collapsible open={openSections.estimulada} onOpenChange={() => toggleSection('estimulada')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" className="bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Estimulada</span>
             {openSections.estimulada ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" className="bg-[hsl(220,20%,13%)] shadow-lg">
               {/* Scenario tabs */}
               <div className="flex gap-2 flex-wrap">
                 {estimuladas.map(q => (
@@ -695,7 +695,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── REJEIÇÃO ── */}
       {rejeicao && (
         <Collapsible open={openSections.rejeicao} onOpenChange={() => toggleSection('rejeicao')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" className="bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2">
               <X className="w-4 h-4 text-brand-red" /> Rejeição
               {rejeicao.note && <span className="text-[10px] font-normal text-muted-foreground">{rejeicao.note}</span>}
@@ -703,7 +703,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
             {openSections.rejeicao ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" className="bg-[hsl(220,20%,13%)] shadow-lg">
               <CandidateBarChart results={rejeicao.results} hideNeutral height={240} />
 
               {rejeicao.crossTabs.length > 0 && (
@@ -744,12 +744,12 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {/* ── APROVAÇÃO (comparativo) ── */}
       {aprovacao && (
         <Collapsible open={openSections.aprovacao} onOpenChange={() => toggleSection('aprovacao')}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" style={{ background: 'var(--gradient-card)' }}>
+          <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/40 transition-colors" className="bg-[hsl(220,20%,13%)] shadow-lg">
             <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-brand-green" /> Avaliação / Aprovação — Comparativo</span>
             {openSections.aprovacao ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="mt-2 rounded-xl border border-border p-4 space-y-4" className="bg-[hsl(220,20%,13%)] shadow-lg">
               <div className="text-xs text-muted-foreground">Ratinho Junior — Evolução da avaliação da administração estadual</div>
 
               <ResponsiveContainer width="100%" height={220}>
@@ -787,7 +787,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       )}
 
       {questions.length === 0 && (
-        <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-center" style={{ background: 'var(--gradient-card)' }}>
+        <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-center" className="bg-[hsl(220,20%,13%)] shadow-lg">
           <Search className="w-8 h-8 text-muted-foreground/40" />
           <div className="text-sm text-muted-foreground">Nenhuma pergunta encontrada para este cargo nesta pesquisa.</div>
         </div>
@@ -876,7 +876,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   return (
     <div className="space-y-4">
       {/* Config panel */}
-      <div className="rounded-xl border border-border p-4 space-y-4" style={{ background: 'var(--gradient-card)' }}>
+      <div className="rounded-xl border border-border p-4 space-y-4" className="bg-[hsl(220,20%,13%)] shadow-lg">
         <div className="text-sm font-semibold flex items-center gap-2">
           <GitCompare className="w-4 h-4 text-primary" /> Configurar Cruzamento
         </div>
@@ -999,7 +999,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
       {/* Chart + table */}
       {chartData.length > 0 ? (
-        <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+        <div className="rounded-xl border border-border p-4" className="bg-[hsl(220,20%,13%)] shadow-lg">
           {/* Legend */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4">
             {allSelectedCandidates.map((c, i) => (
@@ -1111,7 +1111,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
           )}
         </div>
       ) : (
-        <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-center" style={{ background: 'var(--gradient-card)' }}>
+        <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-center" className="bg-[hsl(220,20%,13%)] shadow-lg">
           <GitCompare className="w-8 h-8 text-muted-foreground/40" />
           <div className="text-sm text-muted-foreground">Selecione ao menos uma pesquisa e um candidato com dados disponíveis para o cargo e métrica escolhidos.</div>
         </div>
