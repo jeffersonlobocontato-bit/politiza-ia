@@ -180,16 +180,8 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
       .slice(0, 10);
   }, [filteredInterviews]);
 
-  const cityVoteData = useMemo(() => {
-    const topCities = cityComparisonData.map(c => c.city);
-    return crossTabByDimension(i => i.municipality || 'Sem cidade')
-      .filter(d => topCities.includes(d.dimension))
-      .sort((a, b) => {
-        const aIdx = topCities.indexOf(a.dimension);
-        const bIdx = topCities.indexOf(b.dimension);
-        return aIdx - bIdx;
-      });
-  }, [cityComparisonData, filteredInterviews, selectAnswers, allCandidateNames]);
+
+
 
   const evolutionData = useMemo(() => {
     if (rounds.length < 2) return [];
@@ -250,6 +242,17 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
     () => crossTabByDimension(i => i.respondent_age_range || 'Não informado').sort((a, b) => a.dimension.localeCompare(b.dimension)),
     [filteredInterviews, selectAnswers, allCandidateNames]
   );
+
+  const cityVoteData = useMemo(() => {
+    const topCities = cityComparisonData.map(c => c.city);
+    return crossTabByDimension(i => i.municipality || 'Sem cidade')
+      .filter(d => topCities.includes(d.dimension))
+      .sort((a, b) => {
+        const aIdx = topCities.indexOf(a.dimension);
+        const bIdx = topCities.indexOf(b.dimension);
+        return aIdx - bIdx;
+      });
+  }, [cityComparisonData, filteredInterviews, selectAnswers, allCandidateNames]);
 
   const uniqueCities = useMemo(() => {
     const cities = new Set(interviews.map(i => i.municipality).filter(Boolean));
