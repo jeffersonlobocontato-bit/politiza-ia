@@ -173,15 +173,16 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
 
   const evolutionData = useMemo(() => {
     if (rounds.length < 2) return [];
-    const selectQs = questions.filter(q => q.question_type === 'select');
-    if (!selectQs.length) return [];
-    const firstQ = selectQs[0];
+    const allSelectKeys = new Set(
+      questions.filter(q => q.question_type === 'select').map(q => q.question_key)
+    );
+    if (!allSelectKeys.size) return [];
     return rounds
       .filter(r => interviews.some(i => i.round_id === r.id))
       .sort((a, b) => a.start_date.localeCompare(b.start_date))
       .map(round => {
         const roundInterviewIds = new Set(interviews.filter(i => i.round_id === round.id).map(i => i.id));
-        const roundAnswers = answers.filter(a => roundInterviewIds.has(a.interview_id) && a.question_key === firstQ.question_key);
+        const roundAnswers = answers.filter(a => roundInterviewIds.has(a.interview_id) && allSelectKeys.has(a.question_key));
         const total = roundAnswers.length || 1;
         const counts: Record<string, number> = {};
         roundAnswers.forEach(a => { counts[a.answer_value] = (counts[a.answer_value] || 0) + 1; });
