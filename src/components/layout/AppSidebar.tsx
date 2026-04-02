@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity
+  Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 
