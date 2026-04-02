@@ -631,6 +631,66 @@ export default function Agenda() {
           </span>
         )}
       </div>
+      {/* New Task Dialog */}
+      <Dialog open={showNewTask} onOpenChange={setShowNewTask}>
+        <DialogContent className="sm:max-w-lg bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Nova Tarefa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Título *</Label>
+              <Input value={taskForm.title} onChange={e => setTaskForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Reunião com lideranças" className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Tipo</Label>
+                <Select value={taskForm.type} onValueChange={v => setTaskForm(f => ({ ...f, type: v as DbActionType }))}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>{TYPE_OPTIONS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                <Select value={taskForm.priority} onValueChange={v => setTaskForm(f => ({ ...f, priority: v as DbPriorityLevel }))}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>{PRIORITY_OPTIONS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Data *</Label>
+                <Input type="date" value={taskForm.planned_date} onChange={e => setTaskForm(f => ({ ...f, planned_date: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Horário</Label>
+                <Input type="time" value={taskForm.planned_time} onChange={e => setTaskForm(f => ({ ...f, planned_time: e.target.value }))} className="mt-1" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Município</Label>
+                <Input value={taskForm.municipality} onChange={e => setTaskForm(f => ({ ...f, municipality: e.target.value }))} placeholder="Ex: Curitiba" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Responsável</Label>
+                <Input value={taskForm.responsible} onChange={e => setTaskForm(f => ({ ...f, responsible: e.target.value }))} placeholder="Ex: João Silva" className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Descrição</Label>
+              <Textarea value={taskForm.description} onChange={e => setTaskForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes da tarefa..." className="mt-1" rows={3} />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setShowNewTask(false)}>Cancelar</Button>
+              <Button size="sm" onClick={handleCreateTask} disabled={!taskForm.title || createAction.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
+                {createAction.isPending ? 'Salvando...' : 'Criar Tarefa'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
