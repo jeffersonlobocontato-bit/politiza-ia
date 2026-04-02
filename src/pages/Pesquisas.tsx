@@ -273,7 +273,7 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary" />
+              <FileText className="w-4 h-4 text-[#0FFCBE]" />
               Importar Pesquisa
               <Badge variant="outline" className="ml-auto text-[10px]">Passo {step} / 3</Badge>
             </DialogTitle>
@@ -294,7 +294,7 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
             <div className="space-y-4">
               <div className="text-sm font-semibold text-muted-foreground">Arquivo selecionado</div>
               <div className="flex items-center gap-3 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-[hsl(220,18%,16%)]">
-                <FileText className="w-8 h-8 text-primary shrink-0" />
+                <FileText className="w-8 h-8 text-[#0FFCBE] shrink-0" />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{fileName}</div>
                   <div className="text-xs text-muted-foreground">PDF · Pronto para importar</div>
@@ -588,7 +588,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
               onClick={() => setCargo(c)}
               className={`px-4 py-2 capitalize font-medium transition-colors ${
                 cargo === c
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-primary text-[#0FFCBE]-foreground'
                   : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
               }`}
             >
@@ -609,7 +609,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {espontanea && (
         <Collapsible open={openSections.espontanea} onOpenChange={() => toggleSection('espontanea')}>
           <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
-            <span className="flex items-center gap-2"><Search className="w-4 h-4 text-primary" /> Espontânea</span>
+            <span className="flex items-center gap-2"><Search className="w-4 h-4 text-[#0FFCBE]" /> Espontânea</span>
             {openSections.espontanea ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -625,7 +625,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
       {estimuladas.length > 0 && (
         <Collapsible open={openSections.estimulada} onOpenChange={() => toggleSection('estimulada')}>
           <CollapsibleTrigger className="w-full flex items-center justify-between rounded-xl border border-[hsl(220,15%,20%)] px-4 py-3 text-sm font-semibold hover:bg-[hsl(220,18%,18%)] transition-colors bg-[hsl(220,20%,13%)] shadow-lg">
-            <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Estimulada</span>
+            <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-[#0FFCBE]" /> Estimulada</span>
             {openSections.estimulada ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -638,7 +638,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                     onClick={() => setActiveScenario(q.id)}
                     className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
                       (activeScenario === q.id || (!activeScenario && estimuladas[0]?.id === q.id))
-                        ? 'bg-primary text-primary-foreground border-primary'
+                        ? 'bg-primary text-[#0FFCBE]-foreground border-primary'
                         : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                     }`}
                   >
@@ -669,7 +669,7 @@ function TabAnalisar({ waves, questions: allQuestions }: AnalisarProps) {
                                 onClick={() => setActiveFilter(f.value)}
                                 className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
                                   activeFilter === f.value
-                                    ? 'bg-primary/10 border-primary text-primary'
+                                    ? 'bg-[#0FFCBE]/10 border-[#0FFCBE] text-[#0FFCBE]'
                                     : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                                 }`}
                               >
@@ -878,7 +878,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       {/* Config panel */}
       <div className="rounded-xl border border-[hsl(220,15%,20%)] p-4 space-y-4 bg-[hsl(220,20%,13%)] shadow-lg">
         <div className="text-sm font-semibold flex items-center gap-2">
-          <GitCompare className="w-4 h-4 text-primary" /> Configurar Cruzamento
+          <GitCompare className="w-4 h-4 text-[#0FFCBE]" /> Configurar Cruzamento
         </div>
 
         {/* Wave selector */}
@@ -891,7 +891,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                 onClick={() => toggleWave(w.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                   selectedWaves.includes(w.id)
-                    ? 'bg-primary text-primary-foreground border-primary'
+                    ? 'bg-primary text-[#0FFCBE]-foreground border-primary'
                     : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                 }`}
               >
@@ -911,7 +911,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   key={c}
                   onClick={() => setTargetCargo(c)}
                   className={`flex-1 py-1.5 capitalize font-medium transition-colors text-xs ${
-                    targetCargo === c ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
+                    targetCargo === c ? 'bg-primary text-[#0FFCBE]-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                   }`}
                 >
                   {c}
@@ -927,7 +927,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   key={m.v}
                   onClick={() => setMetricType(m.v as any)}
                   className={`flex-1 py-1.5 font-medium transition-colors ${
-                    metricType === m.v ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
+                    metricType === m.v ? 'bg-primary text-[#0FFCBE]-foreground' : 'bg-background text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
                   }`}
                 >
                   {m.l}
@@ -1153,7 +1153,7 @@ export default function Pesquisas() {
   return (
     <div className="h-full flex flex-col">
       <div className="px-6 py-4 border-b border-[hsl(220,15%,20%)] flex items-center gap-3 flex-shrink-0">
-        <BarChart2 className="w-5 h-5 text-primary" />
+        <BarChart2 className="w-5 h-5 text-[#0FFCBE]" />
         <div>
           <h1 className="text-base font-bold">Pesquisas Eleitorais</h1>
           <p className="text-xs text-muted-foreground">
