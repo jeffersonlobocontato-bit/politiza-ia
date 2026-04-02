@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { title: 'Sala de Guerra', url: '/', icon: Crosshair, scope: 'shared' },
   { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'shared' },
   { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'shared' },
+  { title: 'Agenda', url: '/agenda', icon: Calendar, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
   { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
