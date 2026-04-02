@@ -240,20 +240,19 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
 
       {/* Upload area */}
       <div
-        className="rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center gap-3 cursor-pointer"
-        style={{ background: 'var(--gradient-card)' }}
+        className="rounded-xl border-2 border-dashed border-[hsl(220,15%,25%)] hover:border-[#0FFCBE]/50 transition-colors p-8 flex flex-col items-center gap-3 cursor-pointer bg-[hsl(220,20%,13%)]"
         onClick={handleFileClick}
       >
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-          <Upload className="w-5 h-5 text-primary" />
+        <div className="w-12 h-12 rounded-full bg-[#0FFCBE]/10 flex items-center justify-center">
+          <Upload className="w-5 h-5 text-[#0FFCBE]" />
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold">Importar PDF de Pesquisa</div>
-          <div className="text-xs text-muted-foreground mt-1">
+          <div className="text-sm font-semibold text-white">Importar PDF de Pesquisa</div>
+          <div className="text-xs text-[#8899aa] mt-1">
             Arraste o arquivo ou clique para selecionar — padrão Paraná Pesquisas / tabulação
           </div>
         </div>
-        <div className="text-[10px] text-muted-foreground border border-border rounded px-2 py-1">
+        <div className="text-[10px] text-[#8899aa] border border-[hsl(220,15%,25%)] rounded px-2 py-1">
           Formatos suportados: Relatório completo · Tabulação cruzada
         </div>
       </div>
