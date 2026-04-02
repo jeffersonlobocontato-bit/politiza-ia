@@ -115,9 +115,56 @@ export default function Agenda() {
   }, []);
 
   const { isAdmin } = useAuth();
+  const createAction = useCreateAction();
   const { data, isLoading } = useAgendaEvents(currentMonth, currentYear);
   const events = data?.events ?? [];
   const scope = data?.scope;
+
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [taskForm, setTaskForm] = useState({
+    title: '', type: 'mobilizacao_comunitaria' as DbActionType, municipality: '',
+    responsible: '', planned_date: '', planned_time: '09:00',
+    priority: 'media' as DbPriorityLevel, description: '',
+  });
+
+  const openNewTask = (date?: string) => {
+    setTaskForm({
+      title: '', type: 'mobilizacao_comunitaria', municipality: '',
+      responsible: '', planned_date: date || selectedDate || new Date().toISOString().split('T')[0],
+      planned_time: '09:00', priority: 'media', description: '',
+    });
+    setShowNewTask(true);
+  };
+
+  const handleCreateTask = async () => {
+    if (!taskForm.title) return;
+    await createAction.mutateAsync({
+      title: taskForm.title,
+      type: taskForm.type,
+      category: 'Campo',
+      description: taskForm.description || null,
+      municipality: taskForm.municipality || null,
+      microregion: null,
+      macroregion_id: null,
+      address: null,
+      lat: null, lng: null,
+      responsible: taskForm.responsible || 'A definir',
+      team: [],
+      planned_date: taskForm.planned_date,
+      planned_time: taskForm.planned_time || null,
+      priority: taskForm.priority,
+      target_audience: 'Público geral',
+      estimated_impact: 0,
+      status: 'prevista',
+      observations: null,
+      executed_date: null,
+      executed_people_count: null,
+      evidence_photos: [],
+      created_by: null,
+      updated_by: null,
+    });
+    setShowNewTask(false);
+  };
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
