@@ -389,28 +389,21 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
             )}
 
             {/* City comparison — styled table + bars */}
-            {cityComparisonData.length > 0 && (
-              <ChartCard title="Entrevistas por Cidade">
-                <div className="space-y-2 mt-2">
-                  {cityComparisonData.map((item, i) => {
-                    const maxCount = cityComparisonData[0]?.count || 1;
-                    const widthPct = Math.round((item.count / maxCount) * 100);
-                    return (
-                      <div key={item.city} className="flex items-center gap-3">
-                        <span className="text-xs text-white/70 w-28 truncate text-right">{item.city}</span>
-                        <div className="flex-1 h-5 bg-[hsl(220,15%,18%)] rounded-md overflow-hidden">
-                          <div
-                            className="h-full rounded-md transition-all"
-                            style={{
-                              width: `${widthPct}%`,
-                              background: `linear-gradient(90deg, ${CHART_COLORS[i % 5]}, ${CHART_COLORS[i % 5]}88)`,
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs font-bold text-white/90 w-10 text-right">{item.count}</span>
-                      </div>
-                    );
-                  })}
+            {cityVoteData.length > 0 && allCandidateNames.length > 0 && (
+              <ChartCard title="Intenção de Voto por Cidade (%)">
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={cityVoteData} layout="vertical" margin={{ left: 90, right: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,22%)" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: '#8899aa' }} unit="%" />
+                      <YAxis type="category" dataKey="dimension" tick={{ fontSize: 11, fill: '#dde4ec' }} width={85} />
+                      <Tooltip contentStyle={tooltipStyle} formatter={(val: number) => `${val}%`} />
+                      <Legend wrapperStyle={{ fontSize: 11, color: '#dde4ec' }} />
+                      {allCandidateNames.map((name, i) => (
+                        <Bar key={name} dataKey={name} stackId="city" fill={CHART_COLORS[i % CHART_COLORS.length]} barSize={18} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </ChartCard>
             )}
