@@ -11,6 +11,10 @@ interface Interview {
   lat: number | null;
   lng: number | null;
   created_at: string;
+  respondent_gender: string | null;
+  respondent_age_range: string | null;
+  respondent_income: string | null;
+  respondent_education: string | null;
 }
 
 interface Round {
