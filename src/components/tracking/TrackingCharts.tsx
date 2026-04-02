@@ -243,6 +243,17 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
     [filteredInterviews, selectAnswers, allCandidateNames]
   );
 
+  const cityVoteData = useMemo(() => {
+    const topCities = cityComparisonData.map(c => c.city);
+    return crossTabByDimension(i => i.municipality || 'Sem cidade')
+      .filter(d => topCities.includes(d.dimension))
+      .sort((a, b) => {
+        const aIdx = topCities.indexOf(a.dimension);
+        const bIdx = topCities.indexOf(b.dimension);
+        return aIdx - bIdx;
+      });
+  }, [cityComparisonData, filteredInterviews, selectAnswers, allCandidateNames]);
+
   const uniqueCities = useMemo(() => {
     const cities = new Set(interviews.map(i => i.municipality).filter(Boolean));
     return Array.from(cities) as string[];
