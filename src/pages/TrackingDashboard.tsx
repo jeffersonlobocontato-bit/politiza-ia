@@ -656,24 +656,24 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
                         <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 pt-1">
-                      <Button size="sm" variant="outline" className="gap-1 text-xs"
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <Button size="sm" variant="outline" className="gap-1 text-xs shrink-0"
                         onClick={() => loadRoundForEdit(round)}>
                         <Pencil className="w-3 h-3" /> Editar
                       </Button>
                       {round.share_code && (
-                        <Button size="sm" variant="default" className="gap-1 text-xs flex-1 bg-primary hover:bg-primary/90 font-bold" onClick={() => copyLink(round)}>
+                        <Button size="sm" variant="default" className="gap-1 text-xs shrink-0 bg-primary hover:bg-primary/90 font-bold" onClick={() => copyLink(round)}>
                           <Copy className="w-3 h-3" /> 📋 COPIAR LINK DA COLETA
                         </Button>
                       )}
                       {round.status === 'rascunho' && (
-                        <Button size="sm" variant="default" className="gap-1 text-xs flex-1"
+                        <Button size="sm" variant="default" className="gap-1 text-xs shrink-0"
                           onClick={() => updateRoundStatus.mutate({ id: round.id, status: 'aberta' })}>
                           <ExternalLink className="w-3 h-3" /> Ativar
                         </Button>
                       )}
                       {round.status === 'aberta' && (
-                        <Button size="sm" variant="secondary" className="gap-1 text-xs flex-1"
+                        <Button size="sm" variant="secondary" className="gap-1 text-xs shrink-0"
                           onClick={() => updateRoundStatus.mutate({ id: round.id, status: 'fechada' })}>
                           Encerrar
                         </Button>
