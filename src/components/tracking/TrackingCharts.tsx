@@ -119,11 +119,35 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
     [answers, filteredInterviewIds]
   );
 
+  // Find the select question with the most answers (not just the first one)
+  const bestSelectKey = useMemo(() => {
+    const selectKeys = new Set(
+      questions.filter(q => q.question_type === 'select').map(q => q.question_key)
+    );
+    if (!selectKeys.size) return null;
+    let best: string | null = null;
+    let bestCount = 0;
+    selectKeys.forEach(key => {
+      const count = filteredAnswers.filter(a => a.question_key === key).length;
+      if (count > bestCount) { bestCount = count; best = key; }
+    });
+    // If no answers in filtered set, try all answers
+    if (!best) {
+      selectKeys.forEach(key => {
+        const count = answers.filter(a => a.question_key === key).length;
+        if (count > bestCount) { bestCount = count; best = key; }
+      });
+    }
+    return best;
+  }, [questions, filteredAnswers, answers]);
+
   const voteIntentionData = useMemo(() => {
-    const selectQs = questions.filter(q => q.question_type === 'select');
-    if (!selectQs.length) return [];
-    const firstQ = selectQs[0];
-    const qAnswers = filteredAnswers.filter(a => a.question_key === firstQ.question_key);
+    if (!bestSelectKey) return [];
+    // Aggregate all select-type question answers (to unify equivalent vote questions)
+    const allSelectKeys = new Set(
+      questions.filter(q => q.question_type === 'select').map(q => q.question_key)
+    );
+    const qAnswers = filteredAnswers.filter(a => allSelectKeys.has(a.question_key));
     const counts: Record<string, number> = {};
     qAnswers.forEach(a => {
       const name = a.answer_value || 'Sem resposta';
@@ -133,7 +157,7 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
     return Object.entries(counts)
       .map(([name, count]) => ({ name, count, pct: Math.round((count / total) * 100) }))
       .sort((a, b) => b.count - a.count);
-  }, [filteredAnswers, questions]);
+  }, [filteredAnswers, questions, bestSelectKey]);
 
   const cityComparisonData = useMemo(() => {
     const cities: Record<string, number> = {};
