@@ -106,6 +106,9 @@ const tooltipStyle = {
 };
 
 export function TrackingCharts({ rounds, interviews, answers, questions, selectedRoundId, onRoundChange, filters, onFiltersChange }: Props) {
+  // Set of valid question_keys from active questions
+  const validQuestionKeys = useMemo(() => new Set(questions.map(q => q.question_key)), [questions]);
+
   const filteredInterviews = useMemo(() => {
     let items = interviews;
     if (selectedRoundId) items = items.filter(i => i.round_id === selectedRoundId);
@@ -115,15 +118,17 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
 
   const filteredInterviewIds = new Set(filteredInterviews.map(i => i.id));
   const filteredAnswers = useMemo(
-    () => answers.filter(a => filteredInterviewIds.has(a.interview_id)),
-    [answers, filteredInterviewIds]
+    () => answers.filter(a => filteredInterviewIds.has(a.interview_id) && validQuestionKeys.has(a.question_key)),
+    [answers, filteredInterviewIds, validQuestionKeys]
   );
 
-  // Find the select question with the most answers (not just the first one)
+  const selectKeys = useMemo(
+    () => new Set(questions.filter(q => q.question_type === 'select').map(q => q.question_key)),
+    [questions]
+  );
+
+  // Find the select question with the most answers
   const bestSelectKey = useMemo(() => {
-    const selectKeys = new Set(
-      questions.filter(q => q.question_type === 'select').map(q => q.question_key)
-    );
     if (!selectKeys.size) return null;
     let best: string | null = null;
     let bestCount = 0;
@@ -131,33 +136,37 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
       const count = filteredAnswers.filter(a => a.question_key === key).length;
       if (count > bestCount) { bestCount = count; best = key; }
     });
-    // If no answers in filtered set, try all answers
     if (!best) {
+      const validAnswers = answers.filter(a => validQuestionKeys.has(a.question_key));
       selectKeys.forEach(key => {
-        const count = answers.filter(a => a.question_key === key).length;
+        const count = validAnswers.filter(a => a.question_key === key).length;
         if (count > bestCount) { bestCount = count; best = key; }
       });
     }
     return best;
-  }, [questions, filteredAnswers, answers]);
+  }, [selectKeys, filteredAnswers, answers, validQuestionKeys]);
+
+  // Select-type answers only (for vote intention)
+  const selectAnswers = useMemo(
+    () => filteredAnswers.filter(a => selectKeys.has(a.question_key)),
+    [filteredAnswers, selectKeys]
+  );
 
   const voteIntentionData = useMemo(() => {
-    if (!bestSelectKey) return [];
-    // Aggregate all select-type question answers (to unify equivalent vote questions)
-    const allSelectKeys = new Set(
-      questions.filter(q => q.question_type === 'select').map(q => q.question_key)
-    );
-    const qAnswers = filteredAnswers.filter(a => allSelectKeys.has(a.question_key));
+    if (!selectKeys.size) return [];
     const counts: Record<string, number> = {};
-    qAnswers.forEach(a => {
+    selectAnswers.forEach(a => {
       const name = a.answer_value || 'Sem resposta';
       counts[name] = (counts[name] || 0) + 1;
     });
-    const total = qAnswers.length || 1;
+    const total = selectAnswers.length || 1;
     return Object.entries(counts)
       .map(([name, count]) => ({ name, count, pct: Math.round((count / total) * 100) }))
       .sort((a, b) => b.count - a.count);
-  }, [filteredAnswers, questions, bestSelectKey]);
+  }, [selectAnswers, selectKeys]);
+
+  // All candidate names from vote data (ordered by total votes)
+  const allCandidateNames = useMemo(() => voteIntentionData.map(d => d.name), [voteIntentionData]);
 
   const cityComparisonData = useMemo(() => {
     const cities: Record<string, number> = {};
@@ -173,16 +182,13 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
 
   const evolutionData = useMemo(() => {
     if (rounds.length < 2) return [];
-    const allSelectKeys = new Set(
-      questions.filter(q => q.question_type === 'select').map(q => q.question_key)
-    );
-    if (!allSelectKeys.size) return [];
+    if (!selectKeys.size) return [];
     return rounds
       .filter(r => interviews.some(i => i.round_id === r.id))
       .sort((a, b) => a.start_date.localeCompare(b.start_date))
       .map(round => {
         const roundInterviewIds = new Set(interviews.filter(i => i.round_id === round.id).map(i => i.id));
-        const roundAnswers = answers.filter(a => roundInterviewIds.has(a.interview_id) && allSelectKeys.has(a.question_key));
+        const roundAnswers = answers.filter(a => roundInterviewIds.has(a.interview_id) && selectKeys.has(a.question_key) && validQuestionKeys.has(a.question_key));
         const total = roundAnswers.length || 1;
         const counts: Record<string, number> = {};
         roundAnswers.forEach(a => { counts[a.answer_value] = (counts[a.answer_value] || 0) + 1; });
@@ -192,7 +198,7 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
         });
         return point;
       });
-  }, [rounds, interviews, answers, questions]);
+  }, [rounds, interviews, answers, selectKeys, validQuestionKeys]);
 
   const candidateNames = useMemo(() => {
     const names = new Set<string>();
@@ -202,23 +208,37 @@ export function TrackingCharts({ rounds, interviews, answers, questions, selecte
     return Array.from(names);
   }, [evolutionData]);
 
-  const genderData = useMemo(() => {
-    const counts: Record<string, number> = {};
+  // Helper: cross-tab interviews by a dimension with vote answers
+  const crossTabByDimension = (getDimension: (i: Interview) => string) => {
+    const groups: Record<string, string[]> = {};
     filteredInterviews.forEach(i => {
-      const g = i.respondent_gender || 'Não informado';
-      counts[g] = (counts[g] || 0) + 1;
+      const dim = getDimension(i);
+      if (!groups[dim]) groups[dim] = [];
+      groups[dim].push(i.id);
     });
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [filteredInterviews]);
+    return Object.entries(groups).map(([dim, ids]) => {
+      const idSet = new Set(ids);
+      const dimAnswers = selectAnswers.filter(a => idSet.has(a.interview_id));
+      const total = dimAnswers.length || 1;
+      const counts: Record<string, number> = {};
+      dimAnswers.forEach(a => { counts[a.answer_value || 'Sem resposta'] = (counts[a.answer_value || 'Sem resposta'] || 0) + 1; });
+      const point: any = { dimension: dim };
+      allCandidateNames.forEach(name => {
+        point[name] = Math.round(((counts[name] || 0) / total) * 100);
+      });
+      return point;
+    });
+  };
 
-  const ageData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    filteredInterviews.forEach(i => {
-      const a = i.respondent_age_range || 'Não informado';
-      counts[a] = (counts[a] || 0) + 1;
-    });
-    return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [filteredInterviews]);
+  const genderVoteData = useMemo(
+    () => crossTabByDimension(i => i.respondent_gender || 'Não informado'),
+    [filteredInterviews, selectAnswers, allCandidateNames]
+  );
+
+  const ageVoteData = useMemo(
+    () => crossTabByDimension(i => i.respondent_age_range || 'Não informado').sort((a, b) => a.dimension.localeCompare(b.dimension)),
+    [filteredInterviews, selectAnswers, allCandidateNames]
+  );
 
   const uniqueCities = useMemo(() => {
     const cities = new Set(interviews.map(i => i.municipality).filter(Boolean));
