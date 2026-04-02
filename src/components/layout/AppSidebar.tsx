@@ -52,7 +52,7 @@ export function AppSidebar() {
   const visibleItems = navItems.filter(item => isItemVisible(item, campaignType));
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
       <SidebarContent className="bg-sidebar">
         {/* Logo */}
         <div className={`flex items-center gap-3 px-4 py-5 border-b border-sidebar-border/30 ${collapsed ? 'justify-center px-2' : ''}`}>
