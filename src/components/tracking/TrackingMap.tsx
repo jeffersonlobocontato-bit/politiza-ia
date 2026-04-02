@@ -80,19 +80,35 @@ export function TrackingMap({ interviews, rounds, selectedRoundId, onRoundChange
     const map = L.map(container).setView(center as [number, number], filtered.length > 0 ? 10 : 7);
     (container as any)._leafletMap = map;
 
+    map.createPane('tracking-heat-pane');
+    const heatPane = map.getPane('tracking-heat-pane');
+    if (heatPane) {
+      heatPane.style.zIndex = '360';
+      heatPane.style.pointerEvents = 'none';
+    }
+
+    map.createPane('tracking-marker-pane');
+    const markerPane = map.getPane('tracking-marker-pane');
+    if (markerPane) {
+      markerPane.style.zIndex = '420';
+    }
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Add markers with clustering effect via circle markers
+    const heatLayer = L.layerGroup().addTo(map);
+
+    // Add markers with hover details
     filtered.forEach(interview => {
       const marker = L.circleMarker([interview.lat!, interview.lng!], {
+        pane: 'tracking-marker-pane',
         radius: 8,
         fillColor: 'hsl(217, 91%, 60%)',
         color: '#fff',
         weight: 2,
         opacity: 1,
-        fillOpacity: 0.8,
+        fillOpacity: 0.9,
       }).addTo(map);
 
       const gender = interview.respondent_gender || '—';
@@ -119,6 +135,7 @@ export function TrackingMap({ interviews, rounds, selectedRoundId, onRoundChange
       const popup = L.popup({ closeButton: false, offset: [0, -6], className: 'tracking-tooltip-clean' })
         .setContent(popupContent);
 
+      marker.bringToFront();
       marker.on('mouseover', function(e: any) {
         popup.setLatLng(e.latlng);
         map.openPopup(popup);
@@ -128,19 +145,29 @@ export function TrackingMap({ interviews, rounds, selectedRoundId, onRoundChange
       });
     });
 
-    // Simple heatmap via overlapping circles with low opacity
-    if (filtered.length > 10) {
+    const renderHeatLayer = () => {
+      heatLayer.clearLayers();
+
+      if (filtered.length <= 10 || map.getZoom() > 11) return;
+
       filtered.forEach(interview => {
         L.circle([interview.lat!, interview.lng!], {
-          radius: 1500,
+          pane: 'tracking-heat-pane',
+          radius: 650,
           fillColor: 'hsl(217, 91%, 60%)',
           color: 'transparent',
-          fillOpacity: 0.05,
-        }).addTo(map);
+          fillOpacity: 0.06,
+          interactive: false,
+        }).addTo(heatLayer);
       });
-    }
+    };
+
+    renderHeatLayer();
+    map.on('zoomend', renderHeatLayer);
 
     return () => {
+      map.off('zoomend', renderHeatLayer);
+      heatLayer.clearLayers();
       map.remove();
       (container as any)._leafletMap = null;
     };
