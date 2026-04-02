@@ -150,54 +150,28 @@ export default function SalaDeGuerra() {
     queryKey: ['tracking-evolution-war-room', activeCandidate?.id],
     queryFn: async () => {
       if (!activeCandidate?.id) return { chartData: [], candidateNames: [] };
-      // Get rounds
-      const { data: rounds } = await (supabase as any)
-        .from('tracking_rounds')
-        .select('id, title, start_date')
-        .eq('candidate_id', activeCandidate.id)
-        .is('deleted_at', null)
-        .order('start_date');
-      if (!rounds?.length) return { chartData: [], candidateNames: [] };
-      // Get all interviews
-      const roundIds = rounds.map((r: any) => r.id);
-      const { data: interviews } = await (supabase as any)
-        .from('tracking_interviews')
-        .select('id, round_id')
-        .in('round_id', roundIds);
-      if (!interviews?.length) return { chartData: [], candidateNames: [] };
-      // Get questions (select type only)
-      const { data: questions } = await (supabase as any)
-        .from('tracking_round_questions')
-        .select('question_key, question_type')
-        .in('round_id', roundIds)
-        .eq('question_type', 'select');
-      const selectKeys = new Set((questions || []).map((q: any) => q.question_key));
-      if (!selectKeys.size) return { chartData: [], candidateNames: [] };
-      // Get answers
-      const interviewIds = interviews.map((i: any) => i.id);
-      const { data: answers } = await (supabase as any)
-        .from('tracking_interview_answers')
-        .select('interview_id, question_key, answer_value')
-        .in('interview_id', interviewIds);
-      if (!answers?.length) return { chartData: [], candidateNames: [] };
-      // Build interview→round map
-      const intRoundMap: Record<string, string> = {};
-      interviews.forEach((i: any) => { intRoundMap[i.id] = i.round_id; });
-      // Build evolution per round
-      const allNames = new Set<string>();
-      const chartData = rounds.map((round: any) => {
-        const rIntIds = new Set(interviews.filter((i: any) => i.round_id === round.id).map((i: any) => i.id));
-        const rAnswers = (answers || []).filter((a: any) => rIntIds.has(a.interview_id) && selectKeys.has(a.question_key));
-        const total = rAnswers.length || 1;
-        const counts: Record<string, number> = {};
-        rAnswers.forEach((a: any) => { counts[a.answer_value] = (counts[a.answer_value] || 0) + 1; });
-        const point: any = { round: round.title?.slice(0, 18) || 'Rodada' };
-        Object.entries(counts).forEach(([name, count]) => {
-          point[name] = Math.round((count / total) * 100);
-          allNames.add(name);
-        });
-        return point;
+      const { data, error } = await (supabase as any).rpc('get_tracking_evolution', {
+        p_candidate_id: activeCandidate.id,
       });
+      if (error || !data) return { chartData: [], candidateNames: [] };
+      // data is array of { round_id, round_title, candidate, pct }
+      const roundOrder: string[] = [];
+      const roundMap: Record<string, Record<string, number>> = {};
+      const roundTitles: Record<string, string> = {};
+      const allNames = new Set<string>();
+      (data as any[]).forEach((row: any) => {
+        if (!roundMap[row.round_id]) {
+          roundMap[row.round_id] = {};
+          roundOrder.push(row.round_id);
+          roundTitles[row.round_id] = (row.round_title || 'Rodada').slice(0, 18);
+        }
+        roundMap[row.round_id][row.candidate] = Number(row.pct);
+        allNames.add(row.candidate);
+      });
+      const chartData = roundOrder.map(rid => ({
+        round: roundTitles[rid],
+        ...roundMap[rid],
+      }));
       return { chartData, candidateNames: Array.from(allNames) };
     },
     enabled: !!activeCandidate?.id,
