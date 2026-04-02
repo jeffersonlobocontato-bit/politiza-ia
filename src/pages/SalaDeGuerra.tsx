@@ -598,7 +598,7 @@ export default function SalaDeGuerra() {
         )}
 
         {/* Bottom Grid */}
-        <div className="grid lg:grid-cols-[1fr_1fr_300px] gap-4">
+        <div className="grid lg:grid-cols-2 gap-4">
           {/* Poll Chart — derived from real survey waves */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <div className="flex items-center gap-2 mb-3">
