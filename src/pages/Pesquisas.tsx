@@ -40,11 +40,11 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
 // ─── WaveCard ────────────────────────────────────────────────
 function WaveCard({ wave, onDelete }: { wave: PollWave; onDelete?: () => void }) {
   return (
-    <div className="rounded-xl border border-border p-4 flex flex-col gap-3 relative" style={{ background: 'var(--gradient-card)' }}>
+    <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] p-4 flex flex-col gap-3 relative shadow-lg">
       {onDelete && (
         <button
           onClick={onDelete}
-          className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors"
+          className="absolute top-3 right-3 text-[#8899aa] hover:text-[#E53935] transition-colors"
           title="Remover pesquisa"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -52,29 +52,29 @@ function WaveCard({ wave, onDelete }: { wave: PollWave; onDelete?: () => void })
       )}
       <div className="flex items-start justify-between gap-2 pr-6">
         <div>
-          <div className="text-xs font-bold text-primary">{wave.institute}</div>
-          <div className="text-sm font-semibold text-foreground mt-0.5">{wave.territory}</div>
+          <div className="text-xs font-bold text-[#0FFCBE]">{wave.institute}</div>
+          <div className="text-sm font-semibold text-white mt-0.5">{wave.territory}</div>
         </div>
-        <Badge variant="outline" className="text-[10px] shrink-0">{wave.releaseDate}</Badge>
+        <Badge variant="outline" className="text-[10px] shrink-0 border-[hsl(220,15%,25%)] text-[#8899aa]">{wave.releaseDate}</Badge>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center border-t border-border pt-3">
+      <div className="grid grid-cols-3 gap-2 text-center border-t border-[hsl(220,15%,20%)] pt-3">
         <div>
-          <div className="text-[10px] text-muted-foreground">Amostra</div>
-          <div className="text-sm font-bold">{wave.sampleSize.toLocaleString()}</div>
+          <div className="text-[10px] text-[#8899aa]">Amostra</div>
+          <div className="text-sm font-bold text-white">{wave.sampleSize.toLocaleString()}</div>
         </div>
         <div>
-          <div className="text-[10px] text-muted-foreground">Margem</div>
-          <div className="text-sm font-bold">±{wave.marginOfError}pp</div>
+          <div className="text-[10px] text-[#8899aa]">Margem</div>
+          <div className="text-sm font-bold text-white">±{wave.marginOfError}pp</div>
         </div>
         <div>
-          <div className="text-[10px] text-muted-foreground">Cargos</div>
-          <div className="text-sm font-bold capitalize">{wave.cargos.map(c => c === 'governador' ? 'Gov' : 'Sen').join(', ')}</div>
+          <div className="text-[10px] text-[#8899aa]">Cargos</div>
+          <div className="text-sm font-bold text-white capitalize">{wave.cargos.map(c => c === 'governador' ? 'Gov' : 'Sen').join(', ')}</div>
         </div>
       </div>
-      <div className="text-[10px] text-muted-foreground border-t border-border pt-2">
+      <div className="text-[10px] text-[#8899aa] border-t border-[hsl(220,15%,20%)] pt-2">
         TSE: {wave.tseRegistration}
       </div>
-      <div className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
+      <div className="text-[10px] text-[#8899aa] leading-relaxed line-clamp-2">
         {wave.methodology}
       </div>
     </div>
