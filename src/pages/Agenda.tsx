@@ -242,6 +242,9 @@ export default function Agenda() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => openNewTask()} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Plus className="w-4 h-4 mr-1" /> Nova Tarefa
+          </Button>
           {isAdmin && (
             <Button
               variant="outline"
