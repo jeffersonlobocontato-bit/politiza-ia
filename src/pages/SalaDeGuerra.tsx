@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
 import {
   Crosshair, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Users, Activity, Zap, Target,
   RefreshCw, Bell, CheckCheck, ExternalLink, ChevronRight, User, ShieldAlert,
+  BarChart3,
 } from 'lucide-react';
 import { useCandidate } from '@/contexts/CandidateContext';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
 } from 'recharts';
 import { municipalities } from '@/data/mockData';
@@ -20,6 +22,7 @@ import { useSurveys } from '@/hooks/useSurveys';
 import { useDashboardKPIs, useAlerts, useMacroStats, useMacroRegionsDB, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useActions } from '@/hooks/useActions';
 import { useStrategicKPIs } from '@/hooks/useStrategicAlerts';
+import { supabase } from '@/integrations/supabase/client';
 import type { DbAlert } from '@/types/database';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -141,6 +144,66 @@ export default function SalaDeGuerra() {
   const markRead = useMarkAlertRead();
   const updateStatus = useUpdateAlertStatus();
   const generateAlerts = useGenerateAlerts();
+
+  // ── Tracking evolution data ──
+  const trackingEvolutionQuery = useQuery({
+    queryKey: ['tracking-evolution-war-room', activeCandidate?.id],
+    queryFn: async () => {
+      if (!activeCandidate?.id) return { chartData: [], candidateNames: [] };
+      // Get rounds
+      const { data: rounds } = await (supabase as any)
+        .from('tracking_rounds')
+        .select('id, title, start_date')
+        .eq('candidate_id', activeCandidate.id)
+        .is('deleted_at', null)
+        .order('start_date');
+      if (!rounds?.length) return { chartData: [], candidateNames: [] };
+      // Get all interviews
+      const roundIds = rounds.map((r: any) => r.id);
+      const { data: interviews } = await (supabase as any)
+        .from('tracking_interviews')
+        .select('id, round_id')
+        .in('round_id', roundIds);
+      if (!interviews?.length) return { chartData: [], candidateNames: [] };
+      // Get questions (select type only)
+      const { data: questions } = await (supabase as any)
+        .from('tracking_round_questions')
+        .select('question_key, question_type')
+        .in('round_id', roundIds)
+        .eq('question_type', 'select');
+      const selectKeys = new Set((questions || []).map((q: any) => q.question_key));
+      if (!selectKeys.size) return { chartData: [], candidateNames: [] };
+      // Get answers
+      const interviewIds = interviews.map((i: any) => i.id);
+      const { data: answers } = await (supabase as any)
+        .from('tracking_interview_answers')
+        .select('interview_id, question_key, answer_value')
+        .in('interview_id', interviewIds);
+      if (!answers?.length) return { chartData: [], candidateNames: [] };
+      // Build interview→round map
+      const intRoundMap: Record<string, string> = {};
+      interviews.forEach((i: any) => { intRoundMap[i.id] = i.round_id; });
+      // Build evolution per round
+      const allNames = new Set<string>();
+      const chartData = rounds.map((round: any) => {
+        const rIntIds = new Set(interviews.filter((i: any) => i.round_id === round.id).map((i: any) => i.id));
+        const rAnswers = (answers || []).filter((a: any) => rIntIds.has(a.interview_id) && selectKeys.has(a.question_key));
+        const total = rAnswers.length || 1;
+        const counts: Record<string, number> = {};
+        rAnswers.forEach((a: any) => { counts[a.answer_value] = (counts[a.answer_value] || 0) + 1; });
+        const point: any = { round: round.title?.slice(0, 18) || 'Rodada' };
+        Object.entries(counts).forEach(([name, count]) => {
+          point[name] = Math.round((count / total) * 100);
+          allNames.add(name);
+        });
+        return point;
+      });
+      return { chartData, candidateNames: Array.from(allNames) };
+    },
+    enabled: !!activeCandidate?.id,
+  });
+
+  const trackingEvolution = trackingEvolutionQuery.data ?? { chartData: [], candidateNames: [] };
 
   const [mapView, setMapView] = useState<'operacional' | 'calor' | 'politico'>('operacional');
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -535,7 +598,7 @@ export default function SalaDeGuerra() {
         )}
 
         {/* Bottom Grid */}
-        <div className="grid lg:grid-cols-[1fr_1fr_300px] gap-4">
+        <div className="grid lg:grid-cols-2 gap-4">
           {/* Poll Chart — derived from real survey waves */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <div className="flex items-center gap-2 mb-3">
@@ -579,6 +642,69 @@ export default function SalaDeGuerra() {
                     />
                   ))}
                 </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Tracking Evolution Card */}
+          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="w-4 h-4 text-brand-cyan" />
+              <span className="text-sm font-semibold text-foreground">Evolução do Tracking</span>
+              <span className="text-[10px] text-muted-foreground font-medium">
+                {trackingEvolution.chartData.length} rodada{trackingEvolution.chartData.length !== 1 ? 's' : ''}
+              </span>
+              <button
+                onClick={() => navigate('/tracking')}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Explorar <ExternalLink className="w-3 h-3" />
+              </button>
+            </div>
+            {trackingEvolution.chartData.length < 2 ? (
+              <div className="flex items-center justify-center h-[160px] text-xs text-muted-foreground">
+                Necessário ao menos 2 rodadas com dados para exibir evolução.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={trackingEvolution.chartData} margin={{ left: 0, right: 8 }}>
+                  <defs>
+                    {trackingEvolution.candidateNames.map((name, i) => {
+                      const colors = ['#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935', '#60a5fa', '#f472b6'];
+                      const color = colors[i % colors.length];
+                      return (
+                        <linearGradient key={name} id={`tracking-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={color} stopOpacity={0.05} />
+                        </linearGradient>
+                      );
+                    })}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="round" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis domain={[0, 'auto']} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} width={32} />
+                  <RechartsTooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                    formatter={(v: number, name: string) => [`${v}%`, name]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  {trackingEvolution.candidateNames.map((name, i) => {
+                    const colors = ['#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935', '#60a5fa', '#f472b6'];
+                    const color = colors[i % colors.length];
+                    return (
+                      <Area
+                        key={name}
+                        type="monotone"
+                        dataKey={name}
+                        stroke={color}
+                        fill={`url(#tracking-grad-${i})`}
+                        strokeWidth={2}
+                        dot={{ r: 3, fill: color }}
+                        connectNulls
+                      />
+                    );
+                  })}
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
