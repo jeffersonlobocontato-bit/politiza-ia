@@ -9,6 +9,16 @@
   box-shadow: none !important;
   padding: 0 !important;
 }
+.tracking-tooltip-clean .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+}
+.tracking-tooltip-clean .leaflet-popup-tip {
+  display: none !important;
+}
 .tracking-tooltip-clean::before {
   display: none !important;
 }

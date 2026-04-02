@@ -87,7 +87,7 @@ export function TrackingMap({ interviews, rounds, selectedRoundId, onRoundChange
     // Add markers with clustering effect via circle markers
     filtered.forEach(interview => {
       const marker = L.circleMarker([interview.lat!, interview.lng!], {
-        radius: 6,
+        radius: 8,
         fillColor: 'hsl(217, 91%, 60%)',
         color: '#fff',
         weight: 2,
@@ -100,8 +100,8 @@ export function TrackingMap({ interviews, rounds, selectedRoundId, onRoundChange
       const income = interview.respondent_income || '—';
       const education = interview.respondent_education || '—';
 
-      marker.bindTooltip(`
-        <div style="font-size:12px;background:hsl(220,20%,13%);color:#c8d6e5;padding:10px 12px;border-radius:8px;min-width:180px;border:1px solid hsl(220,15%,22%);">
+      const popupContent = `
+        <div style="font-size:12px;background:hsl(220,20%,13%);color:#c8d6e5;padding:10px 12px;border-radius:8px;min-width:180px;border:1px solid hsl(220,15%,22%);margin:-14px -20px;">
           <div style="font-weight:700;color:#0FFCBE;margin-bottom:6px;font-size:13px;">📍 ${interview.municipality || 'Local'}</div>
           <div style="display:flex;flex-direction:column;gap:3px;">
             <span>👤 ${gender}</span>
@@ -114,7 +114,18 @@ export function TrackingMap({ interviews, rounds, selectedRoundId, onRoundChange
             ${interview.lat?.toFixed(5)}, ${interview.lng?.toFixed(5)}
           </div>
         </div>
-      `, { direction: 'top', offset: [0, -8], opacity: 1, className: 'tracking-tooltip-clean' });
+      `;
+
+      const popup = L.popup({ closeButton: false, offset: [0, -6], className: 'tracking-tooltip-clean' })
+        .setContent(popupContent);
+
+      marker.on('mouseover', function(e: any) {
+        popup.setLatLng(e.latlng);
+        map.openPopup(popup);
+      });
+      marker.on('mouseout', function() {
+        map.closePopup(popup);
+      });
     });
 
     // Simple heatmap via overlapping circles with low opacity
