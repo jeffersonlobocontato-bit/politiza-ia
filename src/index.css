@@ -33,11 +33,10 @@
    ═══════════════════════════════════════════════════════ */
 
 @layer base {
-  /* ── Default theme — Navy-Teal (Inteligência Eleitoral) ── */
+  /* ── Default theme — Dark Navy (padrão) ────────────── */
   :root {
-    /* Backgrounds — dark navy-teal */
     --background: 200 30% 11%;           /* ~#0D1B2A */
-    --foreground: 210 20% 90%;           /* light gray text */
+    --foreground: 210 20% 90%;
 
     --card: 200 25% 14%;                 /* ~#132A3A */
     --card-foreground: 210 20% 92%;
@@ -45,44 +44,39 @@
     --popover: 200 25% 14%;
     --popover-foreground: 210 20% 92%;
 
-    /* Primary — teal-green accent */
-    --primary: 163 80% 45%;              /* ~#15B892 */
+    --primary: 163 80% 45%;
     --primary-foreground: 200 30% 8%;
 
-    /* Secondary — gold/yellow */
-    --secondary: 45 95% 55%;             /* ~#F2C94C */
+    --secondary: 45 95% 55%;
     --secondary-foreground: 200 30% 8%;
 
-    --muted: 200 20% 17%;               /* ~#1E2D3D */
-    --muted-foreground: 210 15% 55%;    /* medium gray */
+    --muted: 200 20% 17%;
+    --muted-foreground: 210 15% 55%;
 
-    --accent: 200 20% 20%;              /* ~#243447 */
+    --accent: 200 20% 20%;
     --accent-foreground: 210 20% 90%;
 
-    --destructive: 1 79% 56%;           /* #E53935 */
+    --destructive: 1 79% 56%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 18% 20%;              /* ~#263545 */
+    --border: 200 18% 20%;
     --input: 200 18% 20%;
     --ring: 163 80% 45%;
 
     --radius: 0.5rem;
 
-    /* Brand */
-    --brand-blue: 210 84% 50%;          /* #2196F3 */
-    --brand-amber: 42 96% 58%;          /* #FBC02D */
-    --brand-green: 163 80% 45%;         /* teal-green */
-    --brand-red: 1 79% 56%;             /* #E53935 */
-    --brand-cyan: 163 97% 52%;          /* #0FFCBE mint */
-    --brand-purple: 252 100% 69%;       /* #7B61FF */
+    --brand-blue: 210 84% 50%;
+    --brand-amber: 42 96% 58%;
+    --brand-green: 163 80% 45%;
+    --brand-red: 1 79% 56%;
+    --brand-cyan: 163 97% 52%;
+    --brand-purple: 252 100% 69%;
 
-    /* Risk / Status scale */
     --risk-high: 1 79% 56%;
     --risk-medium: 42 96% 58%;
     --risk-low: 163 80% 45%;
     --risk-strong: 210 84% 50%;
 
-    /* Status tokens */
     --status-error: 1 79% 60%;
     --status-error-bg: 1 50% 14%;
     --status-warning: 42 96% 58%;
@@ -94,8 +88,7 @@
     --status-ai: 252 100% 72%;
     --status-ai-bg: 252 40% 14%;
 
-    /* Sidebar — deeper navy */
-    --sidebar-background: 200 35% 8%;   /* ~#081620 */
+    --sidebar-background: 200 35% 8%;
     --sidebar-foreground: 210 15% 80%;
     --sidebar-primary: 163 80% 45%;
     --sidebar-primary-foreground: 200 30% 8%;
@@ -104,15 +97,85 @@
     --sidebar-border: 200 20% 15%;
     --sidebar-ring: 163 80% 45%;
 
-    /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(163 80% 45%), hsl(163 97% 52%));
     --gradient-dark: linear-gradient(180deg, hsl(200 30% 11%), hsl(200 35% 8%));
     --gradient-card: linear-gradient(135deg, hsl(200 25% 15%), hsl(200 25% 13%));
 
-    /* Shadows */
     --shadow-glow: 0 0 20px hsl(163 80% 45% / 0.25);
     --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
     --shadow-alert: 0 4px 16px hsl(1 79% 56% / 0.25);
+  }
+
+  /* ── Light theme — Navy gradient backdrop ──────────── */
+  .light {
+    --background: 210 25% 96%;           /* #F2F5F9 */
+    --foreground: 200 40% 12%;           /* ~#0D1F2D */
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 40% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 40% 12%;
+
+    --primary: 163 80% 38%;              /* teal-green mais sóbrio */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 45 90% 50%;             /* gold */
+    --secondary-foreground: 200 40% 12%;
+
+    --muted: 210 22% 92%;               /* #E8ECF1 */
+    --muted-foreground: 210 12% 45%;    /* texto secundário legível */
+
+    --accent: 200 20% 92%;
+    --accent-foreground: 200 40% 12%;
+
+    --destructive: 1 79% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 18% 88%;              /* #DDE3EA */
+    --input: 210 18% 88%;
+    --ring: 163 80% 38%;
+
+    --brand-blue: 210 84% 45%;
+    --brand-amber: 42 96% 54%;
+    --brand-green: 163 80% 38%;
+    --brand-red: 1 79% 50%;
+    --brand-cyan: 163 90% 42%;
+    --brand-purple: 252 100% 65%;
+
+    --risk-high: 1 79% 50%;
+    --risk-medium: 42 96% 54%;
+    --risk-low: 163 80% 38%;
+    --risk-strong: 210 84% 45%;
+
+    --status-error: 1 79% 50%;
+    --status-error-bg: 1 60% 96%;
+    --status-warning: 42 96% 50%;
+    --status-warning-bg: 42 60% 95%;
+    --status-success: 163 80% 35%;
+    --status-success-bg: 163 40% 95%;
+    --status-info: 210 77% 48%;
+    --status-info-bg: 210 50% 95%;
+    --status-ai: 252 100% 65%;
+    --status-ai-bg: 252 50% 96%;
+
+    /* Sidebar — navy gradient no light */
+    --sidebar-background: 200 40% 15%;   /* navy para o sidebar mesmo no light */
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 163 80% 45%;
+    --sidebar-primary-foreground: 200 40% 10%;
+    --sidebar-accent: 200 35% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 200 30% 20%;
+    --sidebar-ring: 163 80% 45%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(163 80% 38%), hsl(163 90% 42%));
+    --gradient-dark: linear-gradient(180deg, hsl(200 40% 15%), hsl(200 45% 10%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 25% 97%));
+
+    --shadow-glow: 0 0 16px hsl(163 80% 38% / 0.18);
+    --shadow-card: 0 2px 12px hsl(200 40% 12% / 0.08);
+    --shadow-alert: 0 4px 16px hsl(1 79% 50% / 0.12);
   }
 
   /* ── Dark theme ────────────────────────────────────── */
