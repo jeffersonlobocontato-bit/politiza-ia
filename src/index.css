@@ -35,7 +35,7 @@
 @layer base {
   /* ── Default theme — Dark Navy (padrão) ────────────── */
   :root {
-    --background: 200 30% 11%;           /* ~#0D1B2A */
+    --background: 200 32% 9%;            /* ~#0A1520 */
     --foreground: 210 20% 90%;
 
     --card: 200 25% 14%;                 /* ~#132A3A */
