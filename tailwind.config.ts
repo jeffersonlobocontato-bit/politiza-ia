@@ -92,10 +92,10 @@ export default {
           "ai-bg": "hsl(var(--status-ai-bg))",
         },
         /* Text scale */
-        heading: "hsl(211 70% 12%)",
-        body: "hsl(213 22% 37%)",
-        subtle: "hsl(213 13% 55%)",
-        disabled: "hsl(213 13% 63%)",
+        heading: "hsl(var(--foreground))",
+        body: "hsl(var(--muted-foreground))",
+        subtle: "hsl(210 15% 50%)",
+        disabled: "hsl(210 15% 40%)",
       },
       borderRadius: {
         lg: "var(--radius)",
