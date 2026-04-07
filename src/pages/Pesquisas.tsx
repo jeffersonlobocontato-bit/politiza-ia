@@ -635,30 +635,86 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           {step === 3 && (
             <div className="space-y-5">
               <div className="text-sm font-semibold text-muted-foreground">
-                Dados de intenção de voto — Cenário 1 (Estimulada)
+                Dados de intenção de voto — Estimulada (todos os cenários)
               </div>
               <div className="text-xs text-muted-foreground -mt-3">
-                Preencha candidatos e percentuais para visualização imediata. Você pode adicionar mais dados depois.
+                Preencha candidatos e percentuais. Adicione cenários se a pesquisa tiver múltiplos.
               </div>
 
               {form.cargos.includes('governador') && (
-                <CandidatesBlock
-                  title="Governador"
-                  entries={form.govCandidates}
-                  onAdd={() => addCandidate('govCandidates')}
-                  onRemove={idx => removeCandidate('govCandidates', idx)}
-                  onChange={(idx, key, val) => updateCandidate('govCandidates', idx, key, val)}
-                />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-bold text-foreground">Governador</div>
+                    <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => addScenario('govScenarios')}>
+                      <Plus className="w-3 h-3" /> Cenário
+                    </Button>
+                  </div>
+                  {form.govScenarios.map((scenario, sIdx) => (
+                    <div key={sIdx} className="space-y-2 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-[hsl(220,18%,16%)]">
+                      <div className="flex items-center justify-between">
+                        <Input
+                          value={scenario.label}
+                          onChange={e => {
+                            const s = [...form.govScenarios];
+                            s[sIdx] = { ...s[sIdx], label: e.target.value };
+                            updateForm({ govScenarios: s });
+                          }}
+                          className="h-6 text-xs font-semibold w-40 bg-transparent border-none p-0"
+                        />
+                        {form.govScenarios.length > 1 && (
+                          <button onClick={() => removeScenario('govScenarios', sIdx)} className="text-muted-foreground hover:text-destructive">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <CandidatesBlock
+                        title=""
+                        entries={scenario.candidates}
+                        onAdd={() => addCandidate('govScenarios', sIdx)}
+                        onRemove={idx => removeCandidate('govScenarios', sIdx, idx)}
+                        onChange={(idx, key, val) => updateCandidate('govScenarios', sIdx, idx, key, val)}
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
 
               {form.cargos.includes('senador') && (
-                <CandidatesBlock
-                  title="Senador"
-                  entries={form.senCandidates}
-                  onAdd={() => addCandidate('senCandidates')}
-                  onRemove={idx => removeCandidate('senCandidates', idx)}
-                  onChange={(idx, key, val) => updateCandidate('senCandidates', idx, key, val)}
-                />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-bold text-foreground">Senador</div>
+                    <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => addScenario('senScenarios')}>
+                      <Plus className="w-3 h-3" /> Cenário
+                    </Button>
+                  </div>
+                  {form.senScenarios.map((scenario, sIdx) => (
+                    <div key={sIdx} className="space-y-2 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-[hsl(220,18%,16%)]">
+                      <div className="flex items-center justify-between">
+                        <Input
+                          value={scenario.label}
+                          onChange={e => {
+                            const s = [...form.senScenarios];
+                            s[sIdx] = { ...s[sIdx], label: e.target.value };
+                            updateForm({ senScenarios: s });
+                          }}
+                          className="h-6 text-xs font-semibold w-40 bg-transparent border-none p-0"
+                        />
+                        {form.senScenarios.length > 1 && (
+                          <button onClick={() => removeScenario('senScenarios', sIdx)} className="text-muted-foreground hover:text-destructive">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <CandidatesBlock
+                        title=""
+                        entries={scenario.candidates}
+                        onAdd={() => addCandidate('senScenarios', sIdx)}
+                        onRemove={idx => removeCandidate('senScenarios', sIdx, idx)}
+                        onChange={(idx, key, val) => updateCandidate('senScenarios', sIdx, idx, key, val)}
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
