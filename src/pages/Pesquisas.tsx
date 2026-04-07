@@ -1,7 +1,7 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import {
   BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare,
-  X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText, Pencil,
+  X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText, Pencil, Loader2, Sparkles,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +27,8 @@ import {
   PollWave, PollQuestion, Cargo, FilterType, CANDIDATE_COLORS,
 } from '@/data/pollsData';
 import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // ─── helpers ─────────────────────────────────────────────────
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
@@ -142,8 +144,66 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
   const [fileName, setFileName] = useState('');
   const [form, setForm] = useState<ImportForm>(emptyForm());
   const [editingSurveyId, setEditingSurveyId] = useState<string | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const parseFileInputRef = useRef<HTMLInputElement>(null);
 
   const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
+
+  const handleParsePdf = useCallback(async (file: File) => {
+    setIsParsing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/parse-survey-pdf`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session?.access_token ?? ''}`,
+          },
+          body: formData,
+        },
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const { data: parsed } = await res.json();
+
+      // Auto-fill form with parsed data
+      updateForm({
+        institute: parsed.institute || form.institute,
+        territory: parsed.territory || form.territory,
+        collectionStart: parsed.collectionStart || form.collectionStart,
+        collectionEnd: parsed.collectionEnd || form.collectionEnd,
+        releaseDate: parsed.releaseDate || form.releaseDate,
+        sampleSize: parsed.sampleSize ? String(parsed.sampleSize) : form.sampleSize,
+        marginOfError: parsed.marginOfError ? String(parsed.marginOfError) : form.marginOfError,
+        methodology: parsed.methodology || form.methodology,
+        tseRegistration: parsed.tseRegistration || form.tseRegistration,
+        cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
+        govCandidates: parsed.govCandidates?.length > 0
+          ? parsed.govCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
+          : form.govCandidates,
+        senCandidates: parsed.senCandidates?.length > 0
+          ? parsed.senCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
+          : form.senCandidates,
+      });
+
+      toast.success('Dados extraídos do PDF com sucesso! Revise e ajuste se necessário.');
+    } catch (err: any) {
+      console.error('PDF parse error:', err);
+      toast.error(`Erro ao processar PDF: ${err.message}`);
+    } finally {
+      setIsParsing(false);
+    }
+  }, [form]);
 
   const handleFileClick = () => fileInputRef.current?.click();
 
@@ -248,6 +308,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
     setFileName('');
     setForm(emptyForm());
     setEditingSurveyId(null);
+    setPdfFile(null);
+    setIsParsing(false);
   };
 
   const handleEditWave = (wave: PollWave) => {
@@ -365,6 +427,53 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           {/* ── Step 2: Metadados ── */}
           {step === 2 && (
             <div className="space-y-3">
+              {/* PDF Upload + AI Parse */}
+              <input
+                ref={parseFileInputRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setPdfFile(file);
+                    if (!fileName) setFileName(file.name);
+                    handleParsePdf(file);
+                  }
+                  if (parseFileInputRef.current) parseFileInputRef.current.value = '';
+                }}
+              />
+              <div
+                className={`rounded-lg border border-dashed p-3 flex items-center gap-3 cursor-pointer transition-colors ${
+                  isParsing
+                    ? 'border-[#0FFCBE]/50 bg-[#0FFCBE]/5'
+                    : 'border-[hsl(220,15%,25%)] hover:border-[#0FFCBE]/50 bg-[hsl(220,18%,16%)]'
+                }`}
+                onClick={() => !isParsing && parseFileInputRef.current?.click()}
+              >
+                {isParsing ? (
+                  <Loader2 className="w-5 h-5 text-[#0FFCBE] animate-spin shrink-0" />
+                ) : (
+                  <Sparkles className="w-5 h-5 text-[#0FFCBE] shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold text-foreground">
+                    {isParsing ? 'Extraindo dados do PDF com IA…' : 'Upload PDF para extração automática'}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {isParsing
+                      ? 'Analisando documento — isso pode levar alguns segundos'
+                      : 'A IA lerá o PDF e preencherá os campos automaticamente'}
+                  </div>
+                </div>
+                {!isParsing && (
+                  <Button variant="outline" size="sm" className="shrink-0 text-xs h-7 gap-1" onClick={(e) => { e.stopPropagation(); parseFileInputRef.current?.click(); }}>
+                    <Upload className="w-3 h-3" />
+                    Enviar PDF
+                  </Button>
+                )}
+              </div>
+
               <div className="text-sm font-semibold text-muted-foreground mb-2">Metadados da pesquisa</div>
 
               <div className="grid grid-cols-2 gap-3">
