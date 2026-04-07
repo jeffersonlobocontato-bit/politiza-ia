@@ -128,16 +128,20 @@ const emptyForm = (): ImportForm => ({
 // ─── Tab: Biblioteca ─────────────────────────────────────────
 interface BibliotecaProps {
   waves: PollWave[];
+  questions: PollQuestion[];
   onAdd: (wave: PollWave, questions: PollQuestion[]) => void;
+  onUpdate: (surveyId: string, wave: PollWave, questions: PollQuestion[]) => void;
   onDelete: (waveId: string) => void;
+  dbIds: Set<string>;
 }
 
-function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
+function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDelete, dbIds }: BibliotecaProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [fileName, setFileName] = useState('');
   const [form, setForm] = useState<ImportForm>(emptyForm());
+  const [editingSurveyId, setEditingSurveyId] = useState<string | null>(null);
 
   const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
 
