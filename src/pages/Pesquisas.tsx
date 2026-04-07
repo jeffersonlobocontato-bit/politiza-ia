@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import {
   BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare,
-  X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText,
+  X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText, Pencil,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,7 +26,7 @@ import {
   pollComparativos as initialComparativos,
   PollWave, PollQuestion, Cargo, FilterType, CANDIDATE_COLORS,
 } from '@/data/pollsData';
-import { useSurveys, useCreateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
+import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
 
 // ─── helpers ─────────────────────────────────────────────────
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
@@ -38,19 +38,30 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
 ];
 
 // ─── WaveCard ────────────────────────────────────────────────
-function WaveCard({ wave, onDelete }: { wave: PollWave; onDelete?: () => void }) {
+function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () => void; onEdit?: () => void }) {
   return (
     <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] p-4 flex flex-col gap-3 relative shadow-lg">
-      {onDelete && (
-        <button
-          onClick={onDelete}
-          className="absolute top-3 right-3 text-[#8899aa] hover:text-[#E53935] transition-colors"
-          title="Remover pesquisa"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-      )}
-      <div className="flex items-start justify-between gap-2 pr-6">
+      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            className="text-[#8899aa] hover:text-[#0FFCBE] transition-colors"
+            title="Editar pesquisa"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            className="text-[#8899aa] hover:text-[#E53935] transition-colors"
+            title="Remover pesquisa"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+      <div className="flex items-start justify-between gap-2 pr-14">
         <div>
           <div className="text-xs font-bold text-[#0FFCBE]">{wave.institute}</div>
           <div className="text-sm font-semibold text-white mt-0.5">{wave.territory}</div>
@@ -117,16 +128,20 @@ const emptyForm = (): ImportForm => ({
 // ─── Tab: Biblioteca ─────────────────────────────────────────
 interface BibliotecaProps {
   waves: PollWave[];
+  questions: PollQuestion[];
   onAdd: (wave: PollWave, questions: PollQuestion[]) => void;
+  onUpdate: (surveyId: string, wave: PollWave, questions: PollQuestion[]) => void;
   onDelete: (waveId: string) => void;
+  dbIds: Set<string>;
 }
 
-function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
+function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDelete, dbIds }: BibliotecaProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [fileName, setFileName] = useState('');
   const [form, setForm] = useState<ImportForm>(emptyForm());
+  const [editingSurveyId, setEditingSurveyId] = useState<string | null>(null);
 
   const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
 
@@ -165,13 +180,14 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
   };
 
   const canGoNext = () => {
-    if (step === 1) return !!fileName;
+    if (step === 1 && !editingSurveyId) return !!fileName;
+    if (step === 1 && editingSurveyId) return true;
     if (step === 2) return !!(form.institute && form.territory && form.cargos.length > 0 && form.releaseDate && form.sampleSize);
     return true;
   };
 
   const handleConfirm = () => {
-    const waveId = `wave-${Date.now()}`;
+    const waveId = editingSurveyId ?? `wave-${Date.now()}`;
     const newWave: PollWave = {
       id: waveId,
       institute: form.institute,
@@ -187,7 +203,6 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
     };
 
     const newQuestions: PollQuestion[] = [];
-    let qIdx = 0;
 
     if (form.cargos.includes('governador') && form.govCandidates.some(c => c.name && c.pct)) {
       newQuestions.push({
@@ -202,7 +217,6 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
           .sort((a, b) => b.percentage - a.percentage),
         crossTabs: [],
       });
-      qIdx++;
     }
 
     if (form.cargos.includes('senador') && form.senCandidates.some(c => c.name && c.pct)) {
@@ -220,11 +234,49 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
       });
     }
 
-    onAdd(newWave, newQuestions);
+    if (editingSurveyId) {
+      onUpdate(editingSurveyId, newWave, newQuestions);
+    } else {
+      onAdd(newWave, newQuestions);
+    }
+    closeDialog();
+  };
+
+  const closeDialog = () => {
     setOpen(false);
     setStep(1);
     setFileName('');
     setForm(emptyForm());
+    setEditingSurveyId(null);
+  };
+
+  const handleEditWave = (wave: PollWave) => {
+    const waveQuestions = allQuestions.filter(q => q.waveId === wave.id);
+    const govQ = waveQuestions.find(q => q.cargo === 'governador' && q.questionType === 'estimulada');
+    const senQ = waveQuestions.find(q => q.cargo === 'senador' && q.questionType === 'estimulada');
+
+    setForm({
+      institute: wave.institute,
+      territory: wave.territory,
+      cargos: wave.cargos as Cargo[],
+      collectionStart: wave.collectionStart || '',
+      collectionEnd: wave.collectionEnd || '',
+      releaseDate: wave.releaseDate,
+      sampleSize: String(wave.sampleSize),
+      marginOfError: String(wave.marginOfError),
+      methodology: wave.methodology || '',
+      tseRegistration: wave.tseRegistration || '',
+      govCandidates: govQ && govQ.results.length > 0
+        ? govQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
+        : [{ name: '', pct: '' }],
+      senCandidates: senQ && senQ.results.length > 0
+        ? senQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
+        : [{ name: '', pct: '' }],
+    });
+    setEditingSurveyId(wave.id);
+    setFileName(wave.fileName || 'pesquisa.pdf');
+    setStep(2); // skip file step
+    setOpen(true);
   };
 
   return (
@@ -263,6 +315,7 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
           <WaveCard
             key={w.id}
             wave={w}
+            onEdit={dbIds.has(w.id) ? () => handleEditWave(w) : undefined}
             onDelete={() => onDelete(w.id)}
           />
         ))}
@@ -274,14 +327,14 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-[#0FFCBE]" />
-              Importar Pesquisa
+              {editingSurveyId ? 'Editar Pesquisa' : 'Importar Pesquisa'}
               <Badge variant="outline" className="ml-auto text-[10px]">Passo {step} / 3</Badge>
             </DialogTitle>
           </DialogHeader>
 
           {/* Step indicator */}
           <div className="flex gap-1 mb-2">
-            {[1, 2, 3].map(s => (
+            {(editingSurveyId ? [2, 3] : [1, 2, 3]).map((s, i, arr) => (
               <div
                 key={s}
                 className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-[hsl(220,18%,16%)]'}`}
@@ -462,12 +515,12 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
           )}
 
           <DialogFooter className="mt-4 gap-2">
-            {step > 1 && (
+            {step > 1 && !(editingSurveyId && step === 2) && (
               <Button variant="outline" size="sm" onClick={() => setStep(s => s - 1)}>
                 Voltar
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => { setOpen(false); setStep(1); }}>
+            <Button variant="outline" size="sm" onClick={closeDialog}>
               Cancelar
             </Button>
             {step < 3 ? (
@@ -476,7 +529,7 @@ function TabBiblioteca({ waves, onAdd, onDelete }: BibliotecaProps) {
               </Button>
             ) : (
               <Button size="sm" onClick={handleConfirm}>
-                Confirmar importação
+                {editingSurveyId ? 'Salvar alterações' : 'Confirmar importação'}
               </Button>
             )}
           </DialogFooter>
@@ -1124,6 +1177,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 export default function Pesquisas() {
   const { data: dbData, isLoading: surveysLoading } = useSurveys();
   const createSurvey = useCreateSurvey();
+  const updateSurvey = useUpdateSurvey();
   const deleteSurvey = useDeleteSurvey();
 
   // Merge DB surveys with static seed data (static listed last)
@@ -1140,6 +1194,10 @@ export default function Pesquisas() {
 
   const handleAdd = (wave: PollWave, newQuestions: PollQuestion[]) => {
     createSurvey.mutate({ wave, questions: newQuestions });
+  };
+
+  const handleUpdate = (surveyId: string, wave: PollWave, newQuestions: PollQuestion[]) => {
+    updateSurvey.mutate({ surveyId, wave, questions: newQuestions });
   };
 
   const handleDelete = (waveId: string) => {
@@ -1182,7 +1240,7 @@ export default function Pesquisas() {
           </div>
 
           <TabsContent value="biblioteca" className="flex-1 overflow-auto px-6 pb-6 pt-4 mt-0">
-            <TabBiblioteca waves={waves} onAdd={handleAdd} onDelete={handleDelete} />
+            <TabBiblioteca waves={waves} questions={questions} onAdd={handleAdd} onUpdate={handleUpdate} onDelete={handleDelete} dbIds={dbIds} />
           </TabsContent>
           <TabsContent value="analisar" className="flex-1 overflow-auto px-6 pb-6 pt-4 mt-0">
             <TabAnalisar waves={waves} questions={questions} />

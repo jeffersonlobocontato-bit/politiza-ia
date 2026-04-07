@@ -192,6 +192,92 @@ export function useCreateSurvey() {
   });
 }
 
+/** Update an existing survey wave + questions + results */
+export function useUpdateSurvey() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      surveyId,
+      wave,
+      questions,
+    }: {
+      surveyId: string;
+      wave: PollWave;
+      questions: PollQuestion[];
+    }) => {
+      // 1. Update survey metadata
+      const { error: e1 } = await (db as any)
+        .from('electoral_surveys')
+        .update({
+          institute: wave.institute,
+          territory: wave.territory,
+          cargos: wave.cargos,
+          collection_start: wave.collectionStart || null,
+          collection_end: wave.collectionEnd || null,
+          release_date: wave.releaseDate,
+          sample_size: wave.sampleSize,
+          margin_of_error: wave.marginOfError,
+          methodology: wave.methodology || null,
+          tse_registration: wave.tseRegistration || null,
+          file_name: wave.fileName || null,
+        })
+        .eq('id', surveyId);
+      if (e1) throw e1;
+
+      // 2. Get existing question IDs to delete their results
+      const { data: oldQuestions } = await (db as any)
+        .from('survey_questions')
+        .select('id')
+        .eq('survey_id', surveyId);
+
+      if (oldQuestions && oldQuestions.length > 0) {
+        const oldQIds = oldQuestions.map((q: any) => q.id);
+        await (db as any).from('survey_results').delete().in('question_id', oldQIds);
+        await (db as any).from('survey_questions').delete().eq('survey_id', surveyId);
+      }
+
+      // 3. Re-insert questions + results
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        const { data: dbQ, error: e2 } = await (db as any)
+          .from('survey_questions')
+          .insert({
+            survey_id: surveyId,
+            cargo: q.cargo,
+            question_type: q.questionType,
+            scenario_label: q.scenarioLabel,
+            note: q.note ?? null,
+            sort_order: i,
+          })
+          .select()
+          .single();
+        if (e2) throw e2;
+
+        if (q.results.length > 0) {
+          const { error: e3 } = await (db as any)
+            .from('survey_results')
+            .insert(
+              q.results.map(r => ({
+                question_id: dbQ.id,
+                candidate_name: r.candidate,
+                percentage: r.percentage,
+              })),
+            );
+          if (e3) throw e3;
+        }
+      }
+
+      return surveyId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['surveys'] });
+      toast.success('Pesquisa atualizada com sucesso!');
+    },
+    onError: (e: any) => toast.error(`Erro ao atualizar pesquisa: ${e.message}`),
+  });
+}
+
 /** Soft-delete a survey (cascades to questions/results) */
 export function useDeleteSurvey() {
   const qc = useQueryClient();
