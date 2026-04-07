@@ -1240,7 +1240,7 @@ export default function Pesquisas() {
           </div>
 
           <TabsContent value="biblioteca" className="flex-1 overflow-auto px-6 pb-6 pt-4 mt-0">
-            <TabBiblioteca waves={waves} onAdd={handleAdd} onDelete={handleDelete} />
+            <TabBiblioteca waves={waves} questions={questions} onAdd={handleAdd} onUpdate={handleUpdate} onDelete={handleDelete} dbIds={dbIds} />
           </TabsContent>
           <TabsContent value="analisar" className="flex-1 overflow-auto px-6 pb-6 pt-4 mt-0">
             <TabAnalisar waves={waves} questions={questions} />
