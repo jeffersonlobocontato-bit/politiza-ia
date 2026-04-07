@@ -242,16 +242,33 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
     });
   };
 
-  const addCandidate = (field: 'govCandidates' | 'senCandidates') =>
-    updateForm({ [field]: [...form[field], { name: '', pct: '' }] });
+  const addCandidate = (cargoField: 'govScenarios' | 'senScenarios', scenarioIdx: number) => {
+    const scenarios = [...form[cargoField]];
+    scenarios[scenarioIdx] = { ...scenarios[scenarioIdx], candidates: [...scenarios[scenarioIdx].candidates, { name: '', pct: '' }] };
+    updateForm({ [cargoField]: scenarios });
+  };
 
-  const removeCandidate = (field: 'govCandidates' | 'senCandidates', idx: number) =>
-    updateForm({ [field]: form[field].filter((_, i) => i !== idx) });
+  const removeCandidate = (cargoField: 'govScenarios' | 'senScenarios', scenarioIdx: number, candIdx: number) => {
+    const scenarios = [...form[cargoField]];
+    scenarios[scenarioIdx] = { ...scenarios[scenarioIdx], candidates: scenarios[scenarioIdx].candidates.filter((_, i) => i !== candIdx) };
+    updateForm({ [cargoField]: scenarios });
+  };
 
-  const updateCandidate = (field: 'govCandidates' | 'senCandidates', idx: number, key: 'name' | 'pct', value: string) => {
-    const updated = [...form[field]];
-    updated[idx] = { ...updated[idx], [key]: value };
-    updateForm({ [field]: updated });
+  const updateCandidate = (cargoField: 'govScenarios' | 'senScenarios', scenarioIdx: number, candIdx: number, key: 'name' | 'pct', value: string) => {
+    const scenarios = [...form[cargoField]];
+    const cands = [...scenarios[scenarioIdx].candidates];
+    cands[candIdx] = { ...cands[candIdx], [key]: value };
+    scenarios[scenarioIdx] = { ...scenarios[scenarioIdx], candidates: cands };
+    updateForm({ [cargoField]: scenarios });
+  };
+
+  const addScenario = (cargoField: 'govScenarios' | 'senScenarios') => {
+    const scenarios = form[cargoField];
+    updateForm({ [cargoField]: [...scenarios, emptyScenario(`Cenário ${scenarios.length + 1}`)] });
+  };
+
+  const removeScenario = (cargoField: 'govScenarios' | 'senScenarios', idx: number) => {
+    updateForm({ [cargoField]: form[cargoField].filter((_, i) => i !== idx) });
   };
 
   const canGoNext = () => {
