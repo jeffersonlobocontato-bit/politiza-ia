@@ -96,6 +96,7 @@ function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () =>
 
 // ─── Import modal types ───────────────────────────────────────
 interface CandidateEntry { name: string; pct: string }
+interface ScenarioEntry { label: string; candidates: CandidateEntry[] }
 interface ImportForm {
   institute: string;
   territory: string;
@@ -107,10 +108,14 @@ interface ImportForm {
   marginOfError: string;
   methodology: string;
   tseRegistration: string;
-  // per-cargo candidate data for one estimulada scenario
-  govCandidates: CandidateEntry[];
-  senCandidates: CandidateEntry[];
+  govScenarios: ScenarioEntry[];
+  senScenarios: ScenarioEntry[];
 }
+
+const emptyScenario = (label = 'Cenário 1'): ScenarioEntry => ({
+  label,
+  candidates: [{ name: '', pct: '' }],
+});
 
 const emptyForm = (): ImportForm => ({
   institute: '',
@@ -123,8 +128,8 @@ const emptyForm = (): ImportForm => ({
   marginOfError: '',
   methodology: '',
   tseRegistration: '',
-  govCandidates: [{ name: '', pct: '' }],
-  senCandidates: [{ name: '', pct: '' }],
+  govScenarios: [emptyScenario()],
+  senScenarios: [emptyScenario()],
 });
 
 // ─── Tab: Biblioteca ─────────────────────────────────────────
