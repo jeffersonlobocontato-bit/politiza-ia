@@ -1,6 +1,12 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Cell, LabelList } from 'recharts';
 import { CandidateResult, CANDIDATE_COLORS } from '@/data/pollsData';
 
+const AUTO_PALETTE = [
+  '#3b82f6', '#ef4444', '#a855f7', '#f59e0b', '#6366f1',
+  '#14b8a6', '#f97316', '#22c55e', '#8b5cf6', '#ec4899',
+  '#06b6d4', '#84cc16', '#e11d48', '#0ea5e9', '#d946ef',
+];
+
 interface CandidateBarChartProps {
   results: CandidateResult[];
   /** Exclude "structural" entries like Não sabe/Não opinou */
@@ -35,14 +41,16 @@ const CustomLabel = (props: any) => {
 };
 
 export function CandidateBarChart({ results, hideNeutral = false, height = 320 }: CandidateBarChartProps) {
-  const data = results
+  const filtered = results
     .filter(r => !hideNeutral || !NEUTRAL.some(n => r.candidate.includes(n.split('/')[0].trim())))
-    .sort((a, b) => b.percentage - a.percentage)
-    .map(r => ({
-      name: r.candidate,
-      value: r.percentage,
-      color: CANDIDATE_COLORS[r.candidate] ?? '#8899aa',
-    }));
+    .sort((a, b) => b.percentage - a.percentage);
+
+  let autoIdx = 0;
+  const data = filtered.map(r => ({
+    name: r.candidate,
+    value: r.percentage,
+    color: CANDIDATE_COLORS[r.candidate] ?? AUTO_PALETTE[autoIdx++ % AUTO_PALETTE.length],
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={height}>
