@@ -515,7 +515,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           )}
 
           <DialogFooter className="mt-4 gap-2">
-            {step > 1 && (
+            {step > 1 && !(editingSurveyId && step === 2) && (
               <Button variant="outline" size="sm" onClick={() => setStep(s => s - 1)}>
                 Voltar
               </Button>
