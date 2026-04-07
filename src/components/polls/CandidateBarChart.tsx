@@ -41,14 +41,16 @@ const CustomLabel = (props: any) => {
 };
 
 export function CandidateBarChart({ results, hideNeutral = false, height = 320 }: CandidateBarChartProps) {
-  const data = results
+  const filtered = results
     .filter(r => !hideNeutral || !NEUTRAL.some(n => r.candidate.includes(n.split('/')[0].trim())))
-    .sort((a, b) => b.percentage - a.percentage)
-    .map(r => ({
-      name: r.candidate,
-      value: r.percentage,
-      color: CANDIDATE_COLORS[r.candidate] ?? '#8899aa',
-    }));
+    .sort((a, b) => b.percentage - a.percentage);
+
+  let autoIdx = 0;
+  const data = filtered.map(r => ({
+    name: r.candidate,
+    value: r.percentage,
+    color: CANDIDATE_COLORS[r.candidate] ?? AUTO_PALETTE[autoIdx++ % AUTO_PALETTE.length],
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={height}>
