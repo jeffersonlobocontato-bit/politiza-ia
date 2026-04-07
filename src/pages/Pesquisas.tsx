@@ -296,33 +296,41 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
     const newQuestions: PollQuestion[] = [];
 
-    if (form.cargos.includes('governador') && form.govCandidates.some(c => c.name && c.pct)) {
-      newQuestions.push({
-        id: `${waveId}-gov-est-1`,
-        waveId,
-        cargo: 'governador',
-        questionType: 'estimulada',
-        scenarioLabel: 'Cenário 1',
-        results: form.govCandidates
-          .filter(c => c.name)
-          .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
-          .sort((a, b) => b.percentage - a.percentage),
-        crossTabs: [],
+    if (form.cargos.includes('governador')) {
+      form.govScenarios.forEach((scenario, sIdx) => {
+        if (scenario.candidates.some(c => c.name && c.pct)) {
+          newQuestions.push({
+            id: `${waveId}-gov-est-${sIdx + 1}`,
+            waveId,
+            cargo: 'governador',
+            questionType: 'estimulada',
+            scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            results: scenario.candidates
+              .filter(c => c.name)
+              .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
+              .sort((a, b) => b.percentage - a.percentage),
+            crossTabs: [],
+          });
+        }
       });
     }
 
-    if (form.cargos.includes('senador') && form.senCandidates.some(c => c.name && c.pct)) {
-      newQuestions.push({
-        id: `${waveId}-sen-est-1`,
-        waveId,
-        cargo: 'senador',
-        questionType: 'estimulada',
-        scenarioLabel: 'Cenário 1',
-        results: form.senCandidates
-          .filter(c => c.name)
-          .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
-          .sort((a, b) => b.percentage - a.percentage),
-        crossTabs: [],
+    if (form.cargos.includes('senador')) {
+      form.senScenarios.forEach((scenario, sIdx) => {
+        if (scenario.candidates.some(c => c.name && c.pct)) {
+          newQuestions.push({
+            id: `${waveId}-sen-est-${sIdx + 1}`,
+            waveId,
+            cargo: 'senador',
+            questionType: 'estimulada',
+            scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            results: scenario.candidates
+              .filter(c => c.name)
+              .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
+              .sort((a, b) => b.percentage - a.percentage),
+            crossTabs: [],
+          });
+        }
       });
     }
 
