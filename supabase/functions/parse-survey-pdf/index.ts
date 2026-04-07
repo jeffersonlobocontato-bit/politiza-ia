@@ -3,7 +3,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const AI_GATEWAY_URL = "https://ai-gateway.lovable.dev/v1/chat/completions";
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 const EXTRACTION_PROMPT = `Você é um especialista em análise de pesquisas eleitorais brasileiras. 
 Analise o documento PDF de pesquisa eleitoral enviado e extraia TODOS os dados estruturados possíveis.
