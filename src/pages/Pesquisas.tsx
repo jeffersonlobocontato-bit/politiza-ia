@@ -308,6 +308,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
     setFileName('');
     setForm(emptyForm());
     setEditingSurveyId(null);
+    setPdfFile(null);
+    setIsParsing(false);
   };
 
   const handleEditWave = (wave: PollWave) => {
