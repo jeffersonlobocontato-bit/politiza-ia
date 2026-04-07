@@ -21,24 +21,43 @@ Retorne EXATAMENTE um JSON com esta estrutura (sem markdown, sem backticks, apen
   "methodology": "Descrição da metodologia",
   "tseRegistration": "Registro no TSE ex: PR-00000/2026",
   "cargos": ["governador", "senador"],
-  "govCandidates": [
-    { "name": "Nome Completo do Candidato", "pct": "25.3" }
+  "govScenarios": [
+    {
+      "label": "Cenário 1",
+      "candidates": [
+        { "name": "Nome Completo do Candidato (Partido)", "pct": "25.3" }
+      ]
+    },
+    {
+      "label": "Cenário 2",
+      "candidates": [
+        { "name": "Nome Completo do Candidato (Partido)", "pct": "18.7" }
+      ]
+    }
   ],
-  "senCandidates": [
-    { "name": "Nome Completo do Candidato", "pct": "18.7" }
+  "senScenarios": [
+    {
+      "label": "Cenário 1",
+      "candidates": [
+        { "name": "Nome Completo do Candidato (Partido)", "pct": "21.0" }
+      ]
+    }
   ]
 }
 
 REGRAS IMPORTANTES:
-- Para candidatos, extraia APENAS dados de intenção de voto ESTIMULADA (cenário principal/primeiro cenário)
+- Extraia TODOS os cenários de intenção de voto ESTIMULADA para cada cargo (governador e senador)
+- Cada cenário deve ter seu label correspondente (ex: "Cenário 1", "Cenário 2", "Cenário 3", "Cenário 4")
+- Se o cenário tem contexto especial (ex: "apoiado por Bolsonaro"), inclua isso no label
 - Inclua candidatos com nome real, NÃO inclua "Branco/Nulo", "NS/NR", "Nenhum", "Outros" como candidatos
-- Se não houver dados para governador, deixe govCandidates como array vazio
-- Se não houver dados para senador, deixe senCandidates como array vazio  
-- Os percentuais devem ser números (ex: "25.3", não "25,3%")
+- Se não houver dados para governador, deixe govScenarios como array vazio
+- Se não houver dados para senador, deixe senScenarios como array vazio  
+- Os percentuais devem ser números com ponto decimal (ex: "25.3", não "25,3%")
 - Se não encontrar algum dado, use string vazia "" ou 0
 - Datas devem estar no formato YYYY-MM-DD
-- NÃO inclua dados de aprovação de governo, avaliação, rejeição - apenas intenção de voto estimulada
-- Se houver múltiplos cenários de estimulada, use APENAS o primeiro/principal`;
+- NÃO inclua dados de aprovação de governo, avaliação, rejeição, 2º turno - apenas intenção de voto estimulada 1º turno
+- Para senador, se houver "Consolidado de 1º e 2º votos", trate como um cenário
+- Inclua o partido entre parênteses no nome quando disponível`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -61,7 +80,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       return new Response(
         JSON.stringify({ error: "File too large. Maximum 10MB." }),
@@ -69,7 +87,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Convert file to base64
     const arrayBuffer = await file.arrayBuffer();
     const base64 = btoa(
       new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
@@ -77,7 +94,6 @@ Deno.serve(async (req) => {
 
     const mimeType = file.type || "application/pdf";
 
-    // Call AI model with the PDF
     const aiResponse = await fetch(AI_GATEWAY_URL, {
       method: "POST",
       headers: {
@@ -102,26 +118,39 @@ Deno.serve(async (req) => {
               },
               {
                 type: "text",
-                text: "Extraia todos os dados desta pesquisa eleitoral. Retorne APENAS o JSON, sem markdown.",
+                text: "Extraia TODOS os cenários de intenção de voto estimulada desta pesquisa eleitoral. Retorne APENAS o JSON, sem markdown.",
               },
             ],
           },
         ],
         temperature: 0.1,
-        max_tokens: 4096,
+        max_tokens: 8192,
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error("AI Gateway error:", aiResponse.status, errorText);
+      
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns segundos." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Créditos insuficientes. Adicione créditos em Settings > Workspace > Usage." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       throw new Error(`AI Gateway error [${aiResponse.status}]: ${errorText}`);
     }
 
     const aiData = await aiResponse.json();
     const rawContent = aiData.choices?.[0]?.message?.content ?? "";
 
-    // Try to parse the JSON from the response (strip markdown if present)
     let parsed;
     try {
       const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -133,6 +162,18 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: "Could not extract structured data from PDF", raw: rawContent }),
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Backward compatibility: if old format with govCandidates/senCandidates, convert
+    if (parsed.govCandidates && !parsed.govScenarios) {
+      parsed.govScenarios = parsed.govCandidates.length > 0
+        ? [{ label: "Cenário 1", candidates: parsed.govCandidates }]
+        : [];
+    }
+    if (parsed.senCandidates && !parsed.senScenarios) {
+      parsed.senScenarios = parsed.senCandidates.length > 0
+        ? [{ label: "Cenário 1", candidates: parsed.senCandidates }]
+        : [];
     }
 
     return new Response(JSON.stringify({ success: true, data: parsed }), {
