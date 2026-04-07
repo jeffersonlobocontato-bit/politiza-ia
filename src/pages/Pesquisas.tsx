@@ -425,6 +425,53 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           {/* ── Step 2: Metadados ── */}
           {step === 2 && (
             <div className="space-y-3">
+              {/* PDF Upload + AI Parse */}
+              <input
+                ref={parseFileInputRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setPdfFile(file);
+                    if (!fileName) setFileName(file.name);
+                    handleParsePdf(file);
+                  }
+                  if (parseFileInputRef.current) parseFileInputRef.current.value = '';
+                }}
+              />
+              <div
+                className={`rounded-lg border border-dashed p-3 flex items-center gap-3 cursor-pointer transition-colors ${
+                  isParsing
+                    ? 'border-[#0FFCBE]/50 bg-[#0FFCBE]/5'
+                    : 'border-[hsl(220,15%,25%)] hover:border-[#0FFCBE]/50 bg-[hsl(220,18%,16%)]'
+                }`}
+                onClick={() => !isParsing && parseFileInputRef.current?.click()}
+              >
+                {isParsing ? (
+                  <Loader2 className="w-5 h-5 text-[#0FFCBE] animate-spin shrink-0" />
+                ) : (
+                  <Sparkles className="w-5 h-5 text-[#0FFCBE] shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold text-foreground">
+                    {isParsing ? 'Extraindo dados do PDF com IA…' : 'Upload PDF para extração automática'}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {isParsing
+                      ? 'Analisando documento — isso pode levar alguns segundos'
+                      : 'A IA lerá o PDF e preencherá os campos automaticamente'}
+                  </div>
+                </div>
+                {!isParsing && (
+                  <Button variant="outline" size="sm" className="shrink-0 text-xs h-7 gap-1" onClick={(e) => { e.stopPropagation(); parseFileInputRef.current?.click(); }}>
+                    <Upload className="w-3 h-3" />
+                    Enviar PDF
+                  </Button>
+                )}
+              </div>
+
               <div className="text-sm font-semibold text-muted-foreground mb-2">Metadados da pesquisa</div>
 
               <div className="grid grid-cols-2 gap-3">
