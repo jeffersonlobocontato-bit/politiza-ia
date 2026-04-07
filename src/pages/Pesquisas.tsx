@@ -96,6 +96,7 @@ function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () =>
 
 // ─── Import modal types ───────────────────────────────────────
 interface CandidateEntry { name: string; pct: string }
+interface ScenarioEntry { label: string; candidates: CandidateEntry[] }
 interface ImportForm {
   institute: string;
   territory: string;
@@ -107,10 +108,14 @@ interface ImportForm {
   marginOfError: string;
   methodology: string;
   tseRegistration: string;
-  // per-cargo candidate data for one estimulada scenario
-  govCandidates: CandidateEntry[];
-  senCandidates: CandidateEntry[];
+  govScenarios: ScenarioEntry[];
+  senScenarios: ScenarioEntry[];
 }
+
+const emptyScenario = (label = 'Cenário 1'): ScenarioEntry => ({
+  label,
+  candidates: [{ name: '', pct: '' }],
+});
 
 const emptyForm = (): ImportForm => ({
   institute: '',
@@ -123,8 +128,8 @@ const emptyForm = (): ImportForm => ({
   marginOfError: '',
   methodology: '',
   tseRegistration: '',
-  govCandidates: [{ name: '', pct: '' }],
-  senCandidates: [{ name: '', pct: '' }],
+  govScenarios: [emptyScenario()],
+  senScenarios: [emptyScenario()],
 });
 
 // ─── Tab: Biblioteca ─────────────────────────────────────────
@@ -177,6 +182,20 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       const { data: parsed } = await res.json();
 
       // Auto-fill form with parsed data
+      const govScenarios = parsed.govScenarios?.length > 0
+        ? parsed.govScenarios.map((s: any) => ({
+            label: s.label || 'Cenário',
+            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          }))
+        : form.govScenarios;
+
+      const senScenarios = parsed.senScenarios?.length > 0
+        ? parsed.senScenarios.map((s: any) => ({
+            label: s.label || 'Cenário',
+            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          }))
+        : form.senScenarios;
+
       updateForm({
         institute: parsed.institute || form.institute,
         territory: parsed.territory || form.territory,
@@ -188,15 +207,11 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
         methodology: parsed.methodology || form.methodology,
         tseRegistration: parsed.tseRegistration || form.tseRegistration,
         cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
-        govCandidates: parsed.govCandidates?.length > 0
-          ? parsed.govCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
-          : form.govCandidates,
-        senCandidates: parsed.senCandidates?.length > 0
-          ? parsed.senCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
-          : form.senCandidates,
+        govScenarios,
+        senScenarios,
       });
 
-      toast.success('Dados extraídos do PDF com sucesso! Revise e ajuste se necessário.');
+      toast.success(`Dados extraídos! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
     } catch (err: any) {
       console.error('PDF parse error:', err);
       toast.error(`Erro ao processar PDF: ${err.message}`);
@@ -227,16 +242,33 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
     });
   };
 
-  const addCandidate = (field: 'govCandidates' | 'senCandidates') =>
-    updateForm({ [field]: [...form[field], { name: '', pct: '' }] });
+  const addCandidate = (cargoField: 'govScenarios' | 'senScenarios', scenarioIdx: number) => {
+    const scenarios = [...form[cargoField]];
+    scenarios[scenarioIdx] = { ...scenarios[scenarioIdx], candidates: [...scenarios[scenarioIdx].candidates, { name: '', pct: '' }] };
+    updateForm({ [cargoField]: scenarios });
+  };
 
-  const removeCandidate = (field: 'govCandidates' | 'senCandidates', idx: number) =>
-    updateForm({ [field]: form[field].filter((_, i) => i !== idx) });
+  const removeCandidate = (cargoField: 'govScenarios' | 'senScenarios', scenarioIdx: number, candIdx: number) => {
+    const scenarios = [...form[cargoField]];
+    scenarios[scenarioIdx] = { ...scenarios[scenarioIdx], candidates: scenarios[scenarioIdx].candidates.filter((_, i) => i !== candIdx) };
+    updateForm({ [cargoField]: scenarios });
+  };
 
-  const updateCandidate = (field: 'govCandidates' | 'senCandidates', idx: number, key: 'name' | 'pct', value: string) => {
-    const updated = [...form[field]];
-    updated[idx] = { ...updated[idx], [key]: value };
-    updateForm({ [field]: updated });
+  const updateCandidate = (cargoField: 'govScenarios' | 'senScenarios', scenarioIdx: number, candIdx: number, key: 'name' | 'pct', value: string) => {
+    const scenarios = [...form[cargoField]];
+    const cands = [...scenarios[scenarioIdx].candidates];
+    cands[candIdx] = { ...cands[candIdx], [key]: value };
+    scenarios[scenarioIdx] = { ...scenarios[scenarioIdx], candidates: cands };
+    updateForm({ [cargoField]: scenarios });
+  };
+
+  const addScenario = (cargoField: 'govScenarios' | 'senScenarios') => {
+    const scenarios = form[cargoField];
+    updateForm({ [cargoField]: [...scenarios, emptyScenario(`Cenário ${scenarios.length + 1}`)] });
+  };
+
+  const removeScenario = (cargoField: 'govScenarios' | 'senScenarios', idx: number) => {
+    updateForm({ [cargoField]: form[cargoField].filter((_, i) => i !== idx) });
   };
 
   const canGoNext = () => {
@@ -264,33 +296,41 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
     const newQuestions: PollQuestion[] = [];
 
-    if (form.cargos.includes('governador') && form.govCandidates.some(c => c.name && c.pct)) {
-      newQuestions.push({
-        id: `${waveId}-gov-est-1`,
-        waveId,
-        cargo: 'governador',
-        questionType: 'estimulada',
-        scenarioLabel: 'Cenário 1',
-        results: form.govCandidates
-          .filter(c => c.name)
-          .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
-          .sort((a, b) => b.percentage - a.percentage),
-        crossTabs: [],
+    if (form.cargos.includes('governador')) {
+      form.govScenarios.forEach((scenario, sIdx) => {
+        if (scenario.candidates.some(c => c.name && c.pct)) {
+          newQuestions.push({
+            id: `${waveId}-gov-est-${sIdx + 1}`,
+            waveId,
+            cargo: 'governador',
+            questionType: 'estimulada',
+            scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            results: scenario.candidates
+              .filter(c => c.name)
+              .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
+              .sort((a, b) => b.percentage - a.percentage),
+            crossTabs: [],
+          });
+        }
       });
     }
 
-    if (form.cargos.includes('senador') && form.senCandidates.some(c => c.name && c.pct)) {
-      newQuestions.push({
-        id: `${waveId}-sen-est-1`,
-        waveId,
-        cargo: 'senador',
-        questionType: 'estimulada',
-        scenarioLabel: 'Cenário 1',
-        results: form.senCandidates
-          .filter(c => c.name)
-          .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
-          .sort((a, b) => b.percentage - a.percentage),
-        crossTabs: [],
+    if (form.cargos.includes('senador')) {
+      form.senScenarios.forEach((scenario, sIdx) => {
+        if (scenario.candidates.some(c => c.name && c.pct)) {
+          newQuestions.push({
+            id: `${waveId}-sen-est-${sIdx + 1}`,
+            waveId,
+            cargo: 'senador',
+            questionType: 'estimulada',
+            scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            results: scenario.candidates
+              .filter(c => c.name)
+              .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
+              .sort((a, b) => b.percentage - a.percentage),
+            crossTabs: [],
+          });
+        }
       });
     }
 
@@ -314,8 +354,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
   const handleEditWave = (wave: PollWave) => {
     const waveQuestions = allQuestions.filter(q => q.waveId === wave.id);
-    const govQ = waveQuestions.find(q => q.cargo === 'governador' && q.questionType === 'estimulada');
-    const senQ = waveQuestions.find(q => q.cargo === 'senador' && q.questionType === 'estimulada');
+    const govQs = waveQuestions.filter(q => q.cargo === 'governador' && q.questionType === 'estimulada');
+    const senQs = waveQuestions.filter(q => q.cargo === 'senador' && q.questionType === 'estimulada');
 
     setForm({
       institute: wave.institute,
@@ -328,12 +368,12 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       marginOfError: String(wave.marginOfError),
       methodology: wave.methodology || '',
       tseRegistration: wave.tseRegistration || '',
-      govCandidates: govQ && govQ.results.length > 0
-        ? govQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
-        : [{ name: '', pct: '' }],
-      senCandidates: senQ && senQ.results.length > 0
-        ? senQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
-        : [{ name: '', pct: '' }],
+      govScenarios: govQs.length > 0
+        ? govQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        : [emptyScenario()],
+      senScenarios: senQs.length > 0
+        ? senQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        : [emptyScenario()],
     });
     setEditingSurveyId(wave.id);
     setFileName(wave.fileName || 'pesquisa.pdf');
@@ -595,30 +635,86 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           {step === 3 && (
             <div className="space-y-5">
               <div className="text-sm font-semibold text-muted-foreground">
-                Dados de intenção de voto — Cenário 1 (Estimulada)
+                Dados de intenção de voto — Estimulada (todos os cenários)
               </div>
               <div className="text-xs text-muted-foreground -mt-3">
-                Preencha candidatos e percentuais para visualização imediata. Você pode adicionar mais dados depois.
+                Preencha candidatos e percentuais. Adicione cenários se a pesquisa tiver múltiplos.
               </div>
 
               {form.cargos.includes('governador') && (
-                <CandidatesBlock
-                  title="Governador"
-                  entries={form.govCandidates}
-                  onAdd={() => addCandidate('govCandidates')}
-                  onRemove={idx => removeCandidate('govCandidates', idx)}
-                  onChange={(idx, key, val) => updateCandidate('govCandidates', idx, key, val)}
-                />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-bold text-foreground">Governador</div>
+                    <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => addScenario('govScenarios')}>
+                      <Plus className="w-3 h-3" /> Cenário
+                    </Button>
+                  </div>
+                  {form.govScenarios.map((scenario, sIdx) => (
+                    <div key={sIdx} className="space-y-2 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-[hsl(220,18%,16%)]">
+                      <div className="flex items-center justify-between">
+                        <Input
+                          value={scenario.label}
+                          onChange={e => {
+                            const s = [...form.govScenarios];
+                            s[sIdx] = { ...s[sIdx], label: e.target.value };
+                            updateForm({ govScenarios: s });
+                          }}
+                          className="h-6 text-xs font-semibold w-40 bg-transparent border-none p-0"
+                        />
+                        {form.govScenarios.length > 1 && (
+                          <button onClick={() => removeScenario('govScenarios', sIdx)} className="text-muted-foreground hover:text-destructive">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <CandidatesBlock
+                        title=""
+                        entries={scenario.candidates}
+                        onAdd={() => addCandidate('govScenarios', sIdx)}
+                        onRemove={idx => removeCandidate('govScenarios', sIdx, idx)}
+                        onChange={(idx, key, val) => updateCandidate('govScenarios', sIdx, idx, key, val)}
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
 
               {form.cargos.includes('senador') && (
-                <CandidatesBlock
-                  title="Senador"
-                  entries={form.senCandidates}
-                  onAdd={() => addCandidate('senCandidates')}
-                  onRemove={idx => removeCandidate('senCandidates', idx)}
-                  onChange={(idx, key, val) => updateCandidate('senCandidates', idx, key, val)}
-                />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-bold text-foreground">Senador</div>
+                    <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => addScenario('senScenarios')}>
+                      <Plus className="w-3 h-3" /> Cenário
+                    </Button>
+                  </div>
+                  {form.senScenarios.map((scenario, sIdx) => (
+                    <div key={sIdx} className="space-y-2 rounded-lg border border-[hsl(220,15%,20%)] p-3 bg-[hsl(220,18%,16%)]">
+                      <div className="flex items-center justify-between">
+                        <Input
+                          value={scenario.label}
+                          onChange={e => {
+                            const s = [...form.senScenarios];
+                            s[sIdx] = { ...s[sIdx], label: e.target.value };
+                            updateForm({ senScenarios: s });
+                          }}
+                          className="h-6 text-xs font-semibold w-40 bg-transparent border-none p-0"
+                        />
+                        {form.senScenarios.length > 1 && (
+                          <button onClick={() => removeScenario('senScenarios', sIdx)} className="text-muted-foreground hover:text-destructive">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <CandidatesBlock
+                        title=""
+                        entries={scenario.candidates}
+                        onAdd={() => addCandidate('senScenarios', sIdx)}
+                        onRemove={idx => removeCandidate('senScenarios', sIdx, idx)}
+                        onChange={(idx, key, val) => updateCandidate('senScenarios', sIdx, idx, key, val)}
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
