@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import {
   BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare,
-  X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText,
+  X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText, Pencil,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,7 +26,7 @@ import {
   pollComparativos as initialComparativos,
   PollWave, PollQuestion, Cargo, FilterType, CANDIDATE_COLORS,
 } from '@/data/pollsData';
-import { useSurveys, useCreateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
+import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
 
 // ─── helpers ─────────────────────────────────────────────────
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
@@ -38,19 +38,30 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
 ];
 
 // ─── WaveCard ────────────────────────────────────────────────
-function WaveCard({ wave, onDelete }: { wave: PollWave; onDelete?: () => void }) {
+function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () => void; onEdit?: () => void }) {
   return (
     <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] p-4 flex flex-col gap-3 relative shadow-lg">
-      {onDelete && (
-        <button
-          onClick={onDelete}
-          className="absolute top-3 right-3 text-[#8899aa] hover:text-[#E53935] transition-colors"
-          title="Remover pesquisa"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-      )}
-      <div className="flex items-start justify-between gap-2 pr-6">
+      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            className="text-[#8899aa] hover:text-[#0FFCBE] transition-colors"
+            title="Editar pesquisa"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            className="text-[#8899aa] hover:text-[#E53935] transition-colors"
+            title="Remover pesquisa"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+      <div className="flex items-start justify-between gap-2 pr-14">
         <div>
           <div className="text-xs font-bold text-[#0FFCBE]">{wave.institute}</div>
           <div className="text-sm font-semibold text-white mt-0.5">{wave.territory}</div>
