@@ -1177,6 +1177,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 export default function Pesquisas() {
   const { data: dbData, isLoading: surveysLoading } = useSurveys();
   const createSurvey = useCreateSurvey();
+  const updateSurvey = useUpdateSurvey();
   const deleteSurvey = useDeleteSurvey();
 
   // Merge DB surveys with static seed data (static listed last)
@@ -1193,6 +1194,10 @@ export default function Pesquisas() {
 
   const handleAdd = (wave: PollWave, newQuestions: PollQuestion[]) => {
     createSurvey.mutate({ wave, questions: newQuestions });
+  };
+
+  const handleUpdate = (surveyId: string, wave: PollWave, newQuestions: PollQuestion[]) => {
+    updateSurvey.mutate({ surveyId, wave, questions: newQuestions });
   };
 
   const handleDelete = (waveId: string) => {
