@@ -182,6 +182,20 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       const { data: parsed } = await res.json();
 
       // Auto-fill form with parsed data
+      const govScenarios = parsed.govScenarios?.length > 0
+        ? parsed.govScenarios.map((s: any) => ({
+            label: s.label || 'Cenário',
+            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          }))
+        : form.govScenarios;
+
+      const senScenarios = parsed.senScenarios?.length > 0
+        ? parsed.senScenarios.map((s: any) => ({
+            label: s.label || 'Cenário',
+            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          }))
+        : form.senScenarios;
+
       updateForm({
         institute: parsed.institute || form.institute,
         territory: parsed.territory || form.territory,
@@ -193,15 +207,11 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
         methodology: parsed.methodology || form.methodology,
         tseRegistration: parsed.tseRegistration || form.tseRegistration,
         cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
-        govCandidates: parsed.govCandidates?.length > 0
-          ? parsed.govCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
-          : form.govCandidates,
-        senCandidates: parsed.senCandidates?.length > 0
-          ? parsed.senCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
-          : form.senCandidates,
+        govScenarios,
+        senScenarios,
       });
 
-      toast.success('Dados extraídos do PDF com sucesso! Revise e ajuste se necessário.');
+      toast.success(`Dados extraídos! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
     } catch (err: any) {
       console.error('PDF parse error:', err);
       toast.error(`Erro ao processar PDF: ${err.message}`);
