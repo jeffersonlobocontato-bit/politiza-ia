@@ -315,6 +315,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           <WaveCard
             key={w.id}
             wave={w}
+            onEdit={dbIds.has(w.id) ? () => handleEditWave(w) : undefined}
             onDelete={() => onDelete(w.id)}
           />
         ))}
@@ -326,14 +327,14 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-[#0FFCBE]" />
-              Importar Pesquisa
+              {editingSurveyId ? 'Editar Pesquisa' : 'Importar Pesquisa'}
               <Badge variant="outline" className="ml-auto text-[10px]">Passo {step} / 3</Badge>
             </DialogTitle>
           </DialogHeader>
 
           {/* Step indicator */}
           <div className="flex gap-1 mb-2">
-            {[1, 2, 3].map(s => (
+            {(editingSurveyId ? [2, 3] : [1, 2, 3]).map((s, i, arr) => (
               <div
                 key={s}
                 className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-[hsl(220,18%,16%)]'}`}
@@ -519,7 +520,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
                 Voltar
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => { setOpen(false); setStep(1); }}>
+            <Button variant="outline" size="sm" onClick={closeDialog}>
               Cancelar
             </Button>
             {step < 3 ? (
@@ -528,7 +529,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
               </Button>
             ) : (
               <Button size="sm" onClick={handleConfirm}>
-                Confirmar importação
+                {editingSurveyId ? 'Salvar alterações' : 'Confirmar importação'}
               </Button>
             )}
           </DialogFooter>
