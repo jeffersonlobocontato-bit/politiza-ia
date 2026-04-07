@@ -354,8 +354,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
   const handleEditWave = (wave: PollWave) => {
     const waveQuestions = allQuestions.filter(q => q.waveId === wave.id);
-    const govQ = waveQuestions.find(q => q.cargo === 'governador' && q.questionType === 'estimulada');
-    const senQ = waveQuestions.find(q => q.cargo === 'senador' && q.questionType === 'estimulada');
+    const govQs = waveQuestions.filter(q => q.cargo === 'governador' && q.questionType === 'estimulada');
+    const senQs = waveQuestions.filter(q => q.cargo === 'senador' && q.questionType === 'estimulada');
 
     setForm({
       institute: wave.institute,
@@ -368,12 +368,12 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       marginOfError: String(wave.marginOfError),
       methodology: wave.methodology || '',
       tseRegistration: wave.tseRegistration || '',
-      govCandidates: govQ && govQ.results.length > 0
-        ? govQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
-        : [{ name: '', pct: '' }],
-      senCandidates: senQ && senQ.results.length > 0
-        ? senQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
-        : [{ name: '', pct: '' }],
+      govScenarios: govQs.length > 0
+        ? govQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        : [emptyScenario()],
+      senScenarios: senQs.length > 0
+        ? senQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        : [emptyScenario()],
     });
     setEditingSurveyId(wave.id);
     setFileName(wave.fileName || 'pesquisa.pdf');
