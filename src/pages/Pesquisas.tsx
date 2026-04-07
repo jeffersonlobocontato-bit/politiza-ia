@@ -144,8 +144,66 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
   const [fileName, setFileName] = useState('');
   const [form, setForm] = useState<ImportForm>(emptyForm());
   const [editingSurveyId, setEditingSurveyId] = useState<string | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const parseFileInputRef = useRef<HTMLInputElement>(null);
 
   const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
+
+  const handleParsePdf = useCallback(async (file: File) => {
+    setIsParsing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/parse-survey-pdf`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session?.access_token ?? ''}`,
+          },
+          body: formData,
+        },
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const { data: parsed } = await res.json();
+
+      // Auto-fill form with parsed data
+      updateForm({
+        institute: parsed.institute || form.institute,
+        territory: parsed.territory || form.territory,
+        collectionStart: parsed.collectionStart || form.collectionStart,
+        collectionEnd: parsed.collectionEnd || form.collectionEnd,
+        releaseDate: parsed.releaseDate || form.releaseDate,
+        sampleSize: parsed.sampleSize ? String(parsed.sampleSize) : form.sampleSize,
+        marginOfError: parsed.marginOfError ? String(parsed.marginOfError) : form.marginOfError,
+        methodology: parsed.methodology || form.methodology,
+        tseRegistration: parsed.tseRegistration || form.tseRegistration,
+        cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
+        govCandidates: parsed.govCandidates?.length > 0
+          ? parsed.govCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
+          : form.govCandidates,
+        senCandidates: parsed.senCandidates?.length > 0
+          ? parsed.senCandidates.map((c: any) => ({ name: c.name, pct: String(c.pct) }))
+          : form.senCandidates,
+      });
+
+      toast.success('Dados extraídos do PDF com sucesso! Revise e ajuste se necessário.');
+    } catch (err: any) {
+      console.error('PDF parse error:', err);
+      toast.error(`Erro ao processar PDF: ${err.message}`);
+    } finally {
+      setIsParsing(false);
+    }
+  }, [form]);
 
   const handleFileClick = () => fileInputRef.current?.click();
 
