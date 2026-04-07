@@ -180,13 +180,14 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
   };
 
   const canGoNext = () => {
-    if (step === 1) return !!fileName;
+    if (step === 1 && !editingSurveyId) return !!fileName;
+    if (step === 1 && editingSurveyId) return true;
     if (step === 2) return !!(form.institute && form.territory && form.cargos.length > 0 && form.releaseDate && form.sampleSize);
     return true;
   };
 
   const handleConfirm = () => {
-    const waveId = `wave-${Date.now()}`;
+    const waveId = editingSurveyId ?? `wave-${Date.now()}`;
     const newWave: PollWave = {
       id: waveId,
       institute: form.institute,
@@ -202,7 +203,6 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
     };
 
     const newQuestions: PollQuestion[] = [];
-    let qIdx = 0;
 
     if (form.cargos.includes('governador') && form.govCandidates.some(c => c.name && c.pct)) {
       newQuestions.push({
@@ -217,7 +217,6 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           .sort((a, b) => b.percentage - a.percentage),
         crossTabs: [],
       });
-      qIdx++;
     }
 
     if (form.cargos.includes('senador') && form.senCandidates.some(c => c.name && c.pct)) {
@@ -235,11 +234,49 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       });
     }
 
-    onAdd(newWave, newQuestions);
+    if (editingSurveyId) {
+      onUpdate(editingSurveyId, newWave, newQuestions);
+    } else {
+      onAdd(newWave, newQuestions);
+    }
+    closeDialog();
+  };
+
+  const closeDialog = () => {
     setOpen(false);
     setStep(1);
     setFileName('');
     setForm(emptyForm());
+    setEditingSurveyId(null);
+  };
+
+  const handleEditWave = (wave: PollWave) => {
+    const waveQuestions = allQuestions.filter(q => q.waveId === wave.id);
+    const govQ = waveQuestions.find(q => q.cargo === 'governador' && q.questionType === 'estimulada');
+    const senQ = waveQuestions.find(q => q.cargo === 'senador' && q.questionType === 'estimulada');
+
+    setForm({
+      institute: wave.institute,
+      territory: wave.territory,
+      cargos: wave.cargos as Cargo[],
+      collectionStart: wave.collectionStart || '',
+      collectionEnd: wave.collectionEnd || '',
+      releaseDate: wave.releaseDate,
+      sampleSize: String(wave.sampleSize),
+      marginOfError: String(wave.marginOfError),
+      methodology: wave.methodology || '',
+      tseRegistration: wave.tseRegistration || '',
+      govCandidates: govQ && govQ.results.length > 0
+        ? govQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
+        : [{ name: '', pct: '' }],
+      senCandidates: senQ && senQ.results.length > 0
+        ? senQ.results.map(r => ({ name: r.candidate, pct: String(r.percentage) }))
+        : [{ name: '', pct: '' }],
+    });
+    setEditingSurveyId(wave.id);
+    setFileName(wave.fileName || 'pesquisa.pdf');
+    setStep(2); // skip file step
+    setOpen(true);
   };
 
   return (
