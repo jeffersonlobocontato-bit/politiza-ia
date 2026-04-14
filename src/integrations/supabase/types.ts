@@ -263,6 +263,35 @@ export type Database = {
           },
         ]
       }
+      association_members: {
+        Row: {
+          association_id: string
+          created_at: string
+          id: string
+          municipality_name: string
+        }
+        Insert: {
+          association_id: string
+          created_at?: string
+          id?: string
+          municipality_name: string
+        }
+        Update: {
+          association_id?: string
+          created_at?: string
+          id?: string
+          municipality_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "association_members_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "municipality_associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_members: {
         Row: {
           actions_managed: number
@@ -756,6 +785,51 @@ export type Database = {
           id?: string
           municipalities_count?: number
           name?: string
+        }
+        Relationships: []
+      }
+      municipality_associations: {
+        Row: {
+          acronym: string
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          polo_city: string | null
+          president_city: string | null
+          president_name: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          acronym: string
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          polo_city?: string | null
+          president_city?: string | null
+          president_name?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          acronym?: string
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          polo_city?: string | null
+          president_city?: string | null
+          president_name?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
