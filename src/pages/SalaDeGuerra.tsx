@@ -523,17 +523,16 @@ export default function SalaDeGuerra() {
 
         {/* Bottom Grid */}
         <div className="grid lg:grid-cols-2 gap-4">
-          {/* Poll Chart — derived from real survey waves */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Evolução das Pesquisas</span>
-              <span className="text-[10px] text-muted-foreground font-medium">
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-3">
+              <TrendingUp className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Evolução das Pesquisas</span>
+              <span className="text-[10px] text-[#8899aa] font-medium">
                 Gov · Estimulada C1 · {allWaves.length} onda{allWaves.length !== 1 ? 's' : ''}
               </span>
               <button
                 onClick={() => navigate('/pesquisas')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Explorar <ExternalLink className="w-3 h-3" />
               </button>
@@ -545,30 +544,27 @@ export default function SalaDeGuerra() {
             ) : (
               <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={pollChartData} margin={{ left: 0, right: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} interval={0} angle={-10} textAnchor="end" height={36} />
-                  <YAxis domain={[0, 60]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} width={32} />
-                  <RechartsTooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                    formatter={(v: number, name: string) => [`${v}%`, name]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#8899aa' }} interval={0} angle={-10} textAnchor="end" height={36} />
+                  <YAxis domain={[0, 60]} tick={AXIS_TICK_LIGHT} tickFormatter={v => `${v}%`} width={32} />
+                  <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => [`${v}%`, name]} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
                   {topCandidates.map((candidate, i) => (
                     <Line
                       key={candidate}
                       type="monotone"
                       dataKey={candidate}
-                      stroke={CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))'}
+                      stroke={CHART_COLORS[i % CHART_COLORS.length]}
                       strokeWidth={i === 0 ? 2.5 : 1.5}
                       strokeDasharray={i === 0 ? undefined : '4 2'}
-                      dot={{ r: i === 0 ? 4 : 2.5, fill: CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))' }}
+                      dot={{ r: i === 0 ? 4 : 2.5, fill: CHART_COLORS[i % CHART_COLORS.length] }}
                       connectNulls
                     />
                   ))}
                 </LineChart>
               </ResponsiveContainer>
             )}
-          </div>
+          </ChartCard>
 
           {/* Tracking Evolution Card */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
