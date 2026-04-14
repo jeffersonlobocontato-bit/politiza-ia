@@ -788,6 +788,42 @@ export type Database = {
         }
         Relationships: []
       }
+      municipalities: {
+        Row: {
+          address: string | null
+          cep: string | null
+          created_at: string
+          id: string
+          mayor_name: string | null
+          name: string
+          neighborhood: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          cep?: string | null
+          created_at?: string
+          id?: string
+          mayor_name?: string | null
+          name: string
+          neighborhood?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          cep?: string | null
+          created_at?: string
+          id?: string
+          mayor_name?: string | null
+          name?: string
+          neighborhood?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       municipality_associations: {
         Row: {
           acronym: string
