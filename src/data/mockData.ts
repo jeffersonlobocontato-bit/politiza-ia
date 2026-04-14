@@ -159,7 +159,7 @@ export const macroRegions: MacroRegion[] = [
     id: 'rmc',
     name: 'RMC',
     coordinator: 'Carlos Mendonça',
-    municipalities: 40,
+    municipalities: 28,
     engagementScore: 78,
     actionsPlanned: 142,
     actionsCompleted: 98,
