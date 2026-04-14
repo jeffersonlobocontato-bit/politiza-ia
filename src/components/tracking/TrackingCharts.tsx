@@ -13,6 +13,55 @@ import {
   KpiCard, ChartCard,
 } from '@/components/ui/DashboardCards';
 
+interface Interview {
+  id: string;
+  round_id: string;
+  municipality: string | null;
+  microregion: string | null;
+  respondent_age_range: string | null;
+  respondent_gender: string | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+}
+
+interface Answer {
+  id: string;
+  interview_id: string;
+  question_key: string;
+  answer_value: string;
+  candidate_name: string | null;
+}
+
+interface Question {
+  question_key: string;
+  label: string;
+  question_type: string;
+  options: any;
+}
+
+interface Round {
+  id: string;
+  title: string;
+  city: string | null;
+  start_date: string;
+}
+
+interface Props {
+  rounds: Round[];
+  interviews: Interview[];
+  answers: Answer[];
+  questions: Question[];
+  selectedRoundId: string | null;
+  onRoundChange: (id: string | null) => void;
+  filters: {
+    city: string;
+    neighborhood: string;
+    interviewer: string;
+  };
+  onFiltersChange: (f: any) => void;
+}
+
 export function TrackingCharts({ rounds, interviews, answers, questions, selectedRoundId, onRoundChange, filters, onFiltersChange }: Props) {
   // Set of valid question_keys from active questions
   const validQuestionKeys = useMemo(() => new Set(questions.map(q => q.question_key)), [questions]);
