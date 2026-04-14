@@ -17,7 +17,8 @@ import { toast } from 'sonner';
 import { Plus, X, User, MapPin, Handshake, History, Building2, Zap } from 'lucide-react';
 
 const MACROREGIONS = [
-  { id: 'curitiba_rmc', name: 'Curitiba/RMC' },
+  { id: 'curitiba', name: 'Curitiba' },
+  { id: 'rmc', name: 'RMC' },
   { id: 'litoral', name: 'Litoral' },
   { id: 'campos_gerais', name: 'Campos Gerais' },
   { id: 'norte', name: 'Norte' },

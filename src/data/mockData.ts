@@ -141,10 +141,25 @@ export interface TeamMember {
 // =====================================================
 export const macroRegions: MacroRegion[] = [
   {
+    id: 'curitiba',
+    name: 'Curitiba',
+    coordinator: '',
+    municipalities: 1,
+    engagementScore: 82,
+    actionsPlanned: 45,
+    actionsCompleted: 38,
+    actionsDelayed: 3,
+    peopleImpacted: 125000,
+    pollScore: 49.3,
+    pollTrend: 'up',
+    centerLat: -25.4284,
+    centerLng: -49.2733,
+  },
+  {
     id: 'rmc',
-    name: 'Curitiba / RMC',
+    name: 'RMC',
     coordinator: 'Carlos Mendonça',
-    municipalities: 41,
+    municipalities: 40,
     engagementScore: 78,
     actionsPlanned: 142,
     actionsCompleted: 98,
