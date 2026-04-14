@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Globe, ChevronRight, Users, MapPin, Phone, Mail, ExternalLink, Building2, Loader2 } from 'lucide-react';
+import { Globe, ChevronRight, Users, MapPin, Phone, Mail, ExternalLink, Building2, Loader2, X, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Association {
@@ -21,12 +21,24 @@ interface AssociationMember {
   municipality_name: string;
 }
 
+interface MunicipalityDetail {
+  id: string;
+  name: string;
+  mayor_name: string | null;
+  phone: string | null;
+  address: string | null;
+  neighborhood: string | null;
+  cep: string | null;
+}
+
 export default function Territorios() {
   const [associations, setAssociations] = useState<Association[]>([]);
   const [selectedAssoc, setSelectedAssoc] = useState<string | null>(null);
   const [members, setMembers] = useState<AssociationMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMembers, setLoadingMembers] = useState(false);
+  const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityDetail | null>(null);
+  const [loadingMunicipality, setLoadingMunicipality] = useState(false);
 
   useEffect(() => {
     async function fetchAssociations() {
