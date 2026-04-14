@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 const MACROREGION_NAMES: Record<string, string> = {
-  curitiba_rmc: 'Curitiba/RMC', litoral: 'Litoral', campos_gerais: 'Campos Gerais',
+  curitiba: 'Curitiba', rmc: 'RMC', litoral: 'Litoral', campos_gerais: 'Campos Gerais',
   norte: 'Norte', noroeste: 'Noroeste', oeste: 'Oeste',
   sudoeste: 'Sudoeste', centro_sul: 'Centro-Sul', sudeste: 'Sudeste',
 };
