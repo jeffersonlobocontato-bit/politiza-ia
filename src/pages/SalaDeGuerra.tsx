@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { KpiCard, ChartCard, tooltipStyle, CHART_COLORS, GRID_STROKE, AXIS_TICK_LIGHT, LEGEND_STYLE } from '@/components/ui/DashboardCards';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';

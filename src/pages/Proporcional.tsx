@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { KpiCard, ChartCard, tooltipStyle, CHART_COLORS, GRID_STROKE, AXIS_TICK_LIGHT, LEGEND_STYLE } from '@/components/ui/DashboardCards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';

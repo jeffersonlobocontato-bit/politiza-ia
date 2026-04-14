@@ -8,102 +8,10 @@ import {
 import {
   Users, MapPin, BarChart3, TrendingUp, Target, Percent,
 } from 'lucide-react';
-
-interface Interview {
-  id: string;
-  round_id: string;
-  municipality: string | null;
-  microregion: string | null;
-  respondent_age_range: string | null;
-  respondent_gender: string | null;
-  lat: number | null;
-  lng: number | null;
-  created_at: string;
-}
-
-interface Answer {
-  id: string;
-  interview_id: string;
-  question_key: string;
-  answer_value: string;
-  candidate_name: string | null;
-}
-
-interface Question {
-  question_key: string;
-  label: string;
-  question_type: string;
-  options: any;
-}
-
-interface Round {
-  id: string;
-  title: string;
-  city: string | null;
-  start_date: string;
-}
-
-interface Props {
-  rounds: Round[];
-  interviews: Interview[];
-  answers: Answer[];
-  questions: Question[];
-  selectedRoundId: string | null;
-  onRoundChange: (id: string | null) => void;
-  filters: {
-    city: string;
-    neighborhood: string;
-    interviewer: string;
-  };
-  onFiltersChange: (f: any) => void;
-}
-
-const CHART_COLORS = [
-  '#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935',
-  '#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#fb923c',
-];
-
-const GRADIENT_CARDS = [
-  { bg: 'from-[hsl(210,84%,30%)] to-[hsl(210,84%,45%)]', icon: 'text-blue-200' },
-  { bg: 'from-[hsl(163,97%,35%)] to-[hsl(163,60%,45%)]', icon: 'text-emerald-200' },
-  { bg: 'from-[hsl(280,70%,45%)] to-[hsl(310,60%,50%)]', icon: 'text-purple-200' },
-  { bg: 'from-[hsl(210,84%,25%)] to-[hsl(220,60%,40%)]', icon: 'text-cyan-200' },
-];
-
-function KpiCard({ title, value, subtitle, icon: Icon, gradientIndex }: {
-  title: string; value: string | number; subtitle?: string; icon: any; gradientIndex: number;
-}) {
-  const g = GRADIENT_CARDS[gradientIndex % GRADIENT_CARDS.length];
-  return (
-    <div className={`relative rounded-xl bg-gradient-to-br ${g.bg} p-5 overflow-hidden shadow-lg`}>
-      <div className="absolute top-3 right-3 opacity-20">
-        <Icon className={`w-12 h-12 ${g.icon}`} />
-      </div>
-      <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">{title}</p>
-      <p className="text-3xl font-black text-white">{value}</p>
-      {subtitle && <p className="text-xs text-white/70 mt-1">{subtitle}</p>}
-    </div>
-  );
-}
-
-function ChartCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] shadow-lg overflow-hidden ${className}`}>
-      <div className="px-5 pt-4 pb-2">
-        <h3 className="text-sm font-semibold text-white/90">{title}</h3>
-      </div>
-      <div className="px-4 pb-4">{children}</div>
-    </div>
-  );
-}
-
-const tooltipStyle = {
-  backgroundColor: 'hsl(220, 18%, 16%)',
-  border: '1px solid hsl(220, 15%, 25%)',
-  borderRadius: 10,
-  fontSize: 12,
-  color: '#fff',
-};
+import {
+  CHART_COLORS, GRADIENT_CARDS, tooltipStyle, GRID_STROKE, AXIS_TICK_LIGHT, AXIS_TICK_LABEL, LEGEND_STYLE,
+  KpiCard, ChartCard,
+} from '@/components/ui/DashboardCards';
 
 export function TrackingCharts({ rounds, interviews, answers, questions, selectedRoundId, onRoundChange, filters, onFiltersChange }: Props) {
   // Set of valid question_keys from active questions
