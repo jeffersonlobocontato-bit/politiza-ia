@@ -70,11 +70,11 @@ function WarKPICard({ label, value, sub, icon: Icon, gradientIndex, onClick }: {
   );
 }
 
-const ALERT_LEVEL_CONFIG: Record<string, { bg: string; border: string; icon: string }> = {
-  critico:     { bg: 'hsl(var(--brand-red) / 0.1)',   border: 'hsl(var(--brand-red) / 0.3)',   icon: 'hsl(var(--brand-red))' },
-  atencao:     { bg: 'hsl(var(--brand-amber) / 0.1)', border: 'hsl(var(--brand-amber) / 0.3)', icon: 'hsl(var(--brand-amber))' },
-  oportunidade:{ bg: 'hsl(var(--brand-green) / 0.1)', border: 'hsl(var(--brand-green) / 0.3)', icon: 'hsl(var(--brand-green))' },
-  info:        { bg: 'hsl(var(--primary) / 0.1)',     border: 'hsl(var(--primary) / 0.3)',     icon: 'hsl(var(--primary))' },
+const ALERT_LEVEL_CONFIG: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
+  critico:     { bg: 'hsl(220, 20%, 14%)', border: 'hsl(0, 60%, 35%)',   icon: '#E53935', accent: 'hsl(0, 50%, 25%)' },
+  atencao:     { bg: 'hsl(220, 20%, 14%)', border: 'hsl(40, 60%, 35%)',  icon: '#FBC02D', accent: 'hsl(40, 40%, 22%)' },
+  oportunidade:{ bg: 'hsl(220, 20%, 14%)', border: 'hsl(163, 60%, 30%)', icon: '#0FFCBE', accent: 'hsl(163, 40%, 18%)' },
+  info:        { bg: 'hsl(220, 20%, 14%)', border: 'hsl(210, 50%, 35%)', icon: '#60a5fa', accent: 'hsl(210, 40%, 22%)' },
 };
 
 function AlertCard({ alert, onRead, onResolve }: {
@@ -86,23 +86,23 @@ function AlertCard({ alert, onRead, onResolve }: {
   const Icon = alert.level === 'critico' ? AlertTriangle : alert.level === 'oportunidade' ? Zap : Activity;
   return (
     <div
-      className="rounded-lg p-3 border mb-2 transition-all hover:scale-[1.01] cursor-pointer group"
-      style={{ backgroundColor: c.bg, borderColor: c.border }}
+      className="rounded-lg p-3 mb-2 transition-all hover:scale-[1.01] cursor-pointer group"
+      style={{ backgroundColor: c.bg, borderLeft: `3px solid ${c.icon}`, borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
       onClick={() => !alert.is_read && onRead?.(alert.id)}
     >
       <div className="flex items-start gap-2">
         <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: c.icon }} />
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-semibold text-foreground leading-tight">{alert.title}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{alert.description}</div>
+          <div className="text-xs font-semibold text-white/90 leading-tight">{alert.title}</div>
+          <div className="text-[11px] text-white/50 mt-0.5 line-clamp-2">{alert.description}</div>
           {alert.recommendation && (
             <div className="text-[10px] mt-1.5 font-medium line-clamp-1" style={{ color: c.icon }}>
               💡 {alert.recommendation}
             </div>
           )}
           <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wide">{alert.status}</span>
-            {alert.territory && <span className="text-[9px] text-muted-foreground/60">· {alert.territory}</span>}
+            <span className="text-[9px] text-white/30 uppercase tracking-wide">{alert.status}</span>
+            {alert.territory && <span className="text-[9px] text-white/30">· {alert.territory}</span>}
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
