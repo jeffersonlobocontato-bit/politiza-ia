@@ -313,54 +313,12 @@ export default function SalaDeGuerra() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <KPICard
-              label="Ações Planejadas"
-              value={totalActions}
-              icon={Target}
-              color="hsl(var(--primary))"
-              onClick={() => navigate('/acoes')}
-            />
-            <KPICard
-              label="Ações Realizadas"
-              value={completedActions}
-              sub={`${completionRate}% de execução`}
-              icon={CheckCircle}
-              color="hsl(var(--brand-green))"
-              onClick={() => navigate('/acoes?status=realizada')}
-            />
-            <KPICard
-              label="Ações Atrasadas"
-              value={delayedActions}
-              sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined}
-              icon={Clock}
-              color="hsl(var(--brand-red))"
-              onClick={() => navigate('/acoes?status=atrasada')}
-            />
-            <KPICard
-              label="Em Andamento"
-              value={kpis?.in_progress_actions ?? 0}
-              icon={Activity}
-              color="hsl(var(--brand-amber))"
-              onClick={() => navigate('/acoes?status=em_andamento')}
-            />
-            <KPICard
-              label="Pessoas Impactadas"
-              value={totalImpacted >= 1_000_000
-                ? `${(totalImpacted / 1_000_000).toFixed(2)}M`
-                : totalImpacted >= 1_000
-                ? `${(totalImpacted / 1_000).toFixed(1)}K`
-                : totalImpacted}
-              icon={Users}
-              color="hsl(var(--brand-cyan))"
-              onClick={() => navigate('/campo')}
-            />
-            <KPICard
-              label="Pendentes Validação"
-              value={kpis?.pending_validation ?? 0}
-              icon={Bell}
-              color="hsl(var(--primary))"
-              onClick={() => navigate('/acoes?status=pendente_validacao')}
-            />
+            <WarKPICard label="Ações Planejadas" value={totalActions} icon={Target} gradientIndex={0} onClick={() => navigate('/acoes')} />
+            <WarKPICard label="Ações Realizadas" value={completedActions} sub={`${completionRate}% de execução`} icon={CheckCircle} gradientIndex={1} onClick={() => navigate('/acoes?status=realizada')} />
+            <WarKPICard label="Ações Atrasadas" value={delayedActions} sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined} icon={Clock} gradientIndex={5} onClick={() => navigate('/acoes?status=atrasada')} />
+            <WarKPICard label="Em Andamento" value={kpis?.in_progress_actions ?? 0} icon={Activity} gradientIndex={4} onClick={() => navigate('/acoes?status=em_andamento')} />
+            <WarKPICard label="Pessoas Impactadas" value={totalImpacted >= 1_000_000 ? `${(totalImpacted / 1_000_000).toFixed(2)}M` : totalImpacted >= 1_000 ? `${(totalImpacted / 1_000).toFixed(1)}K` : totalImpacted} icon={Users} gradientIndex={3} onClick={() => navigate('/campo')} />
+            <WarKPICard label="Pendentes Validação" value={kpis?.pending_validation ?? 0} icon={Bell} gradientIndex={2} onClick={() => navigate('/acoes?status=pendente_validacao')} />
           </div>
         )}
 
