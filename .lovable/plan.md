@@ -1,75 +1,41 @@
 
 
-# Agenda Nativa da Campanha — com Filtros Hierárquicos
+## Padronização do Design System Navy-Teal em Toda a Plataforma
 
-## Conceito
+### Problema
+O módulo de Tracking usa um design system consistente (Navy-Teal) com KPI cards com gradientes, containers de gráficos escuros (`bg-[hsl(220,20%,13%)]`), tooltips estilizados e a paleta `CHART_COLORS` (menta, azul, púrpura, dourado, vermelho). Porém, outros módulos usam estilos genéricos (`bg-card/80`, `var(--gradient-card)`) com aparência visual diferente.
 
-Criar um módulo **Agenda** que funcione como um calendário visual conectado diretamente às ações de campanha já existentes, com controle de visibilidade baseado no nível hierárquico do usuário logado.
+### Módulos que precisam de atualização
 
-## Módulos que se conectam naturalmente à Agenda
+| Módulo | Situação Atual | O que mudar |
+|--------|---------------|-------------|
+| **Proporcional** | Usa `Card` genérico com `bg-card/80`, tooltips com CSS variables | Migrar para `ChartCard`, KPI cards com gradiente, tooltips Navy-Teal, paleta `CHART_COLORS` |
+| **Sala de Guerra** | Usa `KPICard` com `var(--gradient-card)`, gráficos com CSS variables | Migrar KPI cards para gradientes do Tracking, tooltips escuros, cores consistentes |
+| **Pesquisas** | Já usa `bg-[hsl(220,20%,13%)]` nos WaveCards — parcialmente alinhado | Padronizar tooltips e garantir paleta CHART_COLORS nos LineCharts |
 
-| Módulo | Conexão | Como aparece na Agenda |
-|--------|---------|----------------------|
-| **Ações** (principal) | Cada ação já tem `planned_date`, `planned_time`, `municipality`, `macroregion_id`, `responsible` | Evento automático no calendário |
-| **Tracking** | Rodadas com `start_date`, `end_date` | Bloco de período (barra no calendário) |
-| **Sala de Crise** | Alertas com prazo de resolução | Marcador de urgência no dia |
-| **Ativos Políticos** | Reuniões agendadas com lideranças | Via ações do tipo `reuniao_politica` / `encontro_liderancas` |
+**Acoes, Hierarquia, AtivosPoliticos** — Já usam `InfographicCharts` com Navy-Mint. Sem alterações necessárias.
 
-As **Ações** já possuem toda a estrutura necessária (data, hora, município, macrorregião, responsável, status). Não é preciso criar uma tabela nova — a agenda será uma **visualização de calendário** dos dados que já existem.
+### Implementação
 
-## Controle de Acesso por Hierarquia
+**1. Extrair componentes reutilizáveis do Tracking**
+- Mover `KpiCard` e `ChartCard` do `TrackingCharts.tsx` para um arquivo compartilhado `src/components/ui/DashboardCards.tsx`
+- Exportar `GRADIENT_CARDS`, `tooltipStyle` e `CHART_COLORS` como constantes compartilhadas
 
-A tabela `user_roles` já possui `macroregion_id`, `microregion` e `municipality`. O filtro funciona assim:
+**2. Atualizar `src/pages/Proporcional.tsx`**
+- Substituir os 7 `Card` KPIs por `KpiCard` com gradientes
+- Substituir os 4 `Card` de gráficos por `ChartCard` (fundo `hsl(220,20%,13%)`)
+- Trocar `contentStyle` dos tooltips para `tooltipStyle` (fundo navy escuro)
+- Usar `CHART_COLORS` nos cenários ao invés de cores CSS variables
 
-```text
-Coordenação Geral / Admin
-  → Vê TUDO + seletor de camadas (tipo, região, responsável, status)
+**3. Atualizar `src/pages/SalaDeGuerra.tsx`**
+- Migrar `KPICard` para usar gradientes do Tracking (6 cards no topo)
+- Aplicar `ChartCard` wrapper nos painéis de gráficos (Evolução das Pesquisas, Evolução do Tracking, Ranking, Ações Realizadas)
+- Padronizar tooltips para `tooltipStyle`
 
-Coordenador Regional
-  → Filtra automaticamente por sua macroregion_id
-  → Pode expandir para ver microregiões dentro dela
+**4. Atualizar `src/pages/Pesquisas.tsx`**
+- Padronizar tooltip do LineChart comparativo para `tooltipStyle`
+- Garantir que cores de linhas usem `CHART_COLORS`
 
-Coordenador Microrregional
-  → Filtra por sua microregion (+ macroregion_id)
-
-Coordenador Municipal
-  → Filtra por sua municipality
-```
-
-Admins terão um painel de filtros (chips/toggles) para selecionar quais camadas exibir: por tipo de ação, por região, por status, por responsável.
-
-## Implementação Técnica
-
-### 1. Nova página `src/pages/Agenda.tsx`
-- Calendário mensal/semanal usando grid CSS nativo (sem dependência externa)
-- Visualização mensal com dots coloridos por tipo de ação
-- Visualização semanal com blocos horários
-- Painel lateral com detalhes ao clicar em um dia/evento
-
-### 2. Hook `src/hooks/useAgenda.ts`
-- Reutiliza a query de `actions` filtrando por mês visível
-- Aplica filtro territorial automaticamente baseado nos roles do usuário:
-  - Lê `user_roles` do AuthContext (já disponível)
-  - Se `coordenador_regional` → filtra `macroregion_id`
-  - Se `coordenador_microrregional` → filtra `microregion`
-  - Se `coordenador_municipal` → filtra `municipality`
-  - Se admin → sem filtro (mostra tudo)
-
-### 3. Componente de filtros (só para admins)
-- Chips de camada: Tipo de ação, Região, Status, Prioridade
-- Toggle de rodadas de tracking (mostrar/ocultar períodos)
-
-### 4. Integração no menu lateral
-- Novo item "Agenda" com ícone `Calendar`, posicionado após "Ações"
-- Rota `/agenda`
-
-### 5. Nenhuma migração de banco necessária
-- Todas as tabelas e campos já existem (`actions`, `user_roles`, `tracking_rounds`)
-- O filtro hierárquico usa os dados de `user_roles` que o AuthContext já carrega
-
-### Arquivos criados/editados
-- **Criar**: `src/pages/Agenda.tsx` — página principal com calendário
-- **Criar**: `src/hooks/useAgenda.ts` — hook com filtros hierárquicos
-- **Editar**: `src/App.tsx` — adicionar rota `/agenda`
-- **Editar**: `src/components/layout/AppSidebar.tsx` — adicionar item no menu
+### Resultado
+Todos os módulos com gráficos e KPIs terão a mesma identidade visual Navy-Teal do Tracking: fundos escuros, gradientes nos KPI cards, tooltips consistentes e paleta de cores unificada.
 
