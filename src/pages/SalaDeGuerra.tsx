@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { KpiCard, ChartCard, tooltipStyle, CHART_COLORS, GRADIENT_CARDS, GRID_STROKE, AXIS_TICK_LIGHT, LEGEND_STYLE } from '@/components/ui/DashboardCards';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
@@ -49,31 +50,22 @@ function statusDotColor(status: string) {
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-function KPICard({ label, value, sub, icon: Icon, color, trend, onClick }: {
+function WarKPICard({ label, value, sub, icon: Icon, gradientIndex, onClick }: {
   label: string; value: string | number; sub?: string;
-  icon: any; color: string; trend?: number; onClick?: () => void;
+  icon: any; gradientIndex: number; onClick?: () => void;
 }) {
+  const g = GRADIENT_CARDS[gradientIndex % GRADIENT_CARDS.length];
   return (
     <div
-      className={`rounded-xl border border-border p-4 transition-all ${onClick ? 'cursor-pointer hover:border-primary/50 hover:scale-[1.02] group' : ''}`}
-      style={{ background: 'var(--gradient-card)' }}
+      className={`relative rounded-xl bg-gradient-to-br ${g.bg} p-5 overflow-hidden shadow-lg transition-all ${onClick ? 'cursor-pointer hover:scale-[1.02]' : ''}`}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}20` }}>
-          <Icon className="w-4 h-4" style={{ color }} />
-        </div>
-        {trend !== undefined ? (
-          <span className={`text-xs font-semibold ${trend > 0 ? 'text-brand-green' : trend < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
-            {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
-          </span>
-        ) : onClick ? (
-          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-        ) : null}
+      <div className="absolute top-3 right-3 opacity-20">
+        <Icon className={`w-10 h-10 ${g.icon}`} />
       </div>
-      <div className="text-2xl font-black text-foreground">{value}</div>
-      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
-      {sub && <div className="text-xs text-foreground/60 mt-1 font-medium">{sub}</div>}
+      <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-2xl font-black text-white">{value}</p>
+      {sub && <p className="text-xs text-white/70 mt-1">{sub}</p>}
     </div>
   );
 }
@@ -321,54 +313,12 @@ export default function SalaDeGuerra() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <KPICard
-              label="Ações Planejadas"
-              value={totalActions}
-              icon={Target}
-              color="hsl(var(--primary))"
-              onClick={() => navigate('/acoes')}
-            />
-            <KPICard
-              label="Ações Realizadas"
-              value={completedActions}
-              sub={`${completionRate}% de execução`}
-              icon={CheckCircle}
-              color="hsl(var(--brand-green))"
-              onClick={() => navigate('/acoes?status=realizada')}
-            />
-            <KPICard
-              label="Ações Atrasadas"
-              value={delayedActions}
-              sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined}
-              icon={Clock}
-              color="hsl(var(--brand-red))"
-              onClick={() => navigate('/acoes?status=atrasada')}
-            />
-            <KPICard
-              label="Em Andamento"
-              value={kpis?.in_progress_actions ?? 0}
-              icon={Activity}
-              color="hsl(var(--brand-amber))"
-              onClick={() => navigate('/acoes?status=em_andamento')}
-            />
-            <KPICard
-              label="Pessoas Impactadas"
-              value={totalImpacted >= 1_000_000
-                ? `${(totalImpacted / 1_000_000).toFixed(2)}M`
-                : totalImpacted >= 1_000
-                ? `${(totalImpacted / 1_000).toFixed(1)}K`
-                : totalImpacted}
-              icon={Users}
-              color="hsl(var(--brand-cyan))"
-              onClick={() => navigate('/campo')}
-            />
-            <KPICard
-              label="Pendentes Validação"
-              value={kpis?.pending_validation ?? 0}
-              icon={Bell}
-              color="hsl(var(--primary))"
-              onClick={() => navigate('/acoes?status=pendente_validacao')}
-            />
+            <WarKPICard label="Ações Planejadas" value={totalActions} icon={Target} gradientIndex={0} onClick={() => navigate('/acoes')} />
+            <WarKPICard label="Ações Realizadas" value={completedActions} sub={`${completionRate}% de execução`} icon={CheckCircle} gradientIndex={1} onClick={() => navigate('/acoes?status=realizada')} />
+            <WarKPICard label="Ações Atrasadas" value={delayedActions} sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined} icon={Clock} gradientIndex={5} onClick={() => navigate('/acoes?status=atrasada')} />
+            <WarKPICard label="Em Andamento" value={kpis?.in_progress_actions ?? 0} icon={Activity} gradientIndex={4} onClick={() => navigate('/acoes?status=em_andamento')} />
+            <WarKPICard label="Pessoas Impactadas" value={totalImpacted >= 1_000_000 ? `${(totalImpacted / 1_000_000).toFixed(2)}M` : totalImpacted >= 1_000 ? `${(totalImpacted / 1_000).toFixed(1)}K` : totalImpacted} icon={Users} gradientIndex={3} onClick={() => navigate('/campo')} />
+            <WarKPICard label="Pendentes Validação" value={kpis?.pending_validation ?? 0} icon={Bell} gradientIndex={2} onClick={() => navigate('/acoes?status=pendente_validacao')} />
           </div>
         )}
 
@@ -491,7 +441,7 @@ export default function SalaDeGuerra() {
           </div>
 
           {/* Alerts Panel */}
-          <div className="rounded-xl border border-border flex flex-col" style={{ background: 'var(--gradient-card)' }}>
+          <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] shadow-lg flex flex-col">
             <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-shrink-0">
               <AlertTriangle className="w-4 h-4 text-brand-amber" />
               <span className="text-sm font-semibold text-foreground">Alertas Estratégicos</span>
@@ -573,17 +523,16 @@ export default function SalaDeGuerra() {
 
         {/* Bottom Grid */}
         <div className="grid lg:grid-cols-2 gap-4">
-          {/* Poll Chart — derived from real survey waves */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Evolução das Pesquisas</span>
-              <span className="text-[10px] text-muted-foreground font-medium">
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-3">
+              <TrendingUp className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Evolução das Pesquisas</span>
+              <span className="text-[10px] text-[#8899aa] font-medium">
                 Gov · Estimulada C1 · {allWaves.length} onda{allWaves.length !== 1 ? 's' : ''}
               </span>
               <button
                 onClick={() => navigate('/pesquisas')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Explorar <ExternalLink className="w-3 h-3" />
               </button>
@@ -595,42 +544,39 @@ export default function SalaDeGuerra() {
             ) : (
               <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={pollChartData} margin={{ left: 0, right: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} interval={0} angle={-10} textAnchor="end" height={36} />
-                  <YAxis domain={[0, 60]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} width={32} />
-                  <RechartsTooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                    formatter={(v: number, name: string) => [`${v}%`, name]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#8899aa' }} interval={0} angle={-10} textAnchor="end" height={36} />
+                  <YAxis domain={[0, 60]} tick={AXIS_TICK_LIGHT} tickFormatter={v => `${v}%`} width={32} />
+                  <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => [`${v}%`, name]} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
                   {topCandidates.map((candidate, i) => (
                     <Line
                       key={candidate}
                       type="monotone"
                       dataKey={candidate}
-                      stroke={CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))'}
+                      stroke={CHART_COLORS[i % CHART_COLORS.length]}
                       strokeWidth={i === 0 ? 2.5 : 1.5}
                       strokeDasharray={i === 0 ? undefined : '4 2'}
-                      dot={{ r: i === 0 ? 4 : 2.5, fill: CANDIDATE_COLORS[candidate] ?? 'hsl(var(--primary))' }}
+                      dot={{ r: i === 0 ? 4 : 2.5, fill: CHART_COLORS[i % CHART_COLORS.length] }}
                       connectNulls
                     />
                   ))}
                 </LineChart>
               </ResponsiveContainer>
             )}
-          </div>
+          </ChartCard>
 
           {/* Tracking Evolution Card */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="w-4 h-4 text-brand-cyan" />
-              <span className="text-sm font-semibold text-foreground">Evolução do Tracking</span>
-              <span className="text-[10px] text-muted-foreground font-medium">
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-3">
+              <BarChart3 className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Evolução do Tracking</span>
+              <span className="text-[10px] text-[#8899aa] font-medium">
                 {trackingEvolution.chartData.length} rodada{trackingEvolution.chartData.length !== 1 ? 's' : ''}
               </span>
               <button
                 onClick={() => navigate('/tracking')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Explorar <ExternalLink className="w-3 h-3" />
               </button>
@@ -644,8 +590,7 @@ export default function SalaDeGuerra() {
                 <AreaChart data={trackingEvolution.chartData} margin={{ left: 0, right: 8 }}>
                   <defs>
                     {trackingEvolution.candidateNames.map((name, i) => {
-                      const colors = ['#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935', '#60a5fa', '#f472b6'];
-                      const color = colors[i % colors.length];
+                      const color = CHART_COLORS[i % CHART_COLORS.length];
                       return (
                         <linearGradient key={name} id={`tracking-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor={color} stopOpacity={0.3} />
@@ -654,17 +599,13 @@ export default function SalaDeGuerra() {
                       );
                     })}
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="round" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis domain={[0, 'auto']} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} width={32} />
-                  <RechartsTooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                    formatter={(v: number, name: string) => [`${v}%`, name]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis dataKey="round" tick={{ fontSize: 9, fill: '#8899aa' }} />
+                  <YAxis domain={[0, 'auto']} tick={AXIS_TICK_LIGHT} tickFormatter={v => `${v}%`} width={32} />
+                  <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => [`${v}%`, name]} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
                   {trackingEvolution.candidateNames.map((name, i) => {
-                    const colors = ['#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935', '#60a5fa', '#f472b6'];
-                    const color = colors[i % colors.length];
+                    const color = CHART_COLORS[i % CHART_COLORS.length];
                     return (
                       <Area
                         key={name}
@@ -681,16 +622,15 @@ export default function SalaDeGuerra() {
                 </AreaChart>
               </ResponsiveContainer>
             )}
-          </div>
+          </ChartCard>
 
-          {/* Macro Ranking — real data */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Activity className="w-4 h-4 text-brand-cyan" />
-              <span className="text-sm font-semibold text-foreground">Ranking Macrorregiões</span>
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-4">
+              <Activity className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Ranking Macrorregiões</span>
               <button
                 onClick={() => navigate('/territorios')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Explorar <ExternalLink className="w-3 h-3" />
               </button>
@@ -704,21 +644,21 @@ export default function SalaDeGuerra() {
                   return (
                     <div
                       key={r.id}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/30 rounded-lg px-1 py-0.5 transition-colors"
+                      className="flex items-center gap-3 cursor-pointer hover:bg-white/5 rounded-lg px-1 py-0.5 transition-colors"
                       onClick={() => navigate(`/territorios`)}
                     >
-                      <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0">{i + 1}</span>
+                      <span className="text-xs font-bold text-[#8899aa] w-4 flex-shrink-0">{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-xs font-medium text-foreground truncate">{r.name}</span>
+                          <span className="text-xs font-medium text-white/90 truncate">{r.name}</span>
                           <span className="text-xs font-bold ml-2 flex-shrink-0" style={{ color }}>
                             {r.execRate}%
                           </span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                           <div className="h-full rounded-full transition-all" style={{ width: `${r.execRate}%`, backgroundColor: color }} />
                         </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                        <div className="text-[10px] text-[#8899aa] mt-0.5">
                           {r.doneActions}/{r.totalActions} ações · {r.delayedActions} atrasadas
                         </div>
                       </div>
@@ -727,16 +667,15 @@ export default function SalaDeGuerra() {
                 })}
               </div>
             )}
-          </div>
+          </ChartCard>
 
-          {/* Recent Completed Actions */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <CheckCircle className="w-4 h-4 text-brand-green" />
-              <span className="text-sm font-semibold text-foreground">Últimas Ações Realizadas</span>
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-4">
+              <CheckCircle className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Últimas Ações Realizadas</span>
               <button
                 onClick={() => navigate('/acoes?status=realizada')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Ver todas <ExternalLink className="w-3 h-3" />
               </button>
@@ -748,13 +687,13 @@ export default function SalaDeGuerra() {
                 {recentlyDone.map(action => (
                   <div
                     key={action.id}
-                    className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="flex items-start gap-2 p-2 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10 transition-colors"
                     onClick={() => navigate('/acoes?status=realizada')}
                   >
-                    <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-brand-green" />
+                    <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-[#0FFCBE]" />
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-foreground leading-tight truncate">{action.title}</div>
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="text-xs font-medium text-white/90 leading-tight truncate">{action.title}</div>
+                      <div className="text-[10px] text-[#8899aa]">
                         {action.municipality ?? '—'}
                         {action.executed_people_count ? ` · ${action.executed_people_count.toLocaleString()} impactados` : ''}
                       </div>
@@ -763,7 +702,7 @@ export default function SalaDeGuerra() {
                 ))}
               </div>
             )}
-          </div>
+          </ChartCard>
         </div>
       </div>
     </div>

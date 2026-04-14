@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { KpiCard, ChartCard, tooltipStyle, CHART_COLORS, GRID_STROKE, AXIS_TICK_LIGHT, LEGEND_STYLE } from '@/components/ui/DashboardCards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -34,9 +35,9 @@ const CANDIDACY_LABELS: Record<string, string> = {
 };
 
 const SCENARIO_COLORS = {
-  optimistic: 'hsl(var(--brand-green))',
-  intermediate: 'hsl(var(--brand-amber))',
-  pessimistic: 'hsl(var(--brand-red))',
+  optimistic: CHART_COLORS[0],   // mint
+  intermediate: CHART_COLORS[3], // gold
+  pessimistic: CHART_COLORS[4],  // red
 };
 
 export default function Proporcional() {
@@ -160,9 +161,9 @@ export default function Proporcional() {
       counts[key]++;
     });
     return [
-      { name: 'Alta', value: counts.alta, color: 'hsl(var(--brand-green))' },
-      { name: 'Média', value: counts.media, color: 'hsl(var(--brand-amber))' },
-      { name: 'Baixa', value: counts.baixa, color: 'hsl(var(--brand-red))' },
+      { name: 'Alta', value: counts.alta, color: CHART_COLORS[0] },
+      { name: 'Média', value: counts.media, color: CHART_COLORS[3] },
+      { name: 'Baixa', value: counts.baixa, color: CHART_COLORS[4] },
     ].filter(d => d.value > 0);
   }, [projections]);
 
@@ -216,111 +217,79 @@ export default function Proporcional() {
         <TabsContent value="dashboard" className="space-y-6 mt-4">
           {/* Big Numbers */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            {[
-              { label: 'Otimista', value: stats.totalOptimistic.toLocaleString(), icon: ArrowUpRight, color: 'text-green-400' },
-              { label: 'Intermediário', value: stats.totalIntermediate.toLocaleString(), icon: Minus, color: 'text-amber-400' },
-              { label: 'Pessimista', value: stats.totalPessimistic.toLocaleString(), icon: ArrowDownRight, color: 'text-red-400' },
-              { label: 'Lideranças', value: stats.leaderCount.toString(), icon: Users, color: 'text-primary' },
-              { label: 'Territórios', value: stats.territoriesCount.toString(), icon: MapPin, color: 'text-primary' },
-              { label: 'Média/Líder', value: stats.avgPerLeader.toLocaleString(), icon: Target, color: 'text-primary' },
-              { label: 'Total Líderes', value: leaders.length.toString(), icon: Award, color: 'text-primary' },
-            ].map(item => (
-              <Card key={item.label} className="bg-card/80 border-border/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{item.label}</span>
-                    <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
-                  </div>
-                  <p className="text-xl font-bold text-foreground">{item.value}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <KpiCard title="Otimista" value={stats.totalOptimistic.toLocaleString()} icon={ArrowUpRight} gradientIndex={1} />
+            <KpiCard title="Intermediário" value={stats.totalIntermediate.toLocaleString()} icon={Minus} gradientIndex={3} />
+            <KpiCard title="Pessimista" value={stats.totalPessimistic.toLocaleString()} icon={ArrowDownRight} gradientIndex={5} />
+            <KpiCard title="Lideranças" value={stats.leaderCount.toString()} icon={Users} gradientIndex={0} />
+            <KpiCard title="Territórios" value={stats.territoriesCount.toString()} icon={MapPin} gradientIndex={2} />
+            <KpiCard title="Média/Líder" value={stats.avgPerLeader.toLocaleString()} icon={Target} gradientIndex={4} />
+            <KpiCard title="Total Líderes" value={leaders.length.toString()} icon={Award} gradientIndex={0} />
           </div>
 
           {/* Charts */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* By Macroregion */}
-            <Card className="bg-card/80 border-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-foreground">Projeção por Macrorregião</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={macroChartData} layout="vertical" margin={{ left: 80 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                    <YAxis dataKey="name" type="category" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} width={75} />
-                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--foreground))' }} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="Otimista" fill={SCENARIO_COLORS.optimistic} radius={[0, 2, 2, 0]} />
-                    <Bar dataKey="Intermediário" fill={SCENARIO_COLORS.intermediate} radius={[0, 2, 2, 0]} />
-                    <Bar dataKey="Pessimista" fill={SCENARIO_COLORS.pessimistic} radius={[0, 2, 2, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <ChartCard title="Projeção por Macrorregião">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={macroChartData} layout="vertical" margin={{ left: 80 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis type="number" tick={AXIS_TICK_LIGHT} />
+                  <YAxis dataKey="name" type="category" tick={AXIS_TICK_LIGHT} width={75} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
+                  <Bar dataKey="Otimista" fill={SCENARIO_COLORS.optimistic} radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Intermediário" fill={SCENARIO_COLORS.intermediate} radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Pessimista" fill={SCENARIO_COLORS.pessimistic} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
 
             {/* Top Leaders */}
-            <Card className="bg-card/80 border-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-foreground">Ranking de Lideranças</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={topLeadersData} layout="vertical" margin={{ left: 100 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                    <YAxis dataKey="name" type="category" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} width={95} />
-                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--foreground))' }} />
-                    <Bar dataKey="intermediate" name="Intermediário" fill={SCENARIO_COLORS.intermediate} radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <ChartCard title="Ranking de Lideranças">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topLeadersData} layout="vertical" margin={{ left: 100 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis type="number" tick={AXIS_TICK_LIGHT} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: '#8899aa' }} width={95} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="intermediate" name="Intermediário" fill={SCENARIO_COLORS.intermediate} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
 
             {/* Top Cities */}
-            <Card className="bg-card/80 border-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-foreground">Top Cidades por Projeção</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={topCitiesData} layout="vertical" margin={{ left: 100 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                    <YAxis dataKey="name" type="category" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} width={95} />
-                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--foreground))' }} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="optimistic" name="Otimista" fill={SCENARIO_COLORS.optimistic} radius={[0, 2, 2, 0]} />
-                    <Bar dataKey="intermediate" name="Intermediário" fill={SCENARIO_COLORS.intermediate} radius={[0, 2, 2, 0]} />
-                    <Bar dataKey="pessimistic" name="Pessimista" fill={SCENARIO_COLORS.pessimistic} radius={[0, 2, 2, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <ChartCard title="Top Cidades por Projeção">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topCitiesData} layout="vertical" margin={{ left: 100 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis type="number" tick={AXIS_TICK_LIGHT} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: '#8899aa' }} width={95} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
+                  <Bar dataKey="optimistic" name="Otimista" fill={SCENARIO_COLORS.optimistic} radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="intermediate" name="Intermediário" fill={SCENARIO_COLORS.intermediate} radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="pessimistic" name="Pessimista" fill={SCENARIO_COLORS.pessimistic} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
 
             {/* Reliability Pie */}
-            <Card className="bg-card/80 border-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4" /> Confiabilidade das Projeções
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-center">
+            <ChartCard title="Confiabilidade das Projeções">
+              <div className="flex items-center justify-center">
                 {reliabilityPieData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie data={reliabilityPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
                         {reliabilityPieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--foreground))' }} />
+                      <Tooltip contentStyle={tooltipStyle} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
                   <p className="text-sm text-muted-foreground py-12">Nenhuma projeção cadastrada</p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </ChartCard>
           </div>
         </TabsContent>
 
