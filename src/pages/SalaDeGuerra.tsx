@@ -441,7 +441,7 @@ export default function SalaDeGuerra() {
           </div>
 
           {/* Alerts Panel */}
-          <div className="rounded-xl border border-border flex flex-col" style={{ background: 'var(--gradient-card)' }}>
+          <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] shadow-lg flex flex-col">
             <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-shrink-0">
               <AlertTriangle className="w-4 h-4 text-brand-amber" />
               <span className="text-sm font-semibold text-foreground">Alertas Estratégicos</span>
