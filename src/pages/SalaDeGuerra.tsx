@@ -50,31 +50,22 @@ function statusDotColor(status: string) {
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-function KPICard({ label, value, sub, icon: Icon, color, trend, onClick }: {
+function WarKPICard({ label, value, sub, icon: Icon, gradientIndex, onClick }: {
   label: string; value: string | number; sub?: string;
-  icon: any; color: string; trend?: number; onClick?: () => void;
+  icon: any; gradientIndex: number; onClick?: () => void;
 }) {
+  const g = GRADIENT_CARDS[gradientIndex % GRADIENT_CARDS.length];
   return (
     <div
-      className={`rounded-xl border border-border p-4 transition-all ${onClick ? 'cursor-pointer hover:border-primary/50 hover:scale-[1.02] group' : ''}`}
-      style={{ background: 'var(--gradient-card)' }}
+      className={`relative rounded-xl bg-gradient-to-br ${g.bg} p-5 overflow-hidden shadow-lg transition-all ${onClick ? 'cursor-pointer hover:scale-[1.02]' : ''}`}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}20` }}>
-          <Icon className="w-4 h-4" style={{ color }} />
-        </div>
-        {trend !== undefined ? (
-          <span className={`text-xs font-semibold ${trend > 0 ? 'text-brand-green' : trend < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
-            {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
-          </span>
-        ) : onClick ? (
-          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-        ) : null}
+      <div className="absolute top-3 right-3 opacity-20">
+        <Icon className={`w-10 h-10 ${g.icon}`} />
       </div>
-      <div className="text-2xl font-black text-foreground">{value}</div>
-      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
-      {sub && <div className="text-xs text-foreground/60 mt-1 font-medium">{sub}</div>}
+      <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-2xl font-black text-white">{value}</p>
+      {sub && <p className="text-xs text-white/70 mt-1">{sub}</p>}
     </div>
   );
 }
