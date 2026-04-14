@@ -35,9 +35,9 @@ const CANDIDACY_LABELS: Record<string, string> = {
 };
 
 const SCENARIO_COLORS = {
-  optimistic: 'hsl(var(--brand-green))',
-  intermediate: 'hsl(var(--brand-amber))',
-  pessimistic: 'hsl(var(--brand-red))',
+  optimistic: CHART_COLORS[0],   // mint
+  intermediate: CHART_COLORS[3], // gold
+  pessimistic: CHART_COLORS[4],  // red
 };
 
 export default function Proporcional() {
@@ -161,9 +161,9 @@ export default function Proporcional() {
       counts[key]++;
     });
     return [
-      { name: 'Alta', value: counts.alta, color: 'hsl(var(--brand-green))' },
-      { name: 'Média', value: counts.media, color: 'hsl(var(--brand-amber))' },
-      { name: 'Baixa', value: counts.baixa, color: 'hsl(var(--brand-red))' },
+      { name: 'Alta', value: counts.alta, color: CHART_COLORS[0] },
+      { name: 'Média', value: counts.media, color: CHART_COLORS[3] },
+      { name: 'Baixa', value: counts.baixa, color: CHART_COLORS[4] },
     ].filter(d => d.value > 0);
   }, [projections]);
 
@@ -217,25 +217,13 @@ export default function Proporcional() {
         <TabsContent value="dashboard" className="space-y-6 mt-4">
           {/* Big Numbers */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            {[
-              { label: 'Otimista', value: stats.totalOptimistic.toLocaleString(), icon: ArrowUpRight, color: 'text-green-400' },
-              { label: 'Intermediário', value: stats.totalIntermediate.toLocaleString(), icon: Minus, color: 'text-amber-400' },
-              { label: 'Pessimista', value: stats.totalPessimistic.toLocaleString(), icon: ArrowDownRight, color: 'text-red-400' },
-              { label: 'Lideranças', value: stats.leaderCount.toString(), icon: Users, color: 'text-primary' },
-              { label: 'Territórios', value: stats.territoriesCount.toString(), icon: MapPin, color: 'text-primary' },
-              { label: 'Média/Líder', value: stats.avgPerLeader.toLocaleString(), icon: Target, color: 'text-primary' },
-              { label: 'Total Líderes', value: leaders.length.toString(), icon: Award, color: 'text-primary' },
-            ].map(item => (
-              <Card key={item.label} className="bg-card/80 border-border/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{item.label}</span>
-                    <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
-                  </div>
-                  <p className="text-xl font-bold text-foreground">{item.value}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <KpiCard title="Otimista" value={stats.totalOptimistic.toLocaleString()} icon={ArrowUpRight} gradientIndex={1} />
+            <KpiCard title="Intermediário" value={stats.totalIntermediate.toLocaleString()} icon={Minus} gradientIndex={3} />
+            <KpiCard title="Pessimista" value={stats.totalPessimistic.toLocaleString()} icon={ArrowDownRight} gradientIndex={5} />
+            <KpiCard title="Lideranças" value={stats.leaderCount.toString()} icon={Users} gradientIndex={0} />
+            <KpiCard title="Territórios" value={stats.territoriesCount.toString()} icon={MapPin} gradientIndex={2} />
+            <KpiCard title="Média/Líder" value={stats.avgPerLeader.toLocaleString()} icon={Target} gradientIndex={4} />
+            <KpiCard title="Total Líderes" value={leaders.length.toString()} icon={Award} gradientIndex={0} />
           </div>
 
           {/* Charts */}
