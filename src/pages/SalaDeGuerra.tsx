@@ -567,16 +567,16 @@ export default function SalaDeGuerra() {
           </ChartCard>
 
           {/* Tracking Evolution Card */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="w-4 h-4 text-brand-cyan" />
-              <span className="text-sm font-semibold text-foreground">Evolução do Tracking</span>
-              <span className="text-[10px] text-muted-foreground font-medium">
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-3">
+              <BarChart3 className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Evolução do Tracking</span>
+              <span className="text-[10px] text-[#8899aa] font-medium">
                 {trackingEvolution.chartData.length} rodada{trackingEvolution.chartData.length !== 1 ? 's' : ''}
               </span>
               <button
                 onClick={() => navigate('/tracking')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Explorar <ExternalLink className="w-3 h-3" />
               </button>
@@ -590,8 +590,7 @@ export default function SalaDeGuerra() {
                 <AreaChart data={trackingEvolution.chartData} margin={{ left: 0, right: 8 }}>
                   <defs>
                     {trackingEvolution.candidateNames.map((name, i) => {
-                      const colors = ['#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935', '#60a5fa', '#f472b6'];
-                      const color = colors[i % colors.length];
+                      const color = CHART_COLORS[i % CHART_COLORS.length];
                       return (
                         <linearGradient key={name} id={`tracking-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor={color} stopOpacity={0.3} />
@@ -600,17 +599,13 @@ export default function SalaDeGuerra() {
                       );
                     })}
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="round" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis domain={[0, 'auto']} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} width={32} />
-                  <RechartsTooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                    formatter={(v: number, name: string) => [`${v}%`, name]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis dataKey="round" tick={{ fontSize: 9, fill: '#8899aa' }} />
+                  <YAxis domain={[0, 'auto']} tick={AXIS_TICK_LIGHT} tickFormatter={v => `${v}%`} width={32} />
+                  <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => [`${v}%`, name]} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
                   {trackingEvolution.candidateNames.map((name, i) => {
-                    const colors = ['#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935', '#60a5fa', '#f472b6'];
-                    const color = colors[i % colors.length];
+                    const color = CHART_COLORS[i % CHART_COLORS.length];
                     return (
                       <Area
                         key={name}
@@ -627,7 +622,7 @@ export default function SalaDeGuerra() {
                 </AreaChart>
               </ResponsiveContainer>
             )}
-          </div>
+          </ChartCard>
 
           {/* Macro Ranking — real data */}
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
