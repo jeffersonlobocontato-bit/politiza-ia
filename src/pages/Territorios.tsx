@@ -70,6 +70,7 @@ export default function Territorios() {
   useEffect(() => {
     if (!selectedAssoc) return;
     setLoadingMembers(true);
+    setSelectedMunicipality(null);
     supabase
       .from('association_members')
       .select('id, municipality_name')
