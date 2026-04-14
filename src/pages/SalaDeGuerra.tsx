@@ -624,14 +624,13 @@ export default function SalaDeGuerra() {
             )}
           </ChartCard>
 
-          {/* Macro Ranking — real data */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Activity className="w-4 h-4 text-brand-cyan" />
-              <span className="text-sm font-semibold text-foreground">Ranking Macrorregiões</span>
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-4">
+              <Activity className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Ranking Macrorregiões</span>
               <button
                 onClick={() => navigate('/territorios')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Explorar <ExternalLink className="w-3 h-3" />
               </button>
@@ -645,21 +644,21 @@ export default function SalaDeGuerra() {
                   return (
                     <div
                       key={r.id}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/30 rounded-lg px-1 py-0.5 transition-colors"
+                      className="flex items-center gap-3 cursor-pointer hover:bg-white/5 rounded-lg px-1 py-0.5 transition-colors"
                       onClick={() => navigate(`/territorios`)}
                     >
-                      <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0">{i + 1}</span>
+                      <span className="text-xs font-bold text-[#8899aa] w-4 flex-shrink-0">{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-xs font-medium text-foreground truncate">{r.name}</span>
+                          <span className="text-xs font-medium text-white/90 truncate">{r.name}</span>
                           <span className="text-xs font-bold ml-2 flex-shrink-0" style={{ color }}>
                             {r.execRate}%
                           </span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                           <div className="h-full rounded-full transition-all" style={{ width: `${r.execRate}%`, backgroundColor: color }} />
                         </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                        <div className="text-[10px] text-[#8899aa] mt-0.5">
                           {r.doneActions}/{r.totalActions} ações · {r.delayedActions} atrasadas
                         </div>
                       </div>
@@ -668,16 +667,15 @@ export default function SalaDeGuerra() {
                 })}
               </div>
             )}
-          </div>
+          </ChartCard>
 
-          {/* Recent Completed Actions */}
-          <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <CheckCircle className="w-4 h-4 text-brand-green" />
-              <span className="text-sm font-semibold text-foreground">Últimas Ações Realizadas</span>
+          <ChartCard title="">
+            <div className="flex items-center gap-2 -mt-2 mb-4">
+              <CheckCircle className="w-4 h-4 text-[#0FFCBE]" />
+              <span className="text-sm font-semibold text-white/90">Últimas Ações Realizadas</span>
               <button
                 onClick={() => navigate('/acoes?status=realizada')}
-                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                className="ml-auto flex items-center gap-1 text-xs text-[#8899aa] hover:text-[#0FFCBE] transition-colors font-medium"
               >
                 Ver todas <ExternalLink className="w-3 h-3" />
               </button>
@@ -689,13 +687,13 @@ export default function SalaDeGuerra() {
                 {recentlyDone.map(action => (
                   <div
                     key={action.id}
-                    className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="flex items-start gap-2 p-2 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10 transition-colors"
                     onClick={() => navigate('/acoes?status=realizada')}
                   >
-                    <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-brand-green" />
+                    <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-[#0FFCBE]" />
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-foreground leading-tight truncate">{action.title}</div>
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="text-xs font-medium text-white/90 leading-tight truncate">{action.title}</div>
+                      <div className="text-[10px] text-[#8899aa]">
                         {action.municipality ?? '—'}
                         {action.executed_people_count ? ` · ${action.executed_people_count.toLocaleString()} impactados` : ''}
                       </div>
@@ -704,7 +702,7 @@ export default function SalaDeGuerra() {
                 ))}
               </div>
             )}
-          </div>
+          </ChartCard>
         </div>
       </div>
     </div>
