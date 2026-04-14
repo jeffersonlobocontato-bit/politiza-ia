@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import SalaDeGuerra from "./pages/SalaDeGuerra";
 import MapaEstrategico from "./pages/MapaEstrategico";
 import Territorios from "./pages/Territorios";
+import Municipios from "./pages/Municipios";
 import Acoes from "./pages/Acoes";
 import Campo from "./pages/Campo";
 import AtivosPoliticos from "./pages/AtivosPoliticos";
@@ -41,6 +42,7 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><AppLayout><SalaDeGuerra /></AppLayout></ProtectedRoute>} />
     <Route path="/mapa" element={<ProtectedRoute><AppLayout><MapaEstrategico /></AppLayout></ProtectedRoute>} />
     <Route path="/territorios" element={<ProtectedRoute><AppLayout><Territorios /></AppLayout></ProtectedRoute>} />
+    <Route path="/municipios" element={<ProtectedRoute><AppLayout><Municipios /></AppLayout></ProtectedRoute>} />
     <Route path="/acoes" element={<ProtectedRoute><AppLayout><Acoes /></AppLayout></ProtectedRoute>} />
     <Route path="/campo" element={<ProtectedRoute><AppLayout><Campo /></AppLayout></ProtectedRoute>} />
     <Route path="/ativos" element={<ProtectedRoute><AppLayout><AtivosPoliticos /></AppLayout></ProtectedRoute>} />

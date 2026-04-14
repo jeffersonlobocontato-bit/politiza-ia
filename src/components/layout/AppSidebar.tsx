@@ -34,6 +34,7 @@ const navItems: NavItem[] = [
   { title: 'Tracking', url: '/tracking', icon: Activity, scope: 'shared' },
   { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
   { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
+  { title: 'Municípios', url: '/municipios', icon: Map, scope: 'shared' },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
   { title: 'Configurações', url: '/configuracoes', icon: Settings, scope: 'shared' },
 ];
