@@ -70,7 +70,7 @@ export default function Territorios() {
   }, [selectedAssoc]);
 
   const selected = associations.find(a => a.id === selectedAssoc);
-  const totalMunicipios = associations.reduce((sum, a) => sum + a.members_count, 0);
+  const totalMunicipios = 399; // Total de municípios únicos do Paraná
 
   // Palette for card accents
   const CARD_COLORS = [
@@ -105,7 +105,7 @@ export default function Territorios() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           {[
             { label: 'Associações', value: String(associations.length), icon: Building2, color: 'hsl(var(--primary))' },
-            { label: 'Municípios Vinculados', value: String(totalMunicipios), icon: MapPin, color: 'hsl(var(--brand-cyan))' },
+            { label: 'Municípios do PR', value: String(totalMunicipios), icon: MapPin, color: 'hsl(var(--brand-cyan))' },
             { label: 'Presidentes', value: String(associations.filter(a => a.president_name).length), icon: Users, color: 'hsl(var(--brand-green))' },
           ].map(k => (
             <div key={k.label} className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
