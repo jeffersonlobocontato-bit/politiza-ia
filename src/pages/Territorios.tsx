@@ -260,18 +260,88 @@ export default function Territorios() {
                 </h3>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {members.map((m, idx) => (
-                    <div
+                    <button
                       key={m.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/30 transition-colors"
+                      onClick={async () => {
+                        setLoadingMunicipality(true);
+                        const { data } = await supabase
+                          .from('municipalities')
+                          .select('*')
+                          .eq('name', m.municipality_name)
+                          .maybeSingle();
+                        setSelectedMunicipality(data || { id: m.id, name: m.municipality_name, mayor_name: null, phone: null, address: null, neighborhood: null, cep: null });
+                        setLoadingMunicipality(false);
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/30 transition-colors text-left cursor-pointer"
                       style={{ background: 'var(--gradient-card)' }}
                     >
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 flex-shrink-0">
                         <span className="text-[10px] font-bold text-primary">{idx + 1}</span>
                       </div>
                       <span className="text-sm font-medium text-foreground">{m.municipality_name}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
+
+                {/* Municipality Detail Card */}
+                {loadingMunicipality && (
+                  <div className="mt-4 flex items-center justify-center py-8">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  </div>
+                )}
+                {selectedMunicipality && !loadingMunicipality && (
+                  <div className="mt-4 rounded-xl border border-primary/30 p-5 animate-in fade-in slide-in-from-bottom-2" style={{ background: 'var(--gradient-card)' }}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10">
+                          <Home className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-black text-foreground">{selectedMunicipality.name}</h3>
+                          <p className="text-[11px] text-muted-foreground">Dados cadastrais do município</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setSelectedMunicipality(null)} className="p-1 rounded-lg hover:bg-muted transition-colors">
+                        <X className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Prefeito(a)</div>
+                        <div className="text-sm font-semibold text-foreground">{selectedMunicipality.mayor_name || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Telefone</div>
+                        <div className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                          {selectedMunicipality.phone ? (
+                            <><Phone className="w-3 h-3 text-muted-foreground" />{selectedMunicipality.phone}</>
+                          ) : '—'}
+                        </div>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <div className="text-xs text-muted-foreground mb-1">Endereço</div>
+                        <div className="text-sm text-foreground flex items-start gap-1.5">
+                          {selectedMunicipality.address ? (
+                            <><MapPin className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />{selectedMunicipality.address}</>
+                          ) : '—'}
+                        </div>
+                      </div>
+                      {selectedMunicipality.neighborhood && (
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Bairro</div>
+                          <div className="text-sm text-foreground">{selectedMunicipality.neighborhood}</div>
+                        </div>
+                      )}
+                      {selectedMunicipality.cep && (
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">CEP</div>
+                          <div className="text-sm text-foreground">{selectedMunicipality.cep}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
