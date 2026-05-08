@@ -1,7 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap');
 
 /* Leaflet CSS — must come before Tailwind directives */
 @import "leaflet/dist/leaflet.css";
+
+/* MobNex Design System (camada aditiva — usar via classes mn-* / wrappers Mn*) */
+@import "./styles/mobnex-tokens.css";
+@import "./styles/mobnex-typography.css";
+@import "./styles/mobnex-components.css";
+@import "./styles/mobnex-animations.css";
 
 .tracking-tooltip-clean {
   background: transparent !important;
