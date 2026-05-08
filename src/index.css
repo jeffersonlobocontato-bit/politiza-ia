@@ -185,73 +185,73 @@
     --shadow-alert: 0 4px 16px hsl(1 79% 50% / 0.12);
   }
 
-  /* ── Dark theme ────────────────────────────────────── */
+  /* ── Dark theme — MobNex Navy ──────────────────────── */
   .dark {
-    --background: 200 35% 8%;
-    --foreground: 210 18% 92%;
+    --background: 220 50% 11%;
+    --foreground: 0 0% 100%;
 
-    --card: 200 28% 12%;
-    --card-foreground: 210 18% 92%;
+    --card: 218 45% 19%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 200 28% 12%;
-    --popover-foreground: 210 18% 92%;
+    --popover: 218 45% 19%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 163 80% 48%;
-    --primary-foreground: 200 35% 6%;
+    --primary: 139 56% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 95% 55%;
-    --secondary-foreground: 200 35% 6%;
+    --secondary: 215 71% 45%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 200 22% 15%;
-    --muted-foreground: 215 13% 55%;
+    --muted: 220 30% 20%;
+    --muted-foreground: 215 15% 70%;
 
-    --accent: 200 18% 18%;
-    --accent-foreground: 210 18% 92%;
+    --accent: 220 35% 24%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 1 79% 56%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 18% 18%;
-    --input: 200 18% 15%;
-    --ring: 163 80% 48%;
+    --border: 218 25% 26%;
+    --input: 218 25% 22%;
+    --ring: 139 56% 45%;
 
-    --brand-blue: 210 84% 55%;
+    --brand-blue: 215 71% 50%;
     --brand-amber: 42 96% 58%;
-    --brand-green: 163 80% 48%;
+    --brand-green: 139 56% 45%;
     --brand-red: 1 79% 56%;
     --brand-cyan: 163 97% 52%;
     --brand-purple: 252 100% 72%;
 
     --risk-high: 1 79% 56%;
     --risk-medium: 42 96% 58%;
-    --risk-low: 163 80% 48%;
-    --risk-strong: 210 84% 55%;
+    --risk-low: 139 56% 45%;
+    --risk-strong: 215 71% 50%;
 
     --status-error: 1 79% 60%;
-    --status-error-bg: 1 50% 12%;
+    --status-error-bg: 1 50% 14%;
     --status-warning: 42 96% 58%;
-    --status-warning-bg: 42 50% 12%;
-    --status-success: 163 80% 48%;
-    --status-success-bg: 163 40% 12%;
-    --status-info: 210 77% 55%;
-    --status-info-bg: 210 40% 12%;
+    --status-warning-bg: 42 50% 14%;
+    --status-success: 139 56% 45%;
+    --status-success-bg: 139 40% 14%;
+    --status-info: 215 71% 50%;
+    --status-info-bg: 215 40% 14%;
     --status-ai: 252 100% 72%;
-    --status-ai-bg: 252 40% 12%;
+    --status-ai-bg: 252 40% 14%;
 
-    --sidebar-background: 200 40% 6%;
-    --sidebar-foreground: 213 15% 80%;
-    --sidebar-primary: 163 80% 48%;
-    --sidebar-primary-foreground: 200 35% 6%;
-    --sidebar-accent: 200 25% 12%;
-    --sidebar-accent-foreground: 210 18% 92%;
-    --sidebar-border: 200 20% 12%;
-    --sidebar-ring: 163 80% 48%;
+    --sidebar-background: 220 50% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 139 56% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 40% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 30% 18%;
+    --sidebar-ring: 139 56% 45%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(163 80% 48%), hsl(163 97% 45%));
-    --gradient-dark: linear-gradient(180deg, hsl(200 35% 8%), hsl(200 40% 6%));
-    --gradient-card: linear-gradient(135deg, hsl(200 28% 13%), hsl(200 28% 11%));
+    --gradient-primary: linear-gradient(135deg, hsl(139 56% 45%), hsl(155 65% 50%));
+    --gradient-dark: linear-gradient(180deg, hsl(218 45% 16%), hsl(220 50% 9%));
+    --gradient-card: linear-gradient(135deg, hsl(218 45% 20%), hsl(218 45% 17%));
 
-    --shadow-glow: 0 0 20px hsl(163 80% 48% / 0.3);
+    --shadow-glow: 0 0 20px hsl(139 56% 45% / 0.3);
     --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
     --shadow-alert: 0 4px 16px hsl(1 79% 56% / 0.3);
   }
