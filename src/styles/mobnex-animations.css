@@ -1,0 +1,35 @@
+/* MobNex Animations */
+@keyframes mn-score-pop {
+  0%   { transform: scale(0.7) translateY(4px); opacity: 0; }
+  65%  { transform: scale(1.18) translateY(-2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.mn-score-pop { animation: mn-score-pop 0.38s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+@keyframes mn-fill-from-zero { from { width: 0%; } }
+.mn-progress__fill { animation: mn-fill-from-zero 0.7s ease 0.15s both; }
+
+@keyframes mn-slide-up {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.mn-slide-up { animation: mn-slide-up 0.28s ease forwards; }
+.mn-slide-up:nth-child(1) { animation-delay: 0.00s; }
+.mn-slide-up:nth-child(2) { animation-delay: 0.06s; }
+.mn-slide-up:nth-child(3) { animation-delay: 0.12s; }
+.mn-slide-up:nth-child(4) { animation-delay: 0.18s; }
+.mn-slide-up:nth-child(5) { animation-delay: 0.24s; }
+
+@keyframes mn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(47,168,90,0.45); }
+  50%      { box-shadow: 0 0 0 7px rgba(47,168,90,0); }
+}
+.mn-badge-pulse { animation: mn-pulse 2s ease infinite; }
+
+@keyframes mn-fade { from { opacity: 0; } to { opacity: 1; } }
+.mn-fade { animation: mn-fade 0.3s ease forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mn-score-pop, .mn-progress__fill, .mn-slide-up,
+  .mn-badge-pulse, .mn-fade { animation: none !important; }
+}

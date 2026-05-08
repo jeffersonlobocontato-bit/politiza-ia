@@ -26,6 +26,7 @@ import TrackingDashboard from "./pages/TrackingDashboard";
 import TrackingColeta from "./pages/TrackingColeta";
 import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
+import MobnexShowcase from "./pages/MobnexShowcase";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,7 @@ const AppRoutes = () => (
     <Route path="/tracking" element={<ProtectedRoute><AppLayout><TrackingDashboard /></AppLayout></ProtectedRoute>} />
     <Route path="/agenda" element={<ProtectedRoute><AppLayout><Agenda /></AppLayout></ProtectedRoute>} />
     <Route path="/tracking/coleta/:shareCode" element={<ProtectedRoute><TrackingColeta /></ProtectedRoute>} />
+    <Route path="/mobnex" element={<ProtectedRoute><MobnexShowcase /></ProtectedRoute>} />
     {/* Legacy redirects */}
     <Route path="/alertas" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
     <Route path="/inteligencia" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />

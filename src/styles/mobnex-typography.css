@@ -1,0 +1,30 @@
+/* MobNex Typography */
+.mn-text-hero {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--mn-text-dark);
+  text-transform: uppercase;
+}
+.mn-text-title {
+  font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--mn-text-1);
+}
+.mn-label {
+  display: block;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--mn-green); margin-bottom: 8px;
+}
+.mn-text-body {
+  font-size: 15px; font-weight: 400; line-height: 1.65; color: var(--mn-text-2);
+}
+.mn-text-metric {
+  font-size: 30px; font-weight: 700; line-height: 1; color: var(--mn-text-1);
+}
+.mn-text-earn {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--mn-green);
+}
+.mn-text-caption {
+  font-size: 11px; font-weight: 400; color: var(--mn-text-3);
+}

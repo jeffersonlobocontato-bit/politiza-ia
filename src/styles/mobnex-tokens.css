@@ -1,0 +1,50 @@
+/* MobNex Design System — Tokens (aditivo, não substitui tokens semânticos do app) */
+:root {
+  /* Backgrounds */
+  --mn-navy:        #1A2A45;
+  --mn-navy-hover:  #243554;
+  --mn-surface:     #FFFFFF;
+  --mn-surface-alt: #F2F4F8;
+
+  /* Brand */
+  --mn-blue:        #1F5AB4;
+  --mn-blue-hover:  #2D6FD4;
+  --mn-blue-muted:  rgba(31, 90, 180, 0.12);
+
+  /* Action / Gamification */
+  --mn-green:       #2FA85A;
+  --mn-green-hover: #28974F;
+  --mn-green-light: #5BE0A0;
+  --mn-teal:        #3DD4A0;
+
+  /* Text */
+  --mn-text-1:      #111827;
+  --mn-text-2:      #6B7280;
+  --mn-text-3:      #9CA3B0;
+  --mn-text-dark:   #FFFFFF;
+  --mn-text-dark-2: rgba(255,255,255,0.60);
+
+  /* Borders */
+  --mn-border:      #E5E7EB;
+  --mn-border-dark: rgba(255,255,255,0.12);
+
+  /* Spacing */
+  --mn-space-1: 4px;  --mn-space-2: 8px;  --mn-space-3: 12px;
+  --mn-space-4: 16px; --mn-space-5: 24px; --mn-space-6: 32px; --mn-space-7: 48px;
+
+  /* Radius */
+  --mn-radius-sm: 6px;  --mn-radius-md: 8px;  --mn-radius-lg: 10px;
+  --mn-radius-xl: 12px; --mn-radius-pill: 20px; --mn-radius-full: 9999px;
+
+  /* Shadows */
+  --mn-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --mn-shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --mn-shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+
+  /* Transitions */
+  --mn-ease: 0.15s ease;
+  --mn-ease-slow: 0.3s ease;
+}
+
+/* Fonte MobNex aplicada apenas onde a classe estiver presente — não afeta o restante do app */
+.mn-font, .mn-font * { font-family: 'DM Sans', 'Inter', -apple-system, sans-serif; }
