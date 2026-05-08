@@ -1,59 +1,33 @@
-## Aplicar MobNex como design system global da plataforma
+Diagnóstico: as mudanças anteriores foram aplicadas só nos tokens globais e em uma rota showcase. A tela atual até mudou parcialmente (sidebar/navy e alguns verdes), mas vários elementos seguem com estilos antigos hardcoded: cards KPI em azul/roxo/amarelo/vermelho, fonte Leaflet ainda Inter, botões/labels com blue-500/600, e componentes usando gradientes antigos de DashboardCards.
 
-### Objetivo
-Trocar a identidade visual atual (Navy-Teal Emerald/Gold + Inter) pela identidade **MobNex** (Navy escuro + Verde + DM Sans) em **todas as telas**, sem quebrar funcionalidades. Os componentes shadcn/Tailwind atuais continuam funcionando, mas passam a renderizar com as cores e a tipografia do MobNex automaticamente, via reescrita dos tokens semânticos em `index.css`.
+Plano de ajuste sem quebrar funcionalidades existentes:
 
----
+1. Corrigir base global
+- Remover o override que força Leaflet para Inter e trocar para DM Sans.
+- Ajustar `primary.hover`, `primary.active`, `secondary.hover`, `secondary.active` no Tailwind para tokens MobNex, não azul/ciano antigos.
+- Manter todas as variáveis semânticas existentes para não quebrar componentes.
 
-### Estratégia
-A plataforma já usa tokens semânticos HSL (`--background`, `--primary`, `--card`, `--sidebar-*`, etc.) consumidos por Tailwind e pelos componentes shadcn. Em vez de tocar componente por componente, **reescrevemos os valores desses tokens** para casarem com a paleta MobNex. Resultado: todas as telas mudam de aparência simultaneamente.
+2. Trocar cartões e métricas compartilhados para MobNex
+- Revisar `src/components/ui/DashboardCards.tsx`, que alimenta várias telas analíticas.
+- Substituir `GRADIENT_CARDS` multicoloridos por variações MobNex: navy/card com borda fina, destaque verde/azul apenas em ícones, barras e acentos.
+- Manter nomes/exportações atuais para preservar as telas que já importam esse arquivo.
 
----
+3. Aplicar MobNex na Sala de Guerra visível na home
+- Trocar `WarKPICard` para usar card MobNex: fundo card/navy, borda 0.5–1px, radius 8px, acento verde/azul, sem blocos sólidos azul/amarelo/roxo.
+- Ajustar botões de filtro do mapa e botão de atualização para padrão MobNex.
+- Ajustar painel de alertas para cards escuros com borda lateral por severidade, porém usando tokens semânticos.
+- Preservar consultas, navegação, mapa, tracking, alertas e KPIs exatamente como estão.
 
-### Mudanças
+4. Aplicar identidade no menu lateral
+- Trocar active/hover de `bg-white/20` e `bg-secondary` para verde MobNex/`sidebar-primary`.
+- Ajustar badge de campanha para verde/azul MobNex em vez de blue-500/amber-500 hardcoded.
+- Manter offcanvas e comportamento atual.
 
-**1. `src/index.css` — reescrita dos tokens (tema dark padrão + light + dark)**
-- `--background`, `--card`, `--popover`, `--sidebar-background`: passam ao **Navy MobNex** (`--mn-navy` / `--mn-navy-2`).
-- `--primary`: passa ao **Verde MobNex** (`#22B14C` em HSL). `--ring` e `--sidebar-primary` acompanham.
-- `--secondary`: tom de apoio MobNex (cinza-azulado claro no light, navy-2 no dark).
-- `--border`, `--input`, `--muted`: ajustados para os cinzas neutros do MobNex.
-- `--gradient-primary`, `--shadow-glow`: recalculados em torno do verde.
-- Tema `.light`: fundo claro MobNex (`--mn-surface-alt` / branco), texto navy, primary verde.
-- Mantém estrutura existente (mesmos nomes de variáveis) — zero alteração nos componentes consumidores.
+5. Revisar páginas com hardcoded mais visíveis
+- Corrigir pelo menos `Pesquisas`, `Agenda`, `TrackingDashboard` e cards comuns onde aparecem `bg-blue-*`, `bg-purple-*`, `bg-[hsl(...)]`, `text-white` desnecessário ou gradientes antigos.
+- Onde a cor indicar status real (erro, alerta, sucesso), manter a semântica visual, mas via tokens (`status-*`, `brand-*`) em vez de paleta Tailwind fixa.
 
-**2. `src/index.css` — tipografia global**
-- Trocar `body { font-family: 'Inter', ... }` por `body { font-family: 'DM Sans', 'Inter', sans-serif; }`.
-- Manter Inter como fallback para evitar FOUT.
-- Headings herdam DM Sans automaticamente.
-
-**3. `tailwind.config.ts` — fontes**
-- Adicionar `fontFamily.sans: ['DM Sans', 'Inter', ...]` para que utilitários `font-sans` reflitam a mudança.
-- Manter `font-mono` (JetBrains Mono) para números técnicos (mapas, KPIs monoespaçados).
-
-**4. Memória do projeto**
-- Atualizar `mem://style/design-system-palette` e `mem://style/branding` para refletir a nova paleta MobNex como padrão.
-- Atualizar Core do `mem://index.md`: trocar "Navy-Teal Emerald" por "Navy MobNex + Verde MobNex, DM Sans".
-
----
-
-### O que NÃO muda
-- **Lógica de negócio, hooks, queries, rotas**: intocados.
-- **Componentes shadcn/Mn\***: mantidos como estão; só renderizam diferente porque os tokens mudaram.
-- **Mapas Leaflet, gráficos Recharts**: continuam usando os mesmos tokens semânticos, então acompanham automaticamente.
-- **Cores específicas de status** (`--status-error`, `--risk-high`, etc.): preservadas para não quebrar alertas, riscos e indicadores.
-- **Cores de candidatos** (paleta `mem://style/candidate-color-logic`): preservadas.
-- **Rota `/mobnex`** (showcase): segue funcionando como referência.
-
----
-
-### Riscos e mitigação
-- **Contraste em alguns componentes customizados** (ex.: cards com background hardcoded): se aparecer, ajusto pontualmente após a aplicação global.
-- **Leaflet popups e tooltips**: já usam tokens semânticos — devem acompanhar sem ajuste.
-- **Validação visual**: após aplicar, abro Sala de Guerra, Territórios, Municípios e Tracking para conferir e corrijo qualquer regressão visível.
-
----
-
-### Arquivos tocados
-- `src/index.css` (tokens + body font)
-- `tailwind.config.ts` (fontFamily)
-- `mem://style/design-system-palette`, `mem://style/branding`, `mem://index.md`
+6. Validar no preview
+- Verificar a home/Sala de Guerra no viewport atual.
+- Conferir se DM Sans está aplicada e se o visual ficou claramente MobNex: navy dominante, verde primário, cards sóbrios e sem blocos multicoloridos antigos.
+- Checar console para erros após as mudanças.

@@ -57,15 +57,16 @@ function WarKPICard({ label, value, sub, icon: Icon, gradientIndex, onClick }: {
   const g = GRADIENT_CARDS[gradientIndex % GRADIENT_CARDS.length];
   return (
     <div
-      className={`relative rounded-xl bg-gradient-to-br ${g.bg} p-5 overflow-hidden shadow-lg transition-all ${onClick ? 'cursor-pointer hover:scale-[1.02]' : ''}`}
+      className={`relative rounded-lg bg-card border border-border/60 p-5 overflow-hidden shadow-card transition-all ${onClick ? 'cursor-pointer hover:border-primary/50 hover:shadow-glow' : ''}`}
       onClick={onClick}
     >
-      <div className="absolute top-3 right-3 opacity-20">
-        <Icon className={`w-10 h-10 ${g.icon}`} />
+      <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: g.accent }} />
+      <div className="absolute top-3 right-3 opacity-30">
+        <Icon className={`w-9 h-9 ${g.icon}`} />
       </div>
-      <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-2xl font-black text-white">{value}</p>
-      {sub && <p className="text-xs text-white/70 mt-1">{sub}</p>}
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-2xl font-black text-foreground">{value}</p>
+      {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
 }
