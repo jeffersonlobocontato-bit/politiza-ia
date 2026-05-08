@@ -40,41 +40,41 @@
    ═══════════════════════════════════════════════════════ */
 
 @layer base {
-  /* ── Default theme — Dark Navy (padrão) ────────────── */
+  /* ── Default theme — MobNex Dark Navy (padrão) ─────── */
   :root {
-    --background: 200 32% 9%;            /* ~#0A1520 */
-    --foreground: 210 20% 90%;
+    --background: 218 45% 14%;           /* navy mais escuro que card */
+    --foreground: 0 0% 100%;
 
-    --card: 200 25% 14%;                 /* ~#132A3A */
-    --card-foreground: 210 20% 92%;
+    --card: 218 45% 19%;                 /* #1A2A45 mn-navy */
+    --card-foreground: 0 0% 100%;
 
-    --popover: 200 25% 14%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 218 45% 19%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 163 80% 45%;
-    --primary-foreground: 200 30% 8%;
+    --primary: 139 56% 42%;              /* #2FA85A mn-green */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 95% 55%;
-    --secondary-foreground: 200 30% 8%;
+    --secondary: 215 71% 41%;            /* #1F5AB4 mn-blue */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 200 20% 17%;
-    --muted-foreground: 210 15% 55%;
+    --muted: 220 30% 22%;
+    --muted-foreground: 215 15% 70%;
 
-    --accent: 200 20% 20%;
-    --accent-foreground: 210 20% 90%;
+    --accent: 220 35% 25%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 1 79% 56%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 18% 20%;
-    --input: 200 18% 20%;
-    --ring: 163 80% 45%;
+    --border: 218 25% 28%;
+    --input: 218 25% 28%;
+    --ring: 139 56% 42%;
 
     --radius: 0.5rem;
 
-    --brand-blue: 210 84% 50%;
+    --brand-blue: 215 71% 45%;
     --brand-amber: 42 96% 58%;
-    --brand-green: 163 80% 45%;
+    --brand-green: 139 56% 42%;
     --brand-red: 1 79% 56%;
     --brand-cyan: 163 97% 52%;
     --brand-purple: 252 100% 69%;
