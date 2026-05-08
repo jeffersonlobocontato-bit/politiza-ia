@@ -58,8 +58,8 @@ export function AppSidebar() {
       <SidebarContent className="bg-sidebar">
         {/* Logo */}
         <div className={`flex items-center gap-3 px-4 py-5 border-b border-sidebar-border/30 ${collapsed ? 'justify-center px-2' : ''}`}>
-          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-            <Crosshair className="w-4 h-4 text-white" />
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Crosshair className="w-4 h-4 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div>
@@ -92,22 +92,22 @@ export function AppSidebar() {
                           collapsed ? 'justify-center px-2' : ''
                         } ${
                           isActive
-                            ? 'bg-white/20 text-white font-semibold'
+                            ? 'bg-primary/20 text-white font-semibold border-l-2 border-primary'
                             : isHighlight
-                            ? 'text-white/80 hover:bg-red-500/30 hover:text-white'
-                            : 'text-sidebar-foreground/80 hover:bg-white/10 hover:text-white'
+                            ? 'text-white/80 hover:bg-destructive/30 hover:text-white'
+                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white'
                         }`}
                         activeClassName=""
                       >
                         <item.icon className={`flex-shrink-0 w-4 h-4 ${
-                          isActive ? 'text-white' : isHighlight ? 'text-red-300' : 'text-sidebar-foreground/70'
+                          isActive ? 'text-primary' : isHighlight ? 'text-destructive' : 'text-sidebar-foreground/70'
                         }`} />
                         {!collapsed && <span>{item.title}</span>}
                         {!collapsed && isActive && (
-                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-secondary" />
+                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
                         )}
                         {!collapsed && !isActive && isHighlight && (
-                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
                         )}
                       </NavLink>
                     </SidebarMenuButton>
@@ -124,8 +124,8 @@ export function AppSidebar() {
             {campaignType && (
               <div className={`mb-3 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-center ${
                 campaignType === 'majoritaria'
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  ? 'bg-primary/20 text-primary border border-primary/40'
+                  : 'bg-secondary/20 text-secondary border border-secondary/40'
               }`}>
                 {campaignType === 'majoritaria' ? 'Campanha Majoritária' : 'Campanha Proporcional'}
               </div>
