@@ -1,53 +1,59 @@
 import type { LucideIcon } from 'lucide-react';
 
 export const CHART_COLORS = [
-  '#0FFCBE', '#106EBE', '#7B61FF', '#FBC02D', '#E53935',
-  '#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#fb923c',
+  '#2FA85A', '#1F5AB4', '#0FFCBE', '#FBC02D', '#E53935',
+  '#60a5fa', '#a78bfa', '#34d399', '#fbbf24', '#f472b6', '#fb923c',
 ];
 
+/**
+ * MobNex card variants — fundo navy/card uniforme com acento por índice.
+ * Mantém shape { bg, icon } para compatibilidade. `bg` agora aplica o card MobNex
+ * (cores semânticas), e `accent` é a cor do ícone/realce.
+ */
 export const GRADIENT_CARDS = [
-  { bg: 'from-[hsl(210,84%,30%)] to-[hsl(210,84%,45%)]', icon: 'text-blue-200' },
-  { bg: 'from-[hsl(163,97%,35%)] to-[hsl(163,60%,45%)]', icon: 'text-emerald-200' },
-  { bg: 'from-[hsl(280,70%,45%)] to-[hsl(310,60%,50%)]', icon: 'text-purple-200' },
-  { bg: 'from-[hsl(210,84%,25%)] to-[hsl(220,60%,40%)]', icon: 'text-cyan-200' },
-  { bg: 'from-[hsl(45,90%,45%)] to-[hsl(35,85%,50%)]', icon: 'text-amber-200' },
-  { bg: 'from-[hsl(0,70%,45%)] to-[hsl(10,65%,50%)]', icon: 'text-red-200' },
+  { bg: 'from-card to-card border border-border/60', icon: 'text-primary',          accent: 'hsl(var(--primary))' },
+  { bg: 'from-card to-card border border-border/60', icon: 'text-brand-green',      accent: 'hsl(var(--brand-green))' },
+  { bg: 'from-card to-card border border-border/60', icon: 'text-brand-purple',     accent: 'hsl(var(--brand-purple))' },
+  { bg: 'from-card to-card border border-border/60', icon: 'text-brand-blue',       accent: 'hsl(var(--brand-blue))' },
+  { bg: 'from-card to-card border border-border/60', icon: 'text-brand-amber',      accent: 'hsl(var(--brand-amber))' },
+  { bg: 'from-card to-card border border-border/60', icon: 'text-brand-red',        accent: 'hsl(var(--brand-red))' },
 ];
 
 export const tooltipStyle = {
-  backgroundColor: 'hsl(220, 18%, 16%)',
-  border: '1px solid hsl(220, 15%, 25%)',
-  borderRadius: 10,
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: 8,
   fontSize: 12,
-  color: '#fff',
+  color: 'hsl(var(--foreground))',
 };
 
-export const GRID_STROKE = 'hsl(220,15%,22%)';
-export const AXIS_TICK_LIGHT = { fontSize: 11, fill: '#8899aa' };
-export const AXIS_TICK_LABEL = { fontSize: 12, fill: '#dde4ec' };
-export const LEGEND_STYLE = { fontSize: 11, color: '#dde4ec' };
+export const GRID_STROKE = 'hsl(var(--border))';
+export const AXIS_TICK_LIGHT = { fontSize: 11, fill: 'hsl(var(--muted-foreground))' };
+export const AXIS_TICK_LABEL = { fontSize: 12, fill: 'hsl(var(--foreground))' };
+export const LEGEND_STYLE = { fontSize: 11, color: 'hsl(var(--foreground))' };
 
 export function KpiCard({ title, value, subtitle, icon: Icon, gradientIndex }: {
   title: string; value: string | number; subtitle?: string; icon: LucideIcon; gradientIndex: number;
 }) {
   const g = GRADIENT_CARDS[gradientIndex % GRADIENT_CARDS.length];
   return (
-    <div className={`relative rounded-xl bg-gradient-to-br ${g.bg} p-5 overflow-hidden shadow-lg`}>
-      <div className="absolute top-3 right-3 opacity-20">
-        <Icon className={`w-12 h-12 ${g.icon}`} />
+    <div className={`relative rounded-lg bg-gradient-to-br ${g.bg} p-5 overflow-hidden shadow-card`}>
+      <div className="absolute top-3 right-3 opacity-30">
+        <Icon className={`w-10 h-10 ${g.icon}`} />
       </div>
-      <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">{title}</p>
-      <p className="text-3xl font-black text-white">{value}</p>
-      {subtitle && <p className="text-xs text-white/70 mt-1">{subtitle}</p>}
+      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">{title}</p>
+      <p className="text-3xl font-black text-foreground">{value}</p>
+      {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+      <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: g.accent }} />
     </div>
   );
 }
 
 export function ChartCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] shadow-lg overflow-hidden ${className}`}>
+    <div className={`rounded-lg bg-card border border-border/60 shadow-card overflow-hidden ${className}`}>
       <div className="px-5 pt-4 pb-2">
-        <h3 className="text-sm font-semibold text-white/90">{title}</h3>
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       </div>
       <div className="px-4 pb-4">{children}</div>
     </div>

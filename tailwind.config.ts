@@ -24,16 +24,16 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          hover: "hsl(210 84% 34%)",
-          active: "hsl(210 84% 26%)",
-          light: "hsl(210 84% 96%)",
+          hover: "hsl(139 56% 36%)",
+          active: "hsl(139 56% 30%)",
+          light: "hsl(139 56% 95%)",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
-          hover: "hsl(163 97% 44%)",
-          active: "hsl(163 97% 38%)",
-          light: "hsl(163 97% 96%)",
+          hover: "hsl(215 71% 36%)",
+          active: "hsl(215 71% 30%)",
+          light: "hsl(215 71% 95%)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
