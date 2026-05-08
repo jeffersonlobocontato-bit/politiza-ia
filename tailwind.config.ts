@@ -12,7 +12,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "-apple-system", "sans-serif"],
+        sans: ["DM Sans", "Inter", "-apple-system", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
