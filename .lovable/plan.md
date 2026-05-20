@@ -1,33 +1,53 @@
-Diagnóstico: as mudanças anteriores foram aplicadas só nos tokens globais e em uma rota showcase. A tela atual até mudou parcialmente (sidebar/navy e alguns verdes), mas vários elementos seguem com estilos antigos hardcoded: cards KPI em azul/roxo/amarelo/vermelho, fonte Leaflet ainda Inter, botões/labels com blue-500/600, e componentes usando gradientes antigos de DashboardCards.
+## Revisão funcional da plataforma — Diagnóstico
 
-Plano de ajuste sem quebrar funcionalidades existentes:
+Vou navegar pela plataforma logada (sessão já ativa como Jefferson) e testar cada módulo no preview, validando carregamento, dados, interações principais e erros de console/rede. **Nenhum código será alterado nesta etapa** — entrego um relatório priorizado e você decide o que corrigir.
 
-1. Corrigir base global
-- Remover o override que força Leaflet para Inter e trocar para DM Sans.
-- Ajustar `primary.hover`, `primary.active`, `secondary.hover`, `secondary.active` no Tailwind para tokens MobNex, não azul/ciano antigos.
-- Manter todas as variáveis semânticas existentes para não quebrar componentes.
+### Módulos a testar (na ordem)
 
-2. Trocar cartões e métricas compartilhados para MobNex
-- Revisar `src/components/ui/DashboardCards.tsx`, que alimenta várias telas analíticas.
-- Substituir `GRADIENT_CARDS` multicoloridos por variações MobNex: navy/card com borda fina, destaque verde/azul apenas em ícones, barras e acentos.
-- Manter nomes/exportações atuais para preservar as telas que já importam esse arquivo.
+1. **Sala de Guerra** (`/`) — KPIs, gráfico de pesquisas do candidato ativo, alertas, navegação por clique nos KPIs
+2. **Mapa Estratégico** (`/mapa`) — camadas (Operacional / Político / Heatmap), polígonos GeoJSON, tooltips
+3. **Territórios** (`/territorios`) — 19 Associações, Curitiba vs RMC, drill-down
+4. **Municípios** (`/municipios`) — agrupamento por Associação, Raio-X de cidade
+5. **Ações / Campo** (`/acoes`, `/campo`) — wizard mobile, geolocalização obrigatória, registro de impacto
+6. **Ativos Políticos** (`/ativos`) — CRM de lideranças, perfis dinâmicos, alinhamento
+7. **Pesquisas** (`/pesquisas`) — upload PDF, parse via Gemini, ferramenta "Cruzar"
+8. **Hierarquia** (`/hierarquia`) — 6 níveis, "Vaga Aberta"
+9. **Tracking Dashboard** (`/tracking`) — rodadas, índices de risco, cruzamentos demográficos e geográficos, agente IA
+10. **Tracking Coleta** (`/tracking/coleta/:shareCode`) — formulário mobile, GPS, skip logic (com um shareCode real do banco)
+11. **Agenda** (`/agenda`) — calendário unificado de ações/tracking/alertas
+12. **Sala de Crise** (`/sala-de-crise`) — alertas estratégicos + operacionais, notas obrigatórias
+13. **Proporcional** (`/proporcional`) — projeções de voto, índice de confiabilidade (se candidato proporcional)
+14. **Configurações** (`/configuracoes`) — gestão de candidatos, presets, troca de candidato ativo
+15. **Login** (logout/login flow) — verificação rápida do fluxo de autenticação
 
-3. Aplicar MobNex na Sala de Guerra visível na home
-- Trocar `WarKPICard` para usar card MobNex: fundo card/navy, borda 0.5–1px, radius 8px, acento verde/azul, sem blocos sólidos azul/amarelo/roxo.
-- Ajustar botões de filtro do mapa e botão de atualização para padrão MobNex.
-- Ajustar painel de alertas para cards escuros com borda lateral por severidade, porém usando tokens semânticos.
-- Preservar consultas, navegação, mapa, tracking, alertas e KPIs exatamente como estão.
+### O que valido em cada módulo
 
-4. Aplicar identidade no menu lateral
-- Trocar active/hover de `bg-white/20` e `bg-secondary` para verde MobNex/`sidebar-primary`.
-- Ajustar badge de campanha para verde/azul MobNex em vez de blue-500/amber-500 hardcoded.
-- Manter offcanvas e comportamento atual.
+- **Carregamento**: página renderiza sem tela em branco / spinner infinito
+- **Dados reais**: queries Supabase retornam (não fica vazio quando deveria ter dados)
+- **Interações principais**: 1–2 cliques chave por módulo (abrir modal, trocar filtro, drill-down)
+- **Console / rede**: erros JS, 4xx/5xx, queries que falham silenciosamente
+- **Consistência com candidato ativo**: trocar candidato e verificar se o módulo reage
+- **Responsividade**: viewport atual (888px) — quebras óbvias
 
-5. Revisar páginas com hardcoded mais visíveis
-- Corrigir pelo menos `Pesquisas`, `Agenda`, `TrackingDashboard` e cards comuns onde aparecem `bg-blue-*`, `bg-purple-*`, `bg-[hsl(...)]`, `text-white` desnecessário ou gradientes antigos.
-- Onde a cor indicar status real (erro, alerta, sucesso), manter a semântica visual, mas via tokens (`status-*`, `brand-*`) em vez de paleta Tailwind fixa.
+### Não está no escopo desta rodada
 
-6. Validar no preview
-- Verificar a home/Sala de Guerra no viewport atual.
-- Conferir se DM Sans está aplicada e se o visual ficou claramente MobNex: navy dominante, verde primário, cards sóbrios e sem blocos multicoloridos antigos.
-- Checar console para erros após as mudanças.
+- Auditoria visual completa do design system MobNex (35 ocorrências de cores hardcoded já mapeadas)
+- 51 warnings de segurança do linter Supabase (RLS permissiva, SECURITY DEFINER expostos, bucket público listável, proteção de senha vazada desligada)
+- Refatoração de hooks/queries duplicadas
+- Testes destrutivos (delete, edição de dados de produção) — apenas leitura e criação reversível
+
+Esses ficam para rodadas futuras conforme sua prioridade.
+
+### Entregável
+
+Relatório estruturado por módulo no chat, classificando cada achado como:
+
+- 🔴 **Crítico** — quebra funcional, dados não carregam, erro bloqueante
+- 🟡 **Médio** — funcionalidade parcial, UX confusa, erro não bloqueante
+- 🟢 **Baixo** — melhoria sugerida, polish
+
+Ao final, lista priorizada do que recomendo corrigir primeiro e estimativa de esforço por item.
+
+### Tempo estimado
+
+~15–20 minutos navegando a plataforma + redação do relatório. Você pode interromper a qualquer momento se quiser focar em um módulo específico.
