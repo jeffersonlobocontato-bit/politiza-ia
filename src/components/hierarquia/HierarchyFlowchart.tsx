@@ -301,20 +301,19 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
                   {children.length > 0 && (
                     <>
-                      <HorizontalBus count={children.length} />
-                      <div
-                        className="grid gap-2 w-full"
-                        style={{ gridTemplateColumns: `repeat(${children.length}, minmax(0, 1fr))` }}
-                      >
-                        {children.map(c => (
-                          <DeptCard
-                            key={c.def.key}
-                            member={c.member}
-                            label={c.def.label}
-                            icon={c.def.icon}
-                            color={c.def.color}
-                            size="sm"
-                          />
+                      <VLine h={14} />
+                      <div className="flex flex-col items-center gap-2">
+                        {children.map((c, i) => (
+                          <div key={c.def.key} className="flex flex-col items-center">
+                            {i > 0 && <VLine h={8} />}
+                            <DeptCard
+                              member={c.member}
+                              label={c.def.label}
+                              icon={c.def.icon}
+                              color={c.def.color}
+                              size="sm"
+                            />
+                          </div>
                         ))}
                       </div>
                     </>
