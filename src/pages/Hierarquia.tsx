@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
 import type { DbCampaignMember } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
+import { HierarchyFlowchart } from '@/components/hierarquia/HierarchyFlowchart';
 
 const LEVEL_COLORS: Record<number, string> = {
   1: 'hsl(var(--brand-amber))',
@@ -86,6 +87,7 @@ export default function Hierarquia() {
   const deleteMember = useDeleteMember();
 
   const [showForm, setShowForm] = useState(false);
+  const [showFlow, setShowFlow] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
@@ -187,14 +189,24 @@ export default function Hierarquia() {
             <p className="text-xs text-muted-foreground">{members.length} membros em {byLevel.filter(b => b.members.length > 0).length} níveis</p>
           </div>
         </div>
-        <button
-          onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
-          style={{ background: 'var(--gradient-primary)' }}
-        >
-          <Plus className="w-4 h-4" /> Novo Membro
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFlow(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
+          >
+            <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
+          </button>
+          <button
+            onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+            style={{ background: 'var(--gradient-primary)' }}
+          >
+            <Plus className="w-4 h-4" /> Novo Membro
+          </button>
+        </div>
       </div>
+
+      <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} />
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {members.length > 0 && (
