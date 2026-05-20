@@ -292,7 +292,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               <DeptCard
                 member={coordGeral}
                 label="Coordenação Geral"
-                icon: {Crown} as any
+                icon={Crown}
                 color={COORD_GERAL_COLOR}
                 size="lg"
               />
