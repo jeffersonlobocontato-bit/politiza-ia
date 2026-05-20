@@ -251,7 +251,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
         {/* Org chart */}
         <div className="flex-1 overflow-auto p-6 bg-background">
-          <div className="min-w-[980px] mx-auto">
+          <div className="min-w-[1320px] mx-auto">
             {/* L1 — Candidato */}
             <div className="flex justify-center">
               <div
