@@ -189,14 +189,24 @@ export default function Hierarquia() {
             <p className="text-xs text-muted-foreground">{members.length} membros em {byLevel.filter(b => b.members.length > 0).length} níveis</p>
           </div>
         </div>
-        <button
-          onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
-          style={{ background: 'var(--gradient-primary)' }}
-        >
-          <Plus className="w-4 h-4" /> Novo Membro
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFlow(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
+          >
+            <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
+          </button>
+          <button
+            onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+            style={{ background: 'var(--gradient-primary)' }}
+          >
+            <Plus className="w-4 h-4" /> Novo Membro
+          </button>
+        </div>
       </div>
+
+      <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} />
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {members.length > 0 && (
