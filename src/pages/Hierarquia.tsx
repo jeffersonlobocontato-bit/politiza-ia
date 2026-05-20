@@ -87,6 +87,7 @@ export default function Hierarquia() {
   const deleteMember = useDeleteMember();
 
   const [showForm, setShowForm] = useState(false);
+  const [showFlow, setShowFlow] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
