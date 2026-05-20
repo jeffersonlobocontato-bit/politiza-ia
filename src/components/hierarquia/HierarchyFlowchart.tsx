@@ -292,8 +292,8 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             {/* L3 — Departments */}
             <div
-              className="grid gap-3"
-              style={{ gridTemplateColumns: `repeat(${departments.length}, minmax(0, 1fr))` }}
+              className="grid gap-4"
+              style={{ gridTemplateColumns: `repeat(${departments.length}, 180px)`, justifyContent: 'center' }}
             >
               {departments.map(({ def, member, children }) => (
                 <div key={def.key} className="flex flex-col items-center">
