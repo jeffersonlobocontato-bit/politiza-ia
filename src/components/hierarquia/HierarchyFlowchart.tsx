@@ -80,6 +80,26 @@ const DEPARTMENTS: DeptDef[] = [
         color: 'hsl(var(--brand-green))',
         match: r => lc(r).includes('mobiliza') || lc(r).includes('articula'),
       },
+      {
+        key: 'coord_pl',
+        label: 'Coordenação do PL',
+        icon: Handshake,
+        color: 'hsl(var(--primary))',
+        match: r => {
+          const s = lc(r);
+          return (s.includes('coorden') && /\bpl\b/.test(s)) || s.includes('coord. pl') || s.includes('coord pl') || s.includes('coordenação do pl');
+        },
+      },
+      {
+        key: 'coord_novo',
+        label: 'Coordenação do NOVO',
+        icon: Handshake,
+        color: 'hsl(var(--brand-amber))',
+        match: r => {
+          const s = lc(r);
+          return (s.includes('coorden') && s.includes('novo')) || s.includes('coord. novo') || s.includes('coord novo') || s.includes('coordenação do novo');
+        },
+      },
     ],
   },
   {
