@@ -123,19 +123,19 @@ function DeptCard({
 }) {
   const sz =
     size === 'lg'
-      ? 'min-w-[200px] px-4 py-3'
+      ? 'w-[220px] px-4 py-3'
       : size === 'sm'
-      ? 'min-w-[140px] px-2.5 py-2'
-      : 'min-w-[170px] px-3 py-2.5';
+      ? 'w-[150px] px-2.5 py-2'
+      : 'w-[170px] px-3 py-2.5';
 
   return (
     <div
-      className={`${sz} rounded-lg border bg-card shadow-sm relative`}
-      style={{ borderColor: `${color}66`, boxShadow: `0 0 0 1px ${color}22, 0 4px 12px ${color}15` }}
+      className={`${sz} rounded-md border-2 bg-card relative flex-shrink-0`}
+      style={{ borderColor: color }}
     >
       <div className="flex items-center gap-2 mb-1">
         <div
-          className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
+          className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
           style={{ backgroundColor: `${color}22`, color }}
         >
           <Icon className="w-3 h-3" />
@@ -159,36 +159,25 @@ function DeptCard({
 }
 
 // Vertical connector line
-function VLine({ color = 'border' }: { color?: string }) {
-  return (
-    <div
-      className="w-px h-5 mx-auto"
-      style={{ background: `linear-gradient(to bottom, hsl(var(--${color})), hsl(var(--${color}) / 0.3))` }}
-    />
-  );
+function VLine({ h = 24 }: { h?: number }) {
+  return <div className="w-0.5 mx-auto bg-border" style={{ height: h }} />;
 }
 
-// Horizontal bus connecting multiple children
-function HorizontalBus({ count }: { count: number }) {
+// Horizontal bus connecting N children (T-shape, no overlap)
+function HorizontalBus({ count, dropH = 18 }: { count: number; dropH?: number }) {
   if (count <= 1) return <VLine />;
   return (
-    <div className="relative w-full" style={{ height: 20 }}>
-      {/* vertical from parent */}
-      <div className="absolute left-1/2 top-0 w-px h-2.5 bg-border -translate-x-1/2" />
-      {/* horizontal bar */}
+    <div className="relative w-full" style={{ height: 12 + dropH }}>
+      <div className="absolute left-1/2 top-0 w-0.5 h-[10px] bg-border -translate-x-1/2" />
       <div
-        className="absolute top-2.5 h-px bg-border"
-        style={{
-          left: `${100 / (count * 2)}%`,
-          right: `${100 / (count * 2)}%`,
-        }}
+        className="absolute h-0.5 bg-border"
+        style={{ top: 10, left: `${100 / (count * 2)}%`, right: `${100 / (count * 2)}%` }}
       />
-      {/* drops */}
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="absolute top-2.5 w-px h-2.5 bg-border"
-          style={{ left: `${((i + 0.5) * 100) / count}%`, transform: 'translateX(-0.5px)' }}
+          className="absolute w-0.5 bg-border"
+          style={{ top: 10, height: dropH, left: `calc(${((i + 0.5) * 100) / count}% - 1px)` }}
         />
       ))}
     </div>
@@ -262,7 +251,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
         {/* Org chart */}
         <div className="flex-1 overflow-auto p-6 bg-background">
-          <div className="min-w-[980px] mx-auto">
+          <div className="min-w-[1320px] mx-auto">
             {/* L1 — Candidato */}
             <div className="flex justify-center">
               <div
@@ -303,8 +292,8 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             {/* L3 — Departments */}
             <div
-              className="grid gap-3"
-              style={{ gridTemplateColumns: `repeat(${departments.length}, minmax(0, 1fr))` }}
+              className="grid gap-4"
+              style={{ gridTemplateColumns: `repeat(${departments.length}, 180px)`, justifyContent: 'center' }}
             >
               {departments.map(({ def, member, children }) => (
                 <div key={def.key} className="flex flex-col items-center">
@@ -312,20 +301,19 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
                   {children.length > 0 && (
                     <>
-                      <HorizontalBus count={children.length} />
-                      <div
-                        className="grid gap-2 w-full"
-                        style={{ gridTemplateColumns: `repeat(${children.length}, minmax(0, 1fr))` }}
-                      >
-                        {children.map(c => (
-                          <DeptCard
-                            key={c.def.key}
-                            member={c.member}
-                            label={c.def.label}
-                            icon={c.def.icon}
-                            color={c.def.color}
-                            size="sm"
-                          />
+                      <VLine h={14} />
+                      <div className="flex flex-col items-center gap-2">
+                        {children.map((c, i) => (
+                          <div key={c.def.key} className="flex flex-col items-center">
+                            {i > 0 && <VLine h={8} />}
+                            <DeptCard
+                              member={c.member}
+                              label={c.def.label}
+                              icon={c.def.icon}
+                              color={c.def.color}
+                              size="sm"
+                            />
+                          </div>
                         ))}
                       </div>
                     </>
