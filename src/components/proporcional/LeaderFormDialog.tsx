@@ -249,14 +249,16 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
 
           {/* TERRITÓRIO */}
           <TabsContent value="territorio" className="space-y-4 mt-4">
+            <GeoLocationInput
+              value={geoForm}
+              onChange={v => { setGeoForm(v); set('municipality', v.city); }}
+              required={!isEdit}
+              label="Localização da Liderança"
+            />
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Bairro</Label>
                 <Input value={form.neighborhood} onChange={e => set('neighborhood', e.target.value)} />
-              </div>
-              <div>
-                <Label>Município</Label>
-                <Input value={form.municipality} onChange={e => set('municipality', e.target.value)} />
               </div>
               <div>
                 <Label>Microrregião</Label>
@@ -271,7 +273,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
                   </SelectContent>
                 </Select>
               </div>
-              <div className="col-span-2">
+              <div>
                 <Label>Tipo de Cobertura</Label>
                 <Select value={form.coverage_type} onValueChange={v => set('coverage_type', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -282,6 +284,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
               </div>
             </div>
           </TabsContent>
+
 
           {/* CAMPANHA */}
           <TabsContent value="campanha" className="space-y-4 mt-4">
