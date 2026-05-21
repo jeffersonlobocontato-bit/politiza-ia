@@ -372,6 +372,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                     icon={staff[0].def.icon}
                     color={staff[0].def.color}
                     compact
+                    exportMode={exporting}
                   />
                 </div>
                 <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
@@ -384,6 +385,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                   label="Coordenador Geral"
                   icon={Crown}
                   color={COORD_GERAL_COLOR}
+                  exportMode={exporting}
                 />
               </div>
 
@@ -397,6 +399,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                     icon={staff[1].def.icon}
                     color={staff[1].def.color}
                     compact
+                    exportMode={exporting}
                   />
                 </div>
               </div>
