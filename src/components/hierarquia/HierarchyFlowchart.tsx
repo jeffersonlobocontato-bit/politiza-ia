@@ -116,7 +116,7 @@ function findCoordGeral(members: DbCampaignMember[]): DbCampaignMember | null {
     members.find(m => {
       const r = lc(m.role);
       return r.includes('coorden') && r.includes('geral');
-    }) ?? members.find(m => m.hierarchy_level === 2) ?? null
+    }) ?? null
   );
 }
 
@@ -350,7 +350,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               <div className="w-[180px] sm:w-[210px]">
                 <DeptCard
                   member={coordGeral}
-                  label="Coordenação Geral"
+                  label="Coordenador Geral"
                   icon={Crown}
                   color={COORD_GERAL_COLOR}
                 />
