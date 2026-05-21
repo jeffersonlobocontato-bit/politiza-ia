@@ -301,6 +301,8 @@ export type Database = {
           email: string | null
           hierarchy_level: number
           id: string
+          lat: number | null
+          lng: number | null
           macroregion_id: string | null
           microregion: string | null
           municipality: string | null
@@ -321,6 +323,8 @@ export type Database = {
           email?: string | null
           hierarchy_level?: number
           id?: string
+          lat?: number | null
+          lng?: number | null
           macroregion_id?: string | null
           microregion?: string | null
           municipality?: string | null
@@ -341,6 +345,8 @@ export type Database = {
           email?: string | null
           hierarchy_level?: number
           id?: string
+          lat?: number | null
+          lng?: number | null
           macroregion_id?: string | null
           microregion?: string | null
           municipality?: string | null
@@ -623,6 +629,8 @@ export type Database = {
           estimated_supporters: number
           id: string
           influence_level: number
+          lat: number | null
+          lng: number | null
           local_reputation: number
           macroregion_id: string | null
           microregion: string | null
@@ -655,6 +663,8 @@ export type Database = {
           estimated_supporters?: number
           id?: string
           influence_level?: number
+          lat?: number | null
+          lng?: number | null
           local_reputation?: number
           macroregion_id?: string | null
           microregion?: string | null
@@ -687,6 +697,8 @@ export type Database = {
           estimated_supporters?: number
           id?: string
           influence_level?: number
+          lat?: number | null
+          lng?: number | null
           local_reputation?: number
           macroregion_id?: string | null
           microregion?: string | null

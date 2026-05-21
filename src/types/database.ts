@@ -133,6 +133,8 @@ export interface DbCampaignMember {
   microregion: string | null;
   municipality: string | null;
   supervisor_id: string | null;
+  lat: number | null;
+  lng: number | null;
   actions_managed: number;
   completion_rate: number;
   status: string;

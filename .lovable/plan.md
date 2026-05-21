@@ -1,58 +1,55 @@
+# Geolocalização Universal dos Cadastros nos Mapas
 
 ## Objetivo
+Todo nome cadastrado na plataforma aparece como ponto nos mapas, com legenda própria por tipo de cadastro. Registros antigos sem GPS recebem coordenada do centróide do município (com leve jitter); novos cadastros passam a exigir GPS.
 
-Estabelecer vínculos hierárquicos explícitos entre membros da campanha (Macro → Micro → Municipal → Liderança Local) para que o formulário, os cards e o organograma reflitam uma árvore territorial encadeada e detalhada.
+## Camadas (fontes de dados)
+Cada fonte vira uma camada toggleável com cor/ícone próprios e popup com nome + papel + município:
 
-## O que muda
+| Camada | Tabela | Cor | Ícone |
+|---|---|---|---|
+| Lideranças (CRM) | `leaders` | Verde | Estrela |
+| Ativos Políticos | `political_assets` | Azul | Bandeira |
+| Membros da Campanha | `campaign_members` | Navy | Coroa (por nível) |
+| Ações de Campo | `actions` | Âmbar | Megafone |
+| Entrevistas Tracking | `tracking_interviews` | Ciano | Microfone |
+| Alertas Operacionais | `alerts` | Vermelho | Alerta |
 
-### 1. Formulário de cadastro (`/hierarquia`) — campos condicionais por nível
+## Estratégia para registros sem lat/lng
 
-O formulário passa a exibir campos de vínculo conforme o **nível hierárquico** selecionado, usando o campo `supervisor_id` já existente em `campaign_members`:
+1. **Helper `resolveGeo(record)`** em `src/lib/geo.ts`:
+   - Se `lat/lng` existem → usa direto.
+   - Senão, busca centróide do município em uma tabela `municipality_centroids` (a popular via migration com as 399 cidades do PR).
+   - Aplica jitter determinístico (hash do `id` → offset ±0.008°) para evitar sobreposição.
+   - Marca o ponto como "aproximado" no popup.
 
-| Nível selecionado | Campos extras de vínculo |
-|---|---|
-| 3 — Coordenação Macrorregional | Macrorregião (já existe) |
-| 4 — Coordenação Microrregional | Macrorregião + **Coordenador Macrorregional** (dropdown com membros nível 3 da mesma macro) → grava em `supervisor_id` |
-| 5 — Coordenação Municipal | Macrorregião + Microrregião + **Coordenador Microrregional** (dropdown nível 4) → `supervisor_id` |
-| 6 — Liderança Local | Município + **Coordenador Municipal** (dropdown nível 5 do mesmo município/micro) → `supervisor_id` |
+2. **Migration**: criar `public.municipality_centroids (name text PK, lat numeric, lng numeric, macroregion_id text)` e popular via `insert` tool com dataset das 399 cidades + Curitiba/RMC separados.
 
-Os dropdowns filtram dinamicamente os candidatos a "superior" pelo território informado no formulário, mostrando nome + cargo + cidade para desambiguar. Inclui opção "— Sem vínculo definido —" para não travar cadastro.
+3. **Forms** (Lideranças, Ativos, Membros): tornar `GeoLocationInput` obrigatório nos novos cadastros (validação client-side), mantendo retrocompatibilidade com registros antigos.
 
-### 2. Cards da hierarquia
+## Mapas afetados
 
-Cada card de membro passa a exibir, quando houver `supervisor_id`:
-- Linha "Vinculado a: {nome do superior} · {cargo}"
-- Para níveis 3–6, também exibe contagem de subordinados diretos ("3 microrregionais", "5 municipais", "12 lideranças")
+- **`src/pages/MapaEstrategico.tsx`** — adicionar as 6 camadas com toggles e legenda agregada.
+- **`src/pages/SalaDeGuerra.tsx`** — mesmas camadas, controladas pelo candidato ativo.
+- **`src/components/tracking/TrackingMap.tsx`** — manter foco em entrevistas, mas permitir overlay opcional de lideranças/membros para contexto.
 
-### 3. Organograma (`HierarchyFlowchart`)
+## Componente reutilizável
 
-Adiciona uma nova seção **abaixo dos departamentos setoriais** chamada "Árvore Territorial", renderizando recursivamente a cadeia:
+`src/components/maps/LeadsLayer.tsx` — recebe `source: 'leaders' | 'assets' | 'members' | 'actions' | 'interviews' | 'alerts'` e renderiza marcadores + popup padronizados (nome, papel, território, badge "Aproximado" se geocodificado). Cada mapa importa só as camadas que quiser.
 
-```text
-Coordenador Geral (Julio Reis)
-   └── Macrorregional (nível 3)
-        └── Microrregional (nível 4)
-             └── Municipal (nível 5)
-                  └── Lideranças Locais (nível 6)
-```
+## Hook
 
-A árvore é construída a partir de `supervisor_id`. Membros sem vínculo aparecem agrupados numa caixa "Não vinculados" ao final, para visibilidade do problema. O PDF já existente capturará a árvore inteira (a lógica de export atual cobre todo o `data-pdf-root`).
-
-## Detalhes técnicos
-
-- **Sem migração**: a coluna `supervisor_id uuid` já existe em `campaign_members`. Apenas passaremos a populá-la e consultá-la.
-- **`src/pages/Hierarquia.tsx`**:
-  - Adicionar `supervisor_id` ao `MemberForm` e ao payload de `handleSubmit`.
-  - Renderização condicional do dropdown de superior baseada em `form.hierarchy_level`, com filtro por território já preenchido.
-  - Atualizar cards (`MemberCard` inline) para exibir nome do supervisor (lookup local em `members`).
-- **`src/components/hierarquia/HierarchyFlowchart.tsx`**:
-  - Nova função `buildTree(members)` que indexa por `supervisor_id` e renderiza recursivamente.
-  - Novo componente `TreeNode` com indentação por nível e cor por `LEVEL_COLORS`.
-  - Adicionar seção após a grid de departamentos, com colapso por macrorregião para não estourar largura.
-- **`src/types/database.ts`**: garantir que `DbCampaignMember.supervisor_id` está tipado (já vem do schema gerado).
+`src/hooks/useGeoLeads.ts` — agrega todas as fontes com TanStack Query, escopadas ao candidato ativo, retornando `{ leaders, assets, members, actions, interviews, alerts }` já com `lat/lng` resolvidos via `resolveGeo`.
 
 ## Fora de escopo
+- Edição em massa de coordenadas antigas (continuam usando centróide).
+- Reverse geocoding online (usaremos apenas o dataset estático de centróides).
+- Heatmap de leads (camada de pontos apenas; heatmap existente do tracking permanece como está).
 
-- Reorganizar departamentos setoriais (Jurídico/Comunicação/etc.) — permanecem como hoje.
-- Edição em massa de vínculos para membros já cadastrados (será feita manualmente via "Editar membro").
-- Validação obrigatória de supervisor (mantemos opcional para não bloquear cadastros parciais).
+## Entregáveis
+1. Migration `municipality_centroids` + popular dados.
+2. `src/lib/geo.ts` (resolveGeo, jitter, tipos).
+3. `src/hooks/useGeoLeads.ts`.
+4. `src/components/maps/LeadsLayer.tsx` + legenda.
+5. Integração em `MapaEstrategico`, `SalaDeGuerra`, `TrackingMap`.
+6. Validação obrigatória de GPS nos formulários de Lideranças, Ativos e Membros.
