@@ -17,6 +17,7 @@ const LEVEL_COLORS: Record<number, string> = {
 };
 const LEVEL_LABELS: Record<number, string> = {
   1: 'Coordenador Geral',
+  2: 'Coordenadorias',
   3: 'Coordenação Macrorregional',
   4: 'Coordenação Microrregional',
   5: 'Coordenação Municipal',
