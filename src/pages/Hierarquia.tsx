@@ -138,6 +138,7 @@ export default function Hierarquia() {
       hierarchy_level: String(member.hierarchy_level),
       macroregion_id: member.macroregion_id ?? 'rmc',
       microregion: member.microregion ?? '',
+      supervisor_id: member.supervisor_id ?? '',
       status: member.status,
       observations: member.observations ?? '',
     });
