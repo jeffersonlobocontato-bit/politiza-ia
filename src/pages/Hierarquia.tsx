@@ -56,6 +56,11 @@ const SECTORAL_GROUPS = [
 
 const SECTORAL_ROLES = SECTORAL_GROUPS.flatMap(g => g.roles);
 
+const SUB_ROLES: Record<string, string[]> = {
+  'Coordenador de Inteligência Política': ['Coordenação PL', 'Coordenação NOVO'],
+};
+const ALL_SUB_ROLES = Object.values(SUB_ROLES).flat();
+
 interface MemberForm {
   name: string;
   email: string;
