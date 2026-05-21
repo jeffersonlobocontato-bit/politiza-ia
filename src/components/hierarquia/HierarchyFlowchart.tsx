@@ -27,9 +27,22 @@ const lc = (s: string) => s.toLowerCase();
 
 // (Jurídico e Comunicação agora descem como departamentos abaixo do Coordenador Geral)
 
-
-// Main department row
+// Main department row (all sit below Coordenador Geral)
 const DEPARTMENTS: DeptDef[] = [
+  {
+    key: 'juridico',
+    label: 'Jurídico',
+    icon: Scale,
+    color: 'hsl(var(--brand-amber))',
+    match: r => lc(r).includes('jurídic') || lc(r).includes('juridic') || lc(r).includes('advog'),
+  },
+  {
+    key: 'comunicacao',
+    label: 'Comunicação',
+    icon: Megaphone,
+    color: 'hsl(var(--brand-cyan))',
+    match: r => lc(r).includes('comunica') || lc(r).includes('marketing') || lc(r).includes('imprensa'),
+  },
   {
     key: 'logistica',
     label: 'Logística',
