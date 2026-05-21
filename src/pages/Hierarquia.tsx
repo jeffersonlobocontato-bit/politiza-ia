@@ -353,7 +353,7 @@ export default function Hierarquia() {
                   return { role, member: assigned ?? null };
                 });
                 // Also include any level-2 members with non-standard roles
-                const extraMembers = lvlMembers.filter(m => !SECTORAL_ROLES.includes(m.role));
+                const extraMembers = lvlMembers.filter(m => !SECTORAL_ROLES.includes(m.role) && !ALL_SUB_ROLES.includes(m.role));
 
                 return (
                   <div key={level}>
