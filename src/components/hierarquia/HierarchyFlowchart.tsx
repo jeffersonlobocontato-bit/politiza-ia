@@ -283,6 +283,73 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
     departments.reduce((acc, d) => acc + d.children.filter(c => c.member).length, 0) +
     (activeCandidate ? 1 : 0);
 
+  // ── Árvore territorial (níveis 3 → 4 → 5 → 6) via supervisor_id ─────────────
+  const territorial = useMemo(() => {
+    const t = members.filter(m => m.hierarchy_level >= 3 && m.hierarchy_level <= 6);
+    const byParent = new Map<string, DbCampaignMember[]>();
+    const orphans: DbCampaignMember[] = [];
+    const ids = new Set(t.map(m => m.id));
+    t.forEach(m => {
+      if (m.supervisor_id && ids.has(m.supervisor_id)) {
+        const arr = byParent.get(m.supervisor_id) ?? [];
+        arr.push(m);
+        byParent.set(m.supervisor_id, arr);
+      }
+    });
+    const roots = t.filter(m => m.hierarchy_level === 3);
+    const linkedIds = new Set<string>();
+    const walk = (m: DbCampaignMember) => {
+      linkedIds.add(m.id);
+      (byParent.get(m.id) ?? []).forEach(walk);
+    };
+    roots.forEach(walk);
+    t.forEach(m => { if (!linkedIds.has(m.id)) orphans.push(m); });
+    return { roots, byParent, orphans };
+  }, [members]);
+
+  const LEVEL_COLORS: Record<number, string> = {
+    3: 'hsl(var(--brand-cyan))',
+    4: 'hsl(var(--brand-green))',
+    5: 'hsl(var(--chart-4))',
+    6: 'hsl(var(--muted-foreground))',
+  };
+  const LEVEL_LABEL_SHORT: Record<number, string> = {
+    3: 'Macro',
+    4: 'Micro',
+    5: 'Municipal',
+    6: 'Liderança',
+  };
+
+  const renderTreeNode = (m: DbCampaignMember, depth: number): JSX.Element => {
+    const color = LEVEL_COLORS[m.hierarchy_level] ?? 'hsl(var(--muted-foreground))';
+    const children = territorial.byParent.get(m.id) ?? [];
+    return (
+      <div key={m.id} className="flex flex-col" style={{ marginLeft: depth === 0 ? 0 : 16 }}>
+        <div className="flex items-start gap-2 py-1">
+          <div
+            className="mt-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex-shrink-0"
+            style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}
+          >
+            {LEVEL_LABEL_SHORT[m.hierarchy_level]}
+          </div>
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold text-foreground leading-tight">{m.name}</div>
+            <div className="text-[9px] text-muted-foreground leading-tight">
+              {m.role}{m.municipality ? ` · ${m.municipality}` : ''}{m.microregion ? ` · ${m.microregion}` : ''}
+            </div>
+          </div>
+        </div>
+        {children.length > 0 && (
+          <div className="border-l-2 ml-2 pl-2" style={{ borderColor: `${color}44` }}>
+            {children
+              .sort((a, b) => a.hierarchy_level - b.hierarchy_level || a.name.localeCompare(b.name))
+              .map(c => renderTreeNode(c, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-[1100px] w-[95vw] max-h-[92vh] overflow-hidden flex flex-col p-0 gap-0">
