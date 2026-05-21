@@ -16,8 +16,7 @@ const LEVEL_COLORS: Record<number, string> = {
   6: 'hsl(var(--muted-foreground))',
 };
 const LEVEL_LABELS: Record<number, string> = {
-  1: 'Comando Estadual',
-  2: 'Coordenação Setorial',
+  1: 'Coordenador Geral',
   3: 'Coordenação Macrorregional',
   4: 'Coordenação Microrregional',
   5: 'Coordenação Municipal',
