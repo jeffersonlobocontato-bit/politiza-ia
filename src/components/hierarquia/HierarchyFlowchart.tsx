@@ -284,6 +284,15 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               </div>
             </div>
             <button
+              onClick={handleDownloadPdf}
+              disabled={exporting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold uppercase tracking-wider text-primary-foreground bg-primary hover:opacity-90 disabled:opacity-60 transition-opacity"
+              aria-label="Baixar organograma em PDF"
+            >
+              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{exporting ? 'Gerando…' : 'Baixar PDF'}</span>
+            </button>
+            <button
               onClick={onClose}
               className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
               aria-label="Fechar"
@@ -295,7 +304,8 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
         {/* Org chart — responsive, no horizontal scroll */}
         <div className="flex-1 overflow-auto p-3 sm:p-6 bg-background">
-          <div className="w-full max-w-[1040px] mx-auto">
+          <div ref={chartRef} className="w-full max-w-[1040px] mx-auto">
+
             {/* L1 — Candidato */}
             <div className="flex justify-center">
               <div
