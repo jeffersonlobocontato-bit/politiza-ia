@@ -205,29 +205,51 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
   const handleDownloadPdf = async () => {
     if (!chartRef.current) return;
     setExporting(true);
+    // Aguarda React aplicar exportMode antes de capturar
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     try {
-      // Resolve background from CSS variable so html2canvas doesn't paint transparent
       const bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
       const bgColor = bg ? `hsl(${bg})` : '#0b1220';
 
       const canvas = await html2canvas(chartRef.current, {
-        scale: 3, // high resolution
+        scale: 3,
         backgroundColor: bgColor,
         useCORS: true,
         logging: false,
         windowWidth: chartRef.current.scrollWidth,
         windowHeight: chartRef.current.scrollHeight,
+        onclone: (doc) => {
+          // Garante que nada seja clipado durante a renderização do canvas
+          doc.querySelectorAll('*').forEach((el) => {
+            const he = el as HTMLElement;
+            if (he.style) {
+              he.style.textOverflow = 'clip';
+            }
+          });
+          const root = doc.querySelector('[data-pdf-root]') as HTMLElement | null;
+          if (root) {
+            root.style.overflow = 'visible';
+            root.style.lineHeight = '1.4';
+          }
+        },
       });
 
       const imgData = canvas.toDataURL('image/png');
-      const pxToMm = (px: number) => (px * 25.4) / 96 / 3; // scale=3 → divide
-      const wMm = pxToMm(canvas.width);
-      const hMm = pxToMm(canvas.height);
+      const pxToMm = (px: number) => (px * 25.4) / 96 / 3;
+      let wMm = pxToMm(canvas.width);
+      let hMm = pxToMm(canvas.height);
+      // Limite prático do jsPDF (~14400pt ≈ 5080mm), mas mantemos folga
+      const MAX = 1000;
+      if (wMm > MAX || hMm > MAX) {
+        const k = MAX / Math.max(wMm, hMm);
+        wMm *= k;
+        hMm *= k;
+      }
       const landscape = wMm >= hMm;
       const pdf = new jsPDF({
         orientation: landscape ? 'landscape' : 'portrait',
         unit: 'mm',
-        format: [wMm + 20, hMm + 20], // 10mm margin each side
+        format: [wMm + 20, hMm + 20],
         compress: true,
       });
       pdf.addImage(imgData, 'PNG', 10, 10, wMm, hMm, undefined, 'FAST');
