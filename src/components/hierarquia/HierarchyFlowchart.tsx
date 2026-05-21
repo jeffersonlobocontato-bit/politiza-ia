@@ -551,44 +551,6 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               })}
             </div>
 
-            {/* ── Árvore Territorial ─────────────────────────────────────── */}
-            {(territorial.roots.length > 0 || territorial.orphans.length > 0) && (
-              <div className="mt-6 pt-4 border-t-2 border-border">
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-bold text-foreground">Árvore Territorial</h3>
-                  <span className="text-[10px] text-muted-foreground">Macro → Micro → Municipal → Lideranças</span>
-                </div>
-                {territorial.roots.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground italic">Nenhum coordenador macrorregional cadastrado ainda.</p>
-                ) : (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {territorial.roots
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map(root => (
-                        <div key={root.id} className="rounded-lg border border-border bg-card/40 p-2.5">
-                          {renderTreeNode(root, 0)}
-                        </div>
-                      ))}
-                  </div>
-                )}
-                {territorial.orphans.length > 0 && (
-                  <div className="mt-4">
-                    <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-                      <ChevronRight className="w-3 h-3" />
-                      Sem vínculo definido ({territorial.orphans.length})
-                    </div>
-                    <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-2.5 grid sm:grid-cols-2 gap-x-3 gap-y-1">
-                      {territorial.orphans.map(o => (
-                        <div key={o.id} className="text-[10px] text-muted-foreground truncate">
-                          <span className="font-semibold text-foreground">{o.name}</span> · {o.role}{o.municipality ? ` · ${o.municipality}` : ''}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
 
             {/* Footer */}
