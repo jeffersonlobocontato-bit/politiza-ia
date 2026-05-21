@@ -16,8 +16,8 @@ const LEVEL_COLORS: Record<number, string> = {
   6: 'hsl(var(--muted-foreground))',
 };
 const LEVEL_LABELS: Record<number, string> = {
-  1: 'Coordenador Geral',
-  2: 'Coordenadorias',
+  1: 'Candidato ao Governo',
+  2: 'Coordenador Geral',
   3: 'Coordenação Macrorregional',
   4: 'Coordenação Microrregional',
   5: 'Coordenação Municipal',
