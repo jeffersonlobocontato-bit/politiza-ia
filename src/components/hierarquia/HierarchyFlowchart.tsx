@@ -236,6 +236,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
 
   const coordGeral = findCoordGeral(members);
+  const staff = STAFF.map(def => ({ def, member: findMember(members, def) }));
   const departments = DEPARTMENTS.map(def => ({
     def,
     member: findMember(members, def),
@@ -243,11 +244,12 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
   }));
 
   const totalSlots =
-    1 + departments.length +
+    1 + staff.length + departments.length +
     departments.reduce((acc, d) => acc + d.children.length, 0) +
     (activeCandidate ? 1 : 0);
   const filledSlots =
     (coordGeral ? 1 : 0) +
+    staff.filter(s => s.member).length +
     departments.filter(d => d.member).length +
     departments.reduce((acc, d) => acc + d.children.filter(c => c.member).length, 0) +
     (activeCandidate ? 1 : 0);
