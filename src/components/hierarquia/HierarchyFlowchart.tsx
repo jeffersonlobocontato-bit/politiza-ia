@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText, Download, Loader2 } from 'lucide-react';
+import { useRef, useState, useMemo } from 'react';
+import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText, Download, Loader2, MapPin, ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
