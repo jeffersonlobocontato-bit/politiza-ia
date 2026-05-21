@@ -477,35 +477,78 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             {/* L3 — Departments responsive grid */}
             <div
-              className="grid gap-2 sm:gap-3"
+              className="grid gap-2 sm:gap-3 items-start"
               style={{ gridTemplateColumns: `repeat(${departments.length}, minmax(0, 1fr))` }}
             >
-              {departments.map(({ def, member, children }) => (
-                <div key={def.key} className="flex flex-col items-stretch">
-                  <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} exportMode={exporting} />
+              {departments.map(({ def, member, children }) => {
+                const isPolitica = def.key === 'politica';
+                return (
+                  <div key={def.key} className="flex flex-col items-stretch">
+                    <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} exportMode={exporting} />
 
-                  {children.length > 0 && (
-                    <>
-                      <VLine h={12} />
-                      <div className="flex flex-col items-stretch gap-1.5">
-                        {children.map((c, i) => (
-                          <div key={c.def.key} className="flex flex-col items-stretch">
-                            {i > 0 && <VLine h={6} />}
-                            <DeptCard
-                              member={c.member}
-                              label={c.def.label}
-                              icon={c.def.icon}
-                              color={c.def.color}
-                              compact
-                              exportMode={exporting}
-                            />
+                    {children.length > 0 && (
+                      <>
+                        <VLine h={12} />
+                        <div className="flex flex-col items-stretch gap-1.5">
+                          {children.map((c, i) => (
+                            <div key={c.def.key} className="flex flex-col items-stretch">
+                              {i > 0 && <VLine h={6} />}
+                              <DeptCard
+                                member={c.member}
+                                label={c.def.label}
+                                icon={c.def.icon}
+                                color={c.def.color}
+                                compact
+                                exportMode={exporting}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Árvore territorial pendurada sob Coord. Política */}
+                    {isPolitica && (territorial.roots.length > 0 || territorial.orphans.length > 0) && (
+                      <>
+                        <VLine h={12} />
+                        <div
+                          className="rounded-md border-2 bg-card/40 px-2 py-2"
+                          style={{ borderColor: def.color }}
+                        >
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <MapPin className="w-3 h-3" style={{ color: def.color }} />
+                            <span className="text-[9px] uppercase tracking-wider font-bold" style={{ color: def.color }}>
+                              Estrutura Territorial
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
+                          {territorial.roots.length === 0 ? (
+                            <p className="text-[10px] text-muted-foreground italic">Nenhum coordenador macrorregional cadastrado.</p>
+                          ) : (
+                            <div className="flex flex-col gap-1.5">
+                              {territorial.roots
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map(root => renderTreeNode(root, 0))}
+                            </div>
+                          )}
+                          {territorial.orphans.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-dashed border-muted-foreground/30">
+                              <div className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                                <ChevronRight className="w-2.5 h-2.5" />
+                                Sem vínculo ({territorial.orphans.length})
+                              </div>
+                              {territorial.orphans.map(o => (
+                                <div key={o.id} className="text-[9px] text-muted-foreground leading-tight">
+                                  <span className="font-semibold text-foreground">{o.name}</span> · {o.role}{o.municipality ? ` · ${o.municipality}` : ''}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* ── Árvore Territorial ─────────────────────────────────────── */}
