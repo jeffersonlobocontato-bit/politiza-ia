@@ -117,6 +117,11 @@ export default function Hierarquia() {
     members: members.filter(m => m.hierarchy_level === l),
   }));
   const ranked = [...members].sort((a, b) => b.completion_rate - a.completion_rate);
+  const memberById = new Map(members.map(m => [m.id, m]));
+  const subordinateCounts = members.reduce<Record<string, number>>((acc, m) => {
+    if (m.supervisor_id) acc[m.supervisor_id] = (acc[m.supervisor_id] ?? 0) + 1;
+    return acc;
+  }, {});
 
   const updateForm = (key: keyof MemberForm, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }));
