@@ -128,17 +128,24 @@ function DeptCard({
   icon: Icon,
   color,
   compact = false,
+  exportMode = false,
 }: {
   member: DbCampaignMember | null;
   label: string;
   icon: LucideIcon;
   color: string;
   compact?: boolean;
+  exportMode?: boolean;
 }) {
+  const pad = exportMode
+    ? (compact ? 'px-2.5 py-2.5' : 'px-3 py-3')
+    : (compact ? 'px-2 py-1.5' : 'px-2.5 py-2');
+  const textWrap = exportMode ? 'whitespace-normal break-words' : 'truncate';
+  const leading = exportMode ? 'leading-snug' : 'leading-tight';
   return (
     <div
-      className={`w-full rounded-md border-2 bg-card relative ${compact ? 'px-2 py-1.5' : 'px-2.5 py-2'}`}
-      style={{ borderColor: color }}
+      className={`w-full rounded-md border-2 bg-card relative ${pad}`}
+      style={{ borderColor: color, overflow: 'visible' }}
     >
       <div className="flex items-center gap-1.5 mb-0.5">
         <div
@@ -147,15 +154,15 @@ function DeptCard({
         >
           <Icon className="w-2.5 h-2.5" />
         </div>
-        <div className="text-[9px] uppercase tracking-wider font-bold truncate" style={{ color }}>
+        <div className={`text-[9px] uppercase tracking-wider font-bold ${textWrap}`} style={{ color }}>
           {label}
         </div>
       </div>
       {member ? (
         <>
-          <div className="text-[11px] font-bold text-foreground truncate leading-tight">{member.name}</div>
+          <div className={`text-[11px] font-bold text-foreground ${textWrap} ${leading}`}>{member.name}</div>
           {member.role && lc(member.role) !== lc(label) && (
-            <div className="text-[9px] text-muted-foreground truncate">{member.role}</div>
+            <div className={`text-[9px] text-muted-foreground ${textWrap} ${leading}`}>{member.role}</div>
           )}
         </>
       ) : (
