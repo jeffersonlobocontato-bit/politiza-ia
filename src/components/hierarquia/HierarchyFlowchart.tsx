@@ -27,8 +27,8 @@ const lc = (s: string) => s.toLowerCase();
 
 // (Jurídico e Comunicação agora descem como departamentos abaixo do Coordenador Geral)
 
-// Main department row (all sit below Coordenador Geral)
-const DEPARTMENTS: DeptDef[] = [
+// Staff lateral (Jurídico à esquerda, Comunicação à direita do Coordenador Geral)
+const STAFF: DeptDef[] = [
   {
     key: 'juridico',
     label: 'Jurídico',
@@ -43,6 +43,10 @@ const DEPARTMENTS: DeptDef[] = [
     color: 'hsl(var(--brand-cyan))',
     match: r => lc(r).includes('comunica') || lc(r).includes('marketing') || lc(r).includes('imprensa'),
   },
+];
+
+// Departamentos da linha inferior (descem todos do Coordenador Geral)
+const DEPARTMENTS: DeptDef[] = [
   {
     key: 'logistica',
     label: 'Logística',
