@@ -335,7 +335,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
         {/* Org chart — responsive, no horizontal scroll */}
         <div className="flex-1 overflow-auto p-3 sm:p-6 bg-background">
-          <div ref={chartRef} className="w-full max-w-[1040px] mx-auto">
+          <div ref={chartRef} data-pdf-root className="w-full max-w-[1040px] mx-auto">
 
             {/* L1 — Candidato */}
             <div className="flex justify-center">
