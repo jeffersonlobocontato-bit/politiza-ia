@@ -190,6 +190,48 @@ function HorizontalBus({ count, dropH = 16 }: { count: number; dropH?: number })
 export function HierarchyFlowchart({ open, onClose }: Props) {
   const { data: members = [] } = useCampaignMembers();
   const { activeCandidate } = useCandidate();
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!chartRef.current) return;
+    setExporting(true);
+    try {
+      // Resolve background from CSS variable so html2canvas doesn't paint transparent
+      const bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+      const bgColor = bg ? `hsl(${bg})` : '#0b1220';
+
+      const canvas = await html2canvas(chartRef.current, {
+        scale: 3, // high resolution
+        backgroundColor: bgColor,
+        useCORS: true,
+        logging: false,
+        windowWidth: chartRef.current.scrollWidth,
+        windowHeight: chartRef.current.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pxToMm = (px: number) => (px * 25.4) / 96 / 3; // scale=3 → divide
+      const wMm = pxToMm(canvas.width);
+      const hMm = pxToMm(canvas.height);
+      const landscape = wMm >= hMm;
+      const pdf = new jsPDF({
+        orientation: landscape ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: [wMm + 20, hMm + 20], // 10mm margin each side
+        compress: true,
+      });
+      pdf.addImage(imgData, 'PNG', 10, 10, wMm, hMm, undefined, 'FAST');
+      const name = activeCandidate?.name?.replace(/\s+/g, '_') ?? 'campanha';
+      pdf.save(`organograma_${name}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success('PDF gerado com sucesso!');
+    } catch (e: any) {
+      toast.error(`Falha ao gerar PDF: ${e.message ?? e}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
 
   const coordGeral = findCoordGeral(members);
   const flankers = FLANKERS.map(def => ({ def, member: findMember(members, def) }));
