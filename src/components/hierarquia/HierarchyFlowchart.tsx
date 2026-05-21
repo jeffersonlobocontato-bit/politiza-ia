@@ -1,5 +1,9 @@
-import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText, Download, Loader2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { toast } from 'sonner';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import { useCandidate } from '@/contexts/CandidateContext';
