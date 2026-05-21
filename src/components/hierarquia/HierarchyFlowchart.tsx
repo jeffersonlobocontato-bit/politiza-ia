@@ -116,7 +116,7 @@ function findCoordGeral(members: DbCampaignMember[]): DbCampaignMember | null {
     members.find(m => {
       const r = lc(m.role);
       return r.includes('coorden') && r.includes('geral');
-    }) ?? members.find(m => m.hierarchy_level === 2) ?? null
+    }) ?? null
   );
 }
 
