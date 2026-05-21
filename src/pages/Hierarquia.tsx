@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X, GitFork } from 'lucide-react';
+import { useState, Fragment } from 'react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
@@ -42,8 +42,6 @@ const SECTORAL_GROUPS = [
     roles: [
       'Coordenador de Comunicação',
       'Coordenador de Inteligência Política',
-      'Coordenação PL',
-      'Coordenação NOVO',
       'Coordenador de Plano de Governo',
     ],
   },
@@ -57,6 +55,11 @@ const SECTORAL_GROUPS = [
 ];
 
 const SECTORAL_ROLES = SECTORAL_GROUPS.flatMap(g => g.roles);
+
+const SUB_ROLES: Record<string, string[]> = {
+  'Coordenador de Inteligência Política': ['Coordenação PL', 'Coordenação NOVO'],
+};
+const ALL_SUB_ROLES = Object.values(SUB_ROLES).flat();
 
 interface MemberForm {
   name: string;
@@ -93,6 +96,12 @@ export default function Hierarquia() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
+  const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+  const toggleExpanded = (role: string) => setExpandedRoles(prev => {
+    const next = new Set(prev);
+    next.has(role) ? next.delete(role) : next.add(role);
+    return next;
+  });
 
   const byLevel = [1, 2, 3, 4, 5, 6].map(l => ({
     level: l,
@@ -344,7 +353,7 @@ export default function Hierarquia() {
                   return { role, member: assigned ?? null };
                 });
                 // Also include any level-2 members with non-standard roles
-                const extraMembers = lvlMembers.filter(m => !SECTORAL_ROLES.includes(m.role));
+                const extraMembers = lvlMembers.filter(m => !SECTORAL_ROLES.includes(m.role) && !ALL_SUB_ROLES.includes(m.role));
 
                 return (
                   <div key={level}>
@@ -367,51 +376,119 @@ export default function Hierarquia() {
                             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: group.color }}>{group.label}</span>
                           </div>
                           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {groupCards.map(({ role, member }) => (
-                              <div key={role} className={`rounded-xl border p-4 group relative ${member ? 'border-border' : 'border-dashed border-muted-foreground/30'}`} style={{ background: member ? 'var(--gradient-card)' : undefined }}>
-                                {member ? (
-                                  <>
-                                    <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <button onClick={() => openEdit(member)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
-                                        <Pencil className="w-3.5 h-3.5" />
-                                      </button>
-                                      <button onClick={() => handleDelete(member.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </div>
-                                    <div className="flex items-center gap-3 mb-2 pr-12">
-                                      <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ backgroundColor: `${group.color}20`, color: group.color }}>
-                                        {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <div className="text-sm font-semibold text-foreground truncate">{member.name}</div>
-                                        <div className="text-[10px] text-muted-foreground truncate">{member.phone || member.email || ''}</div>
-                                      </div>
-                                    </div>
-                                    <div className="text-xs font-medium truncate" style={{ color: group.color }}>{role.replace('Coordenador ', '').replace('de ', '')}</div>
-                                    <div className="mt-2">
-                                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${member.status === 'ativo' ? 'bg-brand-green/15 text-brand-green' : 'bg-muted text-muted-foreground'}`}>
-                                        {member.status}
-                                      </span>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <button
-                                    onClick={() => {
-                                      setEditingId(null);
-                                      setForm({ ...emptyForm(), hierarchy_level: '2', role });
-                                      setGeoForm({ city: '', lat: null, lng: null });
-                                      setShowForm(true);
-                                    }}
-                                    className="w-full flex flex-col items-center justify-center py-3 text-muted-foreground hover:text-foreground transition-colors"
+                            {groupCards.map(({ role, member }) => {
+                              const subRoles = SUB_ROLES[role] ?? [];
+                              const hasSubs = subRoles.length > 0;
+                              const isExpanded = expandedRoles.has(role);
+                              return (
+                                <Fragment key={role}>
+                                  <div
+                                    onClick={hasSubs ? () => toggleExpanded(role) : undefined}
+                                    className={`rounded-xl border p-4 group relative ${member ? 'border-border' : 'border-dashed border-muted-foreground/30'} ${hasSubs ? 'cursor-pointer hover:border-primary/60 transition-colors' : ''}`}
+                                    style={{ background: member ? 'var(--gradient-card)' : undefined }}
                                   >
-                                    <Plus className="w-5 h-5 mb-1" />
-                                    <span className="text-xs font-medium text-center text-foreground/70">{role.replace('Coordenador ', '').replace('de ', '')}</span>
-                                    <span className="text-[10px] mt-0.5 text-foreground/60">Vaga aberta</span>
-                                  </button>
-                                )}
-                              </div>
-                            ))}
+                                    {hasSubs && (
+                                      <div className="absolute top-3 left-3 text-muted-foreground">
+                                        {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                                      </div>
+                                    )}
+                                    {member ? (
+                                      <>
+                                        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button onClick={(e) => { e.stopPropagation(); openEdit(member); }} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                                            <Pencil className="w-3.5 h-3.5" />
+                                          </button>
+                                          <button onClick={(e) => { e.stopPropagation(); handleDelete(member.id); }} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                        <div className={`flex items-center gap-3 mb-2 pr-12 ${hasSubs ? 'pl-5' : ''}`}>
+                                          <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ backgroundColor: `${group.color}20`, color: group.color }}>
+                                            {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                          </div>
+                                          <div className="min-w-0">
+                                            <div className="text-sm font-semibold text-foreground truncate">{member.name}</div>
+                                            <div className="text-[10px] text-muted-foreground truncate">{member.phone || member.email || ''}</div>
+                                          </div>
+                                        </div>
+                                        <div className={`text-xs font-medium truncate ${hasSubs ? 'pl-5' : ''}`} style={{ color: group.color }}>{role.replace('Coordenador ', '').replace('de ', '')}</div>
+                                        <div className={`mt-2 ${hasSubs ? 'pl-5' : ''}`}>
+                                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${member.status === 'ativo' ? 'bg-brand-green/15 text-brand-green' : 'bg-muted text-muted-foreground'}`}>
+                                            {member.status}
+                                          </span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <button
+                                        onClick={(e) => {
+                                          if (hasSubs) return;
+                                          e.stopPropagation();
+                                          setEditingId(null);
+                                          setForm({ ...emptyForm(), hierarchy_level: '2', role });
+                                          setGeoForm({ city: '', lat: null, lng: null });
+                                          setShowForm(true);
+                                        }}
+                                        className="w-full flex flex-col items-center justify-center py-3 text-muted-foreground hover:text-foreground transition-colors"
+                                      >
+                                        <Plus className="w-5 h-5 mb-1" />
+                                        <span className="text-xs font-medium text-center text-foreground/70">{role.replace('Coordenador ', '').replace('de ', '')}</span>
+                                        <span className="text-[10px] mt-0.5 text-foreground/60">{hasSubs ? 'Clique para expandir' : 'Vaga aberta'}</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                  {hasSubs && isExpanded && (
+                                    <div key={`${role}-subs`} className="sm:col-span-2 lg:col-span-3 ml-6 pl-4 border-l-2 border-primary/30">
+                                      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2">Sub-coordenações de {role.replace('Coordenador de ', '')}</div>
+                                      <div className="grid sm:grid-cols-2 gap-3">
+                                        {subRoles.map(subRole => {
+                                          const subMember = lvlMembers.find(m => m.role === subRole) ?? null;
+                                          return (
+                                            <div key={subRole} className={`rounded-xl border p-4 group relative ${subMember ? 'border-border' : 'border-dashed border-muted-foreground/30'}`} style={{ background: subMember ? 'var(--gradient-card)' : undefined }}>
+                                              {subMember ? (
+                                                <>
+                                                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => openEdit(subMember)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                                                      <Pencil className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(subMember.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                                                      <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                  </div>
+                                                  <div className="flex items-center gap-3 mb-2 pr-12">
+                                                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ backgroundColor: `${group.color}20`, color: group.color }}>
+                                                      {subMember.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                      <div className="text-sm font-semibold text-foreground truncate">{subMember.name}</div>
+                                                      <div className="text-[10px] text-muted-foreground truncate">{subMember.phone || subMember.email || ''}</div>
+                                                    </div>
+                                                  </div>
+                                                  <div className="text-xs font-medium truncate" style={{ color: group.color }}>{subRole}</div>
+                                                </>
+                                              ) : (
+                                                <button
+                                                  onClick={() => {
+                                                    setEditingId(null);
+                                                    setForm({ ...emptyForm(), hierarchy_level: '2', role: subRole });
+                                                    setGeoForm({ city: '', lat: null, lng: null });
+                                                    setShowForm(true);
+                                                  }}
+                                                  className="w-full flex flex-col items-center justify-center py-3 text-muted-foreground hover:text-foreground transition-colors"
+                                                >
+                                                  <Plus className="w-5 h-5 mb-1" />
+                                                  <span className="text-xs font-medium text-center text-foreground/70">{subRole}</span>
+                                                  <span className="text-[10px] mt-0.5 text-foreground/60">Vaga aberta</span>
+                                                </button>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+                                </Fragment>
+                              );
+                            })}
                           </div>
                         </div>
                       );
