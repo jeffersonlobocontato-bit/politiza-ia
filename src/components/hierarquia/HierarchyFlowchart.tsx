@@ -1,5 +1,9 @@
-import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText, Download, Loader2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { toast } from 'sonner';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import { useCandidate } from '@/contexts/CandidateContext';
@@ -186,6 +190,48 @@ function HorizontalBus({ count, dropH = 16 }: { count: number; dropH?: number })
 export function HierarchyFlowchart({ open, onClose }: Props) {
   const { data: members = [] } = useCampaignMembers();
   const { activeCandidate } = useCandidate();
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!chartRef.current) return;
+    setExporting(true);
+    try {
+      // Resolve background from CSS variable so html2canvas doesn't paint transparent
+      const bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+      const bgColor = bg ? `hsl(${bg})` : '#0b1220';
+
+      const canvas = await html2canvas(chartRef.current, {
+        scale: 3, // high resolution
+        backgroundColor: bgColor,
+        useCORS: true,
+        logging: false,
+        windowWidth: chartRef.current.scrollWidth,
+        windowHeight: chartRef.current.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pxToMm = (px: number) => (px * 25.4) / 96 / 3; // scale=3 → divide
+      const wMm = pxToMm(canvas.width);
+      const hMm = pxToMm(canvas.height);
+      const landscape = wMm >= hMm;
+      const pdf = new jsPDF({
+        orientation: landscape ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: [wMm + 20, hMm + 20], // 10mm margin each side
+        compress: true,
+      });
+      pdf.addImage(imgData, 'PNG', 10, 10, wMm, hMm, undefined, 'FAST');
+      const name = activeCandidate?.name?.replace(/\s+/g, '_') ?? 'campanha';
+      pdf.save(`organograma_${name}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success('PDF gerado com sucesso!');
+    } catch (e: any) {
+      toast.error(`Falha ao gerar PDF: ${e.message ?? e}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
 
   const coordGeral = findCoordGeral(members);
   const flankers = FLANKERS.map(def => ({ def, member: findMember(members, def) }));
@@ -238,6 +284,15 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               </div>
             </div>
             <button
+              onClick={handleDownloadPdf}
+              disabled={exporting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold uppercase tracking-wider text-primary-foreground bg-primary hover:opacity-90 disabled:opacity-60 transition-opacity"
+              aria-label="Baixar organograma em PDF"
+            >
+              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{exporting ? 'Gerando…' : 'Baixar PDF'}</span>
+            </button>
+            <button
               onClick={onClose}
               className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
               aria-label="Fechar"
@@ -249,7 +304,8 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
         {/* Org chart — responsive, no horizontal scroll */}
         <div className="flex-1 overflow-auto p-3 sm:p-6 bg-background">
-          <div className="w-full max-w-[1040px] mx-auto">
+          <div ref={chartRef} className="w-full max-w-[1040px] mx-auto">
+
             {/* L1 — Candidato */}
             <div className="flex justify-center">
               <div
