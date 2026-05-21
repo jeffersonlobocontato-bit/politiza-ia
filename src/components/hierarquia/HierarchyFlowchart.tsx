@@ -415,7 +415,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
             >
               {departments.map(({ def, member, children }) => (
                 <div key={def.key} className="flex flex-col items-stretch">
-                  <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} />
+                  <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} exportMode={exporting} />
 
                   {children.length > 0 && (
                     <>
@@ -430,6 +430,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                               icon={c.def.icon}
                               color={c.def.color}
                               compact
+                              exportMode={exporting}
                             />
                           </div>
                         ))}
