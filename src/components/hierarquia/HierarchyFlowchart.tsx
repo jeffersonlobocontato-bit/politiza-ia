@@ -60,11 +60,37 @@ const DEPARTMENTS: DeptDef[] = [
     match: r => lc(r).includes('finan') || lc(r).includes('tesour'),
   },
   {
+    key: 'inteligencia',
+    label: 'Inteligência Política',
+    icon: Handshake,
+    color: 'hsl(var(--brand-amber))',
+    match: r => {
+      const s = lc(r);
+      return (s.includes('inteligência') || s.includes('inteligencia')) && (s.includes('polític') || s.includes('politic'));
+    },
+    children: [
+      {
+        key: 'pl',
+        label: 'PL',
+        icon: Handshake,
+        color: 'hsl(var(--primary))',
+        match: r => /\bpl\b/.test(lc(r)),
+      },
+      {
+        key: 'novo',
+        label: 'NOVO',
+        icon: Handshake,
+        color: 'hsl(var(--brand-amber))',
+        match: r => /\bnovo\b/.test(lc(r)),
+      },
+    ],
+  },
+  {
     key: 'politica',
     label: 'Coord. Política',
     icon: Handshake,
-    color: 'hsl(var(--brand-amber))',
-    match: r => (lc(r).includes('polític') || lc(r).includes('politic')) && !lc(r).includes('plano'),
+    color: 'hsl(var(--brand-cyan))',
+    match: r => (lc(r).includes('polític') || lc(r).includes('politic')) && !lc(r).includes('plano') && !lc(r).includes('inteligência') && !lc(r).includes('inteligencia'),
     children: [
       {
         key: 'relacoes',
