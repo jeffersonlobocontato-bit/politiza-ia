@@ -382,6 +382,7 @@ export default function Hierarquia() {
                               const isExpanded = expandedRoles.has(role);
                               return (
                                 <Fragment key={role}>
+                                  <div
                                     onClick={hasSubs ? () => toggleExpanded(role) : undefined}
                                     className={`rounded-xl border p-4 group relative ${member ? 'border-border' : 'border-dashed border-muted-foreground/30'} ${hasSubs ? 'cursor-pointer hover:border-primary/60 transition-colors' : ''}`}
                                     style={{ background: member ? 'var(--gradient-card)' : undefined }}
