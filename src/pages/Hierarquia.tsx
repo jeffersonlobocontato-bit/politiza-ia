@@ -306,6 +306,41 @@ export default function Hierarquia() {
                 <label className="text-xs text-muted-foreground block mb-1">Microrregião</label>
                 <input value={form.microregion} onChange={e => updateForm('microregion', e.target.value)} placeholder="Ex: Londrina" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
+              {(() => {
+                const lvl = parseInt(form.hierarchy_level);
+                if (lvl < 4) return null;
+                const supLvl = lvl - 1;
+                const supLabel = LEVEL_LABELS[supLvl];
+                let candidates = members.filter(m => m.hierarchy_level === supLvl && m.id !== editingId);
+                if (lvl === 4) {
+                  candidates = candidates.filter(m => !form.macroregion_id || m.macroregion_id === form.macroregion_id);
+                } else if (lvl === 5) {
+                  candidates = candidates.filter(m =>
+                    (!form.macroregion_id || m.macroregion_id === form.macroregion_id) &&
+                    (!form.microregion || (m.microregion ?? '').toLowerCase() === form.microregion.toLowerCase())
+                  );
+                } else if (lvl === 6) {
+                  candidates = candidates.filter(m =>
+                    !geoForm.city || (m.municipality ?? '').toLowerCase() === geoForm.city.toLowerCase()
+                  );
+                }
+                return (
+                  <div className="sm:col-span-2">
+                    <label className="text-xs text-muted-foreground block mb-1">Vinculado a — {supLabel}</label>
+                    <select value={form.supervisor_id} onChange={e => updateForm('supervisor_id', e.target.value)} className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+                      <option value="">— Sem vínculo definido —</option>
+                      {candidates.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} · {c.role}{c.municipality ? ` · ${c.municipality}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {candidates.length === 0 && (
+                      <p className="text-[10px] text-muted-foreground mt-1">Nenhum {supLabel.toLowerCase()} cadastrado no território selecionado.</p>
+                    )}
+                  </div>
+                );
+              })()}
               <div className="sm:col-span-2">
                 <GeoLocationInput
                   value={geoForm}
