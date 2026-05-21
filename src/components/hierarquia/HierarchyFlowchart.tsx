@@ -332,8 +332,23 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             <VLine />
 
-            {/* L2 — Coordenador Geral (centralizado, sozinho) */}
-            <div className="flex justify-center">
+            {/* L2 — Coordenador Geral centralizado com Jurídico (esq) e Comunicação (dir) ligeiramente abaixo */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2 sm:gap-3">
+              {/* Jurídico (lateral esquerda, levemente abaixo) */}
+              <div className="flex justify-end items-center gap-2 pt-10 sm:pt-12">
+                <div className="w-full max-w-[140px] sm:max-w-[160px]">
+                  <DeptCard
+                    member={staff[0].member}
+                    label={staff[0].def.label}
+                    icon={staff[0].def.icon}
+                    color={staff[0].def.color}
+                    compact
+                  />
+                </div>
+                <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
+              </div>
+
+              {/* Coordenador Geral (centro, no topo) */}
               <div className="w-[200px] sm:w-[230px]">
                 <DeptCard
                   member={coordGeral}
@@ -341,6 +356,20 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                   icon={Crown}
                   color={COORD_GERAL_COLOR}
                 />
+              </div>
+
+              {/* Comunicação (lateral direita, levemente abaixo) */}
+              <div className="flex justify-start items-center gap-2 pt-10 sm:pt-12">
+                <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
+                <div className="w-full max-w-[140px] sm:max-w-[160px]">
+                  <DeptCard
+                    member={staff[1].member}
+                    label={staff[1].def.label}
+                    icon={staff[1].def.icon}
+                    color={staff[1].def.color}
+                    compact
+                  />
+                </div>
               </div>
             </div>
 
