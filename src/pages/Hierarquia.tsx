@@ -26,7 +26,7 @@ const LEVEL_LABELS: Record<number, string> = {
 
 const SECTORAL_GROUPS = [
   {
-    label: 'Comando Geral',
+    label: 'Coordenador Geral',
     color: 'hsl(var(--primary))',
     roles: [
       'Coordenador Geral',
