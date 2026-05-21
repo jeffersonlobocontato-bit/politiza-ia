@@ -25,8 +25,10 @@ interface DeptDef {
 
 const lc = (s: string) => s.toLowerCase();
 
-// Flanker staff (sit beside Coordenação Geral)
-const FLANKERS: DeptDef[] = [
+// (Jurídico e Comunicação agora descem como departamentos abaixo do Coordenador Geral)
+
+// Main department row (all sit below Coordenador Geral)
+const DEPARTMENTS: DeptDef[] = [
   {
     key: 'juridico',
     label: 'Jurídico',
@@ -41,10 +43,6 @@ const FLANKERS: DeptDef[] = [
     color: 'hsl(var(--brand-cyan))',
     match: r => lc(r).includes('comunica') || lc(r).includes('marketing') || lc(r).includes('imprensa'),
   },
-];
-
-// Main department row
-const DEPARTMENTS: DeptDef[] = [
   {
     key: 'logistica',
     label: 'Logística',
@@ -105,7 +103,7 @@ const DEPARTMENTS: DeptDef[] = [
 ];
 
 const COORD_GERAL_COLOR = 'hsl(var(--primary))';
-const ALL_DEFS = [...FLANKERS, ...DEPARTMENTS, ...DEPARTMENTS.flatMap(d => d.children ?? [])];
+const ALL_DEFS = [...DEPARTMENTS, ...DEPARTMENTS.flatMap(d => d.children ?? [])];
 
 function findMember(members: DbCampaignMember[], def: DeptDef): DbCampaignMember | null {
   return members.find(m => def.match(m.role)) ?? null;
@@ -234,7 +232,6 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
 
   const coordGeral = findCoordGeral(members);
-  const flankers = FLANKERS.map(def => ({ def, member: findMember(members, def) }));
   const departments = DEPARTMENTS.map(def => ({
     def,
     member: findMember(members, def),
@@ -242,12 +239,11 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
   }));
 
   const totalSlots =
-    1 + flankers.length + departments.length +
+    1 + departments.length +
     departments.reduce((acc, d) => acc + d.children.length, 0) +
     (activeCandidate ? 1 : 0);
   const filledSlots =
     (coordGeral ? 1 : 0) +
-    flankers.filter(f => f.member).length +
     departments.filter(d => d.member).length +
     departments.reduce((acc, d) => acc + d.children.filter(c => c.member).length, 0) +
     (activeCandidate ? 1 : 0);
@@ -330,44 +326,15 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             <VLine />
 
-            {/* L2 — Coordenação Geral com flankers (Jurídico esquerda · Comunicação direita) */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-4">
-              {/* Jurídico (flanker) */}
-              <div className="flex justify-end items-center gap-2">
-                <div className="w-full max-w-[150px]">
-                  <DeptCard
-                    member={flankers[0].member}
-                    label={flankers[0].def.label}
-                    icon={flankers[0].def.icon}
-                    color={flankers[0].def.color}
-                    compact
-                  />
-                </div>
-                <div className="h-0.5 w-3 sm:w-6 bg-border flex-shrink-0" />
-              </div>
-
-              {/* Coordenação Geral */}
-              <div className="w-[180px] sm:w-[210px]">
+            {/* L2 — Coordenador Geral (centralizado, sozinho) */}
+            <div className="flex justify-center">
+              <div className="w-[200px] sm:w-[230px]">
                 <DeptCard
                   member={coordGeral}
                   label="Coordenador Geral"
                   icon={Crown}
                   color={COORD_GERAL_COLOR}
                 />
-              </div>
-
-              {/* Comunicação (flanker) */}
-              <div className="flex justify-start items-center gap-2">
-                <div className="h-0.5 w-3 sm:w-6 bg-border flex-shrink-0" />
-                <div className="w-full max-w-[150px]">
-                  <DeptCard
-                    member={flankers[1].member}
-                    label={flankers[1].def.label}
-                    icon={flankers[1].def.icon}
-                    color={flankers[1].def.color}
-                    compact
-                  />
-                </div>
               </div>
             </div>
 
