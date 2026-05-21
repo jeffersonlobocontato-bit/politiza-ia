@@ -320,7 +320,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
     6: 'Liderança',
   };
 
-  const renderTreeNode = (m: DbCampaignMember, depth: number): JSX.Element => {
+  const renderTreeNode = (m: DbCampaignMember, depth: number) => {
     const color = LEVEL_COLORS[m.hierarchy_level] ?? 'hsl(var(--muted-foreground))';
     const children = territorial.byParent.get(m.id) ?? [];
     return (
