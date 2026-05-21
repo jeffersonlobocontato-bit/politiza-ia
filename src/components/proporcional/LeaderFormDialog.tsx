@@ -15,6 +15,7 @@ import { useSetLeaderProfiles } from '@/hooks/useLeaders';
 import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
 import { Plus, X, User, MapPin, Handshake, History, Building2, Zap } from 'lucide-react';
+import { GeoLocationInput } from '@/components/ui/GeoLocationInput';
 
 const MACROREGIONS = [
   { id: 'curitiba', name: 'Curitiba' },
@@ -84,12 +85,21 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
 
   const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>(initialProfileIds);
   const [partyEntries, setPartyEntries] = useState<{ party_name: string; start_year: string; end_year: string }[]>([]);
+  const [geoForm, setGeoForm] = useState<{ city: string; lat: number | null; lng: number | null }>({
+    city: leader?.municipality ?? '',
+    lat: (leader as any)?.lat ?? null,
+    lng: (leader as any)?.lng ?? null,
+  });
 
   const set = (key: string, value: any) => setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = async () => {
     if (!form.name.trim()) { toast.error('Nome é obrigatório'); return; }
     if (!activeCandidate) { toast.error('Nenhum candidato ativo. Configure em Configurações.'); return; }
+    if (!isEdit && (geoForm.lat == null || geoForm.lng == null)) {
+      toast.error('Geolocalização obrigatória — use o GPS ou selecione a cidade na aba Território.');
+      return;
+    }
     try {
       const payload = {
         name: form.name,
@@ -99,9 +109,11 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
         status: form.status,
         observations: form.observations || null,
         neighborhood: form.neighborhood || null,
-        municipality: form.municipality || null,
+        municipality: geoForm.city || form.municipality || null,
         microregion: form.microregion || null,
         macroregion_id: form.macroregion_id || null,
+        lat: geoForm.lat,
+        lng: geoForm.lng,
         coverage_type: form.coverage_type,
         support_status: form.support_status,
         alignment_status: form.alignment_status,
