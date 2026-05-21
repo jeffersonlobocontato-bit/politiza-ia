@@ -1,38 +1,41 @@
-## Objetivo
-Adicionar um CTA na página **Hierarquia** (`/hierarquia`) que abre a visualização do **fluxograma da estrutura hierárquica** da campanha (6 níveis de comando), permitindo enxergar a árvore de comando de forma visual em vez de só lista/tabela.
+# Corrigir PDF do organograma cortando textos
 
-## O que será feito
+## Problema
+No PDF exportado, a segunda linha de texto de cada card (cargo/função, ex.: "Coordenador de Logística", "Coronel Adilson") aparece com a parte inferior cortada (descendentes "g", "p" sumindo).
 
-### 1. Botão CTA no header da página Hierarquia
-- Adicionar botão `"Ver Fluxograma"` (ícone `Network` / `GitFork`) ao lado dos controles existentes do header de `src/pages/Hierarquia.tsx`.
-- Estilo MobNex: variante `mint` (verde primário), consistente com os outros CTAs da plataforma.
+Causa raiz em `src/components/hierarquia/HierarchyFlowchart.tsx`:
+- `DeptCard` usa `truncate` + `leading-tight` + fontes muito pequenas (`text-[9px]`/`text-[10px]`/`text-[11px]`).
+- O `html2canvas` calcula a altura do nó com base no `line-height` apertado e ainda aplica `overflow:hidden` do `truncate`, fazendo o renderer clipar descendentes e qualquer texto que ultrapasse uma linha.
+- O `padding` vertical do card (`py-1.5`/`py-2`) é insuficiente para a renderização do canvas em escala 3x.
 
-### 2. Modal/Dialog com o fluxograma
-Ao clicar no CTA, abre um `Dialog` em tela cheia (`max-w-6xl`, scroll interno) contendo:
+## Solução (somente camada de apresentação)
 
-- **Cabeçalho**: título "Fluxograma da Hierarquia · {Candidato Ativo}" + legenda dos 6 níveis com cores.
-- **Árvore visual** renderizada a partir dos dados reais de `useCampaignMembers()`:
-  - Nível 1 — Candidato (raiz)
-  - Nível 2 — Coordenador Geral
-  - Nível 3 — Coord. Estadual
-  - Nível 4 — Coord. Regional
-  - Nível 5 — Coord. Microrregional / Municipal
-  - Nível 6 — Liderança Local / Operador Campo
-- Cada nó: card compacto com nome, cargo, território, badge de status (ou "Vaga Aberta" quando vazio).
-- Linhas conectoras entre supervisor → subordinado (`supervisor_id`).
-- Cores por nível alinhadas ao design system (Navy / Teal / Mint, sem hardcoded).
+### 1. Modo "export" no `DeptCard`
+Adicionar prop opcional `exportMode?: boolean`. Quando `true`:
+- Remover `truncate` (deixar `whitespace-normal break-words`) em label, nome e cargo.
+- Trocar `leading-tight` por `leading-snug` (~1.35) para acomodar descendentes.
+- Aumentar padding vertical (`py-2.5` / `py-3`) e o tamanho mínimo do card.
+- Garantir `overflow: visible` no container do card.
 
-### 3. Implementação técnica
-- Componente novo: `src/components/hierarquia/HierarchyFlowchart.tsx`.
-- Renderização: árvore CSS pura (grid + SVG connectors) — sem nova dependência. Layout horizontal com scroll lateral quando largo.
-- Fonte de dados: hook existente `useCampaignMembers()` + filtro por `candidato ativo` (CandidateContext).
-- Estado de vazio: quando um nível não tem ninguém, mostra card "Vaga Aberta" tracejado.
-- Responsivo: em mobile (<768px) vira layout vertical empilhado.
+### 2. Aplicar `exportMode` durante a captura
+Em `handleDownloadPdf`:
+- Antes de chamar `html2canvas`, setar um estado `isExporting` que faz todos os `DeptCard` renderizarem em `exportMode`.
+- Aguardar `requestAnimationFrame` (ou pequeno `setTimeout`) para o React aplicar antes de capturar.
+- Após a captura (ou em `finally`), restaurar o modo normal.
 
-### 4. Fora de escopo
-- Não altera schema do banco nem hooks de dados.
-- Não edita/cria membros pelo fluxograma (só visualização — edição continua na tabela).
-- Sem export PNG/PDF nesta primeira versão (pode entrar depois se quiser).
+### 3. Ajustes do `html2canvas`
+- Manter `scale: 3`.
+- Adicionar `onclone` para forçar nos clones: `overflow: visible`, remover qualquer `text-overflow: ellipsis` herdado e aplicar `line-height: 1.4` global no container do chart.
+- Continuar usando `windowWidth/Height = scrollWidth/scrollHeight` para capturar o canvas inteiro.
 
-## Entregável
-CTA "Ver Fluxograma" funcional na página Hierarquia abrindo modal com a árvore de comando da campanha ativa, pronto para apresentação visual ao candidato.
+### 4. Página única bem dimensionada (sem cortes nas bordas)
+- Manter formato dinâmico `[wMm+20, hMm+20]` com 10mm de margem.
+- Adicionar checagem: se `wMm` > 1000mm (limite prático do jsPDF), reduzir proporcionalmente mantendo qualidade.
+
+## Arquivos afetados
+- `src/components/hierarquia/HierarchyFlowchart.tsx` (único arquivo)
+
+## Verificação
+1. Abrir `/hierarquia` → "Organograma" → "Baixar PDF".
+2. Conferir cada card: label, nome e cargo completos, sem letras descendentes cortadas.
+3. Verificar que o layout na tela (sem export) permanece idêntico (truncate ainda ativo no modo normal).

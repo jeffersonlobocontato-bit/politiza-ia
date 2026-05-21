@@ -128,17 +128,24 @@ function DeptCard({
   icon: Icon,
   color,
   compact = false,
+  exportMode = false,
 }: {
   member: DbCampaignMember | null;
   label: string;
   icon: LucideIcon;
   color: string;
   compact?: boolean;
+  exportMode?: boolean;
 }) {
+  const pad = exportMode
+    ? (compact ? 'px-2.5 py-2.5' : 'px-3 py-3')
+    : (compact ? 'px-2 py-1.5' : 'px-2.5 py-2');
+  const textWrap = exportMode ? 'whitespace-normal break-words' : 'truncate';
+  const leading = exportMode ? 'leading-snug' : 'leading-tight';
   return (
     <div
-      className={`w-full rounded-md border-2 bg-card relative ${compact ? 'px-2 py-1.5' : 'px-2.5 py-2'}`}
-      style={{ borderColor: color }}
+      className={`w-full rounded-md border-2 bg-card relative ${pad}`}
+      style={{ borderColor: color, overflow: 'visible' }}
     >
       <div className="flex items-center gap-1.5 mb-0.5">
         <div
@@ -147,15 +154,15 @@ function DeptCard({
         >
           <Icon className="w-2.5 h-2.5" />
         </div>
-        <div className="text-[9px] uppercase tracking-wider font-bold truncate" style={{ color }}>
+        <div className={`text-[9px] uppercase tracking-wider font-bold ${textWrap}`} style={{ color }}>
           {label}
         </div>
       </div>
       {member ? (
         <>
-          <div className="text-[11px] font-bold text-foreground truncate leading-tight">{member.name}</div>
+          <div className={`text-[11px] font-bold text-foreground ${textWrap} ${leading}`}>{member.name}</div>
           {member.role && lc(member.role) !== lc(label) && (
-            <div className="text-[9px] text-muted-foreground truncate">{member.role}</div>
+            <div className={`text-[9px] text-muted-foreground ${textWrap} ${leading}`}>{member.role}</div>
           )}
         </>
       ) : (
@@ -198,29 +205,51 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
   const handleDownloadPdf = async () => {
     if (!chartRef.current) return;
     setExporting(true);
+    // Aguarda React aplicar exportMode antes de capturar
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     try {
-      // Resolve background from CSS variable so html2canvas doesn't paint transparent
       const bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
       const bgColor = bg ? `hsl(${bg})` : '#0b1220';
 
       const canvas = await html2canvas(chartRef.current, {
-        scale: 3, // high resolution
+        scale: 3,
         backgroundColor: bgColor,
         useCORS: true,
         logging: false,
         windowWidth: chartRef.current.scrollWidth,
         windowHeight: chartRef.current.scrollHeight,
+        onclone: (doc) => {
+          // Garante que nada seja clipado durante a renderização do canvas
+          doc.querySelectorAll('*').forEach((el) => {
+            const he = el as HTMLElement;
+            if (he.style) {
+              he.style.textOverflow = 'clip';
+            }
+          });
+          const root = doc.querySelector('[data-pdf-root]') as HTMLElement | null;
+          if (root) {
+            root.style.overflow = 'visible';
+            root.style.lineHeight = '1.4';
+          }
+        },
       });
 
       const imgData = canvas.toDataURL('image/png');
-      const pxToMm = (px: number) => (px * 25.4) / 96 / 3; // scale=3 → divide
-      const wMm = pxToMm(canvas.width);
-      const hMm = pxToMm(canvas.height);
+      const pxToMm = (px: number) => (px * 25.4) / 96 / 3;
+      let wMm = pxToMm(canvas.width);
+      let hMm = pxToMm(canvas.height);
+      // Limite prático do jsPDF (~14400pt ≈ 5080mm), mas mantemos folga
+      const MAX = 1000;
+      if (wMm > MAX || hMm > MAX) {
+        const k = MAX / Math.max(wMm, hMm);
+        wMm *= k;
+        hMm *= k;
+      }
       const landscape = wMm >= hMm;
       const pdf = new jsPDF({
         orientation: landscape ? 'landscape' : 'portrait',
         unit: 'mm',
-        format: [wMm + 20, hMm + 20], // 10mm margin each side
+        format: [wMm + 20, hMm + 20],
         compress: true,
       });
       pdf.addImage(imgData, 'PNG', 10, 10, wMm, hMm, undefined, 'FAST');
@@ -306,7 +335,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
         {/* Org chart — responsive, no horizontal scroll */}
         <div className="flex-1 overflow-auto p-3 sm:p-6 bg-background">
-          <div ref={chartRef} className="w-full max-w-[1040px] mx-auto">
+          <div ref={chartRef} data-pdf-root className="w-full max-w-[1040px] mx-auto">
 
             {/* L1 — Candidato */}
             <div className="flex justify-center">
@@ -343,6 +372,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                     icon={staff[0].def.icon}
                     color={staff[0].def.color}
                     compact
+                    exportMode={exporting}
                   />
                 </div>
                 <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
@@ -355,6 +385,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                   label="Coordenador Geral"
                   icon={Crown}
                   color={COORD_GERAL_COLOR}
+                  exportMode={exporting}
                 />
               </div>
 
@@ -368,6 +399,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                     icon={staff[1].def.icon}
                     color={staff[1].def.color}
                     compact
+                    exportMode={exporting}
                   />
                 </div>
               </div>
@@ -383,7 +415,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
             >
               {departments.map(({ def, member, children }) => (
                 <div key={def.key} className="flex flex-col items-stretch">
-                  <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} />
+                  <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} exportMode={exporting} />
 
                   {children.length > 0 && (
                     <>
@@ -398,6 +430,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                               icon={c.def.icon}
                               color={c.def.color}
                               compact
+                              exportMode={exporting}
                             />
                           </div>
                         ))}
