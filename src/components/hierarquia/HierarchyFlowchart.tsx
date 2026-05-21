@@ -25,23 +25,8 @@ interface DeptDef {
 
 const lc = (s: string) => s.toLowerCase();
 
-// Flanker staff (sit beside Coordenação Geral)
-const FLANKERS: DeptDef[] = [
-  {
-    key: 'juridico',
-    label: 'Jurídico',
-    icon: Scale,
-    color: 'hsl(var(--brand-amber))',
-    match: r => lc(r).includes('jurídic') || lc(r).includes('juridic') || lc(r).includes('advog'),
-  },
-  {
-    key: 'comunicacao',
-    label: 'Comunicação',
-    icon: Megaphone,
-    color: 'hsl(var(--brand-cyan))',
-    match: r => lc(r).includes('comunica') || lc(r).includes('marketing') || lc(r).includes('imprensa'),
-  },
-];
+// (Jurídico e Comunicação agora descem como departamentos abaixo do Coordenador Geral)
+
 
 // Main department row
 const DEPARTMENTS: DeptDef[] = [
