@@ -1,41 +1,58 @@
-# Corrigir PDF do organograma cortando textos
 
-## Problema
-No PDF exportado, a segunda linha de texto de cada card (cargo/função, ex.: "Coordenador de Logística", "Coronel Adilson") aparece com a parte inferior cortada (descendentes "g", "p" sumindo).
+## Objetivo
 
-Causa raiz em `src/components/hierarquia/HierarchyFlowchart.tsx`:
-- `DeptCard` usa `truncate` + `leading-tight` + fontes muito pequenas (`text-[9px]`/`text-[10px]`/`text-[11px]`).
-- O `html2canvas` calcula a altura do nó com base no `line-height` apertado e ainda aplica `overflow:hidden` do `truncate`, fazendo o renderer clipar descendentes e qualquer texto que ultrapasse uma linha.
-- O `padding` vertical do card (`py-1.5`/`py-2`) é insuficiente para a renderização do canvas em escala 3x.
+Estabelecer vínculos hierárquicos explícitos entre membros da campanha (Macro → Micro → Municipal → Liderança Local) para que o formulário, os cards e o organograma reflitam uma árvore territorial encadeada e detalhada.
 
-## Solução (somente camada de apresentação)
+## O que muda
 
-### 1. Modo "export" no `DeptCard`
-Adicionar prop opcional `exportMode?: boolean`. Quando `true`:
-- Remover `truncate` (deixar `whitespace-normal break-words`) em label, nome e cargo.
-- Trocar `leading-tight` por `leading-snug` (~1.35) para acomodar descendentes.
-- Aumentar padding vertical (`py-2.5` / `py-3`) e o tamanho mínimo do card.
-- Garantir `overflow: visible` no container do card.
+### 1. Formulário de cadastro (`/hierarquia`) — campos condicionais por nível
 
-### 2. Aplicar `exportMode` durante a captura
-Em `handleDownloadPdf`:
-- Antes de chamar `html2canvas`, setar um estado `isExporting` que faz todos os `DeptCard` renderizarem em `exportMode`.
-- Aguardar `requestAnimationFrame` (ou pequeno `setTimeout`) para o React aplicar antes de capturar.
-- Após a captura (ou em `finally`), restaurar o modo normal.
+O formulário passa a exibir campos de vínculo conforme o **nível hierárquico** selecionado, usando o campo `supervisor_id` já existente em `campaign_members`:
 
-### 3. Ajustes do `html2canvas`
-- Manter `scale: 3`.
-- Adicionar `onclone` para forçar nos clones: `overflow: visible`, remover qualquer `text-overflow: ellipsis` herdado e aplicar `line-height: 1.4` global no container do chart.
-- Continuar usando `windowWidth/Height = scrollWidth/scrollHeight` para capturar o canvas inteiro.
+| Nível selecionado | Campos extras de vínculo |
+|---|---|
+| 3 — Coordenação Macrorregional | Macrorregião (já existe) |
+| 4 — Coordenação Microrregional | Macrorregião + **Coordenador Macrorregional** (dropdown com membros nível 3 da mesma macro) → grava em `supervisor_id` |
+| 5 — Coordenação Municipal | Macrorregião + Microrregião + **Coordenador Microrregional** (dropdown nível 4) → `supervisor_id` |
+| 6 — Liderança Local | Município + **Coordenador Municipal** (dropdown nível 5 do mesmo município/micro) → `supervisor_id` |
 
-### 4. Página única bem dimensionada (sem cortes nas bordas)
-- Manter formato dinâmico `[wMm+20, hMm+20]` com 10mm de margem.
-- Adicionar checagem: se `wMm` > 1000mm (limite prático do jsPDF), reduzir proporcionalmente mantendo qualidade.
+Os dropdowns filtram dinamicamente os candidatos a "superior" pelo território informado no formulário, mostrando nome + cargo + cidade para desambiguar. Inclui opção "— Sem vínculo definido —" para não travar cadastro.
 
-## Arquivos afetados
-- `src/components/hierarquia/HierarchyFlowchart.tsx` (único arquivo)
+### 2. Cards da hierarquia
 
-## Verificação
-1. Abrir `/hierarquia` → "Organograma" → "Baixar PDF".
-2. Conferir cada card: label, nome e cargo completos, sem letras descendentes cortadas.
-3. Verificar que o layout na tela (sem export) permanece idêntico (truncate ainda ativo no modo normal).
+Cada card de membro passa a exibir, quando houver `supervisor_id`:
+- Linha "Vinculado a: {nome do superior} · {cargo}"
+- Para níveis 3–6, também exibe contagem de subordinados diretos ("3 microrregionais", "5 municipais", "12 lideranças")
+
+### 3. Organograma (`HierarchyFlowchart`)
+
+Adiciona uma nova seção **abaixo dos departamentos setoriais** chamada "Árvore Territorial", renderizando recursivamente a cadeia:
+
+```text
+Coordenador Geral (Julio Reis)
+   └── Macrorregional (nível 3)
+        └── Microrregional (nível 4)
+             └── Municipal (nível 5)
+                  └── Lideranças Locais (nível 6)
+```
+
+A árvore é construída a partir de `supervisor_id`. Membros sem vínculo aparecem agrupados numa caixa "Não vinculados" ao final, para visibilidade do problema. O PDF já existente capturará a árvore inteira (a lógica de export atual cobre todo o `data-pdf-root`).
+
+## Detalhes técnicos
+
+- **Sem migração**: a coluna `supervisor_id uuid` já existe em `campaign_members`. Apenas passaremos a populá-la e consultá-la.
+- **`src/pages/Hierarquia.tsx`**:
+  - Adicionar `supervisor_id` ao `MemberForm` e ao payload de `handleSubmit`.
+  - Renderização condicional do dropdown de superior baseada em `form.hierarchy_level`, com filtro por território já preenchido.
+  - Atualizar cards (`MemberCard` inline) para exibir nome do supervisor (lookup local em `members`).
+- **`src/components/hierarquia/HierarchyFlowchart.tsx`**:
+  - Nova função `buildTree(members)` que indexa por `supervisor_id` e renderiza recursivamente.
+  - Novo componente `TreeNode` com indentação por nível e cor por `LEVEL_COLORS`.
+  - Adicionar seção após a grid de departamentos, com colapso por macrorregião para não estourar largura.
+- **`src/types/database.ts`**: garantir que `DbCampaignMember.supervisor_id` está tipado (já vem do schema gerado).
+
+## Fora de escopo
+
+- Reorganizar departamentos setoriais (Jurídico/Comunicação/etc.) — permanecem como hoje.
+- Edição em massa de vínculos para membros já cadastrados (será feita manualmente via "Editar membro").
+- Validação obrigatória de supervisor (mantemos opcional para não bloquear cadastros parciais).
