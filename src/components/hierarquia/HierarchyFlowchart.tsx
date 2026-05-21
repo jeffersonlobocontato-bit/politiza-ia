@@ -103,7 +103,7 @@ const DEPARTMENTS: DeptDef[] = [
 ];
 
 const COORD_GERAL_COLOR = 'hsl(var(--primary))';
-const ALL_DEFS = [...FLANKERS, ...DEPARTMENTS, ...DEPARTMENTS.flatMap(d => d.children ?? [])];
+const ALL_DEFS = [...DEPARTMENTS, ...DEPARTMENTS.flatMap(d => d.children ?? [])];
 
 function findMember(members: DbCampaignMember[], def: DeptDef): DbCampaignMember | null {
   return members.find(m => def.match(m.role)) ?? null;
