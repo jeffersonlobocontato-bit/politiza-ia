@@ -350,7 +350,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               <div className="w-[180px] sm:w-[210px]">
                 <DeptCard
                   member={coordGeral}
-                  label="Coordenação Geral"
+                  label="Coordenador Geral"
                   icon={Crown}
                   color={COORD_GERAL_COLOR}
                 />
