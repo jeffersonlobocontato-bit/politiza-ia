@@ -157,7 +157,7 @@ export default function Hierarquia() {
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
       municipality: geoForm.city || null,
-      supervisor_id: null as string | null,
+      supervisor_id: form.supervisor_id || null,
       actions_managed: 0,
       completion_rate: 0,
       status: form.status,
