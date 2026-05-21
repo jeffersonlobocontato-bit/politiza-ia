@@ -96,6 +96,12 @@ export default function Hierarquia() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
+  const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+  const toggleExpanded = (role: string) => setExpandedRoles(prev => {
+    const next = new Set(prev);
+    next.has(role) ? next.delete(role) : next.add(role);
+    return next;
+  });
 
   const byLevel = [1, 2, 3, 4, 5, 6].map(l => ({
     level: l,
