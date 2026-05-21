@@ -486,7 +486,7 @@ export default function Hierarquia() {
                                       </div>
                                     </div>
                                   )}
-                                </>
+                                </Fragment>
                               );
                             })}
                           </div>
