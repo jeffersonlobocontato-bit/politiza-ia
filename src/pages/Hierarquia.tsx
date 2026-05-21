@@ -617,6 +617,16 @@ export default function Hierarquia() {
                       {m.municipality && (
                         <div className="mt-2 text-[10px] text-muted-foreground">{m.municipality} {m.macroregion_id ? `· ${m.macroregion_id}` : ''}</div>
                       )}
+                      {m.supervisor_id && memberById.get(m.supervisor_id) && (
+                        <div className="mt-1 text-[10px] text-muted-foreground truncate">
+                          ↑ Vinculado a <span className="font-semibold text-foreground">{memberById.get(m.supervisor_id)!.name}</span> · {memberById.get(m.supervisor_id)!.role}
+                        </div>
+                      )}
+                      {subordinateCounts[m.id] > 0 && (
+                        <div className="mt-1 text-[10px] text-muted-foreground">
+                          ↓ {subordinateCounts[m.id]} subordinado{subordinateCounts[m.id] > 1 ? 's' : ''} direto{subordinateCounts[m.id] > 1 ? 's' : ''}
+                        </div>
+                      )}
                       <div className="mt-2">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${m.status === 'ativo' ? 'bg-brand-green/15 text-brand-green' : 'bg-muted text-muted-foreground'}`}>
                           {m.status}
