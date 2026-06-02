@@ -315,8 +315,8 @@ export default function Configuracoes() {
                 {form.formState.errors.name && <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Partido *</Label>
-                <Input placeholder="Ex: UNIÃO" {...form.register('party')} />
+                <Label>Partido * {isPartyManager && <span className="text-[10px] text-primary ml-1">(fixado)</span>}</Label>
+                <Input placeholder="Ex: UNIÃO" disabled={isPartyManager && !editingId} {...form.register('party')} />
               </div>
               <div className="space-y-1.5">
                 <Label>Cargo disputado *</Label>
