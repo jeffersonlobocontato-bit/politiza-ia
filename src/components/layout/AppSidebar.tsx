@@ -6,9 +6,12 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2
+  Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
+  ChevronDown, Check
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type ModuleScope = 'majoritaria' | 'proporcional' | 'shared';
 
@@ -49,7 +52,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { activeCandidate, campaignType, activeCandidates, hasFullAccess, isViewingAll, setActive } = useCandidate();
+  const { activeCandidate, campaignType, activeCandidates, allActiveCandidates, hasFullAccess, isViewingAll, selectedCandidateIds, setActive, setSelectedCandidateIds } = useCandidate();
 
   const visibleItems = navItems.filter(item => isItemVisible(item, campaignType));
 
@@ -142,10 +145,14 @@ export function AppSidebar() {
                     <div className="text-xs font-semibold text-white truncate">{activeCandidate.name}</div>
                     <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidate.cargo} · {activeCandidate.party}</div>
                   </>
-                ) : isViewingAll && activeCandidates.length > 0 ? (
+                ) : activeCandidates.length > 0 ? (
                   <>
-                    <div className="text-xs font-semibold text-white truncate">Visão consolidada</div>
-                    <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidates.length} candidatos ativos</div>
+                    <div className="text-xs font-semibold text-white truncate">
+                      {isViewingAll ? 'Visão consolidada' : `${selectedCandidateIds.length} candidatos selecionados`}
+                    </div>
+                    <div className="text-[10px] text-sidebar-foreground/50 truncate">
+                      {activeCandidates.length} {activeCandidates.length === 1 ? 'candidato ativo' : 'candidatos ativos'}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -157,19 +164,77 @@ export function AppSidebar() {
             </div>
 
             {/* Seletor de candidato (filtro de visualização) */}
-            {activeCandidates.length > 0 && (
-              <select
-                value={activeCandidate?.id ?? ''}
-                onChange={e => setActive(e.target.value || null)}
-                className="mt-3 w-full text-[11px] bg-white/10 text-white border border-white/20 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-              >
-                {hasFullAccess && <option value="">Todos os candidatos (consolidado)</option>}
-                {activeCandidates.map(c => (
-                  <option key={c.id} value={c.id} className="text-foreground bg-background">
-                    {c.name} — {c.cargo}
-                  </option>
-                ))}
-              </select>
+            {allActiveCandidates.length > 0 && (
+              hasFullAccess ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="mt-3 w-full flex items-center justify-between gap-2 text-[11px] bg-white/10 text-white border border-white/20 rounded px-2 py-1.5 hover:bg-white/15 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                    >
+                      <span className="truncate">
+                        {selectedCandidateIds.length === 0
+                          ? `Todos os candidatos (${allActiveCandidates.length})`
+                          : selectedCandidateIds.length === 1
+                          ? allActiveCandidates.find(c => c.id === selectedCandidateIds[0])?.name ?? '1 selecionado'
+                          : `${selectedCandidateIds.length} de ${allActiveCandidates.length} selecionados`}
+                      </span>
+                      <ChevronDown className="w-3 h-3 flex-shrink-0 opacity-70" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-64 p-2">
+                    <div className="flex items-center justify-between px-2 py-1.5 text-[11px] text-muted-foreground border-b mb-1">
+                      <span>Filtrar candidatos</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCandidateIds([])}
+                        className="text-primary hover:underline"
+                      >
+                        Ver todos
+                      </button>
+                    </div>
+                    <div className="max-h-72 overflow-y-auto">
+                      {allActiveCandidates.map(c => {
+                        const checked = selectedCandidateIds.includes(c.id);
+                        return (
+                          <label
+                            key={c.id}
+                            className="flex items-start gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                const next = v
+                                  ? [...selectedCandidateIds, c.id]
+                                  : selectedCandidateIds.filter(id => id !== c.id);
+                                setSelectedCandidateIds(next);
+                              }}
+                              className="mt-0.5"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-medium truncate">{c.name}</div>
+                              <div className="text-[10px] text-muted-foreground truncate">{c.cargo} · {c.party}</div>
+                            </div>
+                            {checked && <Check className="w-3 h-3 text-primary mt-1 flex-shrink-0" />}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <select
+                  value={activeCandidate?.id ?? ''}
+                  onChange={e => setActive(e.target.value || null)}
+                  className="mt-3 w-full text-[11px] bg-white/10 text-white border border-white/20 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  {allActiveCandidates.map(c => (
+                    <option key={c.id} value={c.id} className="text-foreground bg-background">
+                      {c.name} — {c.cargo}
+                    </option>
+                  ))}
+                </select>
+              )
             )}
           </div>
         )}
