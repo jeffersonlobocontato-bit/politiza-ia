@@ -370,6 +370,42 @@ export function UsersManager() {
                 <Input placeholder="(opcional)" value={form.municipality} onChange={e => setForm({ ...form, municipality: e.target.value })} />
               </div>
             </div>
+
+            {/* Candidatos vinculados */}
+            <div className="space-y-2 border-t border-border pt-4">
+              <Label className="text-xs">Candidatos vinculados (restringe a visualização)</Label>
+              <p className="text-[11px] text-muted-foreground">
+                Deixe vazio para permitir acesso aos candidatos definidos pela regra de partido ou pelo perfil de admin.
+                Selecione candidatos específicos para restringir o usuário apenas a eles.
+              </p>
+              {candidatesList.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Nenhum candidato cadastrado.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto rounded-lg border border-border p-2 bg-muted/30">
+                  {candidatesList.map(c => {
+                    const checked = form.candidate_ids.includes(c.id);
+                    return (
+                      <label key={c.id} className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-xs ${checked ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted'}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={e => {
+                            setForm(f => ({
+                              ...f,
+                              candidate_ids: e.target.checked
+                                ? [...f.candidate_ids, c.id]
+                                : f.candidate_ids.filter(x => x !== c.id),
+                            }));
+                          }}
+                        />
+                        <span className="font-medium text-foreground truncate">{c.name}</span>
+                        <span className="text-muted-foreground truncate">· {c.cargo} {c.party}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
