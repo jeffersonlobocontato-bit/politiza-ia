@@ -210,8 +210,12 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
                 <Input value={form.email} onChange={e => set('email', e.target.value)} type="email" />
               </div>
               <div>
-                <Label>Partido Atual</Label>
-                <Input value={form.current_party} onChange={e => set('current_party', e.target.value)} />
+                <Label>Partido Atual {isPartyManager && <span className="text-[10px] text-primary ml-1">(fixado pelo seu nível de acesso)</span>}</Label>
+                <Input
+                  value={form.current_party}
+                  onChange={e => set('current_party', e.target.value)}
+                  disabled={isPartyManager && !isEdit}
+                />
               </div>
               <div>
                 <Label>Status</Label>
