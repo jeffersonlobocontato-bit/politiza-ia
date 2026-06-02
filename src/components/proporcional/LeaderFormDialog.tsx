@@ -52,6 +52,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
   const setProfiles = useSetLeaderProfiles();
   const { data: profiles } = useLeadershipProfiles();
   const { activeCandidate } = useCandidate();
+  const { party: userParty, isPartyManager } = useUserParty();
 
   const [form, setForm] = useState({
     name: leader?.name ?? '',
