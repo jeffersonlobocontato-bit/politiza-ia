@@ -7,6 +7,7 @@ import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
 import { UsersManager } from '@/components/settings/UsersManager';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserParty } from '@/hooks/useUserParty';
 import { supabase } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
