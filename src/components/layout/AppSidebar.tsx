@@ -136,11 +136,16 @@ export function AppSidebar() {
                   ? <img src={activeCandidate.photo_url} alt={activeCandidate.name} className="w-full h-full object-cover" />
                   : <ShieldCheck className="w-4 h-4 text-white" />}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 {activeCandidate ? (
                   <>
                     <div className="text-xs font-semibold text-white truncate">{activeCandidate.name}</div>
                     <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidate.cargo} · {activeCandidate.party}</div>
+                  </>
+                ) : isViewingAll && activeCandidates.length > 0 ? (
+                  <>
+                    <div className="text-xs font-semibold text-white truncate">Visão consolidada</div>
+                    <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidates.length} candidatos ativos</div>
                   </>
                 ) : (
                   <>
@@ -150,6 +155,22 @@ export function AppSidebar() {
                 )}
               </div>
             </div>
+
+            {/* Seletor de candidato (filtro de visualização) */}
+            {activeCandidates.length > 0 && (
+              <select
+                value={activeCandidate?.id ?? ''}
+                onChange={e => setActive(e.target.value || null)}
+                className="mt-3 w-full text-[11px] bg-white/10 text-white border border-white/20 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+              >
+                {hasFullAccess && <option value="">Todos os candidatos (consolidado)</option>}
+                {activeCandidates.map(c => (
+                  <option key={c.id} value={c.id} className="text-foreground bg-background">
+                    {c.name} — {c.cargo}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         )}
       </SidebarContent>
