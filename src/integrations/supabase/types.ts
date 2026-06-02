@@ -58,6 +58,7 @@ export type Database = {
       actions: {
         Row: {
           address: string | null
+          candidate_id: string | null
           category: string | null
           created_at: string
           created_by: string | null
@@ -88,6 +89,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          candidate_id?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -118,6 +120,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          candidate_id?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -295,6 +298,7 @@ export type Database = {
       campaign_members: {
         Row: {
           actions_managed: number
+          candidate_id: string | null
           completion_rate: number
           created_at: string
           created_by: string | null
@@ -317,6 +321,7 @@ export type Database = {
         }
         Insert: {
           actions_managed?: number
+          candidate_id?: string | null
           completion_rate?: number
           created_at?: string
           created_by?: string | null
@@ -339,6 +344,7 @@ export type Database = {
         }
         Update: {
           actions_managed?: number
+          candidate_id?: string | null
           completion_rate?: number
           created_at?: string
           created_by?: string | null
@@ -423,6 +429,7 @@ export type Database = {
       }
       electoral_surveys: {
         Row: {
+          candidate_id: string | null
           cargos: string[]
           collection_end: string | null
           collection_start: string | null
@@ -441,6 +448,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          candidate_id?: string | null
           cargos?: string[]
           collection_end?: string | null
           collection_start?: string | null
@@ -459,6 +467,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          candidate_id?: string | null
           cargos?: string[]
           collection_end?: string | null
           collection_start?: string | null
@@ -884,6 +893,7 @@ export type Database = {
       political_assets: {
         Row: {
           alignment_status: Database["public"]["Enums"]["alignment_status"]
+          candidate_id: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -907,6 +917,7 @@ export type Database = {
         }
         Insert: {
           alignment_status?: Database["public"]["Enums"]["alignment_status"]
+          candidate_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -930,6 +941,7 @@ export type Database = {
         }
         Update: {
           alignment_status?: Database["public"]["Enums"]["alignment_status"]
+          candidate_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -1698,6 +1710,30 @@ export type Database = {
           },
         ]
       }
+      user_candidates: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1867,6 +1903,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_candidate_record: {
+        Args: { _candidate_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_view_creator_record: {
         Args: { _created_by: string; _user_id: string }
         Returns: boolean
@@ -1880,6 +1920,7 @@ export type Database = {
         Args: { p_candidate_id: string }
         Returns: Json
       }
+      get_user_candidate_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_party: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -1889,6 +1930,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      user_has_candidate_scope: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       action_status:

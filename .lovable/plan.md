@@ -1,55 +1,74 @@
-# Geolocalização Universal dos Cadastros nos Mapas
+## Multi-candidato simultâneo + vínculo de usuário a candidato
 
-## Objetivo
-Todo nome cadastrado na plataforma aparece como ponto nos mapas, com legenda própria por tipo de cadastro. Registros antigos sem GPS recebem coordenada do centróide do município (com leve jitter); novos cadastros passam a exigir GPS.
+### Objetivo
+Permitir múltiplos candidatos ativos ao mesmo tempo. Admin master (Jefferson, Edson, Julio) vê tudo consolidado com filtro opcional por candidato. Usuários comuns (Lucas, Deltan, Marcelo, etc.) ficam restritos aos candidatos vinculados a eles.
 
-## Camadas (fontes de dados)
-Cada fonte vira uma camada toggleável com cor/ícone próprios e popup com nome + papel + município:
+### 1. Banco de dados
 
-| Camada | Tabela | Cor | Ícone |
-|---|---|---|---|
-| Lideranças (CRM) | `leaders` | Verde | Estrela |
-| Ativos Políticos | `political_assets` | Azul | Bandeira |
-| Membros da Campanha | `campaign_members` | Navy | Coroa (por nível) |
-| Ações de Campo | `actions` | Âmbar | Megafone |
-| Entrevistas Tracking | `tracking_interviews` | Ciano | Microfone |
-| Alertas Operacionais | `alerts` | Vermelho | Alerta |
+**Remover restrição de candidato único**
+- Dropar trigger `ensure_single_active_candidate` e a função correspondente. Permite múltiplos `candidates.is_active = true`.
 
-## Estratégia para registros sem lat/lng
+**Nova tabela `user_candidates` (N:N)**
+- Campos: `user_id`, `candidate_id`, `created_at`, `created_by`
+- Único: (`user_id`, `candidate_id`)
+- RLS: admin gerencia (ALL); autenticados leem
+- GRANT padrão (authenticated + service_role)
 
-1. **Helper `resolveGeo(record)`** em `src/lib/geo.ts`:
-   - Se `lat/lng` existem → usa direto.
-   - Senão, busca centróide do município em uma tabela `municipality_centroids` (a popular via migration com as 399 cidades do PR).
-   - Aplica jitter determinístico (hash do `id` → offset ±0.008°) para evitar sobreposição.
-   - Marca o ponto como "aproximado" no popup.
+**Função helper `can_view_candidate_record(_user_id, _candidate_id)`**
+- Retorna true se: admin OR sem vínculo de candidato algum (usuário "livre") OR `_candidate_id` está na lista vinculada
+- Tratar `_candidate_id IS NULL` como visível (registros legados sem candidato)
 
-2. **Migration**: criar `public.municipality_centroids (name text PK, lat numeric, lng numeric, macroregion_id text)` e popular via `insert` tool com dataset das 399 cidades + Curitiba/RMC separados.
+**Função `get_user_candidate_ids(_user_id)`** — retorna array de UUIDs vinculados (usada no frontend via RPC)
 
-3. **Forms** (Lideranças, Ativos, Membros): tornar `GeoLocationInput` obrigatório nos novos cadastros (validação client-side), mantendo retrocompatibilidade com registros antigos.
+**Atualizar RLS SELECT (regra União) nas tabelas com `candidate_id`:**
+- `tracking_rounds`, `tracking_interviews` (via join), `tracking_ai_*`, `vote_projections`, `leaders` (campo `candidate_id` já existe)
+- Para `actions`, `political_assets`, `campaign_members`, `electoral_surveys` que NÃO têm `candidate_id`: adicionar coluna `candidate_id uuid` nullable. Default da inserção será o(s) candidato(s) ativo(s) do contexto.
+- Política SELECT passa a ser: `can_view_creator_record(...) OR can_view_party_record(...) OR can_view_candidate_record(auth.uid(), candidate_id)` (União conforme escolhido).
 
-## Mapas afetados
+### 2. Frontend
 
-- **`src/pages/MapaEstrategico.tsx`** — adicionar as 6 camadas com toggles e legenda agregada.
-- **`src/pages/SalaDeGuerra.tsx`** — mesmas camadas, controladas pelo candidato ativo.
-- **`src/components/tracking/TrackingMap.tsx`** — manter foco em entrevistas, mas permitir overlay opcional de lideranças/membros para contexto.
+**Hook `useUserCandidates`** — lê IDs vinculados do usuário logado e expõe `isAdmin`, `scopedCandidateIds`, `hasFullAccess`.
 
-## Componente reutilizável
+**Contexto "Candidato Ativo" (refatorar)**
+- Hoje seleciona um único candidato global. Passa a suportar:
+  - Admin: estado inicial = "Todos" (consolidado). Seletor permite focar 1 candidato.
+  - Não-admin com 1 vínculo: trava no candidato vinculado.
+  - Não-admin com N vínculos: seletor restrito à lista dele.
+- Persistência via localStorage (chave `activeCandidateFilter`).
 
-`src/components/maps/LeadsLayer.tsx` — recebe `source: 'leaders' | 'assets' | 'members' | 'actions' | 'interviews' | 'alerts'` e renderiza marcadores + popup padronizados (nome, papel, território, badge "Aproximado" se geocodificado). Cada mapa importa só as camadas que quiser.
+**Header / Topbar**
+- Substituir o atual "Candidato Ativo" único por dropdown "Visualizando: Todos os candidatos ▾ | <Candidato X>".
 
-## Hook
+**Configurações → Usuários (UsersManager)**
+- Adicionar seção "Candidatos vinculados" no formulário de criar/editar usuário: multi-select de candidatos. Salva em `user_candidates` via edge function `manage-user` (novas actions: `set_candidates`).
 
-`src/hooks/useGeoLeads.ts` — agrega todas as fontes com TanStack Query, escopadas ao candidato ativo, retornando `{ leaders, assets, members, actions, interviews, alerts }` já com `lat/lng` resolvidos via `resolveGeo`.
+**Filtragem nas queries**
+- Onde existir filtro `candidate_id = activeCandidate.id`, atualizar para:
+  - se "Todos" + admin → sem filtro
+  - se candidato selecionado → `eq('candidate_id', id)`
+  - usuário escopado → `in('candidate_id', scopedCandidateIds)`
 
-## Fora de escopo
-- Edição em massa de coordenadas antigas (continuam usando centróide).
-- Reverse geocoding online (usaremos apenas o dataset estático de centróides).
-- Heatmap de leads (camada de pontos apenas; heatmap existente do tracking permanece como está).
+**Cadastros novos**
+- Em forms de leader/action/asset/survey/round, preencher `candidate_id` automaticamente com o candidato em foco; se "Todos", obrigar seleção.
 
-## Entregáveis
-1. Migration `municipality_centroids` + popular dados.
-2. `src/lib/geo.ts` (resolveGeo, jitter, tipos).
-3. `src/hooks/useGeoLeads.ts`.
-4. `src/components/maps/LeadsLayer.tsx` + legenda.
-5. Integração em `MapaEstrategico`, `SalaDeGuerra`, `TrackingMap`.
-6. Validação obrigatória de GPS nos formulários de Lideranças, Ativos e Membros.
+### 3. Edge function `manage-user`
+- Nova action `set_candidates`: recebe `{ user_id, candidate_ids[] }`, faz delete+insert em `user_candidates`.
+- Listagem de usuários passa a retornar `candidate_ids`.
+
+### 4. Memória do projeto
+- Atualizar `mem://index.md` Core: "Múltiplos candidatos ativos simultaneamente; admin vê consolidado, usuários veem apenas candidatos vinculados (tabela user_candidates)."
+- Atualizar/renomear memory `candidate-centric-strategy` para refletir nova lógica multi-candidato.
+
+### Detalhes técnicos (resumo)
+- Migration 1: drop trigger + função `ensure_single_active_candidate`
+- Migration 2: create `user_candidates` + GRANTs + RLS
+- Migration 3: helpers `can_view_candidate_record` + `get_user_candidate_ids`
+- Migration 4: add `candidate_id` em `actions`, `political_assets`, `campaign_members`, `electoral_surveys`
+- Migration 5: refatorar políticas SELECT para União (criador OR partido OR candidato vinculado OR admin)
+- Edge function update + UsersManager UI + ActiveCandidateContext refactor + Topbar seletor
+
+### Fluxo do usuário final
+- Jefferson loga → vê dashboard consolidado de todos os candidatos ativos; pode filtrar para "Candidato Senado Novo" e ver só ele.
+- Lucas Souza loga → automaticamente travado no candidato Senado Novo; não enxerga registros do Filipe.
+- Deltan/Marcelo logam → travados no candidato Senado Filipe.
+- Cadastrar vínculos: Configurações → Usuários → editar usuário → escolher candidatos.

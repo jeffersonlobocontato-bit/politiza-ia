@@ -43,10 +43,14 @@ type UserRow = {
   macroregion_id: string | null;
   microregion: string | null;
   municipality: string | null;
+  candidate_ids: string[];
 };
+
+type CandidateOption = { id: string; name: string; cargo: string; party: string };
 
 export function UsersManager() {
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [candidatesList, setCandidatesList] = useState<CandidateOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | AppRole>('all');
@@ -59,21 +63,34 @@ export function UsersManager() {
     full_name: '', email: '', password: '', phone: '',
     role: 'operador_campo' as AppRole,
     macroregion_id: '', microregion: '', municipality: '',
+    candidate_ids: [] as string[],
   });
   const [newPassword, setNewPassword] = useState('');
 
   const load = async () => {
     setLoading(true);
-    const { data: profiles } = await (supabase as any).from('profiles').select('id, full_name, email, phone').order('full_name');
-    const { data: roles } = await (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality');
+    const [{ data: profiles }, { data: roles }, { data: links }, { data: cands }] = await Promise.all([
+      (supabase as any).from('profiles').select('id, full_name, email, phone').order('full_name'),
+      (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality'),
+      (supabase as any).from('user_candidates').select('user_id, candidate_id'),
+      (supabase as any).from('candidates').select('id, name, cargo, party').order('name'),
+    ]);
     const rolesMap = new Map<string, any>();
     (roles ?? []).forEach((r: any) => rolesMap.set(r.user_id, r));
+    const linksMap = new Map<string, string[]>();
+    (links ?? []).forEach((l: any) => {
+      const arr = linksMap.get(l.user_id) ?? [];
+      arr.push(l.candidate_id);
+      linksMap.set(l.user_id, arr);
+    });
+    setCandidatesList((cands ?? []) as CandidateOption[]);
     setUsers((profiles ?? []).map((p: any) => ({
       ...p,
       role: rolesMap.get(p.id)?.role ?? null,
       macroregion_id: rolesMap.get(p.id)?.macroregion_id ?? null,
       microregion: rolesMap.get(p.id)?.microregion ?? null,
       municipality: rolesMap.get(p.id)?.municipality ?? null,
+      candidate_ids: linksMap.get(p.id) ?? [],
     })));
     setLoading(false);
   };
@@ -82,7 +99,7 @@ export function UsersManager() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ full_name: '', email: '', password: '', phone: '', role: 'operador_campo', macroregion_id: '', microregion: '', municipality: '' });
+    setForm({ full_name: '', email: '', password: '', phone: '', role: 'operador_campo', macroregion_id: '', microregion: '', municipality: '', candidate_ids: [] });
     setDialogOpen(true);
   };
 
@@ -92,6 +109,7 @@ export function UsersManager() {
       full_name: u.full_name || '', email: u.email || '', password: '', phone: u.phone || '',
       role: (u.role ?? 'operador_campo') as AppRole,
       macroregion_id: u.macroregion_id || '', microregion: u.microregion || '', municipality: u.municipality || '',
+      candidate_ids: u.candidate_ids ?? [],
     });
     setDialogOpen(true);
   };
@@ -107,6 +125,7 @@ export function UsersManager() {
     }
     setSaving(true);
     try {
+      let targetUserId: string | null = editing?.id ?? null;
       if (editing) {
         const r1 = await supabase.functions.invoke('manage-user', {
           body: {
@@ -130,7 +149,16 @@ export function UsersManager() {
           body: { action: 'create', ...form },
         });
         if (r.error || (r.data as any)?.error) throw new Error((r.data as any)?.error || r.error?.message);
+        targetUserId = (r.data as any)?.user_id ?? null;
         toast.success('Usuário criado com sucesso');
+      }
+
+      // Sincronizar vínculos de candidatos (sempre, inclusive para limpar lista)
+      if (targetUserId) {
+        const rc = await supabase.functions.invoke('manage-user', {
+          body: { action: 'set_candidates', user_id: targetUserId, candidate_ids: form.candidate_ids },
+        });
+        if (rc.error || (rc.data as any)?.error) throw new Error((rc.data as any)?.error || rc.error?.message);
       }
       setDialogOpen(false);
       await load();
@@ -254,6 +282,18 @@ export function UsersManager() {
                       Escopo: {[u.municipality, u.microregion, u.macroregion_id].filter(Boolean).join(' · ')}
                     </p>
                   )}
+                  {u.candidate_ids.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {u.candidate_ids.map(cid => {
+                        const c = candidatesList.find(x => x.id === cid);
+                        return (
+                          <Badge key={cid} variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5">
+                            {c ? `${c.name} · ${c.cargo}` : '—'}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPwDialog(u)} title="Redefinir senha">
@@ -329,6 +369,42 @@ export function UsersManager() {
                 <Label className="text-xs">Município</Label>
                 <Input placeholder="(opcional)" value={form.municipality} onChange={e => setForm({ ...form, municipality: e.target.value })} />
               </div>
+            </div>
+
+            {/* Candidatos vinculados */}
+            <div className="space-y-2 border-t border-border pt-4">
+              <Label className="text-xs">Candidatos vinculados (restringe a visualização)</Label>
+              <p className="text-[11px] text-muted-foreground">
+                Deixe vazio para permitir acesso aos candidatos definidos pela regra de partido ou pelo perfil de admin.
+                Selecione candidatos específicos para restringir o usuário apenas a eles.
+              </p>
+              {candidatesList.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Nenhum candidato cadastrado.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto rounded-lg border border-border p-2 bg-muted/30">
+                  {candidatesList.map(c => {
+                    const checked = form.candidate_ids.includes(c.id);
+                    return (
+                      <label key={c.id} className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-xs ${checked ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted'}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={e => {
+                            setForm(f => ({
+                              ...f,
+                              candidate_ids: e.target.checked
+                                ? [...f.candidate_ids, c.id]
+                                : f.candidate_ids.filter(x => x !== c.id),
+                            }));
+                          }}
+                        />
+                        <span className="font-medium text-foreground truncate">{c.name}</span>
+                        <span className="text-muted-foreground truncate">· {c.cargo} {c.party}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
