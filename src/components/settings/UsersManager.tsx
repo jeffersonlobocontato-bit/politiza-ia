@@ -13,12 +13,15 @@ type AppRole =
   | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
   | 'coordenador_regional' | 'coordenador_microrregional' | 'coordenador_municipal'
   | 'lideranca_local' | 'operador_campo' | 'analista_inteligencia'
-  | 'analista_pesquisa' | 'executivo_leitura';
+  | 'analista_pesquisa' | 'executivo_leitura'
+  | 'gestor_estadual_novo' | 'gestor_estadual_pl';
 
 const ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   { value: 'admin_master',              label: 'Admin Master',              description: 'Acesso total. Gerencia plataforma, usuários e candidatos.', color: 'bg-red-500/15 text-red-400 border-red-500/30' },
   { value: 'coordenador_geral',         label: 'Coordenador Geral',         description: 'Gestão completa da campanha do candidato ativo.',          color: 'bg-primary/15 text-primary border-primary/30' },
   { value: 'coordenador_estadual',      label: 'Coordenador Estadual',      description: 'Coordena todo o estado, todas as macrorregiões.',          color: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
+  { value: 'gestor_estadual_novo',      label: 'Gestor Estadual — Novo',    description: 'Vê apenas dados do partido Novo e o que ele próprio cadastrar.', color: 'bg-orange-500/15 text-orange-400 border-orange-500/30' },
+  { value: 'gestor_estadual_pl',        label: 'Gestor Estadual — PL',      description: 'Vê apenas dados do PL e o que ele próprio cadastrar.',     color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' },
   { value: 'coordenador_regional',      label: 'Coordenador Regional',      description: 'Responsável por uma macrorregião.',                        color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30' },
   { value: 'coordenador_microrregional',label: 'Coordenador Microrregional',description: 'Responsável por uma microrregião / associação.',           color: 'bg-teal-500/15 text-teal-400 border-teal-500/30' },
   { value: 'coordenador_municipal',     label: 'Coordenador Municipal',     description: 'Responsável por um município.',                            color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },

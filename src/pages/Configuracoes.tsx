@@ -7,6 +7,7 @@ import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
 import { UsersManager } from '@/components/settings/UsersManager';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserParty } from '@/hooks/useUserParty';
 import { supabase } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,6 +58,8 @@ const PRESET_CANDIDATES = [
 export default function Configuracoes() {
   const { candidates, activeCandidate, setActive, refetch } = useCandidate();
   const { isAdmin } = useAuth();
+  const { party: userParty, isPartyManager } = useUserParty();
+  const lockedParty = userParty === 'PL' ? 'PL' : userParty === 'Novo' ? 'Novo' : '';
   const [tab, setTab] = useState<'candidatos' | 'usuarios' | 'perfis_lideranca' | 'conta'>('candidatos');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -65,14 +68,14 @@ export default function Configuracoes() {
 
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
-    defaultValues: { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
+    defaultValues: { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
   });
 
   const openCreate = (preset?: typeof PRESET_CANDIDATES[0]) => {
     setEditingId(null);
     form.reset(preset
-      ? { ...preset, bio: preset.bio, photo_url: '' }
-      : { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
+      ? { ...preset, party: isPartyManager ? lockedParty : preset.party, bio: preset.bio, photo_url: '' }
+      : { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
     );
     setDialogOpen(true);
   };
@@ -312,8 +315,8 @@ export default function Configuracoes() {
                 {form.formState.errors.name && <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Partido *</Label>
-                <Input placeholder="Ex: UNIÃO" {...form.register('party')} />
+                <Label>Partido * {isPartyManager && <span className="text-[10px] text-primary ml-1">(fixado)</span>}</Label>
+                <Input placeholder="Ex: UNIÃO" disabled={isPartyManager && !editingId} {...form.register('party')} />
               </div>
               <div className="space-y-1.5">
                 <Label>Cargo disputado *</Label>

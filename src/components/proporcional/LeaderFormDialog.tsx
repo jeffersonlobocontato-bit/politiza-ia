@@ -16,6 +16,7 @@ import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
 import { Plus, X, User, MapPin, Handshake, History, Building2, Zap } from 'lucide-react';
 import { GeoLocationInput } from '@/components/ui/GeoLocationInput';
+import { useUserParty } from '@/hooks/useUserParty';
 
 const MACROREGIONS = [
   { id: 'curitiba', name: 'Curitiba' },
@@ -51,6 +52,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
   const setProfiles = useSetLeaderProfiles();
   const { data: profiles } = useLeadershipProfiles();
   const { activeCandidate } = useCandidate();
+  const { party: userParty, isPartyManager } = useUserParty();
 
   const [form, setForm] = useState({
     name: leader?.name ?? '',
@@ -66,7 +68,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
     support_status: leader?.support_status ?? 'indefinido',
     alignment_status: leader?.alignment_status ?? 'neutro',
     relationship_owner: leader?.relationship_owner ?? '',
-    current_party: leader?.current_party ?? '',
+    current_party: leader?.current_party ?? (isPartyManager ? (userParty === 'PL' ? 'PL' : 'Novo') : ''),
     influence_level: leader?.influence_level ?? 5,
     mobilization_capacity: leader?.mobilization_capacity ?? 5,
     estimated_supporters: leader?.estimated_supporters ?? 0,
@@ -208,8 +210,12 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
                 <Input value={form.email} onChange={e => set('email', e.target.value)} type="email" />
               </div>
               <div>
-                <Label>Partido Atual</Label>
-                <Input value={form.current_party} onChange={e => set('current_party', e.target.value)} />
+                <Label>Partido Atual {isPartyManager && <span className="text-[10px] text-primary ml-1">(fixado pelo seu nível de acesso)</span>}</Label>
+                <Input
+                  value={form.current_party}
+                  onChange={e => set('current_party', e.target.value)}
+                  disabled={isPartyManager && !isEdit}
+                />
               </div>
               <div>
                 <Label>Status</Label>
