@@ -160,27 +160,30 @@ export default function Configuracoes() {
       <div className="flex-1 overflow-auto p-6">
         {tab === 'candidatos' && (
           <div className="max-w-3xl space-y-6">
-            {/* Active candidate banner */}
-            {activeCandidate && (
-              <div className="rounded-xl border border-primary/30 p-4 flex items-center gap-4" style={{ background: 'hsl(var(--primary) / 0.06)' }}>
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {activeCandidate.photo_url
-                    ? <img src={activeCandidate.photo_url} alt={activeCandidate.name} className="w-full h-full object-cover" />
-                    : <User className="w-6 h-6 text-primary" />}
+            {/* Active candidates banner */}
+            {activeCandidates.length > 0 && (
+              <div className="rounded-xl border border-primary/30 p-4" style={{ background: 'hsl(var(--primary) / 0.06)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Star className="w-4 h-4 text-primary" fill="currentColor" />
+                  <span className="text-sm font-bold text-foreground">
+                    {activeCandidates.length} candidato{activeCandidates.length > 1 ? 's' : ''} ativo{activeCandidates.length > 1 ? 's' : ''} simultaneamente
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-foreground text-sm">{activeCandidate.name}</span>
-                    <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">ATIVO</Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {activeCandidate.cargo} • {activeCandidate.party} • {activeCandidate.state} • {activeCandidate.election_year}
-                  </p>
-                  {activeCandidate.bio && (
-                    <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2">{activeCandidate.bio}</p>
-                  )}
+                <div className="flex flex-wrap gap-2">
+                  {activeCandidates.map(c => (
+                    <div key={c.id} className="flex items-center gap-2 rounded-lg bg-background/60 border border-primary/20 px-2.5 py-1.5">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                        {c.photo_url
+                          ? <img src={c.photo_url} alt={c.name} className="w-full h-full object-cover" />
+                          : <User className="w-3 h-3 text-primary" />}
+                      </div>
+                      <div className="text-xs">
+                        <span className="font-semibold text-foreground">{c.name}</span>
+                        <span className="text-muted-foreground ml-1">· {c.cargo} {c.party}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <Star className="w-5 h-5 text-primary flex-shrink-0" fill="currentColor" />
               </div>
             )}
 
