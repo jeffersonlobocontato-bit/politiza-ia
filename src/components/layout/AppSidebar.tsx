@@ -145,10 +145,14 @@ export function AppSidebar() {
                     <div className="text-xs font-semibold text-white truncate">{activeCandidate.name}</div>
                     <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidate.cargo} · {activeCandidate.party}</div>
                   </>
-                ) : isViewingAll && activeCandidates.length > 0 ? (
+                ) : activeCandidates.length > 0 ? (
                   <>
-                    <div className="text-xs font-semibold text-white truncate">Visão consolidada</div>
-                    <div className="text-[10px] text-sidebar-foreground/50 truncate">{activeCandidates.length} candidatos ativos</div>
+                    <div className="text-xs font-semibold text-white truncate">
+                      {isViewingAll ? 'Visão consolidada' : `${selectedCandidateIds.length} candidatos selecionados`}
+                    </div>
+                    <div className="text-[10px] text-sidebar-foreground/50 truncate">
+                      {activeCandidates.length} {activeCandidates.length === 1 ? 'candidato ativo' : 'candidatos ativos'}
+                    </div>
                   </>
                 ) : (
                   <>
