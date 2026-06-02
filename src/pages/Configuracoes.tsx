@@ -233,15 +233,15 @@ export default function Configuracoes() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        {!c.is_active && isAdmin && (
+                        {isAdmin && (
                           <Button
-                            variant="outline" size="sm"
+                            variant={c.is_active ? 'secondary' : 'outline'} size="sm"
                             className="text-xs h-7 gap-1"
                             disabled={activating === c.id}
-                            onClick={() => handleSetActive(c.id)}
+                            onClick={() => handleToggleActive(c.id, !c.is_active)}
                           >
                             <CheckCircle className="w-3 h-3" />
-                            {activating === c.id ? 'Ativando…' : 'Ativar'}
+                            {activating === c.id ? '...' : c.is_active ? 'Desativar' : 'Ativar'}
                           </Button>
                         )}
                         {isAdmin && (
