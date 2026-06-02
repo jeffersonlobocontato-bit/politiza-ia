@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag } from 'lucide-react';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
+import { UsersManager } from '@/components/settings/UsersManager';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,7 @@ const PRESET_CANDIDATES = [
 export default function Configuracoes() {
   const { candidates, activeCandidate, setActive, refetch } = useCandidate();
   const { isAdmin } = useAuth();
-  const [tab, setTab] = useState<'candidatos' | 'perfis_lideranca' | 'conta'>('candidatos');
+  const [tab, setTab] = useState<'candidatos' | 'usuarios' | 'perfis_lideranca' | 'conta'>('candidatos');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -136,10 +137,11 @@ export default function Configuracoes() {
       {/* Tabs */}
       <div className="px-6 border-b border-border flex gap-1 flex-shrink-0">
         {([
-          { key: 'candidatos', label: 'Candidatos' },
-          { key: 'perfis_lideranca', label: 'Perfis de Liderança' },
-          { key: 'conta', label: 'Minha Conta' },
-        ] as const).map(t => (
+          { key: 'candidatos', label: 'Candidatos', adminOnly: false },
+          { key: 'usuarios', label: 'Usuários', adminOnly: true },
+          { key: 'perfis_lideranca', label: 'Perfis de Liderança', adminOnly: false },
+          { key: 'conta', label: 'Minha Conta', adminOnly: false },
+        ] as const).filter(t => !t.adminOnly || isAdmin).map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
@@ -275,6 +277,8 @@ export default function Configuracoes() {
             )}
           </div>
         )}
+
+        {tab === 'usuarios' && isAdmin && <UsersManager />}
 
         {tab === 'perfis_lideranca' && <LeadershipProfilesManager />}
 
