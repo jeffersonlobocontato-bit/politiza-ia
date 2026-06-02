@@ -278,6 +278,8 @@ export default function Configuracoes() {
           </div>
         )}
 
+        {tab === 'usuarios' && isAdmin && <UsersManager />}
+
         {tab === 'perfis_lideranca' && <LeadershipProfilesManager />}
 
         {tab === 'conta' && (
