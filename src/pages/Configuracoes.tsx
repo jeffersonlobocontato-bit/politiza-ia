@@ -74,8 +74,8 @@ export default function Configuracoes() {
   const openCreate = (preset?: typeof PRESET_CANDIDATES[0]) => {
     setEditingId(null);
     form.reset(preset
-      ? { ...preset, bio: preset.bio, photo_url: '' }
-      : { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
+      ? { ...preset, party: isPartyManager ? lockedParty : preset.party, bio: preset.bio, photo_url: '' }
+      : { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
     );
     setDialogOpen(true);
   };
