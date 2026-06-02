@@ -49,7 +49,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { activeCandidate, campaignType } = useCandidate();
+  const { activeCandidate, campaignType, activeCandidates, hasFullAccess, isViewingAll, setActive } = useCandidate();
 
   const visibleItems = navItems.filter(item => isItemVisible(item, campaignType));
 
