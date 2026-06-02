@@ -109,11 +109,11 @@ export default function Configuracoes() {
     }
   };
 
-  const handleSetActive = async (id: string) => {
+  const handleToggleActive = async (id: string, active: boolean) => {
     setActivating(id);
     try {
-      await setActive(id);
-      toast.success('Candidato ativo atualizado!');
+      await toggleActive(id, active);
+      toast.success(active ? 'Candidato ativado!' : 'Candidato desativado.');
     } finally {
       setActivating(null);
     }
