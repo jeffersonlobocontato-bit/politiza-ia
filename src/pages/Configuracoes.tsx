@@ -56,7 +56,7 @@ const PRESET_CANDIDATES = [
 ];
 
 export default function Configuracoes() {
-  const { candidates, activeCandidate, activeCandidates, toggleActive, refetch } = useCandidate();
+  const { candidates, activeCandidates, toggleActive, refetch } = useCandidate();
   const { isAdmin } = useAuth();
   const { party: userParty, isPartyManager } = useUserParty();
   const lockedParty = userParty === 'PL' ? 'PL' : userParty === 'Novo' ? 'Novo' : '';
