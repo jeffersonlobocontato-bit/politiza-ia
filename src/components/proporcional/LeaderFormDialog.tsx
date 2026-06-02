@@ -68,7 +68,7 @@ export function LeaderFormDialog({ open, onOpenChange, leader, initialProfileIds
     support_status: leader?.support_status ?? 'indefinido',
     alignment_status: leader?.alignment_status ?? 'neutro',
     relationship_owner: leader?.relationship_owner ?? '',
-    current_party: leader?.current_party ?? '',
+    current_party: leader?.current_party ?? (isPartyManager ? (userParty === 'PL' ? 'PL' : 'Novo') : ''),
     influence_level: leader?.influence_level ?? 5,
     mobilization_capacity: leader?.mobilization_capacity ?? 5,
     estimated_supporters: leader?.estimated_supporters ?? 0,
