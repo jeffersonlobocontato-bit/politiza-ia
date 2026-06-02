@@ -16,6 +16,7 @@ import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
 import { Plus, X, User, MapPin, Handshake, History, Building2, Zap } from 'lucide-react';
 import { GeoLocationInput } from '@/components/ui/GeoLocationInput';
+import { useUserParty } from '@/hooks/useUserParty';
 
 const MACROREGIONS = [
   { id: 'curitiba', name: 'Curitiba' },
