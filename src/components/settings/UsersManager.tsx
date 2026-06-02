@@ -125,6 +125,7 @@ export function UsersManager() {
     }
     setSaving(true);
     try {
+      let targetUserId: string | null = editing?.id ?? null;
       if (editing) {
         const r1 = await supabase.functions.invoke('manage-user', {
           body: {
@@ -148,7 +149,16 @@ export function UsersManager() {
           body: { action: 'create', ...form },
         });
         if (r.error || (r.data as any)?.error) throw new Error((r.data as any)?.error || r.error?.message);
+        targetUserId = (r.data as any)?.user_id ?? null;
         toast.success('Usuário criado com sucesso');
+      }
+
+      // Sincronizar vínculos de candidatos (sempre, inclusive para limpar lista)
+      if (targetUserId) {
+        const rc = await supabase.functions.invoke('manage-user', {
+          body: { action: 'set_candidates', user_id: targetUserId, candidate_ids: form.candidate_ids },
+        });
+        if (rc.error || (rc.data as any)?.error) throw new Error((rc.data as any)?.error || rc.error?.message);
       }
       setDialogOpen(false);
       await load();
