@@ -58,6 +58,8 @@ const PRESET_CANDIDATES = [
 export default function Configuracoes() {
   const { candidates, activeCandidate, setActive, refetch } = useCandidate();
   const { isAdmin } = useAuth();
+  const { party: userParty, isPartyManager } = useUserParty();
+  const lockedParty = userParty === 'PL' ? 'PL' : userParty === 'Novo' ? 'Novo' : '';
   const [tab, setTab] = useState<'candidatos' | 'usuarios' | 'perfis_lideranca' | 'conta'>('candidatos');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export default function Configuracoes() {
 
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
-    defaultValues: { name: '', party: '', cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
+    defaultValues: { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
   });
 
   const openCreate = (preset?: typeof PRESET_CANDIDATES[0]) => {
