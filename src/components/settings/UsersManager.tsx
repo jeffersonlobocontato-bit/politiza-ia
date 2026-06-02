@@ -282,6 +282,18 @@ export function UsersManager() {
                       Escopo: {[u.municipality, u.microregion, u.macroregion_id].filter(Boolean).join(' · ')}
                     </p>
                   )}
+                  {u.candidate_ids.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {u.candidate_ids.map(cid => {
+                        const c = candidatesList.find(x => x.id === cid);
+                        return (
+                          <Badge key={cid} variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5">
+                            {c ? `${c.name} · ${c.cargo}` : '—'}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPwDialog(u)} title="Redefinir senha">
