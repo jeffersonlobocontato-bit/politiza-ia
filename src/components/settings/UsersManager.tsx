@@ -43,10 +43,14 @@ type UserRow = {
   macroregion_id: string | null;
   microregion: string | null;
   municipality: string | null;
+  candidate_ids: string[];
 };
+
+type CandidateOption = { id: string; name: string; cargo: string; party: string };
 
 export function UsersManager() {
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [candidatesList, setCandidatesList] = useState<CandidateOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | AppRole>('all');
@@ -59,21 +63,34 @@ export function UsersManager() {
     full_name: '', email: '', password: '', phone: '',
     role: 'operador_campo' as AppRole,
     macroregion_id: '', microregion: '', municipality: '',
+    candidate_ids: [] as string[],
   });
   const [newPassword, setNewPassword] = useState('');
 
   const load = async () => {
     setLoading(true);
-    const { data: profiles } = await (supabase as any).from('profiles').select('id, full_name, email, phone').order('full_name');
-    const { data: roles } = await (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality');
+    const [{ data: profiles }, { data: roles }, { data: links }, { data: cands }] = await Promise.all([
+      (supabase as any).from('profiles').select('id, full_name, email, phone').order('full_name'),
+      (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality'),
+      (supabase as any).from('user_candidates').select('user_id, candidate_id'),
+      (supabase as any).from('candidates').select('id, name, cargo, party').order('name'),
+    ]);
     const rolesMap = new Map<string, any>();
     (roles ?? []).forEach((r: any) => rolesMap.set(r.user_id, r));
+    const linksMap = new Map<string, string[]>();
+    (links ?? []).forEach((l: any) => {
+      const arr = linksMap.get(l.user_id) ?? [];
+      arr.push(l.candidate_id);
+      linksMap.set(l.user_id, arr);
+    });
+    setCandidatesList((cands ?? []) as CandidateOption[]);
     setUsers((profiles ?? []).map((p: any) => ({
       ...p,
       role: rolesMap.get(p.id)?.role ?? null,
       macroregion_id: rolesMap.get(p.id)?.macroregion_id ?? null,
       microregion: rolesMap.get(p.id)?.microregion ?? null,
       municipality: rolesMap.get(p.id)?.municipality ?? null,
+      candidate_ids: linksMap.get(p.id) ?? [],
     })));
     setLoading(false);
   };
