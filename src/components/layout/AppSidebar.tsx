@@ -6,9 +6,12 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
-  Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2
+  Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
+  ChevronDown, Check
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type ModuleScope = 'majoritaria' | 'proporcional' | 'shared';
 
