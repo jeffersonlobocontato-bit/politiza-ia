@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag } from 'lucide-react';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
+import { UsersManager } from '@/components/settings/UsersManager';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
