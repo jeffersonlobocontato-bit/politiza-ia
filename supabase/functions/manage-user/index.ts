@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     const { action, ...payload } = await req.json();
 
     if (action === "create") {
-      const { email, password, full_name, phone, role, macroregion_id, microregion, municipality } = payload;
+      const { email, password, full_name, phone, role, macroregion_id, microregion, municipality, candidate_ids } = payload;
       if (!email || !password || !full_name || !role)
         return json({ error: "Campos obrigatórios: email, senha, nome e nível de acesso" }, 400);
 
@@ -59,7 +59,28 @@ Deno.serve(async (req) => {
       });
       if (roleErr) return json({ error: roleErr.message }, 400);
 
+      if (Array.isArray(candidate_ids) && candidate_ids.length > 0) {
+        await admin.from("user_candidates").insert(
+          candidate_ids.map((cid: string) => ({ user_id: userId, candidate_id: cid, created_by: user.id }))
+        );
+      }
+
       return json({ user_id: userId });
+    }
+
+    if (action === "set_candidates") {
+      const { user_id, candidate_ids } = payload;
+      if (!user_id || !Array.isArray(candidate_ids))
+        return json({ error: "user_id e candidate_ids (array) obrigatórios" }, 400);
+
+      await admin.from("user_candidates").delete().eq("user_id", user_id);
+      if (candidate_ids.length > 0) {
+        const { error } = await admin.from("user_candidates").insert(
+          candidate_ids.map((cid: string) => ({ user_id, candidate_id: cid, created_by: user.id }))
+        );
+        if (error) return json({ error: error.message }, 400);
+      }
+      return json({ ok: true });
     }
 
     if (action === "update_role") {
