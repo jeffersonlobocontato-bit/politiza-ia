@@ -99,7 +99,7 @@ export function UsersManager() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ full_name: '', email: '', password: '', phone: '', role: 'operador_campo', macroregion_id: '', microregion: '', municipality: '' });
+    setForm({ full_name: '', email: '', password: '', phone: '', role: 'operador_campo', macroregion_id: '', microregion: '', municipality: '', candidate_ids: [] });
     setDialogOpen(true);
   };
 
@@ -109,6 +109,7 @@ export function UsersManager() {
       full_name: u.full_name || '', email: u.email || '', password: '', phone: u.phone || '',
       role: (u.role ?? 'operador_campo') as AppRole,
       macroregion_id: u.macroregion_id || '', microregion: u.microregion || '', municipality: u.municipality || '',
+      candidate_ids: u.candidate_ids ?? [],
     });
     setDialogOpen(true);
   };
