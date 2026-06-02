@@ -1903,6 +1903,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_by_creator_party: {
+        Args: { _created_by: string; _user_id: string }
+        Returns: boolean
+      }
       can_view_candidate_record: {
         Args: { _candidate_id: string; _user_id: string }
         Returns: boolean
