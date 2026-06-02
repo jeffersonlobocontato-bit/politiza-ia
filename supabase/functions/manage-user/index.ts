@@ -26,10 +26,13 @@ Deno.serve(async (req) => {
     const caller = createClient(SUPABASE_URL, ANON, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user } } = await caller.auth.getUser();
-    if (!user) return json({ error: "Unauthorized" }, 401);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await caller.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+    const user = { id: claimsData.claims.sub as string };
 
-    const { data: isAdmin } = await caller.rpc("is_admin", { _user_id: user.id });
+    const admin0 = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: isAdmin } = await admin0.rpc("is_admin", { _user_id: user.id });
     if (!isAdmin) return json({ error: "Apenas administradores podem gerenciar usuários" }, 403);
 
     const admin = createClient(SUPABASE_URL, SERVICE);
