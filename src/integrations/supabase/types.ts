@@ -1867,11 +1867,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_creator_record: {
+        Args: { _created_by: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_party_record: {
+        Args: { _created_by: string; _record_party: string; _user_id: string }
+        Returns: boolean
+      }
       get_dashboard_kpis: { Args: never; Returns: Json }
       get_tracking_evolution: {
         Args: { p_candidate_id: string }
         Returns: Json
       }
+      get_user_party: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
