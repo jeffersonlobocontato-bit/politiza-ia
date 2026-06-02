@@ -29,23 +29,29 @@ export interface Candidate {
 }
 
 interface CandidateContextValue {
-  /** Candidato em foco no filtro do header (null = "Todos os candidatos"). */
+  /** Candidato em foco (não-nulo apenas quando exatamente 1 está selecionado). */
   activeCandidate: Candidate | null;
   /** Tipo de campanha do candidato em foco. */
   campaignType: CampaignType;
   /** Todos os candidatos visíveis para o usuário (já filtrados por RLS). */
   candidates: Candidate[];
-  /** Candidatos ativos (is_active = true) visíveis para o usuário. */
+  /** Candidatos ativos respeitando o filtro selecionado (consolidação). */
   activeCandidates: Candidate[];
+  /** Lista completa de candidatos ativos visíveis ao usuário (sem filtro). */
+  allActiveCandidates: Candidate[];
   /** IDs dos candidatos aos quais o usuário está restrito; vazio = sem restrição. */
   scopedCandidateIds: string[];
+  /** IDs selecionados no filtro (vazio = ver todos). */
+  selectedCandidateIds: string[];
   /** True se o usuário pode ver dados de todos os candidatos. */
   hasFullAccess: boolean;
-  /** True se há filtro "Todos" selecionado (apenas para quem tem acesso total). */
+  /** True se nenhum filtro está aplicado (visão consolidada completa). */
   isViewingAll: boolean;
   loading: boolean;
-  /** Define o candidato em foco. Passar null para visão consolidada (admin). */
+  /** Define o candidato em foco. null = visão consolidada. (compat) */
   setActive: (id: string | null) => void;
+  /** Define múltiplos candidatos no filtro. Lista vazia = ver todos. */
+  setSelectedCandidateIds: (ids: string[]) => void;
   /** Ativa/desativa um candidato (toggle is_active). */
   toggleActive: (id: string, active: boolean) => Promise<void>;
   refetch: () => Promise<void>;
@@ -55,13 +61,22 @@ const CandidateContext = createContext<CandidateContextValue | null>(null);
 
 const STORAGE_KEY = 'activeCandidateFilter';
 
+function readStoredSelection(): string[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    if (raw.startsWith('[')) return JSON.parse(raw) as string[];
+    return [raw];
+  } catch {
+    return [];
+  }
+}
+
 export function CandidateProvider({ children }: { children: ReactNode }) {
   const { user, isAdmin } = useAuth();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [scopedCandidateIds, setScopedCandidateIds] = useState<string[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(() => {
-    try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
-  });
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => readStoredSelection());
   const [loading, setLoading] = useState(true);
 
   const fetchCandidates = useCallback(async () => {
@@ -102,26 +117,44 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
 
   const hasFullAccess = isAdmin || scopedCandidateIds.length === 0;
 
-  // Para usuário com escopo, força candidato em foco a um dos vinculados
+  const allActiveCandidates = useMemo(() => {
+    const list = hasFullAccess
+      ? candidates
+      : candidates.filter(c => scopedCandidateIds.includes(c.id));
+    return list.filter(c => c.is_active);
+  }, [candidates, scopedCandidateIds, hasFullAccess]);
+
+  // Para usuário com escopo, força filtro a um dos vinculados
   useEffect(() => {
     if (loading || candidates.length === 0) return;
     if (!hasFullAccess) {
-      const allowedActive = candidates.filter(c => c.is_active && scopedCandidateIds.includes(c.id));
-      if (allowedActive.length === 0) {
-        setActiveId(null);
-      } else if (!activeId || !allowedActive.some(c => c.id === activeId)) {
-        setActiveId(allowedActive[0].id);
+      const allowedIds = new Set(allActiveCandidates.map(c => c.id));
+      const filtered = selectedIds.filter(id => allowedIds.has(id));
+      if (filtered.length === 0 && allActiveCandidates.length > 0) {
+        setSelectedIds([allActiveCandidates[0].id]);
+      } else if (filtered.length !== selectedIds.length) {
+        setSelectedIds(filtered);
       }
     }
-  }, [loading, candidates, scopedCandidateIds, hasFullAccess, activeId]);
+  }, [loading, candidates, allActiveCandidates, hasFullAccess, selectedIds]);
 
-  const setActive = useCallback((id: string | null) => {
-    setActiveId(id);
+  const persistSelection = useCallback((ids: string[]) => {
     try {
-      if (id) localStorage.setItem(STORAGE_KEY, id);
-      else localStorage.removeItem(STORAGE_KEY);
+      if (ids.length === 0) localStorage.removeItem(STORAGE_KEY);
+      else localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
     } catch { /* noop */ }
   }, []);
+
+  const setActive = useCallback((id: string | null) => {
+    const next = id ? [id] : [];
+    setSelectedIds(next);
+    persistSelection(next);
+  }, [persistSelection]);
+
+  const setSelectedCandidateIds = useCallback((ids: string[]) => {
+    setSelectedIds(ids);
+    persistSelection(ids);
+  }, [persistSelection]);
 
   const toggleActive = useCallback(async (id: string, active: boolean) => {
     setCandidates(prev => prev.map(c => c.id === id ? { ...c, is_active: active } : c));
@@ -134,22 +167,23 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
     return candidates.filter(c => scopedCandidateIds.includes(c.id));
   }, [candidates, scopedCandidateIds, hasFullAccess]);
 
-  const activeCandidates = useMemo(
-    () => visibleCandidates.filter(c => c.is_active),
-    [visibleCandidates],
-  );
+  const activeCandidates = useMemo(() => {
+    if (selectedIds.length === 0) return allActiveCandidates;
+    const set = new Set(selectedIds);
+    return allActiveCandidates.filter(c => set.has(c.id));
+  }, [allActiveCandidates, selectedIds]);
 
   const activeCandidate = useMemo(() => {
-    if (!activeId) return null;
-    return visibleCandidates.find(c => c.id === activeId) ?? null;
-  }, [activeId, visibleCandidates]);
+    if (selectedIds.length !== 1) return null;
+    return visibleCandidates.find(c => c.id === selectedIds[0]) ?? null;
+  }, [selectedIds, visibleCandidates]);
 
   const campaignType = useMemo(
     () => activeCandidate ? getCampaignType(activeCandidate.cargo) : null,
     [activeCandidate],
   );
 
-  const isViewingAll = activeId === null;
+  const isViewingAll = selectedIds.length === 0;
 
   return (
     <CandidateContext.Provider value={{
@@ -157,11 +191,14 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
       campaignType,
       candidates: visibleCandidates,
       activeCandidates,
+      allActiveCandidates,
       scopedCandidateIds,
+      selectedCandidateIds: selectedIds,
       hasFullAccess,
       isViewingAll,
       loading,
       setActive,
+      setSelectedCandidateIds,
       toggleActive,
       refetch: fetchCandidates,
     }}>
