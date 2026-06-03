@@ -1,90 +1,139 @@
+# Melhoria no Módulo Campo: Duas Ferramentas + Cadastro de Lideranças + Mobile
 
-## Reestruturação da Hierarquia — Pré-Campanha PR 2026
+## Objetivo
+Transformar o Registro de Campo em um hub com duas ferramentas:
+1. **Registro de Ação** (manter o wizard atual)
+2. **Cadastro de Lideranças de Campo** (novo): cadastro por cidade/bairro/comunidade com segmento, histórico político e dados eleitorais para qualificar o lead.
 
-Substituir o cargo único **Coordenador Geral** pela **Coordenação Central** (trio: Julio Reis, Jefferson Lobo, Adilson Silva) e alinhar as demais coordenações ao novo organograma do PDF.
-
----
-
-### 1. Mudanças no nível 2 (Coordenações)
-
-**Topo (novo):**
-- **Coordenação Central** — Julio Reis, Jefferson Lobo, Adilson Silva
-  - Função: supervisão geral, integração entre coordenações, validação de prioridades.
-
-**Coordenações abaixo da Central (mantêm `hierarchy_level = 2`):**
-
-| Coordenação | Responsáveis | Origem |
-|---|---|---|
-| Coordenação Política Estadual | Ricardo Guerra (PL), Lucas Santos (NOVO) | Renomeia "Coordenação PL" e "Coordenação NOVO" — **mantém campo de partido para preservar RLS** |
-| Coord. Jurídica Eleitoral | Leandro Rosa | Mantém |
-| Coord. Operacional / Eventos | José Elias, João Malucelli, Adriana Kaminski | Consolida Agenda + Logística + Segurança |
-| Coord. Administrativa / Financeira | Lucas Góes | Renomeia "Financeiro" |
-| Coord. Marketing / Comunicação | Marcelo Cattani | Renomeia |
-| Coord. Plano de Governo | Edson Vasconcelos, Alcione, Rafael Amaral | Mantém + 2 novos |
-
-**Removidos do organograma visual:**
-- "Coordenador Geral" (cargo único — substituído pelo trio Central)
-- "Coordenador de Inteligência Política" (função absorvida pela Central; módulo de Inteligência do app continua existindo)
-- "Coordenador de Agenda", "Coordenador de Logística", "Coordenador de Segurança" como cargos separados (viram a Coord. Operacional/Eventos)
+Além disso: dashboard do operador com métricas de seus cadastros, e versão mobile (PWA) para cadastro no celular.
 
 ---
 
-### 2. Estrutura de níveis (sem mudança no schema)
+## Decisões de Arquitetura (assumidas — ajuste se discordar)
 
-Mantém os 6 níveis atuais:
+| Decisão | Escolha | Por quê |
+|---------|---------|---------|
+| Base de lideranças | **Reaproveitar `leaders`** | Já tem nome, contato, geolocalização, alinhamento, partido, coordenador, e tabelas filhas de histórico político (`leader_political_history`) e partidário (`leader_party_history`). Unifica CRM Político e Campo. |
+| Segmentos | **Reaproveitar `leadership_profiles`** | Já existe com `name`, `category`, `color` e vinculação M2M via `leader_leadership_profiles`. Admin gerencia em Configurações. |
+| Mobile | **PWA instalável** primeiro | Entrega rápida, sem conta de desenvolvedor, funciona em iOS/Android. App nativo (Capacitor) pode vir depois se necessário. |
+
+---
+
+## 1. Estrutura de Rotas e UI
+
 ```
-1  Candidato ao Governo
-2  Coordenação Central + Coordenações estaduais
-3  Coordenadores Regionais
-4  Coordenadores Microrregionais
-5  Coordenadores Municipais
-6  Lideranças Locais
+/campo                    → Hub com 2 cards: "Registrar Ação" e "Cadastrar Liderança"
+/campo/acao               → Wizard atual de Registro de Ação (refatorado para rota separada)
+/campo/liderancas         → Lista de lideranças cadastradas + filtros + CTA "Nova Liderança"
+/campo/liderancas/novo    → Wizard de cadastro de liderança (mobile-first)
+/campo/liderancas/:id     → Detalhe/edição da liderança
+/campo/dashboard          → Dashboard exclusivo do operador (métricas do que ele cadastrou)
 ```
 
-A Central e as demais coordenações ficam **todas no nível 2**. Diferenciação puramente visual no flowchart (Central destacada no topo, demais agrupadas abaixo).
+---
+
+## 2. Modelo de Dados
+
+### Reaproveita (sem alterar schema)
+- `leaders` — dados básicos, geolocalização, alinhamento, coordenador
+- `leader_political_history` — histórico de candidaturas, mandatos, votos, cargos disputados
+- `leader_party_history` — filiações partidárias
+- `leader_leadership_profiles` — vinculação M2M com segmentos (`leadership_profiles`)
+
+### Novo campo (migration leve)
+- `leaders.source` (text, default 'campo' | 'crm') — opcional, para filtragem futura
+
+### Visibilidade Hierárquica (nova function + policy)
+Security definer `can_view_leader_by_scope(user_id, leader_row)` que verifica:
+- `operador_campo`: vê só `created_by = seu_id`
+- `coordenador_municipal`: vê só do seu `municipality`
+- `coordenador_microrregional`: vê só da sua `microregion`
+- `coordenador_regional`: vê só da sua `macroregion_id`
+- `coordenador_estadual` / `coordenador_geral` / `admin_master`: vê tudo + o que seus subordinados cadastraram
+
+A tabela `user_roles` já tem `macroregion_id`, `microregion`, `municipality` — usamos ela para determinar o escopo territorial do usuário logado.
 
 ---
 
-### 3. Arquivos impactados
+## 3. Cadastro de Liderança — Wizard (passos)
 
-**Frontend (apenas UI):**
-- `src/pages/Hierarquia.tsx`
-  - Atualizar `LEVEL_LABELS[2]` → "Coordenação Central"
-  - Reescrever `SECTORAL_GROUPS`: novo grupo "Coordenação Central" no topo + grupos reorganizados
-  - Remover `SUB_ROLES` para Inteligência Política
-- `src/components/hierarquia/HierarchyFlowchart.tsx`
-  - Ajustar layout L2: trio Central centralizado no topo, demais coordenações em linha abaixo
-  - Remover slots de Jurídico/Comunicação laterais (passam a ser coordenações comuns abaixo)
+**Passo 1 — Dados Básicos**
+- Nome completo
+- Telefone, e-mail
+- Foto (upload simulado ou câmera)
 
-**Banco (apenas dados — sem migração de schema):**
-- `UPDATE` em `campaign_members` para:
-  - Renomear roles existentes (Financeiro → Administrativa/Financeira, Comunicação → Marketing/Comunicação)
-  - Renomear "Coordenação PL"/"NOVO" → "Coordenação Política Estadual" (preservando vínculo de partido em outro campo se necessário)
-  - Consolidar Agenda + Logística + Segurança em "Coordenação Operacional / Eventos"
-  - Remover/inativar cargo "Coordenador Geral" e "Coordenador de Inteligência Política"
-- `INSERT` dos novos membros: Jefferson Lobo, Adilson Silva, José Elias, Adriana Kaminski, Alcione, Rafael Amaral
+**Passo 2 — Localização (obrigatório GPS)**
+- Cidade (autocomplete das 399 cidades do Paraná)
+- Bairro / Comunidade (texto livre)
+- Coordenadas GPS (obrigatório, igual ao Registro de Ação)
+
+**Passo 3 — Segmentos**
+- Seleção múltipla de `leadership_profiles` (usando `LeaderProfileSelect` existente)
+- Se a lista não cobrir, admin cadastra novo em Configurações
+
+**Passo 4 — Dados Políticos e Eleitorais**
+- Já foi candidato? (sim/não) → se sim: quantas vezes, quantos votos, cargos disputados
+- Já teve mandato? → cargo, anos, quantos mandatos
+- Já presidiu entidade? → qual entidade
+- Filiado a partido? → qual, desde quando
+- Quem apoiou na última eleição?
+- Alinhamento atual (alinhado / provável / neutro / oposição)
+- Capacidade de mobilização e influência (escala 1–10)
+- Observações estratégicas
+
+Todos os dados de histórico político/partidário vão para as tabelas filhas já existentes (`leader_political_history`, `leader_party_history`).
+
+**Passo 5 — Revisão e Confirmação**
+- Resumo visual dos dados
+- Botão "Confirmar e Cadastrar"
 
 ---
 
-### 4. Avaliação de impacto/risco
+## 4. Dashboard do Operador (/campo/dashboard)
 
-| Área | Impacto | Risco |
-|---|---|---|
-| Schema do banco | Nenhuma alteração estrutural | 🟢 Nenhum |
-| RLS multi-partido (`get_user_party`) | Ricardo e Lucas mantêm partido individual mesmo com role unificada | 🟢 Baixo |
-| `is_admin()` e `admin_master` (Julio, Jefferson, Edson) | Funções de admin permanecem; trio Central já tem admin_master | 🟢 Nenhum |
-| `alertTeam.ts` (cadeia de responsabilidade) | Usa hierarchy_level 3/4 — segue funcionando | 🟢 Nenhum |
-| Módulo de Inteligência Política do app | Continua funcional, sem dono nominal | 🟢 Nenhum |
-| Vínculos `supervisor_id` existentes | Coordenações L2 deixam de ter "Coord. Geral" como supervisor; subordinação passa a ser direta à Central | 🟡 Médio — revisar registros |
-| Membros L3+ (Juarez Berté etc.) | Não afetados | 🟢 Nenhum |
+Visível para `operador_campo` e acima. Cada um vê de acordo com seu escopo:
+
+**KPIs principais:**
+- Total de lideranças cadastradas (no meu escopo)
+- Cadastradas nesta semana / mês
+- Por segmento (donut chart — reaproveita `InfographicDonut`)
+- Por cidade / bairro (bar chart — reaproveita `InfographicHBar`)
+- Por alinhamento (alinhado, neutro, oposição)
+- Índice de qualidade do cadastro (% de campos preenchidos)
+
+**Lista rápida:**
+- Últimas 10 lideranças cadastradas no escopo
+- Busca por nome ou cidade
+- CTA para editar qualquer registro
 
 ---
 
-### 5. Ordem de execução
+## 5. Versão Mobile (PWA)
 
-1. Atualizar `LEVEL_LABELS`, `SECTORAL_GROUPS` e `SUB_ROLES` em `Hierarquia.tsx`
-2. Ajustar layout do `HierarchyFlowchart.tsx`
-3. Rodar `UPDATE`/`INSERT` em `campaign_members` para refletir o novo organograma
-4. Validar visualmente o fluxograma e a aba de membros
+- Manifest web app (`public/manifest.webmanifest`)
+- Ícones e tema color
+- Interface otimizada para touch (botões grandes, fonte legível)
+- Geolocalização via browser GPS
+- Suporte offline básico: se não houver conexão, salvar no `localStorage` e sincronizar quando voltar
+- Instalável em iOS (Adicionar à Tela Inicial) e Android
 
-Nenhuma migração de schema, nenhuma mudança em RLS, nenhum impacto em módulos externos (Ações, Tracking, Alertas, CRM).
+---
+
+## 6. Fluxo de Implementação (ordem sugerida)
+
+1. **Backend**: Criar `can_view_leader_by_scope` + nova RLS policy na tabela `leaders`
+2. **Rotas**: Reestruturar `/campo` como hub, criar `/campo/acao`, `/campo/liderancas`, `/campo/liderancas/novo`, `/campo/dashboard`
+3. **Hook**: `useLeaders` com filtro de escopo (detecta role do usuário e aplica filtros territoriais)
+4. **UI — Lista**: `/campo/liderancas` com filtros por cidade, segmento, alinhamento
+5. **UI — Wizard**: Form em 5 passos reutilizando `GeoLocationInput`, `LeadershipProfileSelect`, e componentes do design system
+6. **UI — Dashboard**: Cards de KPI + charts + lista rápida
+7. **Mobile**: PWA manifest + responsividade + offline localStorage
+
+---
+
+## 7. O que não está no escopo (a menos que você peça)
+
+- App nativo (Capacitor) — PWA primeiro, nativo como evolução
+- Nova tabela separada de lideranças — unificamos no `leaders`
+- Segmentos hardcoded — usamos `leadership_profiles` gerenciável
+- Lógica de "subordinados" na coordenação central — escopo básico por role + território
