@@ -401,10 +401,11 @@ export default function Hierarquia() {
                 return (
                   <div key={level}>
                     {SECTORAL_GROUPS.map(group => {
-                      const groupCards = group.roles.map(role => ({
-                        role,
-                        member: lvlMembers.find(m => m.role === role) ?? null,
-                      }));
+                      const groupCards = group.roles.flatMap(role => {
+                        const matches = lvlMembers.filter(m => m.role === role);
+                        if (matches.length === 0) return [{ role, member: null as DbCampaignMember | null, key: role }];
+                        return matches.map(m => ({ role, member: m, key: `${role}::${m.id}` }));
+                      });
                       return (
                         <div key={group.label} className="mb-5">
                           <div className="flex items-center gap-2 mb-2 ml-1">
