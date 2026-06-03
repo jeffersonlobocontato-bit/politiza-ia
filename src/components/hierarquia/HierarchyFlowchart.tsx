@@ -241,11 +241,12 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
     extraMembers: findMembers(members, def.match).slice(1),
   }));
 
+  const centralCount = (centralTrio.lead ? 1 : 0) + centralTrio.peers.length;
   const totalSlots =
-    1 + Math.max(1, centralTrio.length) + departments.length +
+    1 + Math.max(1, centralCount) + departments.length +
     (activeCandidate ? 1 : 0);
   const filledSlots =
-    centralTrio.length +
+    centralCount +
     departments.filter(d => d.member).length +
     (activeCandidate ? 1 : 0);
 
