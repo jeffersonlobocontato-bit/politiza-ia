@@ -621,9 +621,18 @@ export default function Hierarquia() {
                   </div>
                   <div className="flex-1 h-px ml-3" style={{ background: `linear-gradient(to right, ${LEVEL_COLORS[level]}55, transparent)` }} />
                 </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {lvlMembers.map(m => (
-                    <div key={m.id} className="rounded-xl border border-border p-4 group relative" style={{ background: 'var(--gradient-card)' }}>
+                {(() => {
+                  const renderMemberCard = (m: typeof lvlMembers[number], opts?: { highlight?: boolean; badge?: string }) => (
+                    <div
+                      key={m.id}
+                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'}`}
+                      style={{ background: 'var(--gradient-card)' }}
+                    >
+                      {opts?.badge && (
+                        <div className="absolute -top-2.5 left-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow" style={{ backgroundColor: LEVEL_COLORS[level] }}>
+                          {opts.badge}
+                        </div>
+                      )}
                       <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => openEdit(m)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                           <Pencil className="w-3.5 h-3.5" />
@@ -633,11 +642,11 @@ export default function Hierarquia() {
                         </button>
                       </div>
                       <div className="flex items-center gap-3 mb-3 pr-16">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
+                        <div className={`${opts?.highlight ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm'} rounded-full flex items-center justify-center font-bold flex-shrink-0`} style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
                           {m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="text-sm font-semibold text-foreground truncate">{m.name}</div>
+                          <div className={`${opts?.highlight ? 'text-base' : 'text-sm'} font-semibold text-foreground truncate`}>{m.name}</div>
                           <div className="text-xs text-muted-foreground truncate">{m.role}</div>
                         </div>
                       </div>
@@ -672,8 +681,38 @@ export default function Hierarquia() {
                         </span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+
+                  if (isMajoritario) {
+                    return (
+                      <div className="space-y-5">
+                        {governor && (
+                          <div className="max-w-md mx-auto">
+                            {renderMemberCard(governor, { highlight: true, badge: 'Cabeça de Chapa' })}
+                          </div>
+                        )}
+                        {senators.length > 0 && (
+                          <>
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1 h-px bg-border" />
+                              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Candidatos ao Senado</span>
+                              <div className="flex-1 h-px bg-border" />
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                              {senators.map(m => renderMemberCard(m))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {lvlMembers.map(m => renderMemberCard(m))}
+                    </div>
+                  );
+                })()}
               </div>
               );
             })}
