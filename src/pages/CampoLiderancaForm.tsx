@@ -88,7 +88,7 @@ export default function CampoLiderancaForm() {
   }, [politicalHistory]);
 
   const canAdvance = () => {
-    if (step === 1) return name.trim() !== '';
+    if (step === 1) return (name ?? '').trim() !== '';
     if (step === 2) return geo.city && geo.lat !== null && geo.lng !== null;
     return true;
   };
