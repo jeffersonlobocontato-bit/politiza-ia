@@ -414,8 +414,21 @@ export default function Hierarquia() {
                     </div>
                     {SECTORAL_GROUPS.map((group, groupIdx) => {
                       const isCentral = group.label === 'Coordenação Central';
+                      // Coleta todos os membros das roles do grupo, e separa "líderes" de "equipe" (subordinados internos)
+                      const rawMembers = group.roles.flatMap(role =>
+                        lvlMembers.filter(m => m.role === role).map(m => ({ role, m }))
+                      );
+                      const rawIds = new Set(rawMembers.map(x => x.m.id));
+                      const teamByLead: Record<string, DbCampaignMember[]> = {};
+                      rawMembers.forEach(({ m }) => {
+                        if (m.supervisor_id && rawIds.has(m.supervisor_id)) {
+                          (teamByLead[m.supervisor_id] ||= []).push(m);
+                        }
+                      });
                       const allMatches = group.roles.flatMap(role => {
-                        const matches = lvlMembers.filter(m => m.role === role);
+                        const matches = lvlMembers.filter(
+                          m => m.role === role && !(m.supervisor_id && rawIds.has(m.supervisor_id))
+                        );
                         if (matches.length === 0) return [{ role, member: null as DbCampaignMember | null, key: role }];
                         return matches.map(m => ({ role, member: m, key: `${role}::${m.id}` }));
                       });
@@ -439,12 +452,15 @@ export default function Hierarquia() {
                         opts?: { lead?: boolean; subtitle?: string }
                       ) => {
                         const subRoles = SUB_ROLES[role] ?? [];
-                        const hasSubs = subRoles.length > 0;
-                        const isExpanded = expandedRoles.has(role);
+                        const team = member ? teamByLead[member.id] ?? [] : [];
+                        const hasTeam = team.length > 0;
+                        const hasSubs = subRoles.length > 0 || hasTeam;
+                        const expandKey = member ? `team::${member.id}` : role;
+                        const isExpanded = expandedRoles.has(expandKey);
                         return (
                           <Fragment key={key}>
                             <div
-                              onClick={hasSubs ? () => toggleExpanded(role) : undefined}
+                              onClick={hasSubs ? () => toggleExpanded(expandKey) : undefined}
                               className={`rounded-xl border p-4 group relative ${member ? 'border-border' : 'border-dashed border-muted-foreground/30'} ${hasSubs ? 'cursor-pointer hover:border-primary/60 transition-colors' : ''} ${opts?.lead ? 'ring-2 ring-offset-2 ring-offset-background shadow-lg' : ''}`}
                               style={{
                                 background: member ? 'var(--gradient-card)' : undefined,
@@ -481,11 +497,44 @@ export default function Hierarquia() {
                                     </div>
                                   </div>
                                   <div className={`text-xs font-medium truncate ${hasSubs ? 'pl-5' : ''}`} style={{ color: group.color }}>{role.replace('Coordenador ', '').replace('de ', '')}</div>
-                                  <div className={`mt-2 ${hasSubs ? 'pl-5' : ''}`}>
+                                  <div className={`mt-2 flex items-center gap-2 ${hasSubs ? 'pl-5' : ''}`}>
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${member.status === 'ativo' ? 'bg-brand-green/15 text-brand-green' : 'bg-muted text-muted-foreground'}`}>
                                       {member.status}
                                     </span>
+                                    {hasTeam && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary/10 text-primary">
+                                        Equipe: {team.length}
+                                      </span>
+                                    )}
                                   </div>
+                                  {hasTeam && isExpanded && (
+                                    <div className="mt-3 pl-5 border-l-2" style={{ borderColor: `${group.color}40` }}>
+                                      <div className="text-[10px] uppercase tracking-wider font-bold mb-2" style={{ color: group.color }}>
+                                        Equipe de {member.name.split(' ')[0]}
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        {team.map(t => (
+                                          <div key={t.id} className="flex items-center gap-2 group/team rounded-md hover:bg-accent/30 p-1 -ml-1" onClick={(e) => e.stopPropagation()}>
+                                            <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0" style={{ backgroundColor: `${group.color}20`, color: group.color }}>
+                                              {t.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                              <div className="text-xs font-semibold text-foreground truncate">{t.name}</div>
+                                              <div className="text-[10px] text-muted-foreground truncate">{t.phone || t.email || 'Membro de equipe'}</div>
+                                            </div>
+                                            <div className="flex gap-1 opacity-0 group-hover/team:opacity-100 transition-opacity">
+                                              <button onClick={() => openEdit(t)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground">
+                                                <Pencil className="w-3 h-3" />
+                                              </button>
+                                              <button onClick={() => handleDelete(t.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                                                <Trash2 className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </>
                               ) : (
                                 <button
@@ -508,6 +557,7 @@ export default function Hierarquia() {
                           </Fragment>
                         );
                       };
+
 
                       return (
                         <div key={group.label}>
