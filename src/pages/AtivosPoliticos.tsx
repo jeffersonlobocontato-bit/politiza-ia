@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Users, Search, Plus, Pencil, Trash2, X, Upload } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
@@ -7,6 +7,7 @@ import { useLeadershipProfiles, useAssetLeadershipLinks, useSetAssetProfiles } f
 import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
+import { ImportAssetsDialog } from '@/components/ativos/ImportAssetsDialog';
 
 const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
   alinhado:   '#22c55e',
