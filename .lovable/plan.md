@@ -135,5 +135,5 @@ Visível para `operador_campo` e acima. Cada um vê de acordo com seu escopo:
 
 - App nativo (Capacitor) — PWA primeiro, nativo como evolução
 - Nova tabela separada de lideranças — unificamos no `leaders`
-- Segmentos hardcoded — usamos `leadership_profiles` gerenciável
+- Segmentos hardcoded — usamos `leadership_profiles` gerenciável (LGBTQIA+ não entra na lista de exemplos)
 - Lógica de "subordinados" na coordenação central — escopo básico por role + território
