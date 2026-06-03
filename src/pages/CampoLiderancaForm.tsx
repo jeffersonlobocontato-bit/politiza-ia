@@ -59,7 +59,7 @@ export default function CampoLiderancaForm() {
   // Pré-carrega dados em edição
   useEffect(() => {
     if (existing) {
-      setName(existing.name);
+      setName(existing.name ?? '');
       setPhone(existing.phone ?? '');
       setEmail(existing.email ?? '');
       setPhotoUrl(existing.photo_url ?? '');
@@ -88,7 +88,7 @@ export default function CampoLiderancaForm() {
   }, [politicalHistory]);
 
   const canAdvance = () => {
-    if (step === 1) return name.trim() !== '';
+    if (step === 1) return (name ?? '').trim() !== '';
     if (step === 2) return geo.city && geo.lat !== null && geo.lng !== null;
     return true;
   };
