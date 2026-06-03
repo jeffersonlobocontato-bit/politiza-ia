@@ -81,8 +81,15 @@ function findMembers(members: DbCampaignMember[], match: (r: string) => boolean)
   return members.filter(m => match(m.role));
 }
 
-function findCentralTrio(members: DbCampaignMember[]): DbCampaignMember[] {
-  return members.filter(m => CENTRAL_MATCH(m.role));
+function findCentralTrio(members: DbCampaignMember[]): { lead: DbCampaignMember | null; peers: DbCampaignMember[] } {
+  const all = members.filter(m => CENTRAL_MATCH(m.role));
+  // Julio Reis é o Coordenador Geral dentro da Central — fica no topo
+  const lead =
+    all.find(m => lc(m.name).includes('julio')) ??
+    all.find(m => lc(m.role).includes('geral')) ??
+    all[0] ?? null;
+  const peers = all.filter(m => m.id !== lead?.id);
+  return { lead, peers };
 }
 
 function DeptCard({
