@@ -413,12 +413,12 @@ export default function Hierarquia() {
                             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: group.color }}>{group.label}</span>
                           </div>
                           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {groupCards.map(({ role, member }) => {
+                            {groupCards.map(({ role, member, key }) => {
                               const subRoles = SUB_ROLES[role] ?? [];
                               const hasSubs = subRoles.length > 0;
                               const isExpanded = expandedRoles.has(role);
                               return (
-                                <Fragment key={role}>
+                                <Fragment key={key}>
                                   <div
                                     onClick={hasSubs ? () => toggleExpanded(role) : undefined}
                                     className={`rounded-xl border p-4 group relative ${member ? 'border-border' : 'border-dashed border-muted-foreground/30'} ${hasSubs ? 'cursor-pointer hover:border-primary/60 transition-colors' : ''}`}
