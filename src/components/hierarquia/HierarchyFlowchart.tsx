@@ -25,77 +25,45 @@ interface DeptDef {
 
 const lc = (s: string) => s.toLowerCase();
 
-// (Jurídico e Comunicação agora descem como departamentos abaixo do Coordenador Geral)
+// Coordenação Central — trio no topo (Julio, Jefferson, Adilson)
+const CENTRAL_MATCH = (r: string) => lc(r).includes('central');
 
-// Staff lateral (Jurídico à esquerda, Comunicação à direita do Coordenador Geral)
-const STAFF: DeptDef[] = [
-  {
-    key: 'juridico',
-    label: 'Jurídico',
-    icon: Scale,
-    color: 'hsl(var(--brand-amber))',
-    match: r => lc(r).includes('jurídic') || lc(r).includes('juridic') || lc(r).includes('advog'),
-  },
-  {
-    key: 'comunicacao',
-    label: 'Comunicação',
-    icon: Megaphone,
-    color: 'hsl(var(--brand-cyan))',
-    match: r => lc(r).includes('comunica') || lc(r).includes('marketing') || lc(r).includes('imprensa'),
-  },
-];
-
-// Departamentos da linha inferior (descem todos do Coordenador Geral)
+// Departamentos da linha inferior (descem todos da Coordenação Central)
 const DEPARTMENTS: DeptDef[] = [
   {
-    key: 'logistica',
-    label: 'Logística',
-    icon: Truck,
-    color: 'hsl(var(--chart-4))',
-    match: r => lc(r).includes('logíst') || lc(r).includes('logist'),
-  },
-  {
-    key: 'agenda',
-    label: 'Agenda',
-    icon: Calendar,
-    color: 'hsl(var(--brand-green))',
-    match: r => lc(r).includes('agenda'),
-  },
-  {
-    key: 'financas',
-    label: 'Finanças',
-    icon: DollarSign,
-    color: 'hsl(var(--primary))',
-    match: r => lc(r).includes('finan') || lc(r).includes('tesour'),
-  },
-  {
     key: 'politica',
-    label: 'Coord. Política',
+    label: 'Política Estadual',
     icon: Handshake,
     color: 'hsl(var(--brand-cyan))',
-    match: r => (lc(r).includes('polític') || lc(r).includes('politic')) && !lc(r).includes('plano'),
-    children: [
-      {
-        key: 'coord_pl',
-        label: 'PL',
-        icon: Handshake,
-        color: 'hsl(var(--primary))',
-        match: r => {
-          const s = lc(r);
-          return (s.includes('coorden') && /\bpl\b/.test(s)) || s.includes('coord. pl') || s.includes('coord pl') || s.includes('coordenação do pl') || /\bpl\b/.test(s);
-        },
-      },
-      {
-        key: 'coord_novo',
-        label: 'NOVO',
-        icon: Handshake,
-        color: 'hsl(var(--brand-amber))',
-        match: r => {
-          const s = lc(r);
-          return (s.includes('coorden') && s.includes('novo')) || s.includes('coord. novo') || s.includes('coord novo') || s.includes('coordenação do novo') || /\bnovo\b/.test(s);
-        },
-      },
-    ],
+    match: r => lc(r).includes('política estadual') || lc(r).includes('politica estadual'),
+  },
+  {
+    key: 'juridico',
+    label: 'Jurídica Eleitoral',
+    icon: Scale,
+    color: 'hsl(var(--brand-amber))',
+    match: r => lc(r).includes('jurídic') || lc(r).includes('juridic'),
+  },
+  {
+    key: 'operacional',
+    label: 'Operacional / Eventos',
+    icon: Truck,
+    color: 'hsl(var(--brand-green))',
+    match: r => lc(r).includes('operacional') || lc(r).includes('eventos'),
+  },
+  {
+    key: 'admfin',
+    label: 'Adm. / Financeira',
+    icon: DollarSign,
+    color: 'hsl(var(--primary))',
+    match: r => lc(r).includes('administrativa') || lc(r).includes('financeira') || lc(r).includes('financeiro'),
+  },
+  {
+    key: 'marketing',
+    label: 'Marketing / Comunicação',
+    icon: Megaphone,
+    color: 'hsl(var(--brand-cyan))',
+    match: r => lc(r).includes('marketing') || lc(r).includes('comunica'),
   },
   {
     key: 'plano',
@@ -106,20 +74,15 @@ const DEPARTMENTS: DeptDef[] = [
   },
 ];
 
-const COORD_GERAL_COLOR = 'hsl(var(--primary))';
-const ALL_DEFS = [...STAFF, ...DEPARTMENTS, ...DEPARTMENTS.flatMap(d => d.children ?? [])];
+const CENTRAL_COLOR = 'hsl(var(--primary))';
+const ALL_DEFS = [...DEPARTMENTS];
 
-function findMember(members: DbCampaignMember[], def: DeptDef): DbCampaignMember | null {
-  return members.find(m => def.match(m.role)) ?? null;
+function findMembers(members: DbCampaignMember[], match: (r: string) => boolean): DbCampaignMember[] {
+  return members.filter(m => match(m.role));
 }
 
-function findCoordGeral(members: DbCampaignMember[]): DbCampaignMember | null {
-  return (
-    members.find(m => {
-      const r = lc(m.role);
-      return r.includes('coorden') && r.includes('geral');
-    }) ?? null
-  );
+function findCentralTrio(members: DbCampaignMember[]): DbCampaignMember[] {
+  return members.filter(m => CENTRAL_MATCH(m.role));
 }
 
 function DeptCard({
