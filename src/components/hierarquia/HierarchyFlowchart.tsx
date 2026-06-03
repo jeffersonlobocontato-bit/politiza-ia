@@ -227,23 +227,19 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
   };
 
 
-  const coordGeral = findCoordGeral(members);
-  const staff = STAFF.map(def => ({ def, member: findMember(members, def) }));
+  const centralTrio = findCentralTrio(members);
   const departments = DEPARTMENTS.map(def => ({
     def,
-    member: findMember(members, def),
-    children: def.children?.map(c => ({ def: c, member: findMember(members, c) })) ?? [],
+    member: findMembers(members, def.match)[0] ?? null,
+    extraMembers: findMembers(members, def.match).slice(1),
   }));
 
   const totalSlots =
-    1 + staff.length + departments.length +
-    departments.reduce((acc, d) => acc + d.children.length, 0) +
+    1 + Math.max(1, centralTrio.length) + departments.length +
     (activeCandidate ? 1 : 0);
   const filledSlots =
-    (coordGeral ? 1 : 0) +
-    staff.filter(s => s.member).length +
+    centralTrio.length +
     departments.filter(d => d.member).length +
-    departments.reduce((acc, d) => acc + d.children.filter(c => c.member).length, 0) +
     (activeCandidate ? 1 : 0);
 
   // ── Árvore territorial (níveis 3 → 4 → 5 → 6) via supervisor_id ─────────────
