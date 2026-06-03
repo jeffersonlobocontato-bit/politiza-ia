@@ -387,47 +387,40 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             <VLine />
 
-            {/* L2 — Coordenador Geral centralizado com Jurídico (esq) e Comunicação (dir) ligeiramente abaixo */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2 sm:gap-3">
-              {/* Jurídico (lateral esquerda, levemente abaixo) */}
-              <div className="flex justify-end items-center gap-2 pt-10 sm:pt-12">
-                <div className="w-full max-w-[140px] sm:max-w-[160px]">
-                  <DeptCard
-                    member={staff[0].member}
-                    label={staff[0].def.label}
-                    icon={staff[0].def.icon}
-                    color={staff[0].def.color}
-                    compact
-                    exportMode={exporting}
-                  />
+            {/* L2 — Coordenação Central (trio) no topo */}
+            <div className="flex justify-center">
+              <div
+                className="w-full max-w-[640px] rounded-xl border-2 bg-card px-4 py-3"
+                style={{ borderColor: CENTRAL_COLOR, boxShadow: '0 6px 24px hsl(var(--primary) / 0.18)' }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div
+                    className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${CENTRAL_COLOR}22`, color: CENTRAL_COLOR }}
+                  >
+                    <Crown className="w-3 h-3" />
+                  </div>
+                  <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: CENTRAL_COLOR }}>
+                    Coordenação Central
+                  </div>
+                  <div className="ml-auto text-[9px] text-muted-foreground">
+                    Supervisão geral · Integração entre coordenações
+                  </div>
                 </div>
-                <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
-              </div>
-
-              {/* Coordenador Geral (centro, no topo) */}
-              <div className="w-[200px] sm:w-[230px]">
-                <DeptCard
-                  member={coordGeral}
-                  label="Coordenador Geral"
-                  icon={Crown}
-                  color={COORD_GERAL_COLOR}
-                  exportMode={exporting}
-                />
-              </div>
-
-              {/* Comunicação (lateral direita, levemente abaixo) */}
-              <div className="flex justify-start items-center gap-2 pt-10 sm:pt-12">
-                <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
-                <div className="w-full max-w-[140px] sm:max-w-[160px]">
-                  <DeptCard
-                    member={staff[1].member}
-                    label={staff[1].def.label}
-                    icon={staff[1].def.icon}
-                    color={staff[1].def.color}
-                    compact
-                    exportMode={exporting}
-                  />
-                </div>
+                {centralTrio.length === 0 ? (
+                  <div className="text-[11px] italic text-muted-foreground/70 py-2 text-center">Nenhum membro da Coordenação Central cadastrado</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {centralTrio.map(m => (
+                      <div key={m.id} className="rounded-md border bg-background/40 px-2 py-1.5">
+                        <div className="text-[11px] font-bold text-foreground leading-tight truncate">{m.name}</div>
+                        {m.role && lc(m.role) !== 'coordenação central' && (
+                          <div className="text-[9px] text-muted-foreground leading-tight truncate">{m.role}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -439,34 +432,27 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               className="grid gap-2 sm:gap-3 items-start"
               style={{ gridTemplateColumns: `repeat(${departments.length}, minmax(0, 1fr))` }}
             >
-              {departments.map(({ def, member, children }) => {
+              {departments.map(({ def, member, extraMembers }) => {
                 const isPolitica = def.key === 'politica';
                 return (
                   <div key={def.key} className="flex flex-col items-stretch">
                     <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} exportMode={exporting} />
 
-                    {children.length > 0 && (
-                      <>
-                        <VLine h={12} />
-                        <div className="flex flex-col items-stretch gap-1.5">
-                          {children.map((c, i) => (
-                            <div key={c.def.key} className="flex flex-col items-stretch">
-                              {i > 0 && <VLine h={6} />}
-                              <DeptCard
-                                member={c.member}
-                                label={c.def.label}
-                                icon={c.def.icon}
-                                color={c.def.color}
-                                compact
-                                exportMode={exporting}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </>
+                    {extraMembers.length > 0 && (
+                      <div className="flex flex-col gap-1 mt-1">
+                        {extraMembers.map(em => (
+                          <div
+                            key={em.id}
+                            className="rounded-md border bg-background/40 px-2 py-1"
+                            style={{ borderColor: `${def.color}55` }}
+                          >
+                            <div className="text-[10px] font-bold text-foreground leading-tight truncate">{em.name}</div>
+                          </div>
+                        ))}
+                      </div>
                     )}
 
-                    {/* Árvore territorial pendurada sob Coord. Política */}
+                    {/* Árvore territorial pendurada sob Política Estadual */}
                     {isPolitica && (territorial.roots.length > 0 || territorial.orphans.length > 0) && (
                       <>
                         <VLine h={12} />
