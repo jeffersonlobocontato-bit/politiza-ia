@@ -109,11 +109,13 @@ export function useRunStrategicAnalysis() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sessão expirada. Faça login novamente.');
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/strategic-analysis`;
       const res = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
       });

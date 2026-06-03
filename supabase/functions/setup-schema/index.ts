@@ -11,11 +11,32 @@ serve(async (req) => {
 
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const url = Deno.env.get("SUPABASE_URL")!;
-  
-  // Use admin client to run DDL via pg_catalog or postgres function
+  const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  // Auth: admin only
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const authClient = createClient(url, anon);
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsErr } = await authClient.auth.getClaims(token);
+  if (claimsErr || !claimsData?.claims?.sub) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   const admin = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
+  const { data: isAdmin } = await admin.rpc("is_admin" as any, { _user_id: claimsData.claims.sub });
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   // We'll use the postgres extension to run arbitrary SQL
   const schema = `
