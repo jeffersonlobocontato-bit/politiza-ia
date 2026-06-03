@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Users, Search, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Users, Search, Plus, Pencil, Trash2, X, Upload } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
@@ -7,6 +7,7 @@ import { useLeadershipProfiles, useAssetLeadershipLinks, useSetAssetProfiles } f
 import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
+import { ImportAssetsDialog } from '@/components/ativos/ImportAssetsDialog';
 
 const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
   alinhado:   '#22c55e',
@@ -92,6 +93,7 @@ export default function AtivosPoliticos() {
   const [form, setForm] = useState<AssetForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
+  const [showImport, setShowImport] = useState(false);
 
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
@@ -203,14 +205,24 @@ export default function AtivosPoliticos() {
             <p className="text-xs text-muted-foreground">{assets.length} ativos cadastrados</p>
           </div>
         </div>
-        <button
-          onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
-          style={{ background: 'var(--gradient-primary)' }}
-        >
-          <Plus className="w-4 h-4" /> Novo Ativo
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border border-border bg-background hover:bg-accent text-foreground transition-colors"
+          >
+            <Upload className="w-4 h-4" /> Importar Excel
+          </button>
+          <button
+            onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+            style={{ background: 'var(--gradient-primary)' }}
+          >
+            <Plus className="w-4 h-4" /> Novo Ativo
+          </button>
+        </div>
       </div>
+
+      <ImportAssetsDialog open={showImport} onClose={() => setShowImport(false)} />
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {assets.length > 0 && (
