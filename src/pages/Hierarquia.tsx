@@ -592,6 +592,16 @@ export default function Hierarquia() {
 
               if (lvlMembers.length === 0) return null;
 
+              // Nível 1 — Bloco Majoritário: Governador acima, Senadores abaixo
+              const isMajoritario = level === 1;
+              const governor = isMajoritario
+                ? lvlMembers.find(m => m.role.toLowerCase().includes('governador')) ?? null
+                : null;
+              const senators = isMajoritario
+                ? lvlMembers.filter(m => m !== governor)
+                : [];
+
+
               return (
               <div
                 key={level}
