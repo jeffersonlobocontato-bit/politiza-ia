@@ -25,77 +25,45 @@ interface DeptDef {
 
 const lc = (s: string) => s.toLowerCase();
 
-// (Jurídico e Comunicação agora descem como departamentos abaixo do Coordenador Geral)
+// Coordenação Central — trio no topo (Julio, Jefferson, Adilson)
+const CENTRAL_MATCH = (r: string) => lc(r).includes('central');
 
-// Staff lateral (Jurídico à esquerda, Comunicação à direita do Coordenador Geral)
-const STAFF: DeptDef[] = [
-  {
-    key: 'juridico',
-    label: 'Jurídico',
-    icon: Scale,
-    color: 'hsl(var(--brand-amber))',
-    match: r => lc(r).includes('jurídic') || lc(r).includes('juridic') || lc(r).includes('advog'),
-  },
-  {
-    key: 'comunicacao',
-    label: 'Comunicação',
-    icon: Megaphone,
-    color: 'hsl(var(--brand-cyan))',
-    match: r => lc(r).includes('comunica') || lc(r).includes('marketing') || lc(r).includes('imprensa'),
-  },
-];
-
-// Departamentos da linha inferior (descem todos do Coordenador Geral)
+// Departamentos da linha inferior (descem todos da Coordenação Central)
 const DEPARTMENTS: DeptDef[] = [
   {
-    key: 'logistica',
-    label: 'Logística',
-    icon: Truck,
-    color: 'hsl(var(--chart-4))',
-    match: r => lc(r).includes('logíst') || lc(r).includes('logist'),
-  },
-  {
-    key: 'agenda',
-    label: 'Agenda',
-    icon: Calendar,
-    color: 'hsl(var(--brand-green))',
-    match: r => lc(r).includes('agenda'),
-  },
-  {
-    key: 'financas',
-    label: 'Finanças',
-    icon: DollarSign,
-    color: 'hsl(var(--primary))',
-    match: r => lc(r).includes('finan') || lc(r).includes('tesour'),
-  },
-  {
     key: 'politica',
-    label: 'Coord. Política',
+    label: 'Política Estadual',
     icon: Handshake,
     color: 'hsl(var(--brand-cyan))',
-    match: r => (lc(r).includes('polític') || lc(r).includes('politic')) && !lc(r).includes('plano'),
-    children: [
-      {
-        key: 'coord_pl',
-        label: 'PL',
-        icon: Handshake,
-        color: 'hsl(var(--primary))',
-        match: r => {
-          const s = lc(r);
-          return (s.includes('coorden') && /\bpl\b/.test(s)) || s.includes('coord. pl') || s.includes('coord pl') || s.includes('coordenação do pl') || /\bpl\b/.test(s);
-        },
-      },
-      {
-        key: 'coord_novo',
-        label: 'NOVO',
-        icon: Handshake,
-        color: 'hsl(var(--brand-amber))',
-        match: r => {
-          const s = lc(r);
-          return (s.includes('coorden') && s.includes('novo')) || s.includes('coord. novo') || s.includes('coord novo') || s.includes('coordenação do novo') || /\bnovo\b/.test(s);
-        },
-      },
-    ],
+    match: r => lc(r).includes('política estadual') || lc(r).includes('politica estadual'),
+  },
+  {
+    key: 'juridico',
+    label: 'Jurídica Eleitoral',
+    icon: Scale,
+    color: 'hsl(var(--brand-amber))',
+    match: r => lc(r).includes('jurídic') || lc(r).includes('juridic'),
+  },
+  {
+    key: 'operacional',
+    label: 'Operacional / Eventos',
+    icon: Truck,
+    color: 'hsl(var(--brand-green))',
+    match: r => lc(r).includes('operacional') || lc(r).includes('eventos'),
+  },
+  {
+    key: 'admfin',
+    label: 'Adm. / Financeira',
+    icon: DollarSign,
+    color: 'hsl(var(--primary))',
+    match: r => lc(r).includes('administrativa') || lc(r).includes('financeira') || lc(r).includes('financeiro'),
+  },
+  {
+    key: 'marketing',
+    label: 'Marketing / Comunicação',
+    icon: Megaphone,
+    color: 'hsl(var(--brand-cyan))',
+    match: r => lc(r).includes('marketing') || lc(r).includes('comunica'),
   },
   {
     key: 'plano',
@@ -106,20 +74,15 @@ const DEPARTMENTS: DeptDef[] = [
   },
 ];
 
-const COORD_GERAL_COLOR = 'hsl(var(--primary))';
-const ALL_DEFS = [...STAFF, ...DEPARTMENTS, ...DEPARTMENTS.flatMap(d => d.children ?? [])];
+const CENTRAL_COLOR = 'hsl(var(--primary))';
+const ALL_DEFS = [...DEPARTMENTS];
 
-function findMember(members: DbCampaignMember[], def: DeptDef): DbCampaignMember | null {
-  return members.find(m => def.match(m.role)) ?? null;
+function findMembers(members: DbCampaignMember[], match: (r: string) => boolean): DbCampaignMember[] {
+  return members.filter(m => match(m.role));
 }
 
-function findCoordGeral(members: DbCampaignMember[]): DbCampaignMember | null {
-  return (
-    members.find(m => {
-      const r = lc(m.role);
-      return r.includes('coorden') && r.includes('geral');
-    }) ?? null
-  );
+function findCentralTrio(members: DbCampaignMember[]): DbCampaignMember[] {
+  return members.filter(m => CENTRAL_MATCH(m.role));
 }
 
 function DeptCard({
@@ -264,23 +227,19 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
   };
 
 
-  const coordGeral = findCoordGeral(members);
-  const staff = STAFF.map(def => ({ def, member: findMember(members, def) }));
+  const centralTrio = findCentralTrio(members);
   const departments = DEPARTMENTS.map(def => ({
     def,
-    member: findMember(members, def),
-    children: def.children?.map(c => ({ def: c, member: findMember(members, c) })) ?? [],
+    member: findMembers(members, def.match)[0] ?? null,
+    extraMembers: findMembers(members, def.match).slice(1),
   }));
 
   const totalSlots =
-    1 + staff.length + departments.length +
-    departments.reduce((acc, d) => acc + d.children.length, 0) +
+    1 + Math.max(1, centralTrio.length) + departments.length +
     (activeCandidate ? 1 : 0);
   const filledSlots =
-    (coordGeral ? 1 : 0) +
-    staff.filter(s => s.member).length +
+    centralTrio.length +
     departments.filter(d => d.member).length +
-    departments.reduce((acc, d) => acc + d.children.filter(c => c.member).length, 0) +
     (activeCandidate ? 1 : 0);
 
   // ── Árvore territorial (níveis 3 → 4 → 5 → 6) via supervisor_id ─────────────
@@ -428,47 +387,40 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             <VLine />
 
-            {/* L2 — Coordenador Geral centralizado com Jurídico (esq) e Comunicação (dir) ligeiramente abaixo */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2 sm:gap-3">
-              {/* Jurídico (lateral esquerda, levemente abaixo) */}
-              <div className="flex justify-end items-center gap-2 pt-10 sm:pt-12">
-                <div className="w-full max-w-[140px] sm:max-w-[160px]">
-                  <DeptCard
-                    member={staff[0].member}
-                    label={staff[0].def.label}
-                    icon={staff[0].def.icon}
-                    color={staff[0].def.color}
-                    compact
-                    exportMode={exporting}
-                  />
+            {/* L2 — Coordenação Central (trio) no topo */}
+            <div className="flex justify-center">
+              <div
+                className="w-full max-w-[640px] rounded-xl border-2 bg-card px-4 py-3"
+                style={{ borderColor: CENTRAL_COLOR, boxShadow: '0 6px 24px hsl(var(--primary) / 0.18)' }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div
+                    className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${CENTRAL_COLOR}22`, color: CENTRAL_COLOR }}
+                  >
+                    <Crown className="w-3 h-3" />
+                  </div>
+                  <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: CENTRAL_COLOR }}>
+                    Coordenação Central
+                  </div>
+                  <div className="ml-auto text-[9px] text-muted-foreground">
+                    Supervisão geral · Integração entre coordenações
+                  </div>
                 </div>
-                <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
-              </div>
-
-              {/* Coordenador Geral (centro, no topo) */}
-              <div className="w-[200px] sm:w-[230px]">
-                <DeptCard
-                  member={coordGeral}
-                  label="Coordenador Geral"
-                  icon={Crown}
-                  color={COORD_GERAL_COLOR}
-                  exportMode={exporting}
-                />
-              </div>
-
-              {/* Comunicação (lateral direita, levemente abaixo) */}
-              <div className="flex justify-start items-center gap-2 pt-10 sm:pt-12">
-                <div className="h-0.5 w-4 sm:w-8 bg-border flex-shrink-0" />
-                <div className="w-full max-w-[140px] sm:max-w-[160px]">
-                  <DeptCard
-                    member={staff[1].member}
-                    label={staff[1].def.label}
-                    icon={staff[1].def.icon}
-                    color={staff[1].def.color}
-                    compact
-                    exportMode={exporting}
-                  />
-                </div>
+                {centralTrio.length === 0 ? (
+                  <div className="text-[11px] italic text-muted-foreground/70 py-2 text-center">Nenhum membro da Coordenação Central cadastrado</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {centralTrio.map(m => (
+                      <div key={m.id} className="rounded-md border bg-background/40 px-2 py-1.5">
+                        <div className="text-[11px] font-bold text-foreground leading-tight truncate">{m.name}</div>
+                        {m.role && lc(m.role) !== 'coordenação central' && (
+                          <div className="text-[9px] text-muted-foreground leading-tight truncate">{m.role}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -480,34 +432,27 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               className="grid gap-2 sm:gap-3 items-start"
               style={{ gridTemplateColumns: `repeat(${departments.length}, minmax(0, 1fr))` }}
             >
-              {departments.map(({ def, member, children }) => {
+              {departments.map(({ def, member, extraMembers }) => {
                 const isPolitica = def.key === 'politica';
                 return (
                   <div key={def.key} className="flex flex-col items-stretch">
                     <DeptCard member={member} label={def.label} icon={def.icon} color={def.color} exportMode={exporting} />
 
-                    {children.length > 0 && (
-                      <>
-                        <VLine h={12} />
-                        <div className="flex flex-col items-stretch gap-1.5">
-                          {children.map((c, i) => (
-                            <div key={c.def.key} className="flex flex-col items-stretch">
-                              {i > 0 && <VLine h={6} />}
-                              <DeptCard
-                                member={c.member}
-                                label={c.def.label}
-                                icon={c.def.icon}
-                                color={c.def.color}
-                                compact
-                                exportMode={exporting}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </>
+                    {extraMembers.length > 0 && (
+                      <div className="flex flex-col gap-1 mt-1">
+                        {extraMembers.map(em => (
+                          <div
+                            key={em.id}
+                            className="rounded-md border bg-background/40 px-2 py-1"
+                            style={{ borderColor: `${def.color}55` }}
+                          >
+                            <div className="text-[10px] font-bold text-foreground leading-tight truncate">{em.name}</div>
+                          </div>
+                        ))}
+                      </div>
                     )}
 
-                    {/* Árvore territorial pendurada sob Coord. Política */}
+                    {/* Árvore territorial pendurada sob Política Estadual */}
                     {isPolitica && (territorial.roots.length > 0 || territorial.orphans.length > 0) && (
                       <>
                         <VLine h={12} />
@@ -560,7 +505,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                 Sem departamento: <strong className="text-foreground">{
                   members.filter(m =>
                     !ALL_DEFS.some(d => d.match(m.role)) &&
-                    !(lc(m.role).includes('coorden') && lc(m.role).includes('geral'))
+                    !CENTRAL_MATCH(m.role)
                   ).length
                 }</strong>
               </span>

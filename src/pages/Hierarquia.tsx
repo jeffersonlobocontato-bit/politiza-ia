@@ -17,7 +17,7 @@ const LEVEL_COLORS: Record<number, string> = {
 };
 const LEVEL_LABELS: Record<number, string> = {
   1: 'Candidato ao Governo',
-  2: 'Coordenador Geral',
+  2: 'Coordenação Estadual',
   3: 'Coordenação Macrorregional',
   4: 'Coordenação Microrregional',
   5: 'Coordenação Municipal',
@@ -26,46 +26,37 @@ const LEVEL_LABELS: Record<number, string> = {
 
 const SECTORAL_GROUPS = [
   {
-    label: 'Coordenador Geral',
+    label: 'Coordenação Central',
     color: 'hsl(var(--primary))',
     roles: [
-      'Coordenador Geral',
+      'Coordenação Central',
     ],
   },
   {
-    label: 'Áreas Meio',
-    color: 'hsl(var(--brand-amber))',
-    roles: [
-      'Coordenador Jurídico Eleitoral',
-      'Coordenador Financeiro',
-      'Coordenador de Agenda',
-      'Coordenador de Logística',
-      'Coordenador de Segurança',
-    ],
-  },
-  {
-    label: 'Áreas Estratégicas',
+    label: 'Coordenações Estaduais',
     color: 'hsl(var(--brand-cyan))',
     roles: [
-      'Coordenador de Comunicação',
-      'Coordenador de Inteligência Política',
-      'Coordenador de Plano de Governo',
-    ],
-  },
-  {
-    label: 'Áreas Operacionais',
-    color: 'hsl(var(--brand-green))',
-    roles: [
-      'Coordenador de Mobilização e Articulação',
+      'Coordenação Política Estadual',
+      'Coordenação Jurídica Eleitoral',
+      'Coordenação Operacional / Eventos',
+      'Coordenação Administrativa / Financeira',
+      'Coordenação Marketing / Comunicação',
+      'Coordenação Plano de Governo',
     ],
   },
 ];
 
 const SECTORAL_ROLES = SECTORAL_GROUPS.flatMap(g => g.roles);
 
-const SUB_ROLES: Record<string, string[]> = {
-  'Coordenador de Inteligência Política': ['Coordenação PL', 'Coordenação NOVO'],
-};
+// Roles que aceitam múltiplos membros no mesmo slot (ex.: Coord. Central trio)
+const MULTI_MEMBER_ROLES = new Set<string>([
+  'Coordenação Central',
+  'Coordenação Política Estadual',
+  'Coordenação Operacional / Eventos',
+  'Coordenação Plano de Governo',
+]);
+
+const SUB_ROLES: Record<string, string[]> = {};
 const ALL_SUB_ROLES = Object.values(SUB_ROLES).flat();
 
 interface MemberForm {
@@ -410,10 +401,11 @@ export default function Hierarquia() {
                 return (
                   <div key={level}>
                     {SECTORAL_GROUPS.map(group => {
-                      const groupCards = group.roles.map(role => ({
-                        role,
-                        member: lvlMembers.find(m => m.role === role) ?? null,
-                      }));
+                      const groupCards = group.roles.flatMap(role => {
+                        const matches = lvlMembers.filter(m => m.role === role);
+                        if (matches.length === 0) return [{ role, member: null as DbCampaignMember | null, key: role }];
+                        return matches.map(m => ({ role, member: m, key: `${role}::${m.id}` }));
+                      });
                       return (
                         <div key={group.label} className="mb-5">
                           <div className="flex items-center gap-2 mb-2 ml-1">
@@ -421,12 +413,12 @@ export default function Hierarquia() {
                             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: group.color }}>{group.label}</span>
                           </div>
                           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {groupCards.map(({ role, member }) => {
+                            {groupCards.map(({ role, member, key }) => {
                               const subRoles = SUB_ROLES[role] ?? [];
                               const hasSubs = subRoles.length > 0;
                               const isExpanded = expandedRoles.has(role);
                               return (
-                                <Fragment key={role}>
+                                <Fragment key={key}>
                                   <div
                                     onClick={hasSubs ? () => toggleExpanded(role) : undefined}
                                     className={`rounded-xl border p-4 group relative ${member ? 'border-border' : 'border-dashed border-muted-foreground/30'} ${hasSubs ? 'cursor-pointer hover:border-primary/60 transition-colors' : ''}`}

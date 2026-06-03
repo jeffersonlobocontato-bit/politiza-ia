@@ -1,74 +1,90 @@
-## Multi-candidato simultâneo + vínculo de usuário a candidato
 
-### Objetivo
-Permitir múltiplos candidatos ativos ao mesmo tempo. Admin master (Jefferson, Edson, Julio) vê tudo consolidado com filtro opcional por candidato. Usuários comuns (Lucas, Deltan, Marcelo, etc.) ficam restritos aos candidatos vinculados a eles.
+## Reestruturação da Hierarquia — Pré-Campanha PR 2026
 
-### 1. Banco de dados
+Substituir o cargo único **Coordenador Geral** pela **Coordenação Central** (trio: Julio Reis, Jefferson Lobo, Adilson Silva) e alinhar as demais coordenações ao novo organograma do PDF.
 
-**Remover restrição de candidato único**
-- Dropar trigger `ensure_single_active_candidate` e a função correspondente. Permite múltiplos `candidates.is_active = true`.
+---
 
-**Nova tabela `user_candidates` (N:N)**
-- Campos: `user_id`, `candidate_id`, `created_at`, `created_by`
-- Único: (`user_id`, `candidate_id`)
-- RLS: admin gerencia (ALL); autenticados leem
-- GRANT padrão (authenticated + service_role)
+### 1. Mudanças no nível 2 (Coordenações)
 
-**Função helper `can_view_candidate_record(_user_id, _candidate_id)`**
-- Retorna true se: admin OR sem vínculo de candidato algum (usuário "livre") OR `_candidate_id` está na lista vinculada
-- Tratar `_candidate_id IS NULL` como visível (registros legados sem candidato)
+**Topo (novo):**
+- **Coordenação Central** — Julio Reis, Jefferson Lobo, Adilson Silva
+  - Função: supervisão geral, integração entre coordenações, validação de prioridades.
 
-**Função `get_user_candidate_ids(_user_id)`** — retorna array de UUIDs vinculados (usada no frontend via RPC)
+**Coordenações abaixo da Central (mantêm `hierarchy_level = 2`):**
 
-**Atualizar RLS SELECT (regra União) nas tabelas com `candidate_id`:**
-- `tracking_rounds`, `tracking_interviews` (via join), `tracking_ai_*`, `vote_projections`, `leaders` (campo `candidate_id` já existe)
-- Para `actions`, `political_assets`, `campaign_members`, `electoral_surveys` que NÃO têm `candidate_id`: adicionar coluna `candidate_id uuid` nullable. Default da inserção será o(s) candidato(s) ativo(s) do contexto.
-- Política SELECT passa a ser: `can_view_creator_record(...) OR can_view_party_record(...) OR can_view_candidate_record(auth.uid(), candidate_id)` (União conforme escolhido).
+| Coordenação | Responsáveis | Origem |
+|---|---|---|
+| Coordenação Política Estadual | Ricardo Guerra (PL), Lucas Santos (NOVO) | Renomeia "Coordenação PL" e "Coordenação NOVO" — **mantém campo de partido para preservar RLS** |
+| Coord. Jurídica Eleitoral | Leandro Rosa | Mantém |
+| Coord. Operacional / Eventos | José Elias, João Malucelli, Adriana Kaminski | Consolida Agenda + Logística + Segurança |
+| Coord. Administrativa / Financeira | Lucas Góes | Renomeia "Financeiro" |
+| Coord. Marketing / Comunicação | Marcelo Cattani | Renomeia |
+| Coord. Plano de Governo | Edson Vasconcelos, Alcione, Rafael Amaral | Mantém + 2 novos |
 
-### 2. Frontend
+**Removidos do organograma visual:**
+- "Coordenador Geral" (cargo único — substituído pelo trio Central)
+- "Coordenador de Inteligência Política" (função absorvida pela Central; módulo de Inteligência do app continua existindo)
+- "Coordenador de Agenda", "Coordenador de Logística", "Coordenador de Segurança" como cargos separados (viram a Coord. Operacional/Eventos)
 
-**Hook `useUserCandidates`** — lê IDs vinculados do usuário logado e expõe `isAdmin`, `scopedCandidateIds`, `hasFullAccess`.
+---
 
-**Contexto "Candidato Ativo" (refatorar)**
-- Hoje seleciona um único candidato global. Passa a suportar:
-  - Admin: estado inicial = "Todos" (consolidado). Seletor permite focar 1 candidato.
-  - Não-admin com 1 vínculo: trava no candidato vinculado.
-  - Não-admin com N vínculos: seletor restrito à lista dele.
-- Persistência via localStorage (chave `activeCandidateFilter`).
+### 2. Estrutura de níveis (sem mudança no schema)
 
-**Header / Topbar**
-- Substituir o atual "Candidato Ativo" único por dropdown "Visualizando: Todos os candidatos ▾ | <Candidato X>".
+Mantém os 6 níveis atuais:
+```
+1  Candidato ao Governo
+2  Coordenação Central + Coordenações estaduais
+3  Coordenadores Regionais
+4  Coordenadores Microrregionais
+5  Coordenadores Municipais
+6  Lideranças Locais
+```
 
-**Configurações → Usuários (UsersManager)**
-- Adicionar seção "Candidatos vinculados" no formulário de criar/editar usuário: multi-select de candidatos. Salva em `user_candidates` via edge function `manage-user` (novas actions: `set_candidates`).
+A Central e as demais coordenações ficam **todas no nível 2**. Diferenciação puramente visual no flowchart (Central destacada no topo, demais agrupadas abaixo).
 
-**Filtragem nas queries**
-- Onde existir filtro `candidate_id = activeCandidate.id`, atualizar para:
-  - se "Todos" + admin → sem filtro
-  - se candidato selecionado → `eq('candidate_id', id)`
-  - usuário escopado → `in('candidate_id', scopedCandidateIds)`
+---
 
-**Cadastros novos**
-- Em forms de leader/action/asset/survey/round, preencher `candidate_id` automaticamente com o candidato em foco; se "Todos", obrigar seleção.
+### 3. Arquivos impactados
 
-### 3. Edge function `manage-user`
-- Nova action `set_candidates`: recebe `{ user_id, candidate_ids[] }`, faz delete+insert em `user_candidates`.
-- Listagem de usuários passa a retornar `candidate_ids`.
+**Frontend (apenas UI):**
+- `src/pages/Hierarquia.tsx`
+  - Atualizar `LEVEL_LABELS[2]` → "Coordenação Central"
+  - Reescrever `SECTORAL_GROUPS`: novo grupo "Coordenação Central" no topo + grupos reorganizados
+  - Remover `SUB_ROLES` para Inteligência Política
+- `src/components/hierarquia/HierarchyFlowchart.tsx`
+  - Ajustar layout L2: trio Central centralizado no topo, demais coordenações em linha abaixo
+  - Remover slots de Jurídico/Comunicação laterais (passam a ser coordenações comuns abaixo)
 
-### 4. Memória do projeto
-- Atualizar `mem://index.md` Core: "Múltiplos candidatos ativos simultaneamente; admin vê consolidado, usuários veem apenas candidatos vinculados (tabela user_candidates)."
-- Atualizar/renomear memory `candidate-centric-strategy` para refletir nova lógica multi-candidato.
+**Banco (apenas dados — sem migração de schema):**
+- `UPDATE` em `campaign_members` para:
+  - Renomear roles existentes (Financeiro → Administrativa/Financeira, Comunicação → Marketing/Comunicação)
+  - Renomear "Coordenação PL"/"NOVO" → "Coordenação Política Estadual" (preservando vínculo de partido em outro campo se necessário)
+  - Consolidar Agenda + Logística + Segurança em "Coordenação Operacional / Eventos"
+  - Remover/inativar cargo "Coordenador Geral" e "Coordenador de Inteligência Política"
+- `INSERT` dos novos membros: Jefferson Lobo, Adilson Silva, José Elias, Adriana Kaminski, Alcione, Rafael Amaral
 
-### Detalhes técnicos (resumo)
-- Migration 1: drop trigger + função `ensure_single_active_candidate`
-- Migration 2: create `user_candidates` + GRANTs + RLS
-- Migration 3: helpers `can_view_candidate_record` + `get_user_candidate_ids`
-- Migration 4: add `candidate_id` em `actions`, `political_assets`, `campaign_members`, `electoral_surveys`
-- Migration 5: refatorar políticas SELECT para União (criador OR partido OR candidato vinculado OR admin)
-- Edge function update + UsersManager UI + ActiveCandidateContext refactor + Topbar seletor
+---
 
-### Fluxo do usuário final
-- Jefferson loga → vê dashboard consolidado de todos os candidatos ativos; pode filtrar para "Candidato Senado Novo" e ver só ele.
-- Lucas Souza loga → automaticamente travado no candidato Senado Novo; não enxerga registros do Filipe.
-- Deltan/Marcelo logam → travados no candidato Senado Filipe.
-- Cadastrar vínculos: Configurações → Usuários → editar usuário → escolher candidatos.
+### 4. Avaliação de impacto/risco
+
+| Área | Impacto | Risco |
+|---|---|---|
+| Schema do banco | Nenhuma alteração estrutural | 🟢 Nenhum |
+| RLS multi-partido (`get_user_party`) | Ricardo e Lucas mantêm partido individual mesmo com role unificada | 🟢 Baixo |
+| `is_admin()` e `admin_master` (Julio, Jefferson, Edson) | Funções de admin permanecem; trio Central já tem admin_master | 🟢 Nenhum |
+| `alertTeam.ts` (cadeia de responsabilidade) | Usa hierarchy_level 3/4 — segue funcionando | 🟢 Nenhum |
+| Módulo de Inteligência Política do app | Continua funcional, sem dono nominal | 🟢 Nenhum |
+| Vínculos `supervisor_id` existentes | Coordenações L2 deixam de ter "Coord. Geral" como supervisor; subordinação passa a ser direta à Central | 🟡 Médio — revisar registros |
+| Membros L3+ (Juarez Berté etc.) | Não afetados | 🟢 Nenhum |
+
+---
+
+### 5. Ordem de execução
+
+1. Atualizar `LEVEL_LABELS`, `SECTORAL_GROUPS` e `SUB_ROLES` em `Hierarquia.tsx`
+2. Ajustar layout do `HierarchyFlowchart.tsx`
+3. Rodar `UPDATE`/`INSERT` em `campaign_members` para refletir o novo organograma
+4. Validar visualmente o fluxograma e a aba de membros
+
+Nenhuma migração de schema, nenhuma mudança em RLS, nenhum impacto em módulos externos (Ações, Tracking, Alertas, CRM).
