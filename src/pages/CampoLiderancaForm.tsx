@@ -59,7 +59,7 @@ export default function CampoLiderancaForm() {
   // Pré-carrega dados em edição
   useEffect(() => {
     if (existing) {
-      setName(existing.name);
+      setName(existing.name ?? '');
       setPhone(existing.phone ?? '');
       setEmail(existing.email ?? '');
       setPhotoUrl(existing.photo_url ?? '');
