@@ -12,7 +12,7 @@ interface FieldInput {
   result: string;
 }
 
-export default function Campo() {
+export default function CampoAcao() {
   const createAction = useCreateAction();
   const [step, setStep] = useState<'form' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
