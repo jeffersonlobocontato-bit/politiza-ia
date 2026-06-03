@@ -401,27 +401,53 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               );
 
               return (
-                <div className="flex flex-wrap items-stretch justify-center gap-3">
-                  {senators[0] && <SenateCard m={senators[0]} />}
-                  <div
-                    className="rounded-xl border-2 px-5 py-2.5 shadow-lg text-center"
-                    style={{
-                      borderColor: 'hsl(var(--primary))',
-                      background: 'var(--gradient-primary)',
-                      boxShadow: '0 8px 32px hsl(var(--primary) / 0.35)',
-                    }}
-                  >
-                    <div className="flex items-center gap-2 justify-center">
-                      <User className="w-4 h-4 text-primary-foreground" />
-                      <div className="text-sm font-black text-primary-foreground">{govName}</div>
-                    </div>
-                    <div className="text-[10px] uppercase tracking-widest text-primary-foreground/85 mt-0.5">
-                      {govCargo}
+                <div
+                  className="rounded-2xl border-2 p-4 sm:p-5"
+                  style={{
+                    borderColor: 'hsl(var(--primary) / 0.35)',
+                    background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)',
+                  }}
+                >
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <Crown className="w-3.5 h-3.5" style={{ color: 'hsl(var(--primary))' }} />
+                    <div
+                      className="text-[10px] uppercase tracking-widest font-bold"
+                      style={{ color: 'hsl(var(--primary))' }}
+                    >
+                      Bloco Majoritário
                     </div>
                   </div>
-                  {senators[1] && <SenateCard m={senators[1]} />}
-                  {senators.slice(2).map(m => <SenateCard key={m.id} m={m} />)}
-                  {others.map(m => <SenateCard key={m.id} m={m} />)}
+
+                  {/* Governador no topo */}
+                  <div className="flex justify-center">
+                    <div
+                      className="rounded-xl border-2 px-5 py-2.5 shadow-lg text-center min-w-[240px]"
+                      style={{
+                        borderColor: 'hsl(var(--primary))',
+                        background: 'var(--gradient-primary)',
+                        boxShadow: '0 8px 32px hsl(var(--primary) / 0.35)',
+                      }}
+                    >
+                      <div className="flex items-center gap-2 justify-center">
+                        <User className="w-4 h-4 text-primary-foreground" />
+                        <div className="text-sm font-black text-primary-foreground">{govName}</div>
+                      </div>
+                      <div className="text-[10px] uppercase tracking-widest text-primary-foreground/85 mt-0.5">
+                        {govCargo}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Conector para senadores */}
+                  {(senators.length > 0 || others.length > 0) && (
+                    <>
+                      <HorizontalBus count={senators.length + others.length} dropH={14} />
+                      <div className="flex flex-wrap items-stretch justify-center gap-3">
+                        {senators.map(m => <SenateCard key={m.id} m={m} />)}
+                        {others.map(m => <SenateCard key={m.id} m={m} />)}
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             })()}
