@@ -11,6 +11,8 @@ export interface Leader {
   observations: string | null;
   neighborhood: string | null;
   municipality: string | null;
+  lat: number | null;
+  lng: number | null;
   microregion: string | null;
   macroregion_id: string | null;
   secondary_territories: any;
