@@ -371,27 +371,60 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
         <div className="flex-1 overflow-auto p-3 sm:p-6 bg-background">
           <div ref={chartRef} data-pdf-root className="w-full max-w-[1040px] mx-auto">
 
-            {/* L1 — Candidato */}
-            <div className="flex justify-center">
-              <div
-                className="rounded-xl border-2 px-5 py-2.5 shadow-lg text-center"
-                style={{
-                  borderColor: 'hsl(var(--primary))',
-                  background: 'var(--gradient-primary)',
-                  boxShadow: '0 8px 32px hsl(var(--primary) / 0.35)',
-                }}
-              >
-                <div className="flex items-center gap-2 justify-center">
-                  <User className="w-4 h-4 text-primary-foreground" />
-                  <div className="text-sm font-black text-primary-foreground">
-                    {activeCandidate?.name ?? 'Candidato'}
+            {/* L1 — Candidato ao Governo + Candidatos ao Senado */}
+            {(() => {
+              const l1 = members.filter(m => m.hierarchy_level === 1);
+              const governor =
+                l1.find(m => lc(m.role).includes('governador')) ?? null;
+              const senators = l1.filter(m => lc(m.role).includes('senado'));
+              const others = l1.filter(m => m !== governor && !senators.includes(m));
+              // Fallback ao activeCandidate se não houver governador cadastrado
+              const govName = governor?.name ?? activeCandidate?.name ?? 'Candidato';
+              const govCargo = governor?.role ?? activeCandidate?.cargo ?? 'Cargo';
+
+              const SenateCard = ({ m }: { m: DbCampaignMember }) => (
+                <div
+                  className="rounded-xl border-2 bg-card px-4 py-2.5 text-center shadow-md"
+                  style={{ borderColor: 'hsl(var(--brand-amber))' }}
+                >
+                  <div className="flex items-center gap-1.5 justify-center">
+                    <User className="w-3.5 h-3.5" style={{ color: 'hsl(var(--brand-amber))' }} />
+                    <div className="text-[13px] font-black text-foreground">{m.name}</div>
+                  </div>
+                  <div
+                    className="text-[9px] uppercase tracking-widest mt-0.5 font-bold"
+                    style={{ color: 'hsl(var(--brand-amber))' }}
+                  >
+                    Candidato ao Senado
                   </div>
                 </div>
-                <div className="text-[10px] uppercase tracking-widest text-primary-foreground/85 mt-0.5">
-                  {activeCandidate?.cargo ?? 'Cargo'}
+              );
+
+              return (
+                <div className="flex flex-wrap items-stretch justify-center gap-3">
+                  {senators[0] && <SenateCard m={senators[0]} />}
+                  <div
+                    className="rounded-xl border-2 px-5 py-2.5 shadow-lg text-center"
+                    style={{
+                      borderColor: 'hsl(var(--primary))',
+                      background: 'var(--gradient-primary)',
+                      boxShadow: '0 8px 32px hsl(var(--primary) / 0.35)',
+                    }}
+                  >
+                    <div className="flex items-center gap-2 justify-center">
+                      <User className="w-4 h-4 text-primary-foreground" />
+                      <div className="text-sm font-black text-primary-foreground">{govName}</div>
+                    </div>
+                    <div className="text-[10px] uppercase tracking-widest text-primary-foreground/85 mt-0.5">
+                      {govCargo}
+                    </div>
+                  </div>
+                  {senators[1] && <SenateCard m={senators[1]} />}
+                  {senators.slice(2).map(m => <SenateCard key={m.id} m={m} />)}
+                  {others.map(m => <SenateCard key={m.id} m={m} />)}
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <VLine />
 
