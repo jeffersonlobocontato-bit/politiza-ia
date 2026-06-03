@@ -1,0 +1,14 @@
+{
+  "name": "Gestão Eleitoral — Campo",
+  "short_name": "Campo",
+  "description": "Plataforma de operação de campo: ações e cadastro de lideranças.",
+  "start_url": "/campo",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1A2A45",
+  "theme_color": "#1A2A45",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "64x64 32x32 24x24 16x16", "type": "image/x-icon" }
+  ]
+}
