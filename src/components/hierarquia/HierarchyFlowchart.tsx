@@ -505,7 +505,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                 Sem departamento: <strong className="text-foreground">{
                   members.filter(m =>
                     !ALL_DEFS.some(d => d.match(m.role)) &&
-                    !(lc(m.role).includes('coorden') && lc(m.role).includes('geral'))
+                    !CENTRAL_MATCH(m.role)
                   ).length
                 }</strong>
               </span>
