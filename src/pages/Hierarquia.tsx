@@ -593,13 +593,23 @@ export default function Hierarquia() {
               if (lvlMembers.length === 0) return null;
 
               return (
-              <div key={level}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white" style={{ backgroundColor: LEVEL_COLORS[level] }}>
+              <div
+                key={level}
+                className="rounded-2xl border-2 p-5 relative"
+                style={{
+                  borderColor: `${LEVEL_COLORS[level]}55`,
+                  background: `linear-gradient(180deg, ${LEVEL_COLORS[level]}0d 0%, transparent 60%)`,
+                }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black text-white shadow-md" style={{ backgroundColor: LEVEL_COLORS[level] }}>
                     {level}
                   </div>
-                  <span className="text-sm font-semibold text-foreground">{LEVEL_LABELS[level]}</span>
-                  <span className="text-xs text-muted-foreground">({lvlMembers.length})</span>
+                  <div>
+                    <div className="text-sm font-bold text-foreground">Nível {level} — {LEVEL_LABELS[level]}</div>
+                    <div className="text-[11px] text-muted-foreground">{lvlMembers.length} {lvlMembers.length === 1 ? 'membro' : 'membros'}</div>
+                  </div>
+                  <div className="flex-1 h-px ml-3" style={{ background: `linear-gradient(to right, ${LEVEL_COLORS[level]}55, transparent)` }} />
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {lvlMembers.map(m => (
