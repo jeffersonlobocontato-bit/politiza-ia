@@ -81,8 +81,15 @@ function findMembers(members: DbCampaignMember[], match: (r: string) => boolean)
   return members.filter(m => match(m.role));
 }
 
-function findCentralTrio(members: DbCampaignMember[]): DbCampaignMember[] {
-  return members.filter(m => CENTRAL_MATCH(m.role));
+function findCentralTrio(members: DbCampaignMember[]): { lead: DbCampaignMember | null; peers: DbCampaignMember[] } {
+  const all = members.filter(m => CENTRAL_MATCH(m.role));
+  // Julio Reis é o Coordenador Geral dentro da Central — fica no topo
+  const lead =
+    all.find(m => lc(m.name).includes('julio')) ??
+    all.find(m => lc(m.role).includes('geral')) ??
+    all[0] ?? null;
+  const peers = all.filter(m => m.id !== lead?.id);
+  return { lead, peers };
 }
 
 function DeptCard({
@@ -234,11 +241,12 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
     extraMembers: findMembers(members, def.match).slice(1),
   }));
 
+  const centralCount = (centralTrio.lead ? 1 : 0) + centralTrio.peers.length;
   const totalSlots =
-    1 + Math.max(1, centralTrio.length) + departments.length +
+    1 + Math.max(1, centralCount) + departments.length +
     (activeCandidate ? 1 : 0);
   const filledSlots =
-    centralTrio.length +
+    centralCount +
     departments.filter(d => d.member).length +
     (activeCandidate ? 1 : 0);
 
@@ -387,13 +395,13 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
             <VLine />
 
-            {/* L2 — Coordenação Central (trio) no topo */}
+            {/* L2 — Coordenação Central: Julio (Coord. Geral) acima do par Adilson + Jefferson */}
             <div className="flex justify-center">
               <div
                 className="w-full max-w-[640px] rounded-xl border-2 bg-card px-4 py-3"
                 style={{ borderColor: CENTRAL_COLOR, boxShadow: '0 6px 24px hsl(var(--primary) / 0.18)' }}
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                   <div
                     className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: `${CENTRAL_COLOR}22`, color: CENTRAL_COLOR }}
@@ -407,25 +415,75 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                     Supervisão geral · Integração entre coordenações
                   </div>
                 </div>
-                {centralTrio.length === 0 ? (
+
+                {centralCount === 0 ? (
                   <div className="text-[11px] italic text-muted-foreground/70 py-2 text-center">Nenhum membro da Coordenação Central cadastrado</div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    {centralTrio.map(m => (
-                      <div key={m.id} className="rounded-md border bg-background/40 px-2 py-1.5">
-                        <div className="text-[11px] font-bold text-foreground leading-tight truncate">{m.name}</div>
-                        {m.role && lc(m.role) !== 'coordenação central' && (
-                          <div className="text-[9px] text-muted-foreground leading-tight truncate">{m.role}</div>
+                  <div className="flex flex-col items-center">
+                    {/* Coordenador Geral no topo */}
+                    {centralTrio.lead && (
+                      <div
+                        className="w-full sm:w-2/3 rounded-md border-2 bg-background/60 px-3 py-2 text-center"
+                        style={{ borderColor: CENTRAL_COLOR }}
+                      >
+                        <div className="text-[8px] uppercase tracking-widest font-bold mb-0.5" style={{ color: CENTRAL_COLOR }}>
+                          Coordenador Geral
+                        </div>
+                        <div className="text-[12px] font-bold text-foreground leading-tight">{centralTrio.lead.name}</div>
+                        {centralTrio.lead.role && lc(centralTrio.lead.role) !== 'coordenação central' && (
+                          <div className="text-[9px] text-muted-foreground leading-tight">{centralTrio.lead.role}</div>
                         )}
                       </div>
-                    ))}
+                    )}
+
+                    {/* Conector vertical + horizontal para os pares */}
+                    {centralTrio.lead && centralTrio.peers.length > 0 && (
+                      <HorizontalBus count={centralTrio.peers.length} dropH={12} />
+                    )}
+
+                    {/* Pares (Adilson + Jefferson) lado a lado */}
+                    {centralTrio.peers.length > 0 && (
+                      <div
+                        className="grid gap-2 w-full"
+                        style={{ gridTemplateColumns: `repeat(${centralTrio.peers.length}, minmax(0, 1fr))` }}
+                      >
+                        {centralTrio.peers.map(m => (
+                          <div
+                            key={m.id}
+                            className="rounded-md border bg-background/40 px-2 py-1.5 text-center"
+                            style={{ borderColor: `${CENTRAL_COLOR}66` }}
+                          >
+                            <div className="text-[8px] uppercase tracking-widest font-semibold text-muted-foreground mb-0.5">
+                              Coordenação Adjunta
+                            </div>
+                            <div className="text-[11px] font-bold text-foreground leading-tight">{m.name}</div>
+                            {m.role && lc(m.role) !== 'coordenação central' && (
+                              <div className="text-[9px] text-muted-foreground leading-tight truncate">{m.role}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
+            {/* Faixa separadora — divisão clara entre Nível 2 (Central) e Nível 3 (Setoriais) */}
+            <div className="my-3 flex items-center gap-3">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-border" />
+              <span
+                className="text-[9px] uppercase tracking-[0.2em] font-bold px-2 py-1 rounded-md border"
+                style={{ borderColor: 'hsl(var(--brand-cyan) / 0.5)', color: 'hsl(var(--brand-cyan))', background: 'hsl(var(--brand-cyan) / 0.08)' }}
+              >
+                Coordenações Setoriais Estaduais
+              </span>
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-border" />
+            </div>
+
             {/* Bus to departments */}
             <HorizontalBus count={departments.length} />
+
 
             {/* L3 — Departments responsive grid */}
             <div
