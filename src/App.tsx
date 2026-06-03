@@ -16,6 +16,10 @@ import Territorios from "./pages/Territorios";
 import Municipios from "./pages/Municipios";
 import Acoes from "./pages/Acoes";
 import Campo from "./pages/Campo";
+import CampoAcao from "./pages/CampoAcao";
+import CampoLiderancas from "./pages/CampoLiderancas";
+import CampoLiderancaForm from "./pages/CampoLiderancaForm";
+import CampoDashboard from "./pages/CampoDashboard";
 import AtivosPoliticos from "./pages/AtivosPoliticos";
 import Pesquisas from "./pages/Pesquisas";
 import Hierarquia from "./pages/Hierarquia";
@@ -46,6 +50,11 @@ const AppRoutes = () => (
     <Route path="/municipios" element={<ProtectedRoute><AppLayout><Municipios /></AppLayout></ProtectedRoute>} />
     <Route path="/acoes" element={<ProtectedRoute><AppLayout><Acoes /></AppLayout></ProtectedRoute>} />
     <Route path="/campo" element={<ProtectedRoute><AppLayout><Campo /></AppLayout></ProtectedRoute>} />
+    <Route path="/campo/acao" element={<ProtectedRoute><AppLayout><CampoAcao /></AppLayout></ProtectedRoute>} />
+    <Route path="/campo/liderancas" element={<ProtectedRoute><AppLayout><CampoLiderancas /></AppLayout></ProtectedRoute>} />
+    <Route path="/campo/liderancas/novo" element={<ProtectedRoute><AppLayout><CampoLiderancaForm /></AppLayout></ProtectedRoute>} />
+    <Route path="/campo/liderancas/:id" element={<ProtectedRoute><AppLayout><CampoLiderancaForm /></AppLayout></ProtectedRoute>} />
+    <Route path="/campo/dashboard" element={<ProtectedRoute><AppLayout><CampoDashboard /></AppLayout></ProtectedRoute>} />
     <Route path="/ativos" element={<ProtectedRoute><AppLayout><AtivosPoliticos /></AppLayout></ProtectedRoute>} />
     <Route path="/pesquisas" element={<ProtectedRoute><AppLayout><Pesquisas /></AppLayout></ProtectedRoute>} />
     <Route path="/hierarquia" element={<ProtectedRoute><AppLayout><Hierarquia /></AppLayout></ProtectedRoute>} />
