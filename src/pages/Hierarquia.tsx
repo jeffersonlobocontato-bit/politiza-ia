@@ -17,7 +17,7 @@ const LEVEL_COLORS: Record<number, string> = {
 };
 const LEVEL_LABELS: Record<number, string> = {
   1: 'Candidato ao Governo',
-  2: 'Coordenador Geral',
+  2: 'Coordenação Estadual',
   3: 'Coordenação Macrorregional',
   4: 'Coordenação Microrregional',
   5: 'Coordenação Municipal',
@@ -26,46 +26,37 @@ const LEVEL_LABELS: Record<number, string> = {
 
 const SECTORAL_GROUPS = [
   {
-    label: 'Coordenador Geral',
+    label: 'Coordenação Central',
     color: 'hsl(var(--primary))',
     roles: [
-      'Coordenador Geral',
+      'Coordenação Central',
     ],
   },
   {
-    label: 'Áreas Meio',
-    color: 'hsl(var(--brand-amber))',
-    roles: [
-      'Coordenador Jurídico Eleitoral',
-      'Coordenador Financeiro',
-      'Coordenador de Agenda',
-      'Coordenador de Logística',
-      'Coordenador de Segurança',
-    ],
-  },
-  {
-    label: 'Áreas Estratégicas',
+    label: 'Coordenações Estaduais',
     color: 'hsl(var(--brand-cyan))',
     roles: [
-      'Coordenador de Comunicação',
-      'Coordenador de Inteligência Política',
-      'Coordenador de Plano de Governo',
-    ],
-  },
-  {
-    label: 'Áreas Operacionais',
-    color: 'hsl(var(--brand-green))',
-    roles: [
-      'Coordenador de Mobilização e Articulação',
+      'Coordenação Política Estadual',
+      'Coordenação Jurídica Eleitoral',
+      'Coordenação Operacional / Eventos',
+      'Coordenação Administrativa / Financeira',
+      'Coordenação Marketing / Comunicação',
+      'Coordenação Plano de Governo',
     ],
   },
 ];
 
 const SECTORAL_ROLES = SECTORAL_GROUPS.flatMap(g => g.roles);
 
-const SUB_ROLES: Record<string, string[]> = {
-  'Coordenador de Inteligência Política': ['Coordenação PL', 'Coordenação NOVO'],
-};
+// Roles que aceitam múltiplos membros no mesmo slot (ex.: Coord. Central trio)
+const MULTI_MEMBER_ROLES = new Set<string>([
+  'Coordenação Central',
+  'Coordenação Política Estadual',
+  'Coordenação Operacional / Eventos',
+  'Coordenação Plano de Governo',
+]);
+
+const SUB_ROLES: Record<string, string[]> = {};
 const ALL_SUB_ROLES = Object.values(SUB_ROLES).flat();
 
 interface MemberForm {
