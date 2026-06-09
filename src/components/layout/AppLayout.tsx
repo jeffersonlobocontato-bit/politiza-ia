@@ -47,20 +47,28 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, []);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Top bar — white/card background with bottom border */}
-          <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card shadow-sm flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+          {/* Top bar — safe area top padding for PWA / notch */}
+          <header
+            className="flex items-center justify-between px-3 sm:px-4 border-b border-border bg-card shadow-sm flex-shrink-0 h-14 sm:h-12"
+            style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(3.5rem + env(safe-area-inset-top))' }}
+          >
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <SidebarTrigger
+                className="!h-10 !w-auto px-3 gap-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 sm:bg-transparent sm:border-0 sm:text-muted-foreground sm:hover:text-foreground sm:px-2"
+                aria-label="Abrir menu"
+              >
+                <span className="text-xs font-bold sm:hidden">Menu</span>
+              </SidebarTrigger>
               <div className="hidden sm:flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
                 <span className="text-xs text-muted-foreground font-medium">Sistema Online</span>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <div className="hidden md:flex items-center gap-1.5 text-xs text-muted-foreground mono">
                 <Clock className="w-3.5 h-3.5" />
                 <span>{time.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })}</span>
@@ -68,15 +76,15 @@ export function AppLayout({ children }: AppLayoutProps) {
               {/* Theme toggle */}
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                className="p-2 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                 title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
-              <button className="relative p-1.5 rounded-md hover:bg-muted transition-colors">
+              <button className="relative p-2 rounded-md hover:bg-muted transition-colors">
                 <Bell className="w-4 h-4 text-muted-foreground" />
                 {unreadAlerts > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-status-error text-white text-[9px] font-bold">
+                  <span className="absolute top-0 right-0 w-4 h-4 flex items-center justify-center rounded-full bg-status-error text-white text-[9px] font-bold">
                     {unreadAlerts}
                   </span>
                 )}
