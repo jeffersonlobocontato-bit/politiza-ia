@@ -52,8 +52,12 @@ function isItemVisible(item: NavItem, campaignType: CampaignType): boolean {
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile, setOpen } = useSidebar();
   const collapsed = state === 'collapsed';
+  const closeSidebar = () => {
+    if (isMobile) setOpenMobile(false);
+    else setOpen(false);
+  };
   const location = useLocation();
   const { activeCandidate, campaignType, activeCandidates, allActiveCandidates, hasFullAccess, isViewingAll, selectedCandidateIds, setActive, setSelectedCandidateIds } = useCandidate();
   const { isAdmin } = useAuth();
