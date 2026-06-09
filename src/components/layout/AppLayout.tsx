@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { InstallPrompt } from './InstallPrompt';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -111,7 +112,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             {children}
           </main>
         </div>
+        <InstallPrompt />
       </div>
     </SidebarProvider>
   );
 }
+

@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { RoleAwareLayout } from "@/components/layout/RoleAwareLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { CampaignProvider } from "@/contexts/CampaignContext";
@@ -46,32 +46,32 @@ const queryClient = new QueryClient({
 const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<Login />} />
-    <Route path="/" element={<ProtectedRoute><AppLayout><SalaDeGuerra /></AppLayout></ProtectedRoute>} />
-    <Route path="/mapa" element={<ProtectedRoute><AppLayout><MapaEstrategico /></AppLayout></ProtectedRoute>} />
-    <Route path="/territorios" element={<ProtectedRoute><AppLayout><Territorios /></AppLayout></ProtectedRoute>} />
-    <Route path="/municipios" element={<ProtectedRoute><AppLayout><Municipios /></AppLayout></ProtectedRoute>} />
-    <Route path="/acoes" element={<ProtectedRoute><AppLayout><Acoes /></AppLayout></ProtectedRoute>} />
-    <Route path="/campo" element={<ProtectedRoute><AppLayout><Campo /></AppLayout></ProtectedRoute>} />
-    <Route path="/campo/acao" element={<ProtectedRoute><AppLayout><CampoAcao /></AppLayout></ProtectedRoute>} />
-    <Route path="/campo/liderancas" element={<ProtectedRoute><AppLayout><CampoLiderancas /></AppLayout></ProtectedRoute>} />
-    <Route path="/campo/liderancas/novo" element={<ProtectedRoute><AppLayout><CampoLiderancaForm /></AppLayout></ProtectedRoute>} />
-    <Route path="/campo/liderancas/:id" element={<ProtectedRoute><AppLayout><CampoLiderancaForm /></AppLayout></ProtectedRoute>} />
-    <Route path="/campo/dashboard" element={<ProtectedRoute><AppLayout><CampoDashboard /></AppLayout></ProtectedRoute>} />
-    <Route path="/ativos" element={<ProtectedRoute><AppLayout><AtivosPoliticos /></AppLayout></ProtectedRoute>} />
-    <Route path="/pesquisas" element={<ProtectedRoute><AppLayout><Pesquisas /></AppLayout></ProtectedRoute>} />
-    <Route path="/hierarquia" element={<ProtectedRoute><AppLayout><Hierarquia /></AppLayout></ProtectedRoute>} />
-    <Route path="/configuracoes" element={<ProtectedRoute><AppLayout><Configuracoes /></AppLayout></ProtectedRoute>} />
-    <Route path="/sala-de-crise" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
-    <Route path="/proporcional" element={<ProtectedRoute><AppLayout><Proporcional /></AppLayout></ProtectedRoute>} />
-    <Route path="/tracking" element={<ProtectedRoute><AppLayout><TrackingDashboard /></AppLayout></ProtectedRoute>} />
-    <Route path="/agenda" element={<ProtectedRoute><AppLayout><Agenda /></AppLayout></ProtectedRoute>} />
-    <Route path="/chapas" element={<ProtectedRoute><AppLayout><Chapas /></AppLayout></ProtectedRoute>} />
-    <Route path="/chapas/:party" element={<ProtectedRoute><AppLayout><ChapaPartido /></AppLayout></ProtectedRoute>} />
+    <Route path="/" element={<ProtectedRoute><RoleAwareLayout><SalaDeGuerra /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/mapa" element={<ProtectedRoute><RoleAwareLayout><MapaEstrategico /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/territorios" element={<ProtectedRoute><RoleAwareLayout><Territorios /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/municipios" element={<ProtectedRoute><RoleAwareLayout><Municipios /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/acoes" element={<ProtectedRoute><RoleAwareLayout><Acoes /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo" element={<ProtectedRoute><RoleAwareLayout><Campo /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/acao" element={<ProtectedRoute><RoleAwareLayout><CampoAcao /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/liderancas" element={<ProtectedRoute><RoleAwareLayout><CampoLiderancas /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/liderancas/novo" element={<ProtectedRoute><RoleAwareLayout><CampoLiderancaForm /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/liderancas/:id" element={<ProtectedRoute><RoleAwareLayout><CampoLiderancaForm /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/dashboard" element={<ProtectedRoute><RoleAwareLayout><CampoDashboard /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/ativos" element={<ProtectedRoute><RoleAwareLayout><AtivosPoliticos /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/pesquisas" element={<ProtectedRoute><RoleAwareLayout><Pesquisas /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/hierarquia" element={<ProtectedRoute><RoleAwareLayout><Hierarquia /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/configuracoes" element={<ProtectedRoute><RoleAwareLayout><Configuracoes /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/sala-de-crise" element={<ProtectedRoute><RoleAwareLayout><SalaDeCrise /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/proporcional" element={<ProtectedRoute><RoleAwareLayout><Proporcional /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/tracking" element={<ProtectedRoute><RoleAwareLayout><TrackingDashboard /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/agenda" element={<ProtectedRoute><RoleAwareLayout><Agenda /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/chapas" element={<ProtectedRoute><RoleAwareLayout><Chapas /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/chapas/:party" element={<ProtectedRoute><RoleAwareLayout><ChapaPartido /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/tracking/coleta/:shareCode" element={<ProtectedRoute><TrackingColeta /></ProtectedRoute>} />
     <Route path="/mobnex" element={<ProtectedRoute><MobnexShowcase /></ProtectedRoute>} />
     {/* Legacy redirects */}
-    <Route path="/alertas" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
-    <Route path="/inteligencia" element={<ProtectedRoute><AppLayout><SalaDeCrise /></AppLayout></ProtectedRoute>} />
+    <Route path="/alertas" element={<ProtectedRoute><RoleAwareLayout><SalaDeCrise /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/inteligencia" element={<ProtectedRoute><RoleAwareLayout><SalaDeCrise /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
