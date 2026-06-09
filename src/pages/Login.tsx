@@ -7,17 +7,22 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, user, loading: authLoading } = useAuth();
+  const { signIn, user, loading: authLoading, isCampoOperator } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const targetForUser = () => {
+    const from = (location.state as any)?.from?.pathname as string | undefined;
+    if (isCampoOperator) return '/campo';
+    return from && from !== '/login' ? from : '/';
+  };
+
   // If already authenticated, redirect
   if (!authLoading && user) {
-    const from = (location.state as any)?.from?.pathname ?? '/';
-    navigate(from, { replace: true });
+    navigate(targetForUser(), { replace: true });
   }
 
   const handleLogin = async () => {
@@ -32,8 +37,7 @@ export default function Login() {
       setError('Credenciais inválidas. Verifique e-mail e senha.');
       setLoading(false);
     } else {
-      const from = (location.state as any)?.from?.pathname ?? '/';
-      navigate(from, { replace: true });
+      navigate(targetForUser(), { replace: true });
     }
   };
 
