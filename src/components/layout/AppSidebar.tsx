@@ -103,6 +103,7 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end={item.url === '/'}
+                        onClick={closeSidebar}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                           isActive
                             ? 'bg-primary/20 text-white font-semibold border-l-2 border-primary'
