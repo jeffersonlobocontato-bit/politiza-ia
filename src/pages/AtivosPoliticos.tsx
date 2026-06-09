@@ -95,6 +95,7 @@ export default function AtivosPoliticos() {
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
   const [showImport, setShowImport] = useState(false);
+  const association = useAssociationForCity(geoForm.city);
 
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
