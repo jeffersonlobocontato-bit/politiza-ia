@@ -31,6 +31,8 @@ import TrackingColeta from "./pages/TrackingColeta";
 import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 import MobnexShowcase from "./pages/MobnexShowcase";
+import Chapas from "./pages/Chapas";
+import ChapaPartido from "./pages/ChapaPartido";
 
 const queryClient = new QueryClient({
   defaultOptions: {
