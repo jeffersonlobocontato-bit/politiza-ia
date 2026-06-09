@@ -98,6 +98,7 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+  const association = useAssociationForCity(geoForm.city);
   const toggleExpanded = (role: string) => setExpandedRoles(prev => {
     const next = new Set(prev);
     next.has(role) ? next.delete(role) : next.add(role);
