@@ -12,16 +12,12 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(true);
 
   useEffect(() => {
-    // Supabase auth event PASSWORD_RECOVERY fires when the recovery link sets the session
+    // Listener still useful to capture late PASSWORD_RECOVERY events
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setReady(true);
-    });
-    // Also check current session (link already processed)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true);
     });
     return () => data.subscription.unsubscribe();
   }, []);
