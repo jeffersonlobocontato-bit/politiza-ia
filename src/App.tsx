@@ -65,6 +65,8 @@ const AppRoutes = () => (
     <Route path="/proporcional" element={<ProtectedRoute><AppLayout><Proporcional /></AppLayout></ProtectedRoute>} />
     <Route path="/tracking" element={<ProtectedRoute><AppLayout><TrackingDashboard /></AppLayout></ProtectedRoute>} />
     <Route path="/agenda" element={<ProtectedRoute><AppLayout><Agenda /></AppLayout></ProtectedRoute>} />
+    <Route path="/chapas" element={<ProtectedRoute><AppLayout><Chapas /></AppLayout></ProtectedRoute>} />
+    <Route path="/chapas/:party" element={<ProtectedRoute><AppLayout><ChapaPartido /></AppLayout></ProtectedRoute>} />
     <Route path="/tracking/coleta/:shareCode" element={<ProtectedRoute><TrackingColeta /></ProtectedRoute>} />
     <Route path="/mobnex" element={<ProtectedRoute><MobnexShowcase /></ProtectedRoute>} />
     {/* Legacy redirects */}
