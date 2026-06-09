@@ -8,6 +8,7 @@ import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfi
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { ImportAssetsDialog } from '@/components/ativos/ImportAssetsDialog';
+import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
 
 const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
   alinhado:   '#22c55e',
@@ -94,6 +95,7 @@ export default function AtivosPoliticos() {
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
   const [showImport, setShowImport] = useState(false);
+  const association = useAssociationForCity(geoForm.city);
 
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
@@ -299,6 +301,18 @@ export default function AtivosPoliticos() {
                   label="Município / Localização Exata *"
                   placeholder="Ex: Curitiba, Londrina..."
                 />
+                {geoForm.city && (
+                  <div className="mt-2 text-xs">
+                    <span className="text-muted-foreground">Associação de Municípios: </span>
+                    {association ? (
+                      <span className="font-medium text-foreground">
+                        {association.acronym} — {association.name}
+                      </span>
+                    ) : (
+                      <span className="italic text-muted-foreground">Não vinculada a uma associação cadastrada</span>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Macrorregião</label>

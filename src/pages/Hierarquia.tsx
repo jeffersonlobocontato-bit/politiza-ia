@@ -6,6 +6,7 @@ import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember }
 import type { DbCampaignMember } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { HierarchyFlowchart } from '@/components/hierarquia/HierarchyFlowchart';
+import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
 
 const LEVEL_COLORS: Record<number, string> = {
   1: 'hsl(var(--brand-amber))',
@@ -97,6 +98,7 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+  const association = useAssociationForCity(geoForm.city);
   const toggleExpanded = (role: string) => setExpandedRoles(prev => {
     const next = new Set(prev);
     next.has(role) ? next.delete(role) : next.add(role);
@@ -347,6 +349,18 @@ export default function Hierarquia() {
                   label="Município / Localização Exata *"
                   placeholder="Ex: Curitiba, Londrina..."
                 />
+                {geoForm.city && (
+                  <div className="mt-2 text-xs">
+                    <span className="text-muted-foreground">Associação de Municípios: </span>
+                    {association ? (
+                      <span className="font-medium text-foreground">
+                        {association.acronym} — {association.name}
+                      </span>
+                    ) : (
+                      <span className="italic text-muted-foreground">Não vinculada a uma associação cadastrada</span>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Status</label>
