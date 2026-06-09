@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Shield, Map, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,6 +121,12 @@ export default function Login() {
                 'Acessar Plataforma'
               )}
             </Button>
+
+            <div className="text-center">
+              <Link to="/forgot-password" className="text-xs text-brand-blue hover:underline">
+                Esqueci minha senha
+              </Link>
+            </div>
           </div>
 
           <p className="text-center text-xs text-muted-foreground mt-4">
