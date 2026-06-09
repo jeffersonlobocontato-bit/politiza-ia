@@ -8,6 +8,7 @@ import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfi
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { ImportAssetsDialog } from '@/components/ativos/ImportAssetsDialog';
+import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
 
 const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
   alinhado:   '#22c55e',
