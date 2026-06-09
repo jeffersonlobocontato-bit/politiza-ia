@@ -301,6 +301,18 @@ export default function AtivosPoliticos() {
                   label="Município / Localização Exata *"
                   placeholder="Ex: Curitiba, Londrina..."
                 />
+                {geoForm.city && (
+                  <div className="mt-2 text-xs">
+                    <span className="text-muted-foreground">Associação de Municípios: </span>
+                    {association ? (
+                      <span className="font-medium text-foreground">
+                        {association.acronym} — {association.name}
+                      </span>
+                    ) : (
+                      <span className="italic text-muted-foreground">Não vinculada a uma associação cadastrada</span>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Macrorregião</label>
