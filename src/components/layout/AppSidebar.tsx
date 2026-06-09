@@ -59,8 +59,9 @@ export function AppSidebar() {
   const { isAdmin } = useAuth();
   const { isPartyManager } = useUserParty();
 
-  const visibleItems = navItems.filter(item => isItemVisible(item, campaignType));
-  const showChapas = isAdmin || isPartyManager;
+  const visibleItems = navItems
+    .filter(item => isItemVisible(item, campaignType))
+    .filter(item => item.url !== '/chapas' || showChapas);
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
