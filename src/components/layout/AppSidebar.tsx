@@ -34,6 +34,7 @@ const navItems: NavItem[] = [
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
   { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
+  { title: 'Chapas', url: '/chapas', icon: UsersRound, scope: 'shared' },
   // Proporcional-only
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
   { title: 'Tracking', url: '/tracking', icon: Activity, scope: 'shared' },
