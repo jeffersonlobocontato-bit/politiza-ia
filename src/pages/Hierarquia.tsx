@@ -6,6 +6,7 @@ import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember }
 import type { DbCampaignMember } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { HierarchyFlowchart } from '@/components/hierarquia/HierarchyFlowchart';
+import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
 
 const LEVEL_COLORS: Record<number, string> = {
   1: 'hsl(var(--brand-amber))',
