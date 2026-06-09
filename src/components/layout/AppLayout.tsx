@@ -1,8 +1,8 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
-import { Bell, Clock, Sun, Moon, LogOut } from 'lucide-react';
+import { Bell, Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
 import { alerts } from '@/data/mockData';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +19,22 @@ import { InstallPrompt } from './InstallPrompt';
 interface AppLayoutProps {
   children: ReactNode;
 }
+
+function MenuButton() {
+  const { toggleSidebar } = useSidebar();
+  return (
+    <button
+      type="button"
+      onClick={toggleSidebar}
+      aria-label="Abrir menu"
+      className="h-10 inline-flex items-center gap-2 px-3 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 sm:bg-transparent sm:border-0 sm:text-muted-foreground sm:hover:text-foreground sm:px-2 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+    >
+      <Menu className="w-5 h-5" />
+      <span className="text-xs font-bold sm:hidden">Menu</span>
+    </button>
+  );
+}
+
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [time, setTime] = useState(new Date());
