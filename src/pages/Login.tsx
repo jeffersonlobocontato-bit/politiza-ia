@@ -121,6 +121,12 @@ export default function Login() {
                 'Acessar Plataforma'
               )}
             </Button>
+
+            <div className="text-center">
+              <Link to="/forgot-password" className="text-xs text-brand-blue hover:underline">
+                Esqueci minha senha
+              </Link>
+            </div>
           </div>
 
           <p className="text-center text-xs text-muted-foreground mt-4">
