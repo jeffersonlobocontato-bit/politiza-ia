@@ -55,8 +55,11 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { activeCandidate, campaignType, activeCandidates, allActiveCandidates, hasFullAccess, isViewingAll, selectedCandidateIds, setActive, setSelectedCandidateIds } = useCandidate();
+  const { isAdmin } = useAuth();
+  const { isPartyManager } = useUserParty();
 
   const visibleItems = navItems.filter(item => isItemVisible(item, campaignType));
+  const showChapas = isAdmin || isPartyManager;
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
