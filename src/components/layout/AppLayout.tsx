@@ -128,7 +128,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Page content */}
           <main
-            className="flex-1 min-h-0 flex flex-col overflow-hidden"
+            className="flex-1 min-h-0 flex flex-col overflow-x-hidden overflow-y-auto"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
             {children}
