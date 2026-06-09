@@ -48,6 +48,8 @@ const queryClient = new QueryClient({
 const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<Login />} />
+    <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/" element={<ProtectedRoute><RoleAwareLayout><SalaDeGuerra /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/mapa" element={<ProtectedRoute><RoleAwareLayout><MapaEstrategico /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/territorios" element={<ProtectedRoute><RoleAwareLayout><Territorios /></RoleAwareLayout></ProtectedRoute>} />
