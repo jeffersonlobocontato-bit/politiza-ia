@@ -100,8 +100,6 @@ export function AppSidebar() {
                         to={item.url}
                         end={item.url === '/'}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
-                          collapsed ? 'justify-center px-2' : ''
-                        } ${
                           isActive
                             ? 'bg-primary/20 text-white font-semibold border-l-2 border-primary'
                             : isHighlight
@@ -113,11 +111,11 @@ export function AppSidebar() {
                         <item.icon className={`flex-shrink-0 w-4 h-4 ${
                           isActive ? 'text-primary' : isHighlight ? 'text-destructive' : 'text-sidebar-foreground/70'
                         }`} />
-                        {!collapsed && <span>{item.title}</span>}
-                        {!collapsed && isActive && (
+                        <span>{item.title}</span>
+                        {isActive && (
                           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
                         )}
-                        {!collapsed && !isActive && isHighlight && (
+                        {!isActive && isHighlight && (
                           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
                         )}
                       </NavLink>
