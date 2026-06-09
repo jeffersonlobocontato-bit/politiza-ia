@@ -890,6 +890,81 @@ export type Database = {
         }
         Relationships: []
       }
+      party_slate_candidates: {
+        Row: {
+          association: string | null
+          cargo: string
+          city: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          filiacao_note: string | null
+          filiacao_status: string
+          general_status: string | null
+          id: string
+          instagram_url: string | null
+          is_active: boolean
+          name: string
+          notes: string | null
+          order_index: number
+          party: string
+          phone: string | null
+          photo_url: string | null
+          updated_at: string
+          votes_bom: number | null
+          votes_medio: number | null
+          votes_ruim: number | null
+        }
+        Insert: {
+          association?: string | null
+          cargo: string
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          filiacao_note?: string | null
+          filiacao_status?: string
+          general_status?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          order_index: number
+          party: string
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+          votes_bom?: number | null
+          votes_medio?: number | null
+          votes_ruim?: number | null
+        }
+        Update: {
+          association?: string | null
+          cargo?: string
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          filiacao_note?: string | null
+          filiacao_status?: string
+          general_status?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          order_index?: number
+          party?: string
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+          votes_bom?: number | null
+          votes_medio?: number | null
+          votes_ruim?: number | null
+        }
+        Relationships: []
+      }
       political_assets: {
         Row: {
           alignment_status: Database["public"]["Enums"]["alignment_status"]
