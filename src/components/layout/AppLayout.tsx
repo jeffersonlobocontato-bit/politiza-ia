@@ -23,6 +23,22 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [time, setTime] = useState(new Date());
   const unreadAlerts = alerts.filter(a => !a.isRead).length;
   const { theme, setTheme } = useTheme();
+  const { profile, user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const displayName = profile?.full_name?.trim() || user?.email || 'Usuário';
+  const email = user?.email ?? '';
+  const initials = (profile?.full_name || user?.email || 'U')
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(s => s[0]?.toUpperCase())
+    .join('') || 'U';
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
