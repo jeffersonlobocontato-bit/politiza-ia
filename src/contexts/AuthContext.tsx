@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isAdmin = roles.some(r => ['admin_master', 'coordenador_geral', 'coordenador_estadual'].includes(r));
-  const isCampoOperator = roles.includes('operador_campo') && !isAdmin;
+  const isCampoOperator = !isAdmin && roles.some(r => ['operador_campo', 'lideranca_local'].includes(r));
 
   return (
     <AuthContext.Provider value={{ user, session, profile, roles, loading, isAdmin, isCampoOperator, signIn, signOut }}>
