@@ -7,9 +7,11 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check
+  ChevronDown, Check, UsersRound
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserParty } from '@/hooks/useUserParty';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -32,6 +34,7 @@ const navItems: NavItem[] = [
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
   { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
+  { title: 'Chapas', url: '/chapas', icon: UsersRound, scope: 'shared' },
   // Proporcional-only
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
   { title: 'Tracking', url: '/tracking', icon: Activity, scope: 'shared' },
@@ -53,8 +56,13 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { activeCandidate, campaignType, activeCandidates, allActiveCandidates, hasFullAccess, isViewingAll, selectedCandidateIds, setActive, setSelectedCandidateIds } = useCandidate();
+  const { isAdmin } = useAuth();
+  const { isPartyManager } = useUserParty();
 
-  const visibleItems = navItems.filter(item => isItemVisible(item, campaignType));
+  const showChapas = isAdmin || isPartyManager;
+  const visibleItems = navItems
+    .filter(item => isItemVisible(item, campaignType))
+    .filter(item => item.url !== '/chapas' || showChapas);
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
