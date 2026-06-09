@@ -59,6 +59,7 @@ export function AppSidebar() {
   const { isAdmin } = useAuth();
   const { isPartyManager } = useUserParty();
 
+  const showChapas = isAdmin || isPartyManager;
   const visibleItems = navItems
     .filter(item => isItemVisible(item, campaignType))
     .filter(item => item.url !== '/chapas' || showChapas);
