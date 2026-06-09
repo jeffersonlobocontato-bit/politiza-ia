@@ -73,12 +73,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(3.5rem + env(safe-area-inset-top))' }}
           >
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <SidebarTrigger
-                className="!h-10 !w-auto px-3 gap-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 sm:bg-transparent sm:border-0 sm:text-muted-foreground sm:hover:text-foreground sm:px-2"
-                aria-label="Abrir menu"
-              >
-                <span className="text-xs font-bold sm:hidden">Menu</span>
-              </SidebarTrigger>
+              <MenuButton />
               <div className="hidden sm:flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
                 <span className="text-xs text-muted-foreground font-medium">Sistema Online</span>
