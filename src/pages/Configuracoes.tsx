@@ -69,23 +69,37 @@ export default function Configuracoes() {
 
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
-    defaultValues: { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
+    defaultValues: { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '', name_aliases: [] },
   });
+  const [aliasInput, setAliasInput] = useState('');
+  const aliases = form.watch('name_aliases') ?? [];
+
+  const addAlias = () => {
+    const v = aliasInput.trim();
+    if (!v) return;
+    if (aliases.includes(v)) { setAliasInput(''); return; }
+    form.setValue('name_aliases', [...aliases, v]);
+    setAliasInput('');
+  };
+  const removeAlias = (a: string) => form.setValue('name_aliases', aliases.filter(x => x !== a));
 
   const openCreate = (preset?: typeof PRESET_CANDIDATES[0]) => {
     setEditingId(null);
+    setAliasInput('');
     form.reset(preset
-      ? { ...preset, party: isPartyManager ? lockedParty : preset.party, bio: preset.bio, photo_url: '' }
-      : { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
+      ? { ...preset, party: isPartyManager ? lockedParty : preset.party, bio: preset.bio, photo_url: '', name_aliases: [] }
+      : { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '', name_aliases: [] }
     );
     setDialogOpen(true);
   };
 
   const openEdit = (c: Candidate) => {
     setEditingId(c.id);
+    setAliasInput('');
     form.reset({
       name: c.name, party: c.party, cargo: c.cargo, state: c.state,
       election_year: c.election_year, bio: c.bio ?? '', photo_url: c.photo_url ?? '',
+      name_aliases: c.name_aliases ?? [],
     });
     setDialogOpen(true);
   };
@@ -93,7 +107,12 @@ export default function Configuracoes() {
   const onSubmit = async (data: CandidateForm) => {
     setSaving(true);
     try {
-      const payload = { ...data, bio: data.bio || null, photo_url: data.photo_url || null };
+      const payload = {
+        ...data,
+        bio: data.bio || null,
+        photo_url: data.photo_url || null,
+        name_aliases: data.name_aliases ?? [],
+      };
       if (editingId) {
         await (supabase as any).from('candidates').update(payload).eq('id', editingId);
         toast.success('Candidato atualizado!');
