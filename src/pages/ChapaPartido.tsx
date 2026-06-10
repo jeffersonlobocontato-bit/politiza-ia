@@ -20,6 +20,7 @@ import {
   usePartySlate, useUpsertSlateCandidate, useDeleteSlateCandidate,
   type SlateParty, type SlateCargo, type SlateCandidate, type SlateFiliacaoStatus,
 } from '@/hooks/usePartySlate';
+import MapaChapa from '@/components/chapas/MapaChapa';
 
 const CARGOS: SlateCargo[] = ['Deputado Federal', 'Deputado Estadual'];
 
