@@ -1312,18 +1312,18 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
         <div className="rounded-xl border border-[hsl(220,15%,20%)] p-4 bg-[hsl(220,20%,13%)] shadow-lg">
           {/* Legend */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4">
-            {allSelectedCandidates.map((c, i) => (
-              <div key={c} className="flex items-center gap-1.5">
+            {allSelected.map((c, i) => (
+              <div key={c.id} className="flex items-center gap-1.5">
                 <div
                   className="rounded-full shrink-0"
                   style={{
                     width: i === 0 ? 12 : 8,
                     height: i === 0 ? 12 : 8,
-                    backgroundColor: CANDIDATE_COLORS[c] ?? 'hsl(var(--primary))',
+                    backgroundColor: colorFor(c),
                     opacity: i === 0 ? 1 : 0.75,
                   }}
                 />
-                <span className={`text-xs ${i === 0 ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{c}</span>
+                <span className={`text-xs ${i === 0 ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{c.name}</span>
                 {i === 0 && (
                   <span className="text-[10px] text-muted-foreground">· {metricType === 'estimulada' ? 'Estimulada' : 'Rejeição'} · {targetCargo}</span>
                 )}
@@ -1349,23 +1349,28 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               />
               <Tooltip
                 contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }}
-                formatter={(v: any, name: string) => [`${v}%`, name]}
+                formatter={(v: any, _key: string, item: any) => {
+                  const master = allSelected.find(c => c.id === item?.dataKey);
+                  return [`${v}%`, master?.name ?? _key];
+                }}
               />
-              {allSelectedCandidates.map((c, i) => (
+              {allSelected.map((c, i) => (
                 <Line
-                  key={c}
+                  key={c.id}
                   type="monotone"
-                  dataKey={c}
-                  stroke={CANDIDATE_COLORS[c] ?? 'hsl(var(--primary))'}
+                  dataKey={c.id}
+                  name={c.name}
+                  stroke={colorFor(c)}
                   strokeWidth={i === 0 ? 3 : 2}
                   strokeDasharray={i === 0 ? undefined : '5 3'}
                   opacity={i === 0 ? 1 : 0.75}
-                  dot={{ r: i === 0 ? 5 : 3, fill: CANDIDATE_COLORS[c] ?? 'hsl(var(--primary))' }}
+                  dot={{ r: i === 0 ? 5 : 3, fill: colorFor(c) }}
                   connectNulls
                 />
               ))}
             </LineChart>
           </ResponsiveContainer>
+
 
           {/* Variation table */}
           {chartData.length > 1 && (
