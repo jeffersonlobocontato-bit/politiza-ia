@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import {
   BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare,
   X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText, Pencil, Loader2, Sparkles,
