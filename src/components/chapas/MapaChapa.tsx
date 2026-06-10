@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, Pane } from 'react-leaflet';
+import { useEffect, useMemo, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, Pane, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
@@ -11,26 +11,88 @@ import { MapPin, Flame } from 'lucide-react';
 
 type CargoFilter = 'all' | 'Deputado Federal' | 'Deputado Estadual';
 type ViewMode = 'pins' | 'calor';
+type PointRow = SlateCandidate & { lat: number; lng: number; approximate: boolean };
 
 const PIN_COLOR: Record<SlateParty, Record<SlateCargo, string>> = {
   PL: { 'Deputado Federal': '#1D4ED8', 'Deputado Estadual': '#15803D' },
   Novo: { 'Deputado Federal': '#C2410C', 'Deputado Estadual': '#CA8A04' },
 };
 
-function pinIcon(color: string) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+function pinIcon(color: string, size = 28) {
+  const w = size;
+  const h = Math.round(size * (36 / 28));
+  const stroke = Math.max(1, Math.round(size / 16));
+  const inner = Math.max(2, size * 0.16).toFixed(2);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 28 36">
     <path d="M14 1 C7 1 2 6 2 13 c0 9 12 22 12 22 s12-13 12-22 c0-7-5-12-12-12 z"
-      fill="${color}" stroke="#ffffff" stroke-width="2"
+      fill="${color}" stroke="#ffffff" stroke-width="${stroke}"
       style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45));"/>
-    <circle cx="14" cy="13" r="4.5" fill="#ffffff"/>
+    <circle cx="14" cy="13" r="${inner}" fill="#ffffff"/>
   </svg>`;
   return L.divIcon({
     html: svg,
     className: 'chapa-pin-icon',
-    iconSize: [28, 36],
-    iconAnchor: [14, 35],
-    tooltipAnchor: [0, -30],
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h - 1],
+    tooltipAnchor: [0, -h + 6],
   });
+}
+
+function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(map.getZoom());
+  useEffect(() => {
+    const h = () => setZoom(map.getZoom());
+    map.on('zoomend', h);
+    return () => { map.off('zoomend', h); };
+  }, [map]);
+
+  const partyKey: SlateParty = PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL';
+  // Tamanho responsivo ao zoom
+  const size = Math.round(Math.max(14, Math.min(32, (zoom - 5) * 4.5)));
+
+  const groups = useMemo(() => {
+    const m = new Map<string, PointRow[]>();
+    points.forEach(p => {
+      const k = (p.city ?? `${p.lat.toFixed(3)},${p.lng.toFixed(3)}`).toLowerCase().trim();
+      const arr = m.get(k) ?? [];
+      arr.push(p);
+      m.set(k, arr);
+    });
+    return Array.from(m.values());
+  }, [points]);
+
+  return (
+    <>
+      {groups.flatMap(group => {
+        const n = group.length;
+        const ringR = n === 1 ? 0 : Math.max(size * 0.8, 12);
+        const centerPt = map.latLngToLayerPoint(L.latLng(group[0].lat, group[0].lng));
+        return group.map((p, i) => {
+          let lat = p.lat, lng = p.lng;
+          if (n > 1) {
+            const angle = (2 * Math.PI * i) / n - Math.PI / 2;
+            const pt = L.point(centerPt.x + Math.cos(angle) * ringR, centerPt.y + Math.sin(angle) * ringR);
+            const ll = map.layerPointToLatLng(pt);
+            lat = ll.lat; lng = ll.lng;
+          }
+          const color = PIN_COLOR[partyKey][p.cargo];
+          return (
+            <Marker key={p.id} position={[lat, lng]} icon={pinIcon(color, size)} pane="pins-pane">
+              <Tooltip direction="top">
+                <div className="text-xs">
+                  <div className="font-semibold">{p.name}</div>
+                  <div className="text-muted-foreground">{p.cargo}</div>
+                  <div className="text-muted-foreground">{p.city ?? '—'}</div>
+                  {p.approximate && <div className="text-[10px] italic text-muted-foreground">posição aproximada</div>}
+                </div>
+              </Tooltip>
+            </Marker>
+          );
+        });
+      })}
+    </>
+  );
 }
 
 const PR_CENTER: [number, number] = [-24.6, -51.5];
