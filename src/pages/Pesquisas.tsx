@@ -28,6 +28,8 @@ import {
 } from '@/data/pollsData';
 import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
 import { supabase } from '@/integrations/supabase/client';
+import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
+import { matchesCandidate, cargoToSurveyKey } from '@/lib/candidateMatch';
 import { toast } from 'sonner';
 
 // ─── helpers ─────────────────────────────────────────────────
