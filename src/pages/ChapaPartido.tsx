@@ -20,6 +20,7 @@ import {
   usePartySlate, useUpsertSlateCandidate, useDeleteSlateCandidate,
   type SlateParty, type SlateCargo, type SlateCandidate, type SlateFiliacaoStatus,
 } from '@/hooks/usePartySlate';
+import MapaChapa from '@/components/chapas/MapaChapa';
 
 const CARGOS: SlateCargo[] = ['Deputado Federal', 'Deputado Estadual'];
 
@@ -154,6 +155,9 @@ export default function ChapaPartido() {
         </Button>
         <h1 className="text-xl md:text-2xl font-black tracking-tight">Chapa {party} — Paraná</h1>
       </div>
+
+      {/* Mapa de distribuição da chapa */}
+      <MapaChapa rows={rows} party={party} />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as SlateCargo)}>
         <TabsList>
