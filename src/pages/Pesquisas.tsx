@@ -1086,7 +1086,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   }, [allQuestions, selectedWaves, targetCargo, metricType]);
 
   // Reset comparison when available set changes
-  useMemo(() => {
+  useEffect(() => {
     setComparisonCandidates(prev => prev.filter(c => availableCandidates.includes(c) && c !== targetCandidate));
   }, [availableCandidates, targetCandidate]);
 
