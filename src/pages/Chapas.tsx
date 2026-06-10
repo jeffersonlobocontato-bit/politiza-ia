@@ -218,7 +218,7 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
         );
       })}
 
-      <DetailSheet detail={detail} rows={rows} onClose={() => setDetail(null)} />
+      <DetailSheet detail={detail} rows={rows} scenario={scenario} onClose={() => setDetail(null)} />
     </div>
   );
 }
