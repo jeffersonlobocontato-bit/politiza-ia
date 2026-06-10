@@ -236,6 +236,43 @@ function BigNumber({ label, value, icon: Icon, accent }: { label: string; value:
   );
 }
 
+function ProjectionBigNumber({
+  scenario, onScenarioChange, value,
+}: { scenario: Scenario; onScenarioChange: (s: Scenario) => void; value: number }) {
+  const accent = '#0FFCBE';
+  return (
+    <div className="relative rounded-lg bg-card border border-border/60 p-4 overflow-hidden shadow-card col-span-2 sm:col-span-1">
+      <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: accent }} />
+      <div className="absolute top-3 right-3 opacity-25">
+        <TrendingUp className="w-8 h-8" style={{ color: accent }} />
+      </div>
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+        Projeção de Votos
+      </p>
+      <p className="text-2xl font-black leading-tight">{fmt(value)}</p>
+      <div className="mt-2 inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
+        {(['bom', 'medio', 'ruim'] as Scenario[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onScenarioChange(s); }}
+            className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-colors ${
+              scenario === s
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {SCENARIO_LABEL[s]}
+          </button>
+        ))}
+      </div>
+      <p className="text-[9px] text-muted-foreground mt-1.5">
+        Soma do cenário {SCENARIO_LABEL[scenario]} entre os pré-cands exibidos
+      </p>
+    </div>
+  );
+}
+
 function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-md bg-background/50 border border-border/50 px-2 py-1.5">
