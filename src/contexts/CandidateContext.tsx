@@ -23,6 +23,7 @@ export interface Candidate {
   photo_url: string | null;
   election_year: number;
   is_active: boolean;
+  name_aliases?: string[] | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
