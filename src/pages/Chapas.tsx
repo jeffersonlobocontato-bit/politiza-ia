@@ -132,21 +132,32 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
 
   const totals = useMemo(() => {
     const grand = {
-      total: 0, fed: 0, est: 0, bom: 0, medio: 0, ruim: 0, ok: 0, pendente: 0,
+      total: 0, fed: 0, est: 0,
+      bomFed: 0, medioFed: 0, ruimFed: 0,
+      bomEst: 0, medioEst: 0, ruimEst: 0,
+      ok: 0, pendente: 0,
     };
     for (const p of parties) {
       const rs = rows.filter(r => r.party === p);
       grand.total += rs.length;
-      grand.fed += rs.filter(r => r.cargo === 'Deputado Federal').length;
-      grand.est += rs.filter(r => r.cargo === 'Deputado Estadual').length;
-      grand.bom += rs.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
-      grand.medio += rs.reduce((s, r) => s + (r.votes_medio ?? 0), 0);
-      grand.ruim += rs.reduce((s, r) => s + (r.votes_ruim ?? 0), 0);
+      const fed = rs.filter(r => r.cargo === 'Deputado Federal');
+      const est = rs.filter(r => r.cargo === 'Deputado Estadual');
+      grand.fed += fed.length;
+      grand.est += est.length;
+      grand.bomFed   += fed.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+      grand.medioFed += fed.reduce((s, r) => s + (r.votes_medio ?? 0), 0);
+      grand.ruimFed  += fed.reduce((s, r) => s + (r.votes_ruim ?? 0), 0);
+      grand.bomEst   += est.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+      grand.medioEst += est.reduce((s, r) => s + (r.votes_medio ?? 0), 0);
+      grand.ruimEst  += est.reduce((s, r) => s + (r.votes_ruim ?? 0), 0);
       grand.ok += rs.filter(r => r.filiacao_status === 'ok').length;
       grand.pendente += rs.filter(r => r.filiacao_status === 'pendente').length;
     }
     return grand;
   }, [parties, rows]);
+
+  const projFed = scenario === 'bom' ? totals.bomFed : scenario === 'medio' ? totals.medioFed : totals.ruimFed;
+  const projEst = scenario === 'bom' ? totals.bomEst : scenario === 'medio' ? totals.medioEst : totals.ruimEst;
 
   return (
     <div className="space-y-6">
@@ -155,13 +166,26 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
         <BigNumber label="Pré-candidatos" value={totals.total} icon={UsersRound} accent="hsl(var(--primary))" />
         <BigNumber label="Dep. Federal" value={totals.fed} icon={UsersRound} accent="#1F5AB4" />
         <BigNumber label="Dep. Estadual" value={totals.est} icon={UsersRound} accent="#2FA85A" />
-        <ProjectionBigNumber
-          scenario={scenario}
-          onScenarioChange={setScenario}
-          value={scenario === 'bom' ? totals.bom : scenario === 'medio' ? totals.medio : totals.ruim}
-        />
         <BigNumber label="Filiação OK" value={totals.ok} icon={CheckCircle2} accent="#22c55e" />
         <BigNumber label="Filiação Pendente" value={totals.pendente} icon={AlertCircle} accent="#f59e0b" />
+      </div>
+
+      {/* Projeções separadas por cargo */}
+      <div className="grid gap-3 md:grid-cols-2">
+        <ProjectionBigNumber
+          title="Projeção — Dep. Federal"
+          accent="#1F5AB4"
+          scenario={scenario}
+          onScenarioChange={setScenario}
+          value={projFed}
+        />
+        <ProjectionBigNumber
+          title="Projeção — Dep. Estadual"
+          accent="#2FA85A"
+          scenario={scenario}
+          onScenarioChange={setScenario}
+          value={projEst}
+        />
       </div>
 
       {/* Cards segmentados por partido x cargo */}
