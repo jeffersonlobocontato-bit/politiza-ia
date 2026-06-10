@@ -25,6 +25,9 @@ import { useActions } from '@/hooks/useActions';
 import { useStrategicKPIs } from '@/hooks/useStrategicAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import type { DbAlert } from '@/types/database';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserParty } from '@/hooks/useUserParty';
+import { useAllPartySlates } from '@/hooks/usePartySlate';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function engagementColor(score: number) {
