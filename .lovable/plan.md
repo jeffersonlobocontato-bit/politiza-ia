@@ -1,63 +1,28 @@
 ## Problema
+Hoje o card "Projeção Bom" no Dashboard de Chapas mostra apenas o cenário Bom, mas a confusão é que os totais por cenário (Bom, Médio, Ruim) não devem ser somados entre si — cada um é um cenário independente. Além disso, o usuário quer poder alternar qual cenário visualizar.
 
-Na aba **Pesquisas → Cruzar**, a lista "Candidatos para cruzar" é extraída dinamicamente dos resultados das pesquisas selecionadas. Como cada instituto grava o nome de forma diferente ("Sergio Moro", "Sergio Moro (PL)", "Requião Filho", "Requião Filho (PDT)"), a lista duplica e o gráfico fica ilegível — uma linha por variação de nome em vez de uma linha por candidato.
+## Mudanças (apenas UI em `src/pages/Chapas.tsx`)
 
-A plataforma já tem uma **lista mestre** (tabela `candidates`, com candidatos ativos por cargo) que deveria ser a fonte da verdade.
+1. **Big Number "Projeção" com seletor de cenário**
+   - Substituir o card fixo `Projeção Bom` por um card único `Projeção de Votos` com um seletor compacto (3 pills/toggle: `Bom` · `Médio` · `Ruim`) no canto superior direito do card.
+   - O valor exibido muda conforme o cenário selecionado (sem somar cenários — apenas troca a fonte: `votes_bom`, `votes_medio` ou `votes_ruim` agregados pelos pré-candidatos dos partidos permitidos).
+   - Cenário padrão: `Médio` (cenário base de planejamento). Estado local `scenario: 'bom' | 'medio' | 'ruim'`.
+   - Microcopy abaixo do número: "Soma do cenário {Bom/Médio/Ruim} entre os pré-candidatos exibidos".
 
-## Solução
+2. **Cards por Partido × Cargo (PL/Novo × Fed/Est)**
+   - O MiniStat "Projeção" de cada card também passa a respeitar o cenário escolhido no Big Number (fonte única de verdade no topo).
+   - Label do MiniStat vira `Proj. (Bom|Médio|Ruim)` para deixar explícito.
 
-### 1. Aliases de candidato (banco)
-Adicionar coluna `name_aliases text[] default '{}'` em `public.candidates`. Cada candidato mestre passa a ter uma lista de "como esse nome aparece nas pesquisas" (ex.: Sergio Moro → `['sergio moro', 'sergio moro (pl)', 'moro']`). Comparação sempre por nome **normalizado** (sem acento, minúsculo, sem partido entre parênteses).
+3. **Card resumo na Sala de Guerra (`SalaDeGuerra.tsx`)**
+   - Mesma lógica: trocar a pílula fixa de "Bom" por um mini-toggle de cenário, mantendo Médio como padrão. (Apenas se já existir o resumo — não criar nada novo.)
 
-### 2. Cadastro / Configurações
-Na tela onde os candidatos ativos são gerenciados, expor um campo "Variações de nome em pesquisas" (chips editáveis). Default: o próprio nome canônico já entra como alias automaticamente.
+4. **DetailSheet**
+   - O total no header (`Projeção (Bom): X votos`) passa a refletir o cenário selecionado no dashboard que abriu o sheet. Passar `scenario` como prop.
 
-### 3. Importação de pesquisa (`parse-survey-pdf` + UI de revisão)
-Ao salvar uma pesquisa, para cada `candidate_name` em `survey_results`:
-- normaliza e tenta casar com algum alias da lista mestre **do mesmo cargo**;
-- se casar, marca visualmente "✓ vinculado a {Candidato Mestre}";
-- se não casar, mostra um alerta inline com 2 ações: **"Vincular a candidato existente"** (dropdown da lista mestre + grava o alias) ou **"Ignorar"** (mantém solto, não entra em cruzamentos).
+## Não muda
+- Schema do banco, hooks, RLS, dados.
+- Os 3 valores por cenário continuam visíveis no DetailSheet (linha Bom/Médio/Ruim de cada pré-candidato).
+- Outros big numbers (Pré-candidatos, Federal, Estadual, Filiação OK/Pendente).
 
-Sem mudança destrutiva: `survey_results.candidate_name` continua armazenando o nome original do instituto. O vínculo é resolvido em runtime via aliases.
-
-### 4. Aba Cruzar — nova mecânica
-Substituir o `availableCandidates` dinâmico por: **lista mestre filtrada por cargo selecionado** (apenas candidatos `is_active`).
-
-Fluxo:
-1. Usuário escolhe cargo + pesquisas (1..4).
-2. Sistema lista todos os candidatos ativos daquele cargo com um indicador ao lado:
-   - **verde** "presente em N/N pesquisas"
-   - **amarelo** "presente em X/N"
-   - **cinza** "não aparece" (checkbox desabilitado)
-3. Candidato principal = dropdown da mesma lista mestre.
-4. Checkbox liga/desliga linha no gráfico. Desmarcar = remove a linha imediatamente.
-5. Para montar o gráfico, cada ponto de cada pesquisa procura no resultado um `candidate_name` cujo nome normalizado esteja nos aliases do candidato mestre — uma linha por candidato mestre, independentemente de como cada instituto escreveu.
-
-### 5. Tabela "Variação entre cenários"
-Mesma normalização: colunas = candidatos mestre selecionados; deltas calculados sobre o valor consolidado por alias (não duplica mais).
-
-## Detalhes técnicos
-
-- **Migration**: `alter table public.candidates add column name_aliases text[] not null default '{}';` + índice GIN opcional. Sem novas policies (a tabela já tem RLS).
-- **Helper novo** `src/lib/candidateMatch.ts`:
-  ```ts
-  export const normalizeName = (s: string) =>
-    s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-     .replace(/\([^)]*\)/g, '')        // remove "(PL)", "(PDT)"
-     .toLowerCase().replace(/\s+/g, ' ').trim();
-  export const matchesCandidate = (resultName: string, master: Candidate) => {
-    const n = normalizeName(resultName);
-    return n === normalizeName(master.name)
-      || (master.name_aliases ?? []).some(a => normalizeName(a) === n);
-  };
-  ```
-- **`Pesquisas.tsx` → `TabCruzar`**: trocar `availableCandidates` (Set extraído de results) pelo array vindo de `useCandidate().candidates.filter(c => c.is_active && cargoMatches(c.cargo, targetCargo))`. Refatorar `chartData` para usar `matchesCandidate`. Adicionar contagem "presente em X/N pesquisas" por candidato e desabilitar quem tem 0.
-- **`Configuracoes.tsx`** (ou onde candidatos são editados): adicionar input de aliases (chips).
-- **Importação de pesquisa**: na confirmação atual (após parse do PDF), inserir um painel "Vincular candidatos detectados" antes do save final — lista os `candidate_name` não casados + dropdown + botão que grava no `name_aliases` do candidato escolhido.
-
-## Validação
-
-- Subir 2 pesquisas com grafias diferentes ("Sergio Moro" e "Sergio Moro (PL)") → após vincular, a aba Cruzar mostra **uma única linha** "Sergio Moro" cobrindo as duas pesquisas.
-- Selecionar pesquisa onde Luiz França não aparece → checkbox aparece desabilitado com "não aparece".
-- Desmarcar candidato → linha some imediatamente do gráfico e da tabela.
-- Trocar candidato principal → lista de comparação se mantém estável (mesma fonte mestre).
+## Componente visual do seletor
+Um pequeno grupo de 3 botões `text-[10px]` dentro do card, estilo segmented control com o ativo em `bg-primary/15 text-primary`, inativos em `text-muted-foreground hover:text-foreground`. Sem dependência nova.

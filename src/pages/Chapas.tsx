@@ -121,9 +121,14 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 
 // ─── Dashboard tab ──────────────────────────────────────────────────────────
 type Detail = { party: SlateParty; cargo: SlateCargo } | null;
+type Scenario = 'bom' | 'medio' | 'ruim';
+const SCENARIO_LABEL: Record<Scenario, string> = { bom: 'Bom', medio: 'Médio', ruim: 'Ruim' };
+const scenarioValue = (r: SlateCandidate, s: Scenario) =>
+  s === 'bom' ? (r.votes_bom ?? 0) : s === 'medio' ? (r.votes_medio ?? 0) : (r.votes_ruim ?? 0);
 
 function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: SlateCandidate[] }) {
   const [detail, setDetail] = useState<Detail>(null);
+  const [scenario, setScenario] = useState<Scenario>('medio');
 
   const totals = useMemo(() => {
     const grand = {
@@ -150,7 +155,11 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
         <BigNumber label="Pré-candidatos" value={totals.total} icon={UsersRound} accent="hsl(var(--primary))" />
         <BigNumber label="Dep. Federal" value={totals.fed} icon={UsersRound} accent="#1F5AB4" />
         <BigNumber label="Dep. Estadual" value={totals.est} icon={UsersRound} accent="#2FA85A" />
-        <BigNumber label="Projeção Bom" value={fmt(totals.bom)} icon={TrendingUp} accent="#0FFCBE" />
+        <ProjectionBigNumber
+          scenario={scenario}
+          onScenarioChange={setScenario}
+          value={scenario === 'bom' ? totals.bom : scenario === 'medio' ? totals.medio : totals.ruim}
+        />
         <BigNumber label="Filiação OK" value={totals.ok} icon={CheckCircle2} accent="#22c55e" />
         <BigNumber label="Filiação Pendente" value={totals.pendente} icon={AlertCircle} accent="#f59e0b" />
       </div>
@@ -170,7 +179,7 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
             <div className="grid gap-3 md:grid-cols-2">
               {CARGOS.map((c) => {
                 const rs = rows.filter(r => r.party === p && r.cargo === c);
-                const bom = rs.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+                const proj = rs.reduce((s, r) => s + scenarioValue(r, scenario), 0);
                 const ok = rs.filter(r => r.filiacao_status === 'ok').length;
                 const pend = rs.filter(r => r.filiacao_status === 'pendente').length;
                 return (
@@ -193,7 +202,7 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
                         </div>
                       </div>
                       <div className="mt-4 grid grid-cols-3 gap-2">
-                        <MiniStat label="Projeção" value={fmt(bom)} />
+                        <MiniStat label={`Proj. (${SCENARIO_LABEL[scenario]})`} value={fmt(proj)} />
                         <MiniStat label="Filiação OK" value={ok} />
                         <MiniStat label="Pendentes" value={pend} />
                       </div>
@@ -209,7 +218,7 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
         );
       })}
 
-      <DetailSheet detail={detail} rows={rows} onClose={() => setDetail(null)} />
+      <DetailSheet detail={detail} rows={rows} scenario={scenario} onClose={() => setDetail(null)} />
     </div>
   );
 }
@@ -227,6 +236,43 @@ function BigNumber({ label, value, icon: Icon, accent }: { label: string; value:
   );
 }
 
+function ProjectionBigNumber({
+  scenario, onScenarioChange, value,
+}: { scenario: Scenario; onScenarioChange: (s: Scenario) => void; value: number }) {
+  const accent = '#0FFCBE';
+  return (
+    <div className="relative rounded-lg bg-card border border-border/60 p-4 overflow-hidden shadow-card col-span-2 sm:col-span-1">
+      <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: accent }} />
+      <div className="absolute top-3 right-3 opacity-25">
+        <TrendingUp className="w-8 h-8" style={{ color: accent }} />
+      </div>
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+        Projeção de Votos
+      </p>
+      <p className="text-2xl font-black leading-tight">{fmt(value)}</p>
+      <div className="mt-2 inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
+        {(['bom', 'medio', 'ruim'] as Scenario[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onScenarioChange(s); }}
+            className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-colors ${
+              scenario === s
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {SCENARIO_LABEL[s]}
+          </button>
+        ))}
+      </div>
+      <p className="text-[9px] text-muted-foreground mt-1.5">
+        Soma do cenário {SCENARIO_LABEL[scenario]} entre os pré-cands exibidos
+      </p>
+    </div>
+  );
+}
+
 function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-md bg-background/50 border border-border/50 px-2 py-1.5">
@@ -236,14 +282,14 @@ function MiniStat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function DetailSheet({ detail, rows, onClose }: { detail: Detail; rows: SlateCandidate[]; onClose: () => void }) {
+function DetailSheet({ detail, rows, scenario, onClose }: { detail: Detail; rows: SlateCandidate[]; scenario: Scenario; onClose: () => void }) {
   const open = detail !== null;
   const list = detail
     ? rows
         .filter(r => r.party === detail.party && r.cargo === detail.cargo)
         .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
     : [];
-  const totalBom = list.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+  const totalScenario = list.reduce((s, r) => s + scenarioValue(r, scenario), 0);
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
@@ -253,7 +299,7 @@ function DetailSheet({ detail, rows, onClose }: { detail: Detail; rows: SlateCan
             <SheetHeader>
               <SheetTitle>{detail.party} — {detail.cargo}</SheetTitle>
               <SheetDescription>
-                {list.length} pré-candidato(s) · Projeção (Bom): {fmt(totalBom)} votos
+                {list.length} pré-candidato(s) · Projeção ({SCENARIO_LABEL[scenario]}): {fmt(totalScenario)} votos
               </SheetDescription>
             </SheetHeader>
             <div className="mt-4 space-y-2">
