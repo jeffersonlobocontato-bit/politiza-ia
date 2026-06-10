@@ -299,7 +299,7 @@ function DetailSheet({ detail, rows, scenario, onClose }: { detail: Detail; rows
             <SheetHeader>
               <SheetTitle>{detail.party} — {detail.cargo}</SheetTitle>
               <SheetDescription>
-                {list.length} pré-candidato(s) · Projeção (Bom): {fmt(totalBom)} votos
+                {list.length} pré-candidato(s) · Projeção ({SCENARIO_LABEL[scenario]}): {fmt(totalScenario)} votos
               </SheetDescription>
             </SheetHeader>
             <div className="mt-4 space-y-2">
