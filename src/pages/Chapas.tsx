@@ -261,17 +261,16 @@ function BigNumber({ label, value, icon: Icon, accent }: { label: string; value:
 }
 
 function ProjectionBigNumber({
-  scenario, onScenarioChange, value,
-}: { scenario: Scenario; onScenarioChange: (s: Scenario) => void; value: number }) {
-  const accent = '#0FFCBE';
+  scenario, onScenarioChange, value, title = 'Projeção de Votos', accent = '#0FFCBE',
+}: { scenario: Scenario; onScenarioChange: (s: Scenario) => void; value: number; title?: string; accent?: string }) {
   return (
-    <div className="relative rounded-lg bg-card border border-border/60 p-4 overflow-hidden shadow-card col-span-2 sm:col-span-1">
+    <div className="relative rounded-lg bg-card border border-border/60 p-4 overflow-hidden shadow-card">
       <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: accent }} />
       <div className="absolute top-3 right-3 opacity-25">
         <TrendingUp className="w-8 h-8" style={{ color: accent }} />
       </div>
       <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-        Projeção de Votos
+        {title}
       </p>
       <p className="text-2xl font-black leading-tight">{fmt(value)}</p>
       <div className="mt-2 inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
