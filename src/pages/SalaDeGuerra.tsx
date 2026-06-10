@@ -81,6 +81,16 @@ const ALERT_LEVEL_CONFIG: Record<string, { bg: string; border: string; icon: str
   info:        { bg: 'hsl(220, 20%, 14%)', border: 'hsl(210, 50%, 35%)', icon: '#60a5fa', accent: 'hsl(210, 40%, 22%)' },
 };
 
+function SummaryPill({ label, value, accent }: { label: string; value: number | string; accent?: string }) {
+  return (
+    <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-background/60 border border-border/60">
+      {accent && <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />}
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-sm font-bold">{value}</span>
+    </div>
+  );
+}
+
 function AlertCard({ alert, onRead, onResolve }: {
   alert: DbAlert;
   onRead?: (id: string) => void;
