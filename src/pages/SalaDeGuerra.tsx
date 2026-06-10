@@ -25,6 +25,9 @@ import { useActions } from '@/hooks/useActions';
 import { useStrategicKPIs } from '@/hooks/useStrategicAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import type { DbAlert } from '@/types/database';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserParty } from '@/hooks/useUserParty';
+import { useAllPartySlates } from '@/hooks/usePartySlate';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function engagementColor(score: number) {
@@ -77,6 +80,16 @@ const ALERT_LEVEL_CONFIG: Record<string, { bg: string; border: string; icon: str
   oportunidade:{ bg: 'hsl(220, 20%, 14%)', border: 'hsl(163, 60%, 30%)', icon: '#0FFCBE', accent: 'hsl(163, 40%, 18%)' },
   info:        { bg: 'hsl(220, 20%, 14%)', border: 'hsl(210, 50%, 35%)', icon: '#60a5fa', accent: 'hsl(210, 40%, 22%)' },
 };
+
+function SummaryPill({ label, value, accent }: { label: string; value: number | string; accent?: string }) {
+  return (
+    <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-background/60 border border-border/60">
+      {accent && <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />}
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-sm font-bold">{value}</span>
+    </div>
+  );
+}
 
 function AlertCard({ alert, onRead, onResolve }: {
   alert: DbAlert;
@@ -137,6 +150,20 @@ export default function SalaDeGuerra() {
   const markRead = useMarkAlertRead();
   const updateStatus = useUpdateAlertStatus();
   const generateAlerts = useGenerateAlerts();
+  const { isAdmin } = useAuth();
+  const { party: userParty, isPartyManager } = useUserParty();
+  const { data: slates = [] } = useAllPartySlates();
+  const canSeeChapas = isAdmin || isPartyManager;
+  const chapasSummary = (() => {
+    const filtered = isAdmin ? slates : slates.filter(r => r.party === userParty);
+    return {
+      total: filtered.length,
+      fed: filtered.filter(r => r.cargo === 'Deputado Federal').length,
+      est: filtered.filter(r => r.cargo === 'Deputado Estadual').length,
+      pl: filtered.filter(r => r.party === 'PL').length,
+      novo: filtered.filter(r => r.party === 'Novo').length,
+    };
+  })();
 
   // ── Tracking evolution data ──
   const trackingEvolutionQuery = useQuery({
@@ -322,6 +349,35 @@ export default function SalaDeGuerra() {
             <WarKPICard label="Pendentes Validação" value={kpis?.pending_validation ?? 0} icon={Bell} gradientIndex={2} onClick={() => navigate('/acoes?status=pendente_validacao')} />
           </div>
         )}
+
+        {/* Chapas Proporcionais — resumo */}
+        {canSeeChapas && chapasSummary.total > 0 && (
+          <button
+            type="button"
+            onClick={() => navigate('/chapas')}
+            className="w-full text-left rounded-lg border border-border/60 bg-card hover:border-primary/60 hover:shadow-glow transition-all p-4 group"
+          >
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                <div>
+                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Chapas Proporcionais</div>
+                  <div className="text-sm font-bold">Pré-candidatos a Deputado</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 ml-auto flex-wrap">
+                <SummaryPill label="Total" value={chapasSummary.total} />
+                <SummaryPill label="Federal" value={chapasSummary.fed} />
+                <SummaryPill label="Estadual" value={chapasSummary.est} />
+                {isAdmin && <SummaryPill label="PL" value={chapasSummary.pl} accent="#1F5AB4" />}
+                {isAdmin && <SummaryPill label="Novo" value={chapasSummary.novo} accent="#F97316" />}
+                <ChevronRight className="w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </div>
+          </button>
+        )}
+
+
 
         {/* Main Grid: Map + Alerts */}
         <div className="grid lg:grid-cols-[1fr_300px] gap-4">
