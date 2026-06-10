@@ -140,6 +140,20 @@ export default function SalaDeGuerra() {
   const markRead = useMarkAlertRead();
   const updateStatus = useUpdateAlertStatus();
   const generateAlerts = useGenerateAlerts();
+  const { isAdmin } = useAuth();
+  const { party: userParty, isPartyManager } = useUserParty();
+  const { data: slates = [] } = useAllPartySlates();
+  const canSeeChapas = isAdmin || isPartyManager;
+  const chapasSummary = (() => {
+    const filtered = isAdmin ? slates : slates.filter(r => r.party === userParty);
+    return {
+      total: filtered.length,
+      fed: filtered.filter(r => r.cargo === 'Deputado Federal').length,
+      est: filtered.filter(r => r.cargo === 'Deputado Estadual').length,
+      pl: filtered.filter(r => r.party === 'PL').length,
+      novo: filtered.filter(r => r.party === 'Novo').length,
+    };
+  })();
 
   // ── Tracking evolution data ──
   const trackingEvolutionQuery = useQuery({
