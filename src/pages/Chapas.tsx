@@ -155,7 +155,11 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
         <BigNumber label="Pré-candidatos" value={totals.total} icon={UsersRound} accent="hsl(var(--primary))" />
         <BigNumber label="Dep. Federal" value={totals.fed} icon={UsersRound} accent="#1F5AB4" />
         <BigNumber label="Dep. Estadual" value={totals.est} icon={UsersRound} accent="#2FA85A" />
-        <BigNumber label="Projeção Bom" value={fmt(totals.bom)} icon={TrendingUp} accent="#0FFCBE" />
+        <ProjectionBigNumber
+          scenario={scenario}
+          onScenarioChange={setScenario}
+          value={scenario === 'bom' ? totals.bom : scenario === 'medio' ? totals.medio : totals.ruim}
+        />
         <BigNumber label="Filiação OK" value={totals.ok} icon={CheckCircle2} accent="#22c55e" />
         <BigNumber label="Filiação Pendente" value={totals.pendente} icon={AlertCircle} accent="#f59e0b" />
       </div>
