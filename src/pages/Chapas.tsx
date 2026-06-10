@@ -119,6 +119,21 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   );
 }
 
+function CargoStat({ label, count, projection }: { label: string; count: number; projection: number }) {
+  return (
+    <div className="rounded-md bg-background/60 border border-border/60 px-3 py-2">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="flex items-baseline justify-between gap-2 mt-0.5">
+        <div className="text-xl font-black leading-none">{count}</div>
+        <div className="text-right">
+          <div className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Proj. Bom</div>
+          <div className="text-sm font-bold leading-tight">{fmt(projection)}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Dashboard tab ──────────────────────────────────────────────────────────
 type Detail = { party: SlateParty; cargo: SlateCargo } | null;
 type Scenario = 'bom' | 'medio' | 'ruim';
