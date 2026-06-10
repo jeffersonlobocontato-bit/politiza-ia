@@ -26,6 +26,7 @@ const candidateSchema = z.object({
   election_year: z.coerce.number().min(2024).max(2030),
   bio: z.string().optional(),
   photo_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  name_aliases: z.array(z.string()).optional(),
 });
 type CandidateForm = z.infer<typeof candidateSchema>;
 
@@ -68,23 +69,37 @@ export default function Configuracoes() {
 
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
-    defaultValues: { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' },
+    defaultValues: { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '', name_aliases: [] },
   });
+  const [aliasInput, setAliasInput] = useState('');
+  const aliases = form.watch('name_aliases') ?? [];
+
+  const addAlias = () => {
+    const v = aliasInput.trim();
+    if (!v) return;
+    if (aliases.includes(v)) { setAliasInput(''); return; }
+    form.setValue('name_aliases', [...aliases, v]);
+    setAliasInput('');
+  };
+  const removeAlias = (a: string) => form.setValue('name_aliases', aliases.filter(x => x !== a));
 
   const openCreate = (preset?: typeof PRESET_CANDIDATES[0]) => {
     setEditingId(null);
+    setAliasInput('');
     form.reset(preset
-      ? { ...preset, party: isPartyManager ? lockedParty : preset.party, bio: preset.bio, photo_url: '' }
-      : { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '' }
+      ? { ...preset, party: isPartyManager ? lockedParty : preset.party, bio: preset.bio, photo_url: '', name_aliases: [] }
+      : { name: '', party: lockedParty, cargo: 'Governador', state: 'PR', election_year: 2026, bio: '', photo_url: '', name_aliases: [] }
     );
     setDialogOpen(true);
   };
 
   const openEdit = (c: Candidate) => {
     setEditingId(c.id);
+    setAliasInput('');
     form.reset({
       name: c.name, party: c.party, cargo: c.cargo, state: c.state,
       election_year: c.election_year, bio: c.bio ?? '', photo_url: c.photo_url ?? '',
+      name_aliases: c.name_aliases ?? [],
     });
     setDialogOpen(true);
   };
@@ -92,7 +107,12 @@ export default function Configuracoes() {
   const onSubmit = async (data: CandidateForm) => {
     setSaving(true);
     try {
-      const payload = { ...data, bio: data.bio || null, photo_url: data.photo_url || null };
+      const payload = {
+        ...data,
+        bio: data.bio || null,
+        photo_url: data.photo_url || null,
+        name_aliases: data.name_aliases ?? [],
+      };
       if (editingId) {
         await (supabase as any).from('candidates').update(payload).eq('id', editingId);
         toast.success('Candidato atualizado!');
@@ -350,6 +370,34 @@ export default function Configuracoes() {
               <div className="col-span-2 space-y-1.5">
                 <Label>Biografia / contexto</Label>
                 <Textarea rows={3} placeholder="Descreva o candidato e seu contexto político..." {...form.register('bio')} />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label className="flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5" />
+                  Variações de nome em pesquisas
+                </Label>
+                <p className="text-[11px] text-muted-foreground -mt-1">
+                  Como o nome aparece em pesquisas de diferentes institutos. Ex.: "Sergio Moro (PL)", "Moro". O nome principal já é casado automaticamente — adicione aqui só as variações.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ex: Sergio Moro (PL)"
+                    value={aliasInput}
+                    onChange={e => setAliasInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAlias(); } }}
+                  />
+                  <Button type="button" variant="outline" onClick={addAlias}>Adicionar</Button>
+                </div>
+                {aliases.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {aliases.map(a => (
+                      <Badge key={a} variant="outline" className="text-xs gap-1 pr-1">
+                        {a}
+                        <button type="button" onClick={() => removeAlias(a)} className="hover:text-destructive ml-0.5">×</button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>

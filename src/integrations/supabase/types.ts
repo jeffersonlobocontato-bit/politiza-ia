@@ -392,6 +392,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          name_aliases: string[]
           party: string
           photo_url: string | null
           state: string
@@ -406,6 +407,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          name_aliases?: string[]
           party?: string
           photo_url?: string | null
           state?: string
@@ -420,6 +422,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          name_aliases?: string[]
           party?: string
           photo_url?: string | null
           state?: string
