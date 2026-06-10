@@ -282,14 +282,14 @@ function MiniStat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function DetailSheet({ detail, rows, onClose }: { detail: Detail; rows: SlateCandidate[]; onClose: () => void }) {
+function DetailSheet({ detail, rows, scenario, onClose }: { detail: Detail; rows: SlateCandidate[]; scenario: Scenario; onClose: () => void }) {
   const open = detail !== null;
   const list = detail
     ? rows
         .filter(r => r.party === detail.party && r.cargo === detail.cargo)
         .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
     : [];
-  const totalBom = list.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+  const totalScenario = list.reduce((s, r) => s + scenarioValue(r, scenario), 0);
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
