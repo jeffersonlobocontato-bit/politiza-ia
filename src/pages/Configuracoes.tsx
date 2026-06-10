@@ -371,6 +371,34 @@ export default function Configuracoes() {
                 <Label>Biografia / contexto</Label>
                 <Textarea rows={3} placeholder="Descreva o candidato e seu contexto político..." {...form.register('bio')} />
               </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label className="flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5" />
+                  Variações de nome em pesquisas
+                </Label>
+                <p className="text-[11px] text-muted-foreground -mt-1">
+                  Como o nome aparece em pesquisas de diferentes institutos. Ex.: "Sergio Moro (PL)", "Moro". O nome principal já é casado automaticamente — adicione aqui só as variações.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ex: Sergio Moro (PL)"
+                    value={aliasInput}
+                    onChange={e => setAliasInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAlias(); } }}
+                  />
+                  <Button type="button" variant="outline" onClick={addAlias}>Adicionar</Button>
+                </div>
+                {aliases.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {aliases.map(a => (
+                      <Badge key={a} variant="outline" className="text-xs gap-1 pr-1">
+                        {a}
+                        <button type="button" onClick={() => removeAlias(a)} className="hover:text-destructive ml-0.5">×</button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
