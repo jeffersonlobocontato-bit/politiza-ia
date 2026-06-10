@@ -340,6 +340,35 @@ export default function SalaDeGuerra() {
           </div>
         )}
 
+        {/* Chapas Proporcionais — resumo */}
+        {canSeeChapas && chapasSummary.total > 0 && (
+          <button
+            type="button"
+            onClick={() => navigate('/chapas')}
+            className="w-full text-left rounded-lg border border-border/60 bg-card hover:border-primary/60 hover:shadow-glow transition-all p-4 group"
+          >
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                <div>
+                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Chapas Proporcionais</div>
+                  <div className="text-sm font-bold">Pré-candidatos a Deputado</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 ml-auto flex-wrap">
+                <SummaryPill label="Total" value={chapasSummary.total} />
+                <SummaryPill label="Federal" value={chapasSummary.fed} />
+                <SummaryPill label="Estadual" value={chapasSummary.est} />
+                {isAdmin && <SummaryPill label="PL" value={chapasSummary.pl} accent="#1F5AB4" />}
+                {isAdmin && <SummaryPill label="Novo" value={chapasSummary.novo} accent="#F97316" />}
+                <ChevronRight className="w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </div>
+          </button>
+        )}
+
+
+
         {/* Main Grid: Map + Alerts */}
         <div className="grid lg:grid-cols-[1fr_300px] gap-4">
           {/* Map */}
