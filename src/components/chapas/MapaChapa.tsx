@@ -293,16 +293,21 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
       {/* Legenda candidatos */}
       <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-border/60 bg-card/50 text-[11px] text-muted-foreground">
         {view === 'pins' ? (
-          <>
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: CARGO_COLOR['Deputado Federal'] }} />
-              Federal
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: CARGO_COLOR['Deputado Estadual'] }} />
-              Estadual
-            </span>
-          </>
+          (() => {
+            const partyKey = (PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL');
+            return (
+              <>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[partyKey]['Deputado Federal'] }} />
+                  {partyKey} Federal
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[partyKey]['Deputado Estadual'] }} />
+                  {partyKey} Estadual
+                </span>
+              </>
+            );
+          })()
         ) : (
           <>
             <span className="inline-flex items-center gap-1">
