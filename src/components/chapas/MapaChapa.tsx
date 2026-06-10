@@ -1,20 +1,37 @@
 import { useMemo, useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip, Circle, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, Pane } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { resolveGeo } from '@/lib/geo';
-import type { SlateCandidate, SlateCargo } from '@/hooks/usePartySlate';
+import type { SlateCandidate, SlateCargo, SlateParty } from '@/hooks/usePartySlate';
 import { useMunicipalityAssociationMap } from '@/hooks/useMunicipalityAssociation';
 import { MapPin, Flame } from 'lucide-react';
 
 type CargoFilter = 'all' | 'Deputado Federal' | 'Deputado Estadual';
 type ViewMode = 'pins' | 'calor';
 
-const CARGO_COLOR: Record<SlateCargo, string> = {
-  'Deputado Federal': '#1F5AB4',
-  'Deputado Estadual': '#2FA85A',
+const PIN_COLOR: Record<SlateParty, Record<SlateCargo, string>> = {
+  PL: { 'Deputado Federal': '#1D4ED8', 'Deputado Estadual': '#15803D' },
+  Novo: { 'Deputado Federal': '#C2410C', 'Deputado Estadual': '#CA8A04' },
 };
+
+function pinIcon(color: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <path d="M14 1 C7 1 2 6 2 13 c0 9 12 22 12 22 s12-13 12-22 c0-7-5-12-12-12 z"
+      fill="${color}" stroke="#ffffff" stroke-width="2"
+      style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45));"/>
+    <circle cx="14" cy="13" r="4.5" fill="#ffffff"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: 'chapa-pin-icon',
+    iconSize: [28, 36],
+    iconAnchor: [14, 35],
+    tooltipAnchor: [0, -30],
+  });
+}
 
 const PR_CENTER: [number, number] = [-24.6, -51.5];
 
@@ -213,28 +230,25 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
             />
           )}
 
-          {view === 'pins' && points.map(p => (
-            <CircleMarker
-              key={p.id}
-              center={[p.lat, p.lng]}
-              radius={6}
-              pathOptions={{
-                color: '#0F172A',
-                fillColor: CARGO_COLOR[p.cargo],
-                fillOpacity: 0.95,
-                weight: 1.5,
-              }}
-            >
-              <Tooltip direction="top" offset={[0, -4]}>
-                <div className="text-xs">
-                  <div className="font-semibold">{p.name}</div>
-                  <div className="text-muted-foreground">{p.cargo}</div>
-                  <div className="text-muted-foreground">{p.city ?? '—'}</div>
-                  {p.approximate && <div className="text-[10px] italic text-muted-foreground">posição aproximada</div>}
-                </div>
-              </Tooltip>
-            </CircleMarker>
-          ))}
+          <Pane name="heat-pane" style={{ zIndex: 500 }} />
+          <Pane name="pins-pane" style={{ zIndex: 650 }} />
+
+          {view === 'pins' && points.map(p => {
+            const partyKey = (PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL');
+            const color = PIN_COLOR[partyKey][p.cargo];
+            return (
+              <Marker key={p.id} position={[p.lat, p.lng]} icon={pinIcon(color)} pane="pins-pane">
+                <Tooltip direction="top">
+                  <div className="text-xs">
+                    <div className="font-semibold">{p.name}</div>
+                    <div className="text-muted-foreground">{p.cargo}</div>
+                    <div className="text-muted-foreground">{p.city ?? '—'}</div>
+                    {p.approximate && <div className="text-[10px] italic text-muted-foreground">posição aproximada</div>}
+                  </div>
+                </Tooltip>
+              </Marker>
+            );
+          })}
 
           {view === 'calor' && heatClusters.map((c, i) => {
             const ratio = c.count / maxCount;
@@ -245,6 +259,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
                 key={i}
                 center={[c.lat, c.lng]}
                 radius={radius}
+                pane="heat-pane"
                 pathOptions={{ color, fillColor: color, fillOpacity: 0.25 + ratio * 0.35, weight: 1 }}
               >
                 <Tooltip direction="top">
@@ -258,6 +273,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           })}
         </MapContainer>
       </div>
+
 
       {/* Legenda Associações */}
       {legend.length > 0 && (
@@ -277,16 +293,21 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
       {/* Legenda candidatos */}
       <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-border/60 bg-card/50 text-[11px] text-muted-foreground">
         {view === 'pins' ? (
-          <>
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: CARGO_COLOR['Deputado Federal'] }} />
-              Federal
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: CARGO_COLOR['Deputado Estadual'] }} />
-              Estadual
-            </span>
-          </>
+          (() => {
+            const partyKey = (PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL');
+            return (
+              <>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[partyKey]['Deputado Federal'] }} />
+                  {partyKey} Federal
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[partyKey]['Deputado Estadual'] }} />
+                  {partyKey} Estadual
+                </span>
+              </>
+            );
+          })()
         ) : (
           <>
             <span className="inline-flex items-center gap-1">
