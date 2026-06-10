@@ -1381,14 +1381,14 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   <thead>
                     <tr className="border-b border-[hsl(220,15%,20%)]">
                       <th className="py-1.5 px-2 text-left text-muted-foreground whitespace-nowrap">Onda / Cenário</th>
-                      {allSelectedCandidates.map(c => (
-                        <th key={c} className="py-1.5 px-2 text-right text-muted-foreground whitespace-nowrap">
+                      {allSelected.map(c => (
+                        <th key={c.id} className="py-1.5 px-2 text-right text-muted-foreground whitespace-nowrap">
                           <span className="inline-flex items-center gap-1">
                             <span
                               className="inline-block w-2 h-2 rounded-full"
-                              style={{ backgroundColor: CANDIDATE_COLORS[c] ?? 'hsl(var(--muted-foreground))' }}
+                              style={{ backgroundColor: colorFor(c) }}
                             />
-                            {c.split(' ')[0]}
+                            {c.name.split(' ')[0]}
                           </span>
                         </th>
                       ))}
@@ -1398,12 +1398,12 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                     {chartData.map((row, i) => (
                       <tr key={i} className="border-b border-[hsl(220,15%,20%)] last:border-0">
                         <td className="py-1.5 px-2 text-muted-foreground">{row.label}</td>
-                        {allSelectedCandidates.map(c => {
-                          const val: number | undefined = row[c];
-                          const prev: number | undefined = i > 0 ? chartData[i - 1][c] : undefined;
+                        {allSelected.map(c => {
+                          const val: number | undefined = row[c.id];
+                          const prev: number | undefined = i > 0 ? chartData[i - 1][c.id] : undefined;
                           const delta = val !== undefined && prev !== undefined ? val - prev : null;
                           return (
-                            <td key={c} className="py-1.5 px-2 text-right">
+                            <td key={c.id} className="py-1.5 px-2 text-right">
                               {val !== undefined ? (
                                 <span className="font-semibold">{val.toFixed(1)}%</span>
                               ) : (
@@ -1419,6 +1419,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                         })}
                       </tr>
                     ))}
+
                   </tbody>
                 </table>
               </div>
