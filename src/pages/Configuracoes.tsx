@@ -26,6 +26,7 @@ const candidateSchema = z.object({
   election_year: z.coerce.number().min(2024).max(2030),
   bio: z.string().optional(),
   photo_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  name_aliases: z.array(z.string()).optional(),
 });
 type CandidateForm = z.infer<typeof candidateSchema>;
 
