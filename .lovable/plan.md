@@ -1,39 +1,48 @@
 ## Objetivo
 
-No mapa da chapa (`/chapas/:party`), substituir o basemap "vivo" do OpenStreetMap (que aparece colorido como satélite/ruas) por um mapa político limpo do Paraná, com a divisão por **Associações de Municípios** (AMUNPAR, AMCG, AMOP, ...) coloridas — mantendo as interações vivas (zoom, pan, hover, tooltip) e os pins/heatmap dos candidatos por cima.
+Tornar os candidatos visualmente dominantes no mapa da chapa, com pins em forma de gota de geolocalização (não círculos), borda branca, e cores específicas por **partido + cargo** que contrastem com as associações pastéis ao fundo.
 
-É totalmente possível, usando GeoJSON dos 399 municípios do Paraná + a tabela `association_members` que já existe no banco para agrupar e colorir por associação.
+## Mudanças (apenas `src/components/chapas/MapaChapa.tsx`)
 
-## Como vai funcionar
+### 1. Cores por partido + cargo
 
-1. **Basemap neutro**: troca o tile do OSM colorido por um basemap claro/discreto (CartoDB Positron) — fica só como referência geográfica suave, sem competir visualmente com as cores das associações. (Opcionalmente, podemos remover o tile completamente e deixar fundo da cor do tema.)
+Substituir o `CARGO_COLOR` atual por uma matriz `PIN_COLOR[party][cargo]`:
 
-2. **Polígonos das Associações**: carrega o GeoJSON dos municípios do Paraná da API pública do IBGE (1x, cacheado). Usando o hook `useMunicipalityAssociationMap` (já existente), agrupa os municípios por `association_id` e desenha cada município como `<GeoJSON>` colorido conforme a associação a que pertence — gerando o efeito de "manchas" da imagem de referência.
+- **PL**
+  - Deputado Federal: azul forte `#1D4ED8`
+  - Deputado Estadual: verde escuro `#15803D`
+- **Novo**
+  - Deputado Federal: laranja escuro `#C2410C`
+  - Deputado Estadual: amarelo mostarda `#CA8A04`
 
-3. **Paleta por associação**: cada uma das 19 associações recebe uma cor consistente (gerada uma vez, determinística por acrônimo, em tons pastéis similares à referência: verde, amarelo, rosa, lilás, azul, etc.). Curitiba fica destacada como célula independente da RMC, conforme a regra do projeto.
+Todos com borda branca de 2px e sombra leve para destacar sobre as cores pastéis das associações.
 
-4. **Camadas mantidas vivas**:
-   - Pan / zoom / scroll wheel continuam ativos.
-   - Hover em município mostra tooltip com `Município` e `Associação`.
-   - Pins dos candidatos e o modo "Calor" continuam funcionando por cima dos polígonos.
-   - Filtros existentes (Federal / Estadual / Ambos, Pins / Calor) ficam iguais.
+### 2. Pin em forma de gota (não círculo)
 
-5. **Legenda**: adiciona um pequeno bloco lateral/colapsável com as 19 associações e suas cores (similar aos rótulos da imagem de referência, mas como legenda, não sobreposta no mapa).
+Trocar `CircleMarker` por `Marker` com `L.divIcon` contendo um SVG inline de pin de geolocalização (gota clássica com círculo interno). O SVG recebe `fill` da cor do partido/cargo, `stroke="#FFFFFF"` e `stroke-width=2`. Tamanho ~28x36 px, ancorado na ponta inferior.
 
-## Detalhes técnicos
+### 3. Z-index — pins à frente
 
-- **Arquivo único alterado**: `src/components/chapas/MapaChapa.tsx`.
-- **Fonte do GeoJSON**: `https://servicodados.ibge.gov.br/api/v3/malhas/estados/41?formato=application/vnd.geo+json&qualidade=intermediaria&intrarregiao=municipio` (PR = 41). Cacheado via `useQuery` com `staleTime` longo.
-- **Join**: `feature.properties.codarea` (código IBGE) ou `nome` → normaliza → lookup no `useMunicipalityAssociationMap()` → obtém `association.acronym` → cor.
-- **Cor por associação**: função `colorForAssoc(acronym)` retornando HSL pastel determinística (mesma cor sempre para a mesma sigla).
-- **Render**: `<GeoJSON data={fc} style={(f) => ({ fillColor, fillOpacity: 0.55, color: '#ffffff', weight: 0.6 })} onEachFeature={...tooltip...} />`.
-- **Basemap**: `TileLayer` do CartoDB Positron (`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png`) com `opacity: 0.4` — fica discreto e não conflita com as cores das associações.
+Garantir que os pins fiquem acima das polígonas e do heatmap:
+
+- Criar um `<Pane name="pins">` com `style={{ zIndex: 650 }}` (acima do overlayPane padrão = 400).
+- Renderizar todos os `<Marker>` dentro desse pane.
+- A camada `GeoJSON` permanece no overlayPane padrão e os `Circle` do modo "Calor" em um pane intermediário (`zIndex: 500`) para não cobrir os pins quando ambos estiverem visíveis.
+
+### 4. Legenda atualizada
+
+Atualizar a legenda inferior para refletir as 4 combinações quando aplicável ao partido atual:
+
+- Em `/chapas/PL`: mostra "PL Federal" (azul) e "PL Estadual" (verde escuro).
+- Em `/chapas/Novo`: mostra "Novo Federal" (laranja) e "Novo Estadual" (amarelo mostarda).
+
+Usa o prop `party` já recebido pelo componente.
+
+### 5. Tooltip
+
+Mantém o tooltip atual (nome, cargo, cidade, "posição aproximada" quando for o caso). Apenas ajusta o `offset` para a nova âncora do pin (ponta inferior).
 
 ## Sem mudanças
 
-- Sem alterações no banco, hooks de dados, RLS, ou no `ChapaPartido.tsx` (continua passando `rows` e `party` para `MapaChapa`).
-- Filtros, pins e heatmap continuam idênticos em comportamento.
-
-## Observação
-
-Municípios sem vínculo na tabela `association_members` ficam em cinza neutro com label "Sem associação" no tooltip — isso evidencia eventuais lacunas no cadastro sem quebrar o mapa.
+- Sem alterações em banco, hooks, `ChapaPartido.tsx`, filtros (Federal/Estadual/Ambos), modo Calor, ou na camada de associações.
+- Sem novas dependências — `Marker`, `divIcon` e `Pane` já vêm do `react-leaflet` / `leaflet` instalados.

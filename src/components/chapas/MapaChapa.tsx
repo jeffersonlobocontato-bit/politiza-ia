@@ -1,20 +1,37 @@
 import { useMemo, useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip, Circle, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, Pane } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { resolveGeo } from '@/lib/geo';
-import type { SlateCandidate, SlateCargo } from '@/hooks/usePartySlate';
+import type { SlateCandidate, SlateCargo, SlateParty } from '@/hooks/usePartySlate';
 import { useMunicipalityAssociationMap } from '@/hooks/useMunicipalityAssociation';
 import { MapPin, Flame } from 'lucide-react';
 
 type CargoFilter = 'all' | 'Deputado Federal' | 'Deputado Estadual';
 type ViewMode = 'pins' | 'calor';
 
-const CARGO_COLOR: Record<SlateCargo, string> = {
-  'Deputado Federal': '#1F5AB4',
-  'Deputado Estadual': '#2FA85A',
+const PIN_COLOR: Record<SlateParty, Record<SlateCargo, string>> = {
+  PL: { 'Deputado Federal': '#1D4ED8', 'Deputado Estadual': '#15803D' },
+  Novo: { 'Deputado Federal': '#C2410C', 'Deputado Estadual': '#CA8A04' },
 };
+
+function pinIcon(color: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <path d="M14 1 C7 1 2 6 2 13 c0 9 12 22 12 22 s12-13 12-22 c0-7-5-12-12-12 z"
+      fill="${color}" stroke="#ffffff" stroke-width="2"
+      style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45));"/>
+    <circle cx="14" cy="13" r="4.5" fill="#ffffff"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: 'chapa-pin-icon',
+    iconSize: [28, 36],
+    iconAnchor: [14, 35],
+    tooltipAnchor: [0, -30],
+  });
+}
 
 const PR_CENTER: [number, number] = [-24.6, -51.5];
 
