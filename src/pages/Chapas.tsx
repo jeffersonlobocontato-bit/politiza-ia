@@ -121,9 +121,14 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 
 // ─── Dashboard tab ──────────────────────────────────────────────────────────
 type Detail = { party: SlateParty; cargo: SlateCargo } | null;
+type Scenario = 'bom' | 'medio' | 'ruim';
+const SCENARIO_LABEL: Record<Scenario, string> = { bom: 'Bom', medio: 'Médio', ruim: 'Ruim' };
+const scenarioValue = (r: SlateCandidate, s: Scenario) =>
+  s === 'bom' ? (r.votes_bom ?? 0) : s === 'medio' ? (r.votes_medio ?? 0) : (r.votes_ruim ?? 0);
 
 function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: SlateCandidate[] }) {
   const [detail, setDetail] = useState<Detail>(null);
+  const [scenario, setScenario] = useState<Scenario>('medio');
 
   const totals = useMemo(() => {
     const grand = {
