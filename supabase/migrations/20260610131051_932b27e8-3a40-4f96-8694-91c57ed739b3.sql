@@ -1,0 +1,1 @@
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS name_aliases text[] NOT NULL DEFAULT '{}';
