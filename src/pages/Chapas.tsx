@@ -179,7 +179,7 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
             <div className="grid gap-3 md:grid-cols-2">
               {CARGOS.map((c) => {
                 const rs = rows.filter(r => r.party === p && r.cargo === c);
-                const bom = rs.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+                const proj = rs.reduce((s, r) => s + scenarioValue(r, scenario), 0);
                 const ok = rs.filter(r => r.filiacao_status === 'ok').length;
                 const pend = rs.filter(r => r.filiacao_status === 'pendente').length;
                 return (
@@ -202,7 +202,7 @@ function ChapasDashboard({ parties, rows }: { parties: SlateParty[]; rows: Slate
                         </div>
                       </div>
                       <div className="mt-4 grid grid-cols-3 gap-2">
-                        <MiniStat label="Projeção" value={fmt(bom)} />
+                        <MiniStat label={`Proj. (${SCENARIO_LABEL[scenario]})`} value={fmt(proj)} />
                         <MiniStat label="Filiação OK" value={ok} />
                         <MiniStat label="Pendentes" value={pend} />
                       </div>
