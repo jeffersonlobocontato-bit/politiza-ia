@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import {
   BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare,
   X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText, Pencil, Loader2, Sparkles,
@@ -1086,7 +1086,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   }, [allQuestions, selectedWaves, targetCargo, metricType]);
 
   // Reset comparison when available set changes
-  useMemo(() => {
+  useEffect(() => {
     setComparisonCandidates(prev => prev.filter(c => availableCandidates.includes(c) && c !== targetCandidate));
   }, [availableCandidates, targetCandidate]);
 
@@ -1231,8 +1231,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   return (
                     <div
                       key={c}
-                      className="flex items-center gap-2 cursor-pointer group"
-                      onClick={() => toggleComparison(c)}
+                      className="flex items-center gap-2 group"
                     >
                       <Checkbox
                         id={`cmp-${c}`}
@@ -1241,8 +1240,8 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                       />
                       <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                       <label
-                        htmlFor={`cmp-${c}`}
-                        className="text-xs cursor-pointer group-hover:text-foreground text-muted-foreground transition-colors select-none"
+                        onClick={() => toggleComparison(c)}
+                        className="text-xs cursor-pointer group-hover:text-foreground text-muted-foreground transition-colors select-none flex-1"
                       >
                         {c}
                       </label>
