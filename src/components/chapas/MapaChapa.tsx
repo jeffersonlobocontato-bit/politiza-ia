@@ -295,22 +295,8 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           <Pane name="heat-pane" style={{ zIndex: 500 }} />
           <Pane name="pins-pane" style={{ zIndex: 650 }} />
 
-          {view === 'pins' && points.map(p => {
-            const partyKey = (PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL');
-            const color = PIN_COLOR[partyKey][p.cargo];
-            return (
-              <Marker key={p.id} position={[p.lat, p.lng]} icon={pinIcon(color)} pane="pins-pane">
-                <Tooltip direction="top">
-                  <div className="text-xs">
-                    <div className="font-semibold">{p.name}</div>
-                    <div className="text-muted-foreground">{p.cargo}</div>
-                    <div className="text-muted-foreground">{p.city ?? '—'}</div>
-                    {p.approximate && <div className="text-[10px] italic text-muted-foreground">posição aproximada</div>}
-                  </div>
-                </Tooltip>
-              </Marker>
-            );
-          })}
+          {view === 'pins' && <PinsLayer points={points} party={party} />}
+
 
           {view === 'calor' && heatClusters.map((c, i) => {
             const ratio = c.count / maxCount;
