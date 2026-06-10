@@ -77,7 +77,8 @@ export default function Chapas() {
                 const rows = all.filter(r => r.party === p);
                 const fed = rows.filter(r => r.cargo === 'Deputado Federal');
                 const est = rows.filter(r => r.cargo === 'Deputado Estadual');
-                const totalBom = rows.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+                const fedProj = fed.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
+                const estProj = est.reduce((s, r) => s + (r.votes_bom ?? 0), 0);
                 const meta = PARTY_META[p];
                 return (
                   <Link key={p} to={`/chapas/${p}`} className="group block">
@@ -90,10 +91,9 @@ export default function Chapas() {
                         </div>
                         <UsersRound className="w-6 h-6 text-primary/80" />
                       </div>
-                      <div className="mt-6 grid grid-cols-3 gap-3">
-                        <Stat label="Federal" value={fed.length} />
-                        <Stat label="Estadual" value={est.length} />
-                        <Stat label="Projeção (Bom)" value={fmt(totalBom)} />
+                      <div className="mt-6 grid grid-cols-2 gap-3">
+                        <CargoStat label="Dep. Federal" count={fed.length} projection={fedProj} />
+                        <CargoStat label="Dep. Estadual" count={est.length} projection={estProj} />
                       </div>
                       <div className="mt-5 flex items-center text-xs font-semibold text-primary group-hover:translate-x-0.5 transition-transform">
                         Abrir chapa <ArrowRight className="w-3 h-3 ml-1" />
