@@ -156,6 +156,9 @@ export default function ChapaPartido() {
         <h1 className="text-xl md:text-2xl font-black tracking-tight">Chapa {party} — Paraná</h1>
       </div>
 
+      {/* Mapa de distribuição da chapa */}
+      <MapaChapa rows={rows} party={party} />
+
       <Tabs value={tab} onValueChange={(v) => setTab(v as SlateCargo)}>
         <TabsList>
           {CARGOS.map(c => (
