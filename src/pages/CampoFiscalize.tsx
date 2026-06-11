@@ -403,6 +403,8 @@ export default function CampoFiscalize() {
                 { label: 'Local', value: geo.city },
                 { label: 'Coordenadas', value: geo.lat ? `${geo.lat.toFixed(5)}, ${geo.lng?.toFixed(5)}` : '—' },
                 { label: 'Provas anexadas', value: `${evidences.filter(e => e.uploaded).length} arquivo(s)` },
+                { label: 'Primeiro registro', value: evidences[0] ? formatStamp(new Date(evidences[0].capturedAt)) : '—' },
+                { label: 'Último registro', value: evidences.length ? formatStamp(new Date(evidences[evidences.length - 1].capturedAt)) : '—' },
                 { label: 'Candidato vinculado', value: activeCandidate?.name ?? 'Nenhum (visível ao admin master)' },
               ].map(item => (
                 <div key={item.label} className="flex items-start justify-between gap-4">
