@@ -142,18 +142,31 @@ function usePrGeoJson() {
   });
 }
 
+type PartyView = 'current' | 'PL' | 'Novo' | 'both';
+
 export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; party: string }) {
   const [cargo, setCargo] = useState<CargoFilter>('all');
   const [view, setView] = useState<ViewMode>('pins');
+  const [partyView, setPartyView] = useState<PartyView>('current');
 
+  const { isAdmin } = useAuth();
+  const { data: allRows } = useAllPartySlates();
   const { data: assocMap } = useMunicipalityAssociationMap();
   const { data: ibgeNames } = useIbgeMunicipios();
   const { data: geo } = usePrGeoJson();
 
+  const effectiveRows = useMemo(() => {
+    if (!isAdmin || partyView === 'current') return rows;
+    const all = allRows ?? [];
+    if (partyView === 'both') return all;
+    return all.filter(r => r.party === partyView);
+  }, [isAdmin, partyView, rows, allRows]);
+
   const filtered = useMemo(
-    () => rows.filter(r => cargo === 'all' || r.cargo === cargo),
-    [rows, cargo],
+    () => effectiveRows.filter(r => cargo === 'all' || r.cargo === cargo),
+    [effectiveRows, cargo],
   );
+
 
   const points = useMemo(() => {
     return filtered
