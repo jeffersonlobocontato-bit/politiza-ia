@@ -722,9 +722,9 @@ export default function Hierarquia() {
                   const renderMemberCard = (m: typeof lvlMembers[number], opts?: { highlight?: boolean; badge?: string }) => (
                     <div
                       key={m.id}
-                      onClick={isMajoritario ? () => openFlowForMember(m.name) : undefined}
-                      title={isMajoritario ? `Abrir organograma de ${m.name}` : undefined}
-                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'} ${isMajoritario ? 'cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all' : ''}`}
+                      onClick={isMajoritario && !viewingCandidateId ? () => openCandidateView(m.name) : undefined}
+                      title={isMajoritario && !viewingCandidateId ? `Abrir hierarquia de ${m.name}` : undefined}
+                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'} ${isMajoritario && !viewingCandidateId ? 'cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all' : ''}`}
                       style={{ background: 'var(--gradient-card)' }}
                     >
                       {opts?.badge && (
