@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
   { title: 'Tracking', url: '/tracking', icon: Activity, scope: 'shared' },
   { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
+  { title: 'Jurídico', url: '/juridico', icon: Gavel, scope: 'shared' },
   { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
   { title: 'Municípios', url: '/municipios', icon: Building2, scope: 'shared' },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
@@ -59,13 +60,16 @@ export function AppSidebar() {
   };
   const location = useLocation();
   const { activeCandidate, campaignType, activeCandidates, allActiveCandidates, hasFullAccess, isViewingAll, selectedCandidateIds, setActive, setSelectedCandidateIds } = useCandidate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, roles } = useAuth();
   const { isPartyManager } = useUserParty();
+
+  const isJuridico = isAdmin || roles?.includes('juridico' as any);
 
   const showChapas = isAdmin || isPartyManager;
   void showChapas;
   const visibleItems = navItems
-    .filter(item => isItemVisible(item, campaignType));
+    .filter(item => isItemVisible(item, campaignType))
+    .filter(item => item.url !== '/juridico' || isJuridico);
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
