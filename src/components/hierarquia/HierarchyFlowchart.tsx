@@ -350,8 +350,9 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { handleResetView(); onClose(); } }}>
       <DialogContent className="max-w-[1100px] w-[95vw] max-h-[92vh] overflow-hidden flex flex-col p-0 gap-0">
+
         {/* Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border flex items-center justify-between flex-shrink-0 bg-card gap-3">
           <div className="flex items-center gap-3 min-w-0">
