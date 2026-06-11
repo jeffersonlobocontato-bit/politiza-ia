@@ -1,5 +1,5 @@
-import { useState, Fragment } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, Fragment, useMemo } from 'react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
@@ -88,20 +88,40 @@ const emptyForm = (): MemberForm => ({
 });
 
 export default function Hierarquia() {
-  const { data: members = [], isLoading } = useCampaignMembers();
+  const { data: allMembers = [], isLoading } = useCampaignMembers();
   const createMember = useCreateMember();
   const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
   const { candidates } = useCandidate();
 
   const lc = (s: string) => (s ?? '').toLowerCase();
-  const openFlowForMember = (memberName: string) => {
+  const [viewingCandidateId, setViewingCandidateId] = useState<string | null>(null);
+
+  const viewingCandidate = useMemo(
+    () => candidates.find(c => c.id === viewingCandidateId) ?? null,
+    [candidates, viewingCandidateId],
+  );
+
+  const members = useMemo(() => {
+    if (!viewingCandidateId || !viewingCandidate) return allMembers;
+    const parts = lc(viewingCandidate.name).split(/\s+/).filter(Boolean);
+    const nameMatches = (n: string) =>
+      parts.length > 0 && parts.every(p => lc(n).includes(p));
+    return allMembers.filter(m => {
+      if (m.candidate_id === viewingCandidateId) return true;
+      if (m.hierarchy_level === 1 && nameMatches(m.name)) return true;
+      return false;
+    });
+  }, [allMembers, viewingCandidateId, viewingCandidate]);
+
+  const openCandidateView = (memberName: string) => {
     const match = candidates.find(c => {
       const parts = lc(c.name).split(/\s+/).filter(Boolean);
       return parts.length > 0 && parts.every(p => lc(memberName).includes(p));
     });
-    setFlowCandidateId(match?.id ?? null);
-    setShowFlow(true);
+    if (!match) return;
+    setViewingCandidateId(match.id);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const [showForm, setShowForm] = useState(false);
@@ -217,15 +237,26 @@ export default function Hierarquia() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
+          {viewingCandidateId && (
+            <button
+              onClick={() => setViewingCandidateId(null)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
+              title="Voltar para a hierarquia principal"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Hierarquia principal
+            </button>
+          )}
           <Network className="w-5 h-5 text-primary" />
           <div>
-            <h1 className="text-base font-bold text-foreground">Hierarquia da Campanha</h1>
+            <h1 className="text-base font-bold text-foreground">
+              {viewingCandidate ? `Hierarquia — ${viewingCandidate.name}` : 'Hierarquia da Campanha'}
+            </h1>
             <p className="text-xs text-muted-foreground">{members.length} membros em {byLevel.filter(b => b.members.length > 0).length} níveis</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => { setFlowCandidateId(null); setShowFlow(true); }}
+            onClick={() => { setFlowCandidateId(viewingCandidateId); setShowFlow(true); }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
           >
             <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
@@ -702,9 +733,9 @@ export default function Hierarquia() {
                   const renderMemberCard = (m: typeof lvlMembers[number], opts?: { highlight?: boolean; badge?: string }) => (
                     <div
                       key={m.id}
-                      onClick={isMajoritario ? () => openFlowForMember(m.name) : undefined}
-                      title={isMajoritario ? `Abrir organograma de ${m.name}` : undefined}
-                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'} ${isMajoritario ? 'cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all' : ''}`}
+                      onClick={isMajoritario && !viewingCandidateId ? () => openCandidateView(m.name) : undefined}
+                      title={isMajoritario && !viewingCandidateId ? `Abrir hierarquia de ${m.name}` : undefined}
+                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'} ${isMajoritario && !viewingCandidateId ? 'cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all' : ''}`}
                       style={{ background: 'var(--gradient-card)' }}
                     >
                       {opts?.badge && (
