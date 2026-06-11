@@ -2,8 +2,8 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
-import { Bell, Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
-import { alerts } from '@/data/mockData';
+import { Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
+
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { InstallPrompt } from './InstallPrompt';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -38,7 +39,7 @@ function MenuButton() {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [time, setTime] = useState(new Date());
-  const unreadAlerts = alerts.filter(a => !a.isRead).length;
+  
   const { theme, setTheme } = useTheme();
   const { profile, user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -92,14 +93,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
-              <button className="relative p-2 rounded-md hover:bg-muted transition-colors">
-                <Bell className="w-4 h-4 text-muted-foreground" />
-                {unreadAlerts > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 flex items-center justify-center rounded-full bg-status-error text-white text-[9px] font-bold">
-                    {unreadAlerts}
-                  </span>
-                )}
-              </button>
+              <NotificationBell />
               <div className="flex items-center gap-2 sm:pl-3 sm:border-l sm:border-border">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

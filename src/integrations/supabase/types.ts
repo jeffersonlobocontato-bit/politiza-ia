@@ -490,6 +490,64 @@ export type Database = {
         }
         Relationships: []
       }
+      fiscalize_attachments: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          mime: string | null
+          name: string
+          path: string
+          report_id: string
+          size: number | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mime?: string | null
+          name: string
+          path: string
+          report_id: string
+          size?: number | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mime?: string | null
+          name?: string
+          path?: string
+          report_id?: string
+          size?: number | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscalize_attachments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "fiscalize_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscalize_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "juridico_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscalize_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiscalize_history: {
         Row: {
           changed_by: string | null
@@ -528,11 +586,64 @@ export type Database = {
           },
         ]
       }
+      fiscalize_notes: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          mentions: string[]
+          report_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mentions?: string[]
+          report_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mentions?: string[]
+          report_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscalize_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "juridico_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscalize_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscalize_notes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "fiscalize_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiscalize_reports: {
         Row: {
           address: string | null
           ai_risk_score: number | null
           ai_summary: string | null
+          assigned_lawyer_id: string | null
           assigned_to: string | null
           candidate_id: string | null
           category: string
@@ -545,6 +656,7 @@ export type Database = {
           denounced_role: string | null
           evidence: Json
           id: string
+          last_activity_at: string
           lat: number | null
           legal_notes: string | null
           lng: number | null
@@ -561,6 +673,7 @@ export type Database = {
           address?: string | null
           ai_risk_score?: number | null
           ai_summary?: string | null
+          assigned_lawyer_id?: string | null
           assigned_to?: string | null
           candidate_id?: string | null
           category: string
@@ -573,6 +686,7 @@ export type Database = {
           denounced_role?: string | null
           evidence?: Json
           id?: string
+          last_activity_at?: string
           lat?: number | null
           legal_notes?: string | null
           lng?: number | null
@@ -589,6 +703,7 @@ export type Database = {
           address?: string | null
           ai_risk_score?: number | null
           ai_summary?: string | null
+          assigned_lawyer_id?: string | null
           assigned_to?: string | null
           candidate_id?: string | null
           category?: string
@@ -601,6 +716,7 @@ export type Database = {
           denounced_role?: string | null
           evidence?: Json
           id?: string
+          last_activity_at?: string
           lat?: number | null
           legal_notes?: string | null
           lng?: number | null
@@ -614,6 +730,20 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fiscalize_reports_assigned_lawyer_id_fkey"
+            columns: ["assigned_lawyer_id"]
+            isOneToOne: false
+            referencedRelation: "juridico_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscalize_reports_assigned_lawyer_id_fkey"
+            columns: ["assigned_lawyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fiscalize_reports_candidate_id_fkey"
             columns: ["candidate_id"]
@@ -1025,6 +1155,50 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          report_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          report_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          report_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "fiscalize_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       party_slate_candidates: {
         Row: {
@@ -2122,7 +2296,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      juridico_users: {
+        Row: {
+          email: string | null
+          full_name: string | null
+          id: string | null
+        }
+        Insert: {
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+        }
+        Update: {
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_view_by_creator_party: {
