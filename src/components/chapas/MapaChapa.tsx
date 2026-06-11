@@ -148,8 +148,19 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
   const [cargo, setCargo] = useState<CargoFilter>('all');
   const [view, setView] = useState<ViewMode>('pins');
   const [partyView, setPartyView] = useState<PartyView>('current');
+  const [fullscreen, setFullscreen] = useState(false);
 
-  const { isAdmin } = useAuth();
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false); };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [fullscreen]);
+
   const { data: allRows } = useAllPartySlates();
   const { data: assocMap } = useMunicipalityAssociationMap();
   const { data: ibgeNames } = useIbgeMunicipios();
