@@ -4,6 +4,7 @@ import { Map, Filter, X, Users } from 'lucide-react';
 import { municipalities, getEngagementColor } from '@/data/mockData';
 import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
+import MapZoomControl from '@/components/maps/MapZoomControl';
 import { SOURCE_META, type GeoSource } from '@/lib/geo';
 
 export default function MapaEstrategico() {
