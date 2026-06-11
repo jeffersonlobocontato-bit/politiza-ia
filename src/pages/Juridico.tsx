@@ -338,11 +338,11 @@ function DetailsTab({ report, signedUrl }: { report: Report; signedUrl: (b: stri
           ['Coordenadas', report.lat ? `${report.lat.toFixed(5)}, ${report.lng?.toFixed(5)}` : '—'],
         ]} />
         {report.lat && (
-          <a target="_blank" rel="noreferrer"
-            href={`https://www.google.com/maps?q=${report.lat},${report.lng}`}
+          <button type="button"
+            onClick={() => window.open(`https://www.google.com/maps?q=${report.lat},${report.lng}`, '_blank', 'noopener,noreferrer')}
             className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline mt-1">
             <ExternalLink className="w-3 h-3" />Abrir no mapa
-          </a>
+          </button>
         )}
       </Section>
       <Section label="Relato">
