@@ -170,6 +170,7 @@ export default function Juridico() {
             ))}
           </div>
         )}
+        </div>
       </div>
 
       {selected && (
