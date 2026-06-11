@@ -26,14 +26,14 @@ export function LeadsLayer({ leads, radius = 5 }: Props) {
             fillOpacity={l.point.approximate ? 0.55 : 0.92}
             dashArray={l.point.approximate ? '2 3' : undefined}
           >
-            <Popup>
-              <div style={{ color: '#1e293b', minWidth: 200 }}>
+            <Popup className="leads-popup">
+              <div style={{ color: '#ffffff', minWidth: 200 }}>
                 <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: meta.color, fontWeight: 700 }}>
                   {meta.label}
                 </div>
-                <div style={{ fontWeight: 700, marginTop: 2 }}>{l.name}</div>
-                {l.subtitle && <div style={{ fontSize: 12 }}>{l.subtitle}</div>}
-                {l.municipality && <div style={{ fontSize: 12 }}>📍 {l.municipality}</div>}
+                <div style={{ fontWeight: 700, marginTop: 2, color: '#ffffff' }}>{l.name}</div>
+                {l.subtitle && <div style={{ fontSize: 12, color: '#e2e8f0' }}>{l.subtitle}</div>}
+                {l.municipality && <div style={{ fontSize: 12, color: '#e2e8f0' }}>📍 {l.municipality}</div>}
                 {l.point.approximate && (
                   <div style={{ fontSize: 10, marginTop: 4, padding: '2px 6px', background: '#fef3c7', color: '#92400e', borderRadius: 4, display: 'inline-block' }}>
                     Aproximado ({l.point.approxLabel})
