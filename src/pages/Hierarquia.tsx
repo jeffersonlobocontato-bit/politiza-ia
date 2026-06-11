@@ -94,6 +94,7 @@ export default function Hierarquia() {
 
   const [showForm, setShowForm] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
+  const [flowCandidateId, setFlowCandidateId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
