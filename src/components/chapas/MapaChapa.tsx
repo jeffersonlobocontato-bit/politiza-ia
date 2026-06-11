@@ -165,7 +165,9 @@ type PartyView = 'current' | 'PL' | 'Novo' | 'both';
 export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; party: string }) {
   const [cargo, setCargo] = useState<CargoFilter>('all');
   const [view, setView] = useState<ViewMode>('pins');
-  const [partyView, setPartyView] = useState<PartyView>('current');
+  const [partyView, setPartyView] = useState<PartyView>(
+    party === 'PL' || party === 'Novo' ? (party as PartyView) : 'PL',
+  );
   const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
