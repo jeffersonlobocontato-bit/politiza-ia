@@ -34,8 +34,7 @@ const navItems: NavItem[] = [
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
   { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
-  { title: 'Chapas', url: '/chapas', icon: UsersRound, scope: 'shared' },
-  // Proporcional-only
+  // Proporcional-only (inclui Chapas dentro do módulo unificado)
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
   { title: 'Tracking', url: '/tracking', icon: Activity, scope: 'shared' },
   { title: 'Sala de Crise', url: '/sala-de-crise', icon: ShieldAlert, highlight: true, scope: 'shared' },
@@ -64,9 +63,9 @@ export function AppSidebar() {
   const { isPartyManager } = useUserParty();
 
   const showChapas = isAdmin || isPartyManager;
+  void showChapas;
   const visibleItems = navItems
-    .filter(item => isItemVisible(item, campaignType))
-    .filter(item => item.url !== '/chapas' || showChapas);
+    .filter(item => isItemVisible(item, campaignType));
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
