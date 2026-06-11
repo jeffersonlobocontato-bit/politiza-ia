@@ -429,9 +429,12 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               const govCargo = governor?.role ?? activeCandidate?.cargo ?? 'Cargo';
 
               const SenateCard = ({ m }: { m: DbCampaignMember }) => (
-                <div
-                  className="rounded-xl border-2 bg-card px-4 py-2.5 text-center shadow-md"
+                <button
+                  type="button"
+                  onClick={() => handleSelectCandidate(m.name)}
+                  className="rounded-xl border-2 bg-card px-4 py-2.5 text-center shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer"
                   style={{ borderColor: 'hsl(var(--brand-amber))' }}
+                  title={`Ver organograma de ${m.name}`}
                 >
                   <div className="flex items-center gap-1.5 justify-center">
                     <User className="w-3.5 h-3.5" style={{ color: 'hsl(var(--brand-amber))' }} />
@@ -443,7 +446,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                   >
                     Candidato ao Senado
                   </div>
-                </div>
+                </button>
               );
 
               return (
