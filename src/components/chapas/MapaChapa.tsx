@@ -97,6 +97,15 @@ function PinsLayer({ points }: { points: PointRow[] }) {
   );
 }
 
+function EnsurePane({ name, zIndex }: { name: string; zIndex: number }) {
+  const map = useMap();
+  if (!map.getPane(name)) {
+    const p = map.createPane(name);
+    p.style.zIndex = String(zIndex);
+  }
+  return null;
+}
+
 function InvalidateOnResize({ trigger }: { trigger: unknown }) {
   const map = useMap();
   useEffect(() => {
