@@ -298,6 +298,9 @@ export default function CampoFiscalize() {
                       <Loader2 className="w-6 h-6 text-white animate-spin" />
                     </div>
                   )}
+                  <div className="absolute top-1 left-1 bg-black/70 rounded px-1.5 py-0.5 text-[9px] text-white font-mono">
+                    {formatStamp(new Date(e.capturedAt))}
+                  </div>
                   {e.uploaded && (
                     <div className="absolute bottom-1 left-1 right-1 bg-black/70 rounded px-1.5 py-0.5 text-[9px] text-white truncate font-mono">
                       sha {e.uploaded.sha256.slice(0, 10)}…
