@@ -164,8 +164,6 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
   const { isAdmin } = useAuth();
   const { data: allRows } = useAllPartySlates();
 
-
-  const { data: allRows } = useAllPartySlates();
   const { data: assocMap } = useMunicipalityAssociationMap();
   const { data: ibgeNames } = useIbgeMunicipios();
   const { data: geo } = usePrGeoJson();
