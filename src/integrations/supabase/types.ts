@@ -490,6 +490,139 @@ export type Database = {
         }
         Relationships: []
       }
+      fiscalize_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          note: string
+          report_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note: string
+          report_id: string
+          to_status: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string
+          report_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscalize_history_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "fiscalize_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscalize_reports: {
+        Row: {
+          address: string | null
+          ai_risk_score: number | null
+          ai_summary: string | null
+          assigned_to: string | null
+          candidate_id: string | null
+          category: string
+          client_ip: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          denounced_name: string
+          denounced_party: string | null
+          denounced_role: string | null
+          evidence: Json
+          id: string
+          lat: number | null
+          legal_notes: string | null
+          lng: number | null
+          municipality: string | null
+          narrative: string
+          protocol_number: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          address?: string | null
+          ai_risk_score?: number | null
+          ai_summary?: string | null
+          assigned_to?: string | null
+          candidate_id?: string | null
+          category: string
+          client_ip?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          denounced_name: string
+          denounced_party?: string | null
+          denounced_role?: string | null
+          evidence?: Json
+          id?: string
+          lat?: number | null
+          legal_notes?: string | null
+          lng?: number | null
+          municipality?: string | null
+          narrative: string
+          protocol_number?: string | null
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          address?: string | null
+          ai_risk_score?: number | null
+          ai_summary?: string | null
+          assigned_to?: string | null
+          candidate_id?: string | null
+          category?: string
+          client_ip?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          denounced_name?: string
+          denounced_party?: string | null
+          denounced_role?: string | null
+          evidence?: Json
+          id?: string
+          lat?: number | null
+          legal_notes?: string | null
+          lng?: number | null
+          municipality?: string | null
+          narrative?: string
+          protocol_number?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscalize_reports_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leader_leadership_profiles: {
         Row: {
           created_at: string
