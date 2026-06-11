@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText, Download, Loader2, MapPin, ChevronRight, ArrowLeft } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -12,6 +12,7 @@ import type { DbCampaignMember } from '@/types/database';
 interface Props {
   open: boolean;
   onClose: () => void;
+  initialCandidateId?: string | null;
 }
 
 interface DeptDef {
@@ -166,12 +167,17 @@ function HorizontalBus({ count, dropH = 16 }: { count: number; dropH?: number })
   );
 }
 
-export function HierarchyFlowchart({ open, onClose }: Props) {
+export function HierarchyFlowchart({ open, onClose, initialCandidateId = null }: Props) {
   const { data: allMembers = [] } = useCampaignMembers();
   const { activeCandidate, candidates } = useCandidate();
   const chartRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
-  const [viewCandidateId, setViewCandidateId] = useState<string | null>(null);
+  const [viewCandidateId, setViewCandidateId] = useState<string | null>(initialCandidateId);
+
+  // Sync com prop quando o modal abre ou o id externo muda
+  useEffect(() => { setViewCandidateId(initialCandidateId); }, [initialCandidateId, open]);
+
+
 
   const viewCandidate = viewCandidateId
     ? candidates.find(c => c.id === viewCandidateId) ?? null

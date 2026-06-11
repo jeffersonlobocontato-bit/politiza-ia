@@ -7,6 +7,7 @@ import type { DbCampaignMember } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { HierarchyFlowchart } from '@/components/hierarquia/HierarchyFlowchart';
 import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
+import { useCandidate } from '@/contexts/CandidateContext';
 
 const LEVEL_COLORS: Record<number, string> = {
   1: 'hsl(var(--brand-amber))',
@@ -91,9 +92,21 @@ export default function Hierarquia() {
   const createMember = useCreateMember();
   const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
+  const { candidates } = useCandidate();
+
+  const lc = (s: string) => (s ?? '').toLowerCase();
+  const openFlowForMember = (memberName: string) => {
+    const match = candidates.find(c => {
+      const parts = lc(c.name).split(/\s+/).filter(Boolean);
+      return parts.length > 0 && parts.every(p => lc(memberName).includes(p));
+    });
+    setFlowCandidateId(match?.id ?? null);
+    setShowFlow(true);
+  };
 
   const [showForm, setShowForm] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
+  const [flowCandidateId, setFlowCandidateId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
@@ -212,7 +225,7 @@ export default function Hierarquia() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowFlow(true)}
+            onClick={() => { setFlowCandidateId(null); setShowFlow(true); }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
           >
             <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
@@ -227,7 +240,7 @@ export default function Hierarquia() {
         </div>
       </div>
 
-      <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} />
+      <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} initialCandidateId={flowCandidateId} />
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {members.length > 0 && (
@@ -689,7 +702,9 @@ export default function Hierarquia() {
                   const renderMemberCard = (m: typeof lvlMembers[number], opts?: { highlight?: boolean; badge?: string }) => (
                     <div
                       key={m.id}
-                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'}`}
+                      onClick={isMajoritario ? () => openFlowForMember(m.name) : undefined}
+                      title={isMajoritario ? `Abrir organograma de ${m.name}` : undefined}
+                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'} ${isMajoritario ? 'cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all' : ''}`}
                       style={{ background: 'var(--gradient-card)' }}
                     >
                       {opts?.badge && (
@@ -698,10 +713,10 @@ export default function Hierarquia() {
                         </div>
                       )}
                       <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(m)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(m); }} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => handleDelete(m.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
