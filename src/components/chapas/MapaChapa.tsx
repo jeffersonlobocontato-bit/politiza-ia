@@ -232,6 +232,27 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {isAdmin && (
+            <div className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
+              {([
+                { v: 'current', label: party },
+                { v: 'PL', label: 'PL' },
+                { v: 'Novo', label: 'Novo' },
+                { v: 'both', label: 'Ambos' },
+              ] as { v: PartyView; label: string }[]).map(opt => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setPartyView(opt.v)}
+                  className={`px-2.5 py-1 text-[11px] font-semibold rounded transition-colors ${
+                    partyView === opt.v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
             {([
               { v: 'all', label: 'Ambos' },
