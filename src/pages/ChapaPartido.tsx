@@ -237,11 +237,23 @@ export default function ChapaPartido() {
                   {cities.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filterFiliacao} onValueChange={setFilterFiliacao}>
-                <SelectTrigger className="w-[170px]"><SelectValue placeholder="Filiação" /></SelectTrigger>
+              <Select value={votesScenario} onValueChange={(v) => setVotesScenario(v as any)}>
+                <SelectTrigger className="w-[150px]"><SelectValue placeholder="Cenário" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  {Object.entries(FIL_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  <SelectItem value="bom">Cenário: Bom</SelectItem>
+                  <SelectItem value="medio">Cenário: Médio</SelectItem>
+                  <SelectItem value="ruim">Cenário: Ruim</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={votesRank} onValueChange={(v) => setVotesRank(v as any)}>
+                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Ranking" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Ranking: Todos</SelectItem>
+                  <SelectItem value="top10">Top 10</SelectItem>
+                  <SelectItem value="top30">Top 30</SelectItem>
+                  <SelectItem value="top50">Top 50</SelectItem>
+                  <SelectItem value="out">Fora do Top 50</SelectItem>
+                  <SelectItem value="sem">Sem projeção</SelectItem>
                 </SelectContent>
               </Select>
               <Button size="sm" onClick={() => setEditing(initialDraft(party, tab))}>
