@@ -8,6 +8,7 @@ import {
 import { supabase } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { JuridicoDashboard } from '@/components/juridico/JuridicoDashboard';
 
 type Status = 'nova' | 'em_analise' | 'protocolada' | 'arquivada';
 
