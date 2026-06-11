@@ -24,6 +24,7 @@ export interface SlateCandidate {
   general_status: string | null;
   notes: string | null;
   is_active: boolean;
+  candidate_id: string | null;
   created_at: string;
   updated_at: string;
 }
