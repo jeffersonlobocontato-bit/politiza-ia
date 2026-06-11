@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, Pane, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
@@ -95,6 +95,15 @@ function PinsLayer({ points }: { points: PointRow[] }) {
       })}
     </>
   );
+}
+
+function EnsurePane({ name, zIndex }: { name: string; zIndex: number }) {
+  const map = useMap();
+  if (!map.getPane(name)) {
+    const p = map.createPane(name);
+    p.style.zIndex = String(zIndex);
+  }
+  return null;
 }
 
 function InvalidateOnResize({ trigger }: { trigger: unknown }) {
@@ -362,8 +371,8 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
             />
           )}
 
-          <Pane name="heat-pane" style={{ zIndex: 500 }} />
-          <Pane name="pins-pane" style={{ zIndex: 650 }} />
+          <EnsurePane name="heat-pane" zIndex={500} />
+          <EnsurePane name="pins-pane" zIndex={650} />
 
           {view === 'pins' && <PinsLayer points={points} />}
 
