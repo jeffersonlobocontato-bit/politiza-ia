@@ -896,6 +896,7 @@ export type Database = {
       party_slate_candidates: {
         Row: {
           association: string | null
+          candidate_id: string | null
           cargo: string
           city: string | null
           created_at: string
@@ -920,6 +921,7 @@ export type Database = {
         }
         Insert: {
           association?: string | null
+          candidate_id?: string | null
           cargo: string
           city?: string | null
           created_at?: string
@@ -944,6 +946,7 @@ export type Database = {
         }
         Update: {
           association?: string | null
+          candidate_id?: string | null
           cargo?: string
           city?: string | null
           created_at?: string
@@ -966,7 +969,15 @@ export type Database = {
           votes_medio?: number | null
           votes_ruim?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "party_slate_candidates_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       political_assets: {
         Row: {
