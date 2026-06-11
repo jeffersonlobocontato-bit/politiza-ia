@@ -84,16 +84,45 @@ export default function ChapaPartido() {
     [cargoRows],
   );
 
+  const rankMap = useMemo(() => {
+    const key = votesScenario === 'bom' ? 'votes_bom' : votesScenario === 'medio' ? 'votes_medio' : 'votes_ruim';
+    const ranked = cargoRows
+      .filter(r => (r as any)[key] !== null && (r as any)[key] !== undefined)
+      .sort((a, b) => ((b as any)[key] ?? 0) - ((a as any)[key] ?? 0));
+    const m = new Map<string, number>();
+    ranked.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [cargoRows, votesScenario]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return cargoRows.filter(r => {
+    const arr = cargoRows.filter(r => {
       if (q && !r.name.toLowerCase().includes(q) && !(r.city ?? '').toLowerCase().includes(q)) return false;
       if (filterAssoc !== 'all' && r.association !== filterAssoc) return false;
-      if (filterFiliacao !== 'all' && r.filiacao_status !== filterFiliacao) return false;
       if (filterCity !== 'all' && r.city !== filterCity) return false;
+      const rank = rankMap.get(r.id);
+      if (votesRank === 'sem') {
+        if (rank !== undefined) return false;
+      } else if (votesRank === 'top10') {
+        if (!rank || rank > 10) return false;
+      } else if (votesRank === 'top30') {
+        if (!rank || rank > 30) return false;
+      } else if (votesRank === 'top50') {
+        if (!rank || rank > 50) return false;
+      } else if (votesRank === 'out') {
+        if (!rank || rank <= 50) return false;
+      }
       return true;
     });
-  }, [cargoRows, search, filterAssoc, filterFiliacao, filterCity]);
+    if (votesRank !== 'all') {
+      arr.sort((a, b) => {
+        const ra = rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const rb = rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+        return ra - rb;
+      });
+    }
+    return arr;
+  }, [cargoRows, search, filterAssoc, filterCity, votesRank, rankMap]);
 
   const kpis = useMemo(() => {
     const total = cargoRows.length;
