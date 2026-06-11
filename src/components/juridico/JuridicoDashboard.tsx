@@ -1,10 +1,20 @@
-import { useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
+import { useEffect, useMemo, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
   ShieldAlert, AlertTriangle, FileCheck2, Archive, MapPinned, UserCheck, Clock,
+  Maximize2, Minimize2, ChevronDown, ChevronUp,
 } from 'lucide-react';
+
+function InvalidateOnResize({ trigger }: { trigger: any }) {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 220);
+    return () => clearTimeout(t);
+  }, [trigger, map]);
+  return null;
+}
 
 type Status = 'nova' | 'em_analise' | 'protocolada' | 'arquivada';
 
