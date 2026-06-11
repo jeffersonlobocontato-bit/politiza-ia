@@ -1,7 +1,15 @@
-import { useEffect, useState } from 'react';
-import { Gavel, ShieldAlert, MapPin, Calendar, User, FileText, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  Gavel, ShieldAlert, MapPin, Calendar, User, FileText, Loader2,
+  Paperclip, MessageSquare, History, Upload, X, AtSign, UserCircle2,
+  ExternalLink, Download,
+} from 'lucide-react';
 import { supabase } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+
+type Status = 'nova' | 'em_analise' | 'protocolada' | 'arquivada';
 
 interface Report {
   id: string;
@@ -18,81 +26,73 @@ interface Report {
   evidence: any[];
   ai_summary: string | null;
   ai_risk_score: number | null;
-  status: string;
+  status: Status;
   severity: string;
   legal_notes: string | null;
   created_at: string;
   created_by: string | null;
+  assigned_lawyer_id: string | null;
+  last_activity_at: string | null;
+  protocol_number: string | null;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  nova: 'Nova',
-  em_analise: 'Em análise',
-  protocolada: 'Protocolada',
-  arquivada: 'Arquivada',
-};
+interface Note { id: string; body: string; mentions: string[]; created_at: string; author_id: string | null; author_name?: string }
+interface Attachment { id: string; name: string; path: string; mime: string | null; size: number | null; created_at: string; uploaded_by: string | null; uploader_name?: string }
+interface HistoryRow { id: string; from_status: string | null; to_status: string; note: string; created_at: string; changed_by: string | null; changed_by_name?: string }
+interface Lawyer { id: string; full_name: string; email: string | null }
 
-const STATUS_COLORS: Record<string, string> = {
-  nova: 'bg-destructive/20 text-destructive border-destructive/40',
-  em_analise: 'bg-amber-500/20 text-amber-600 border-amber-500/40',
-  protocolada: 'bg-primary/20 text-primary border-primary/40',
-  arquivada: 'bg-muted text-muted-foreground border-border',
+const COLUMNS: { key: Status; label: string; accent: string }[] = [
+  { key: 'nova',        label: 'Nova',        accent: 'border-destructive/60 bg-destructive/5' },
+  { key: 'em_analise',  label: 'Em análise',  accent: 'border-amber-500/60 bg-amber-500/5' },
+  { key: 'protocolada', label: 'Protocolada', accent: 'border-primary/60 bg-primary/5' },
+  { key: 'arquivada',   label: 'Arquivada',   accent: 'border-muted-foreground/40 bg-muted/30' },
+];
+
+const SEV_BORDER: Record<string, string> = {
+  critica: 'border-l-destructive',
+  alta: 'border-l-orange-500',
+  media: 'border-l-amber-500',
+  baixa: 'border-l-emerald-500',
 };
 
 export default function Juridico() {
+  const { user } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
+  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<Report | null>(null);
-  const [filter, setFilter] = useState<string>('all');
-  const [note, setNote] = useState('');
-  const [newStatus, setNewStatus] = useState<string>('');
-  const [saving, setSaving] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [filterMine, setFilterMine] = useState(false);
+  const [params, setParams] = useSearchParams();
 
-  async function load() {
+  async function loadAll() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('fiscalize_reports')
-      .select('*')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
-    if (error) toast.error(error.message);
-    else setReports((data as any) ?? []);
+    const [{ data: reps }, { data: lws }] = await Promise.all([
+      (supabase as any).from('fiscalize_reports').select('*').is('deleted_at', null)
+        .order('last_activity_at', { ascending: false, nullsFirst: false }),
+      (supabase as any).from('juridico_users').select('*').order('full_name'),
+    ]);
+    setReports(reps ?? []);
+    setLawyers(lws ?? []);
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    const rid = params.get('report');
+    if (rid) setSelectedId(rid);
+  }, [params]);
 
-  const filtered = filter === 'all' ? reports : reports.filter(r => r.status === filter);
+  const filtered = filterMine && user
+    ? reports.filter(r => r.assigned_lawyer_id === user.id)
+    : reports;
 
-  async function updateStatus() {
-    if (!selected || !newStatus || !note.trim()) {
-      toast.error('Informe uma nota de justificativa.');
-      return;
-    }
-    setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    const fromStatus = selected.status;
-    const { error: e1 } = await supabase.from('fiscalize_reports').update({
-      status: newStatus, legal_notes: note,
-    }).eq('id', selected.id);
-    if (!e1) {
-      await supabase.from('fiscalize_history').insert({
-        report_id: selected.id, from_status: fromStatus, to_status: newStatus,
-        note, changed_by: user?.id,
-      });
-      toast.success('Status atualizado.');
-      setNote(''); setNewStatus(''); setSelected(null);
-      load();
-    } else {
-      toast.error(e1.message);
-    }
-    setSaving(false);
-  }
+  const grouped = useMemo(() => {
+    const m: Record<Status, Report[]> = { nova: [], em_analise: [], protocolada: [], arquivada: [] };
+    filtered.forEach(r => { (m[r.status] ?? m.nova).push(r); });
+    return m;
+  }, [filtered]);
 
-  async function signedUrl(path: string): Promise<string | null> {
-    const { data } = await supabase.storage.from('fiscalize-evidence').createSignedUrl(path, 600);
-    return data?.signedUrl ?? null;
-  }
+  const selected = reports.find(r => r.id === selectedId) ?? null;
 
   return (
     <div className="h-full flex flex-col">
@@ -100,133 +100,503 @@ export default function Juridico() {
         <Gavel className="w-5 h-5 text-primary" />
         <div>
           <h1 className="text-base font-bold text-foreground">Jurídico — Denúncias Fiscalize</h1>
-          <p className="text-xs text-muted-foreground">Triagem e encaminhamento de irregularidades eleitorais</p>
+          <p className="text-xs text-muted-foreground">Quadro de triagem e encaminhamento (Trello-like)</p>
         </div>
-        <div className="ml-auto flex gap-2">
-          {['all', 'nova', 'em_analise', 'protocolada', 'arquivada'].map(s => (
-            <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
-                filter === s ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:bg-accent'
-              }`}>
-              {s === 'all' ? 'Todas' : STATUS_LABELS[s]}
-            </button>
-          ))}
+        <div className="ml-auto flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+            <input type="checkbox" checked={filterMine} onChange={e => setFilterMine(e.target.checked)}
+              className="w-3.5 h-3.5 accent-primary" />
+            Minhas denúncias
+          </label>
+          <span className="text-[10px] text-muted-foreground">{filtered.length} no quadro</span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-x-auto overflow-y-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-10 text-muted-foreground gap-2">
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground text-sm">Nenhuma denúncia neste filtro.</div>
         ) : (
-          <div className="grid gap-3 max-w-4xl mx-auto">
-            {filtered.map(r => (
-              <button key={r.id} onClick={() => { setSelected(r); setNewStatus(r.status); setNote(r.legal_notes ?? ''); }}
-                className="text-left rounded-xl border border-border bg-card hover:border-primary/50 transition-all p-4">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <ShieldAlert className="w-4 h-4 text-destructive" />
-                      <h3 className="font-semibold text-sm text-foreground truncate">{r.title}</h3>
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{r.narrative}</p>
-                  </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${STATUS_COLORS[r.status] ?? STATUS_COLORS.nova}`}>
-                    {STATUS_LABELS[r.status] ?? r.status}
+          <div className="flex gap-4 p-4 h-full min-w-max">
+            {COLUMNS.map(col => (
+              <div key={col.key} className={`w-80 flex-shrink-0 rounded-xl border ${col.accent} flex flex-col`}>
+                <div className="px-3 py-2 border-b border-border/50 flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">{col.label}</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-background border border-border">
+                    {grouped[col.key].length}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1"><User className="w-3 h-3" />{r.denounced_name}</span>
-                  {r.municipality && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{r.municipality}</span>}
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(r.created_at).toLocaleDateString('pt-BR')}</span>
-                  <span className="flex items-center gap-1"><FileText className="w-3 h-3" />{r.evidence?.length ?? 0} prova(s)</span>
-                  {r.ai_risk_score !== null && (
-                    <span className={`font-semibold ${r.ai_risk_score > 60 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                      IA: {Math.round(r.ai_risk_score)}% manipul.
-                    </span>
-                  )}
+                <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                  {grouped[col.key].length === 0 ? (
+                    <div className="text-center text-[11px] text-muted-foreground py-6">—</div>
+                  ) : grouped[col.key].map(r => {
+                    const lawyer = lawyers.find(l => l.id === r.assigned_lawyer_id);
+                    return (
+                      <button key={r.id} onClick={() => setSelectedId(r.id)}
+                        className={`w-full text-left rounded-lg border border-l-4 ${SEV_BORDER[r.severity] ?? 'border-l-muted'} border-border bg-card hover:border-primary/50 transition-all p-3`}>
+                        <div className="flex items-start gap-1.5 mb-1.5">
+                          <ShieldAlert className="w-3.5 h-3.5 text-destructive mt-0.5 flex-shrink-0" />
+                          <h3 className="font-semibold text-xs text-foreground line-clamp-2">{r.title}</h3>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2">{r.narrative}</p>
+                        <div className="flex flex-wrap gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
+                          <span className="flex items-center gap-0.5"><User className="w-2.5 h-2.5" />{r.denounced_name}</span>
+                          {r.municipality && <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{r.municipality}</span>}
+                          <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{r.evidence?.length ?? 0}</span>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between text-[10px]">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Calendar className="w-2.5 h-2.5" />{new Date(r.created_at).toLocaleDateString('pt-BR')}
+                          </span>
+                          {lawyer ? (
+                            <span className="flex items-center gap-1 text-primary font-semibold">
+                              <UserCircle2 className="w-3 h-3" />{lawyer.full_name?.split(' ')[0]}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground italic">sem responsável</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
       </div>
 
       {selected && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setSelected(null)}>
-          <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl bg-card border border-border rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-auto">
-            <div className="p-5 border-b border-border flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-base font-bold text-foreground">{selected.title}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{selected.category.replace(/_/g, ' ')}</p>
-              </div>
-              <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground">✕</button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div><div className="text-muted-foreground mb-0.5">Denunciado</div><div className="font-medium text-foreground">{selected.denounced_name}</div></div>
-                <div><div className="text-muted-foreground mb-0.5">Cargo / Partido</div><div className="font-medium text-foreground">{[selected.denounced_role, selected.denounced_party].filter(Boolean).join(' · ') || '—'}</div></div>
-                <div><div className="text-muted-foreground mb-0.5">Município</div><div className="font-medium text-foreground">{selected.municipality ?? '—'}</div></div>
-                <div><div className="text-muted-foreground mb-0.5">Coordenadas</div><div className="font-mono text-[11px] text-foreground">{selected.lat ? `${selected.lat.toFixed(5)}, ${selected.lng?.toFixed(5)}` : '—'}</div></div>
-              </div>
-
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Relato</div>
-                <div className="text-sm text-foreground whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3">{selected.narrative}</div>
-              </div>
-
-              {selected.ai_summary && (
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Triagem IA</div>
-                  <div className="text-xs text-foreground rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-                    {selected.ai_summary}
-                    {selected.ai_risk_score !== null && (
-                      <span className="block mt-2 font-semibold">Score médio de manipulação: {Math.round(selected.ai_risk_score)}%</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Provas ({selected.evidence?.length ?? 0})</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {(selected.evidence ?? []).map((e: any, i: number) => (
-                    <button key={i} onClick={async () => { const u = await signedUrl(e.path); if (u) window.open(u, '_blank'); }}
-                      className="aspect-square rounded-lg border border-border bg-muted hover:border-primary/50 p-2 flex flex-col items-center justify-center text-[10px] text-muted-foreground gap-1">
-                      <FileText className="w-5 h-5" />
-                      <span className="truncate w-full text-center">{e.mime}</span>
-                      <span className="font-mono truncate w-full text-center">{e.sha256?.slice(0, 8)}…</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-4 space-y-3">
-                <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Mudar status para</label>
-                  <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
-                    className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm">
-                    {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Nota / Justificativa (obrigatória) *</label>
-                  <textarea value={note} onChange={e => setNote(e.target.value)} rows={3}
-                    placeholder="Descreva a análise jurídica, decisão ou número de protocolo..."
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none" />
-                </div>
-                <button onClick={updateStatus} disabled={saving || !note.trim()}
-                  className="w-full h-10 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 flex items-center justify-center gap-2">
-                  {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Salvando…</> : 'Salvar mudança de status'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReportDrawer
+          report={selected}
+          lawyers={lawyers}
+          onClose={() => { setSelectedId(null); if (params.get('report')) { params.delete('report'); setParams(params); } }}
+          onChanged={loadAll}
+        />
       )}
     </div>
+  );
+}
+
+// =========================== DRAWER ===========================
+
+function ReportDrawer({ report, lawyers, onClose, onChanged }: {
+  report: Report; lawyers: Lawyer[]; onClose: () => void; onChanged: () => void;
+}) {
+  const { user } = useAuth();
+  const [tab, setTab] = useState<'detalhes' | 'andamento' | 'anexos' | 'notas'>('detalhes');
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [history, setHistory] = useState<HistoryRow[]>([]);
+  const [newStatus, setNewStatus] = useState<Status>(report.status);
+  const [statusNote, setStatusNote] = useState('');
+  const [assignee, setAssignee] = useState<string>(report.assigned_lawyer_id ?? '');
+  const [saving, setSaving] = useState(false);
+
+  async function loadCollab() {
+    const [{ data: n }, { data: a }, { data: h }] = await Promise.all([
+      (supabase as any).from('fiscalize_notes').select('*').eq('report_id', report.id).is('deleted_at', null).order('created_at'),
+      (supabase as any).from('fiscalize_attachments').select('*').eq('report_id', report.id).is('deleted_at', null).order('created_at'),
+      (supabase as any).from('fiscalize_history').select('*').eq('report_id', report.id).order('created_at'),
+    ]);
+    const userIds = new Set<string>();
+    (n ?? []).forEach((x: Note) => x.author_id && userIds.add(x.author_id));
+    (a ?? []).forEach((x: Attachment) => x.uploaded_by && userIds.add(x.uploaded_by));
+    (h ?? []).forEach((x: HistoryRow) => x.changed_by && userIds.add(x.changed_by));
+    let nameMap: Record<string, string> = {};
+    if (userIds.size) {
+      const { data: profs } = await supabase.from('profiles').select('id,full_name').in('id', Array.from(userIds));
+      nameMap = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name]));
+    }
+    setNotes((n ?? []).map((x: Note) => ({ ...x, author_name: x.author_id ? nameMap[x.author_id] : undefined })));
+    setAttachments((a ?? []).map((x: Attachment) => ({ ...x, uploader_name: x.uploaded_by ? nameMap[x.uploaded_by] : undefined })));
+    setHistory((h ?? []).map((x: HistoryRow) => ({ ...x, changed_by_name: x.changed_by ? nameMap[x.changed_by] : undefined })));
+  }
+  useEffect(() => { loadCollab(); }, [report.id]);
+
+  async function signedUrl(bucket: string, path: string) {
+    const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 600);
+    return data?.signedUrl ?? null;
+  }
+
+  async function saveStatus() {
+    if (newStatus === report.status && assignee === (report.assigned_lawyer_id ?? '')) {
+      toast.info('Nada para atualizar.'); return;
+    }
+    if (newStatus !== report.status && !statusNote.trim()) {
+      toast.error('Justificativa obrigatória para mudar status.'); return;
+    }
+    setSaving(true);
+    const patch: any = {};
+    if (newStatus !== report.status) { patch.status = newStatus; patch.legal_notes = statusNote; }
+    if (assignee !== (report.assigned_lawyer_id ?? '')) patch.assigned_lawyer_id = assignee || null;
+    const { error } = await (supabase as any).from('fiscalize_reports').update(patch).eq('id', report.id);
+    if (error) { toast.error(error.message); setSaving(false); return; }
+    if (newStatus !== report.status) {
+      await (supabase as any).from('fiscalize_history').insert({
+        report_id: report.id, from_status: report.status, to_status: newStatus,
+        note: statusNote, changed_by: user?.id,
+      });
+    }
+    toast.success('Atualizado.');
+    setStatusNote('');
+    setSaving(false);
+    onChanged();
+    loadCollab();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex justify-end" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()}
+        className="w-full max-w-2xl h-full bg-card border-l border-border overflow-hidden flex flex-col">
+        <div className="px-5 py-4 border-b border-border flex items-start justify-between gap-3 flex-shrink-0">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <ShieldAlert className="w-4 h-4 text-destructive" />
+              <h2 className="text-base font-bold text-foreground truncate">{report.title}</h2>
+            </div>
+            <p className="text-xs text-muted-foreground capitalize">
+              {report.category.replace(/_/g, ' ')} · Severidade {report.severity} · Status atual: {report.status.replace('_',' ')}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="flex border-b border-border flex-shrink-0">
+          {[
+            { k: 'detalhes', icon: FileText, label: 'Detalhes' },
+            { k: 'andamento', icon: History, label: 'Andamento' },
+            { k: 'anexos', icon: Paperclip, label: `Anexos (${attachments.length})` },
+            { k: 'notas', icon: MessageSquare, label: `Notas (${notes.length})` },
+          ].map(t => (
+            <button key={t.k} onClick={() => setTab(t.k as any)}
+              className={`flex-1 px-3 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
+                tab === t.k ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}>
+              <t.icon className="w-3.5 h-3.5" />{t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {tab === 'detalhes' && <DetailsTab report={report} signedUrl={signedUrl} />}
+          {tab === 'andamento' && <TimelineTab notes={notes} attachments={attachments} history={history} />}
+          {tab === 'anexos' && <AttachmentsTab report={report} attachments={attachments} reload={loadCollab} signedUrl={signedUrl} />}
+          {tab === 'notas' && <NotesTab report={report} notes={notes} lawyers={lawyers} reload={loadCollab} />}
+        </div>
+
+        <div className="border-t border-border p-4 space-y-3 flex-shrink-0 bg-muted/20">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Responsável jurídico</label>
+              <select value={assignee} onChange={e => setAssignee(e.target.value)}
+                className="w-full h-9 rounded-lg border border-input bg-background px-2 text-xs">
+                <option value="">— sem responsável —</option>
+                {lawyers.map(l => <option key={l.id} value={l.id}>{l.full_name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Status</label>
+              <select value={newStatus} onChange={e => setNewStatus(e.target.value as Status)}
+                className="w-full h-9 rounded-lg border border-input bg-background px-2 text-xs">
+                {COLUMNS.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+              </select>
+            </div>
+          </div>
+          {newStatus !== report.status && (
+            <textarea value={statusNote} onChange={e => setStatusNote(e.target.value)} rows={2}
+              placeholder="Justificativa da mudança de status (obrigatória)…"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs resize-none" />
+          )}
+          <button onClick={saveStatus} disabled={saving}
+            className="w-full h-9 rounded-lg bg-primary text-primary-foreground font-semibold text-xs disabled:opacity-40 flex items-center justify-center gap-2">
+            {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Salvando…</> : 'Salvar alterações'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =========================== TABS ===========================
+
+function DetailsTab({ report, signedUrl }: { report: Report; signedUrl: (b: string, p: string) => Promise<string | null> }) {
+  return (
+    <div className="space-y-4 text-sm">
+      <Section label="Denunciado">
+        <Grid pairs={[
+          ['Nome', report.denounced_name],
+          ['Cargo', report.denounced_role ?? '—'],
+          ['Partido', report.denounced_party ?? '—'],
+        ]} />
+      </Section>
+      <Section label="Localização">
+        <Grid pairs={[
+          ['Município', report.municipality ?? '—'],
+          ['Endereço', report.address ?? '—'],
+          ['Coordenadas', report.lat ? `${report.lat.toFixed(5)}, ${report.lng?.toFixed(5)}` : '—'],
+        ]} />
+        {report.lat && (
+          <a target="_blank" rel="noreferrer"
+            href={`https://www.google.com/maps?q=${report.lat},${report.lng}`}
+            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline mt-1">
+            <ExternalLink className="w-3 h-3" />Abrir no mapa
+          </a>
+        )}
+      </Section>
+      <Section label="Relato">
+        <p className="text-sm text-foreground whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3">{report.narrative}</p>
+      </Section>
+      {report.ai_summary && (
+        <Section label="Triagem IA">
+          <div className="text-xs text-foreground rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 whitespace-pre-wrap">
+            {report.ai_summary}
+            {report.ai_risk_score !== null && (
+              <span className="block mt-2 font-semibold">Score de manipulação: {Math.round(report.ai_risk_score)}%</span>
+            )}
+          </div>
+        </Section>
+      )}
+      <Section label={`Provas originais (${report.evidence?.length ?? 0})`}>
+        <div className="grid grid-cols-3 gap-2">
+          {(report.evidence ?? []).map((e: any, i: number) => (
+            <button key={i} onClick={async () => { const u = await signedUrl('fiscalize-evidence', e.path); if (u) window.open(u, '_blank'); }}
+              className="aspect-square rounded-lg border border-border bg-muted hover:border-primary/50 p-2 flex flex-col items-center justify-center text-[10px] text-muted-foreground gap-1">
+              <FileText className="w-5 h-5" />
+              <span className="truncate w-full text-center">{e.mime}</span>
+              <span className="font-mono truncate w-full text-center">{e.sha256?.slice(0, 8)}…</span>
+              {e.captured_at && <span className="text-[9px]">{new Date(e.captured_at).toLocaleString('pt-BR')}</span>}
+            </button>
+          ))}
+        </div>
+      </Section>
+      <Section label="Metadados">
+        <Grid pairs={[
+          ['Protocolo', report.protocol_number ?? '—'],
+          ['Criada em', new Date(report.created_at).toLocaleString('pt-BR')],
+          ['Última atividade', report.last_activity_at ? new Date(report.last_activity_at).toLocaleString('pt-BR') : '—'],
+        ]} />
+      </Section>
+    </div>
+  );
+}
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1.5">{label}</div>
+      {children}
+    </div>
+  );
+}
+function Grid({ pairs }: { pairs: [string, string][] }) {
+  return (
+    <div className="grid grid-cols-2 gap-2 text-xs">
+      {pairs.map(([k, v]) => (
+        <div key={k}>
+          <div className="text-muted-foreground mb-0.5">{k}</div>
+          <div className="font-medium text-foreground break-words">{v}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TimelineTab({ notes, attachments, history }: { notes: Note[]; attachments: Attachment[]; history: HistoryRow[] }) {
+  const items = [
+    ...history.map(h => ({ ts: h.created_at, type: 'status' as const, data: h })),
+    ...notes.map(n => ({ ts: n.created_at, type: 'note' as const, data: n })),
+    ...attachments.map(a => ({ ts: a.created_at, type: 'att' as const, data: a })),
+  ].sort((a, b) => a.ts.localeCompare(b.ts));
+
+  if (items.length === 0) return <p className="text-xs text-muted-foreground">Sem atividade ainda.</p>;
+
+  return (
+    <div className="space-y-3">
+      {items.map((it, i) => (
+        <div key={i} className="rounded-lg border border-border bg-card p-3 text-xs">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-semibold text-foreground">
+              {it.type === 'status' && `Status → ${(it.data as HistoryRow).to_status.replace('_',' ')}`}
+              {it.type === 'note' && 'Nota adicionada'}
+              {it.type === 'att' && 'Anexo enviado'}
+            </span>
+            <span className="text-[10px] text-muted-foreground">{new Date(it.ts).toLocaleString('pt-BR')}</span>
+          </div>
+          <p className="text-muted-foreground">
+            {it.type === 'status' && (it.data as HistoryRow).note}
+            {it.type === 'note' && (it.data as Note).body}
+            {it.type === 'att' && (it.data as Attachment).name}
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            por {(it.data as any).author_name || (it.data as any).uploader_name || (it.data as any).changed_by_name || '—'}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AttachmentsTab({ report, attachments, reload, signedUrl }: {
+  report: Report; attachments: Attachment[]; reload: () => void;
+  signedUrl: (b: string, p: string) => Promise<string | null>;
+}) {
+  const { user } = useAuth();
+  const [up, setUp] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length || !user) return;
+    setUp(true);
+    for (const f of files) {
+      if (f.size > 20 * 1024 * 1024) { toast.error(`${f.name}: maior que 20MB`); continue; }
+      const path = `${report.id}/${Date.now()}_${f.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: upErr } = await supabase.storage.from('fiscalize-legal-docs').upload(path, f);
+      if (upErr) { toast.error(upErr.message); continue; }
+      await (supabase as any).from('fiscalize_attachments').insert({
+        report_id: report.id, uploaded_by: user.id, path, name: f.name, mime: f.type, size: f.size,
+      });
+    }
+    setUp(false);
+    if (inputRef.current) inputRef.current.value = '';
+    toast.success('Anexos enviados.');
+    reload();
+  }
+
+  return (
+    <div className="space-y-3">
+      <label className="flex items-center justify-center gap-2 h-20 rounded-xl border-2 border-dashed border-border hover:border-primary/50 cursor-pointer text-xs text-muted-foreground transition-colors">
+        <Upload className="w-4 h-4" />
+        {up ? 'Enviando…' : 'Adicionar documentos (PDF, imagens — até 20MB cada)'}
+        <input ref={inputRef} type="file" multiple onChange={handleUpload} disabled={up}
+          accept=".pdf,image/*,.doc,.docx,.odt"
+          className="hidden" />
+      </label>
+      {attachments.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-4">Nenhum anexo complementar.</p>
+      ) : attachments.map(a => (
+        <div key={a.id} className="flex items-center gap-2 p-2 rounded-lg border border-border bg-card text-xs">
+          <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="truncate text-foreground font-medium">{a.name}</div>
+            <div className="text-[10px] text-muted-foreground">
+              {a.uploader_name ?? '—'} · {new Date(a.created_at).toLocaleString('pt-BR')}
+              {a.size && ` · ${(a.size / 1024).toFixed(0)}KB`}
+            </div>
+          </div>
+          <button onClick={async () => { const u = await signedUrl('fiscalize-legal-docs', a.path); if (u) window.open(u, '_blank'); }}
+            className="p-1.5 rounded hover:bg-muted text-primary"><Download className="w-3.5 h-3.5" /></button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function NotesTab({ report, notes, lawyers, reload }: {
+  report: Report; notes: Note[]; lawyers: Lawyer[]; reload: () => void;
+}) {
+  const { user } = useAuth();
+  const [body, setBody] = useState('');
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentions, setMentions] = useState<Lawyer[]>([]);
+  const [saving, setSaving] = useState(false);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  function onBodyChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value;
+    setBody(val);
+    const cursor = e.target.selectionStart;
+    const before = val.slice(0, cursor);
+    const match = before.match(/@([\w]*)$/);
+    if (match) { setShowMentions(true); setMentionQuery(match[1].toLowerCase()); }
+    else { setShowMentions(false); }
+  }
+
+  function insertMention(l: Lawyer) {
+    const ta = taRef.current; if (!ta) return;
+    const cursor = ta.selectionStart;
+    const before = body.slice(0, cursor).replace(/@([\w]*)$/, `@${l.full_name.replace(/\s+/g, '_')} `);
+    const after = body.slice(cursor);
+    const next = before + after;
+    setBody(next);
+    setShowMentions(false);
+    if (!mentions.find(m => m.id === l.id)) setMentions([...mentions, l]);
+    setTimeout(() => { ta.focus(); ta.selectionEnd = before.length; }, 0);
+  }
+
+  async function submit() {
+    if (!body.trim() || !user) return;
+    setSaving(true);
+    const activeMentions = mentions.filter(m => body.includes(`@${m.full_name.replace(/\s+/g, '_')}`));
+    const { error } = await (supabase as any).from('fiscalize_notes').insert({
+      report_id: report.id, author_id: user.id, body,
+      mentions: activeMentions.map(m => m.id),
+    });
+    if (error) { toast.error(error.message); setSaving(false); return; }
+    setBody(''); setMentions([]); setSaving(false);
+    toast.success(activeMentions.length ? `Nota salva e ${activeMentions.length} pessoa(s) notificada(s).` : 'Nota salva.');
+    reload();
+  }
+
+  const suggestions = lawyers.filter(l =>
+    l.full_name?.toLowerCase().includes(mentionQuery)
+  ).slice(0, 5);
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <textarea ref={taRef} value={body} onChange={onBodyChange} rows={4}
+          placeholder="Escreva uma nota. Use @ para mencionar um advogado e notificá-lo…"
+          className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs resize-none" />
+        {showMentions && suggestions.length > 0 && (
+          <div className="absolute left-3 right-3 top-full mt-1 z-10 rounded-lg border border-border bg-card shadow-lg max-h-48 overflow-y-auto">
+            {suggestions.map(l => (
+              <button key={l.id} onClick={() => insertMention(l)}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-muted flex items-center gap-2">
+                <AtSign className="w-3 h-3 text-primary" />
+                <span className="font-medium">{l.full_name}</span>
+                <span className="text-[10px] text-muted-foreground ml-auto">{l.email}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-muted-foreground">
+          {mentions.length > 0 && `Mencionados: ${mentions.map(m => m.full_name).join(', ')}`}
+        </span>
+        <button onClick={submit} disabled={saving || !body.trim()}
+          className="h-8 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs disabled:opacity-40 flex items-center gap-1.5">
+          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageSquare className="w-3 h-3" />}
+          Adicionar nota
+        </button>
+      </div>
+
+      <div className="space-y-2 pt-3 border-t border-border">
+        {notes.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Sem notas ainda.</p>
+        ) : notes.map(n => (
+          <div key={n.id} className="rounded-lg border border-border bg-card p-3 text-xs">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-semibold text-foreground">{n.author_name ?? '—'}</span>
+              <span className="text-[10px] text-muted-foreground">{new Date(n.created_at).toLocaleString('pt-BR')}</span>
+            </div>
+            <p className="text-foreground whitespace-pre-wrap">{renderMentions(n.body)}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function renderMentions(text: string) {
+  const parts = text.split(/(@[\w_]+)/g);
+  return parts.map((p, i) =>
+    p.startsWith('@')
+      ? <span key={i} className="text-primary font-semibold">{p.replace(/_/g, ' ')}</span>
+      : <span key={i}>{p}</span>
   );
 }
