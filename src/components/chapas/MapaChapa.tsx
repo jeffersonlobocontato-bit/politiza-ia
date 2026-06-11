@@ -334,7 +334,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           <Pane name="heat-pane" style={{ zIndex: 500 }} />
           <Pane name="pins-pane" style={{ zIndex: 650 }} />
 
-          {view === 'pins' && <PinsLayer points={points} party={party} />}
+          {view === 'pins' && <PinsLayer points={points} />}
 
 
           {view === 'calor' && heatClusters.map((c, i) => {
