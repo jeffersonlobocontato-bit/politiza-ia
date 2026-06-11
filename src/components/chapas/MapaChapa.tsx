@@ -346,7 +346,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
       </div>
 
       <div className={`${fullscreen ? 'flex-1 min-h-0 ' : ''}${view === 'calor' ? 'mapa-chapa-heat ' : ''}`.trim()} style={fullscreen ? { background: 'hsl(var(--muted) / 0.3)' } : { height: 460, background: 'hsl(var(--muted) / 0.3)' }}>
-        <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+        <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom zoomControl={false}>
           <InvalidateOnResize trigger={fullscreen} />
           <TileLayer
             attribution='&copy; OpenStreetMap, &copy; CARTO'
@@ -389,7 +389,6 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
 
           {view === 'pins' && <PinsLayer points={points} />}
 
-
           {view === 'calor' && heatClusters.map((c, i) => {
             const ratio = c.count / maxCount;
             const color = ratio > 0.66 ? '#EF4444' : ratio > 0.33 ? '#F59E0B' : '#FACC15';
@@ -411,6 +410,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
               </Circle>
             );
           })}
+          <MapZoomControl />
         </MapContainer>
       </div>
 
