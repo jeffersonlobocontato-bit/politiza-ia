@@ -9,7 +9,7 @@ import type { SlateCandidate, SlateCargo, SlateParty } from '@/hooks/usePartySla
 import { useAllPartySlates } from '@/hooks/usePartySlate';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMunicipalityAssociationMap } from '@/hooks/useMunicipalityAssociation';
-import { MapPin, Flame } from 'lucide-react';
+import { MapPin, Flame, Maximize2, Minimize2 } from 'lucide-react';
 
 type CargoFilter = 'all' | 'Deputado Federal' | 'Deputado Estadual';
 type ViewMode = 'pins' | 'calor';
@@ -97,6 +97,15 @@ function PinsLayer({ points }: { points: PointRow[] }) {
   );
 }
 
+function InvalidateOnResize({ trigger }: { trigger: unknown }) {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 200);
+    return () => clearTimeout(t);
+  }, [map, trigger]);
+  return null;
+}
+
 
 const PR_CENTER: [number, number] = [-24.6, -51.5];
 
@@ -148,9 +157,22 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
   const [cargo, setCargo] = useState<CargoFilter>('all');
   const [view, setView] = useState<ViewMode>('pins');
   const [partyView, setPartyView] = useState<PartyView>('current');
+  const [fullscreen, setFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false); };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [fullscreen]);
 
   const { isAdmin } = useAuth();
   const { data: allRows } = useAllPartySlates();
+
   const { data: assocMap } = useMunicipalityAssociationMap();
   const { data: ibgeNames } = useIbgeMunicipios();
   const { data: geo } = usePrGeoJson();
@@ -218,7 +240,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
   }, [assocMap]);
 
   return (
-    <Card className="overflow-hidden">
+    <Card className={fullscreen ? 'fixed inset-0 z-[9999] rounded-none flex flex-col overflow-hidden' : 'overflow-hidden'}>
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-border/60 bg-card/50">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
@@ -291,11 +313,20 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
               <Flame className="w-3 h-3" /> Calor
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setFullscreen(f => !f)}
+            title={fullscreen ? 'Sair da tela cheia (Esc)' : 'Ampliar mapa'}
+            className="inline-flex items-center justify-center w-8 h-7 rounded-md border border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-primary/10"
+          >
+            {fullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
         </div>
       </div>
 
-      <div style={{ height: 460, background: 'hsl(var(--muted) / 0.3)' }}>
+      <div className={fullscreen ? 'flex-1 min-h-0' : ''} style={fullscreen ? { background: 'hsl(var(--muted) / 0.3)' } : { height: 460, background: 'hsl(var(--muted) / 0.3)' }}>
         <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+          <InvalidateOnResize trigger={fullscreen} />
           <TileLayer
             attribution='&copy; OpenStreetMap, &copy; CARTO'
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
