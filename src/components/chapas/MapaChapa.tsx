@@ -240,7 +240,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
   }, [assocMap]);
 
   return (
-    <Card className="overflow-hidden">
+    <Card className={fullscreen ? 'fixed inset-0 z-[9999] rounded-none flex flex-col overflow-hidden' : 'overflow-hidden'}>
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-border/60 bg-card/50">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
