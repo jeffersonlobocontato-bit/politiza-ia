@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { resolveGeo } from '@/lib/geo';
 import type { SlateCandidate, SlateCargo, SlateParty } from '@/hooks/usePartySlate';
+import { useAllPartySlates } from '@/hooks/usePartySlate';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMunicipalityAssociationMap } from '@/hooks/useMunicipalityAssociation';
 import { MapPin, Flame } from 'lucide-react';
 
