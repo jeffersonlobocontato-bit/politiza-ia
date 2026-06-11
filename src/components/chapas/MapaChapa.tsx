@@ -9,7 +9,7 @@ import type { SlateCandidate, SlateCargo, SlateParty } from '@/hooks/usePartySla
 import { useAllPartySlates } from '@/hooks/usePartySlate';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMunicipalityAssociationMap } from '@/hooks/useMunicipalityAssociation';
-import { MapPin, Flame } from 'lucide-react';
+import { MapPin, Flame, Maximize2, Minimize2 } from 'lucide-react';
 
 type CargoFilter = 'all' | 'Deputado Federal' | 'Deputado Estadual';
 type ViewMode = 'pins' | 'calor';
