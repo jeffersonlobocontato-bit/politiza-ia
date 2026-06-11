@@ -204,6 +204,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
   const handleResetView = () => setViewCandidateId(null);
 
+  const handleDownloadPdf = async () => {
     if (!chartRef.current) return;
     setExporting(true);
     // Aguarda React aplicar exportMode antes de capturar
