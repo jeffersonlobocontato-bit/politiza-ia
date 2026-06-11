@@ -167,12 +167,16 @@ function HorizontalBus({ count, dropH = 16 }: { count: number; dropH?: number })
   );
 }
 
-export function HierarchyFlowchart({ open, onClose }: Props) {
+export function HierarchyFlowchart({ open, onClose, initialCandidateId = null }: Props) {
   const { data: allMembers = [] } = useCampaignMembers();
   const { activeCandidate, candidates } = useCandidate();
   const chartRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
-  const [viewCandidateId, setViewCandidateId] = useState<string | null>(null);
+  const [viewCandidateId, setViewCandidateId] = useState<string | null>(initialCandidateId);
+
+  // Sync com prop quando o modal abre ou o id externo muda
+  useMemo(() => { setViewCandidateId(initialCandidateId); }, [initialCandidateId, open]);
+
 
   const viewCandidate = viewCandidateId
     ? candidates.find(c => c.id === viewCandidateId) ?? null
