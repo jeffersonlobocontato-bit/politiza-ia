@@ -363,13 +363,26 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
               <Crown className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm font-bold text-foreground truncate">Organograma da Campanha</h2>
+              <h2 className="text-sm font-bold text-foreground truncate">
+                {viewCandidate ? `Organograma — ${viewCandidate.name}` : 'Organograma da Campanha'}
+              </h2>
               <p className="text-[11px] text-muted-foreground truncate">
-                {activeCandidate
-                  ? `${activeCandidate.name} · ${activeCandidate.cargo} · ${activeCandidate.party}`
-                  : 'Estrutura funcional de comando'}
+                {viewCandidate
+                  ? `${viewCandidate.cargo} · ${viewCandidate.party}`
+                  : activeCandidate
+                    ? `${activeCandidate.name} · ${activeCandidate.cargo} · ${activeCandidate.party}`
+                    : 'Estrutura funcional de comando'}
               </p>
             </div>
+            {viewCandidate && (
+              <button
+                onClick={handleResetView}
+                className="ml-2 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold border border-border bg-background hover:bg-accent transition-colors"
+                aria-label="Voltar à árvore principal"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Árvore principal
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="text-right hidden sm:block">
