@@ -1,115 +1,90 @@
+# FISCALIZE — Denúncias de Irregularidades Eleitorais
 
-# Unificação: Campanha Proporcional + Chapas
+Novo card na área **Campo** (ao lado de "Registrar Ação" e "Cadastrar Liderança") para qualquer liderança em campo enviar denúncias diretamente ao jurídico da campanha, com prova autenticada.
 
-## Diagnóstico
+## Estratégia de autenticação de mídia (nativa + barata)
 
-Hoje existem dois painéis tratando do **mesmo universo** (Dep. Federal e Estadual), com fontes distintas e nenhum cruzamento:
+100% nativo, sem custo de terceiros, com força probatória adequada para representações no TSE/TRE:
 
-| Painel | Fonte | Granularidade | Cenários | Indicadores fortes |
-|---|---|---|---|---|
-| `Chapas` | `party_slate_candidates` | Partido × Cargo × Pré-cand | Bom / Médio / Ruim | Composição da chapa, filiação, ranking de votos declarado |
-| `Proporcional` | `vote_projections` + `leaders` | Candidato ativo × Liderança × Município | Otimista / Intermediário / Pessimista | Capilaridade territorial, confiabilidade, ranking de lideranças |
+1. **Captura obrigatória pela câmera do device** (não permite upload da galeria) — usa `<input capture="environment">` no mobile.
+2. **Cadeia de custódia gravada no servidor**:
+   - SHA-256 do arquivo (calculado no client e revalidado no servidor)
+   - EXIF preservado (timestamp e GPS da câmera, quando houver)
+   - GPS do navegador no momento do envio + endereço reverso
+   - Timestamp **do servidor** (não do device, que pode ser adulterado)
+   - ID do usuário autenticado + IP + user-agent
+   - URL imutável no Storage (bucket privado `fiscalize-evidence`)
+3. **Triagem opcional de deepfake/IA** via **Lovable AI Gateway** (Gemini 2.5 Flash, já incluso — sem custo extra de chave): para imagens, retorna score de suspeita de manipulação/IA e descrição do conteúdo, anexados ao registro.
+4. **Sem integração paga no MVP**. Se mais tarde o jurídico exigir padrão C2PA forense, plugamos **Truepic** (única integração paga recomendada, ~US$0,10 por captura) sem refatorar o módulo.
 
-Eles são complementares, não redundantes — o de Chapas é a **visão macro** (a chapa inteira), o de Proporcional é o **microfundamento** (quem é a liderança que entrega os votos de cada pré-cand). A unificação certa não é fundir KPIs em uma sopa única; é **encadear as duas camadas** num só módulo navegável e padronizar a linguagem de cenário.
-
-## Visão proposta
-
-Substituir os dois itens de menu por **um único módulo "Proporcional"** com 3 abas que respeitam o escopo do usuário (admin master vê tudo, gestor PL/Novo vê só sua chapa, usuário com `user_candidates` vê só seu pré-cand):
+## Fluxo do usuário (mobile-first, 1 tela)
 
 ```text
-Proporcional
-├── 1. Visão de Chapa         ← consolidado por partido × cargo
-├── 2. Pré-candidato          ← drill-down individual (substitui o "dashboard" do Proporcional atual)
-└── 3. Lideranças & Projeções ← base operacional (já existe)
+[Campo] → [Fiscalize]
+  ├─ Categoria* (dropdown: Pré-campanha irregular / Abuso poder econômico /
+  │              Uso da máquina pública / Material irregular / Outro)
+  ├─ Título* (input curto)
+  ├─ Denunciado* (nome + cargo/partido opcional)
+  ├─ Localização* [Geolocalizar] OU [Informar endereço] (offline)
+  ├─ Relato* (textarea)
+  ├─ Provas (até 5: foto/vídeo/áudio, captura na câmera)
+  └─ [Enviar ao jurídico]
 ```
 
-Nomenclatura de cenários **unificada em Bom / Médio / Ruim** (vencendo a divergência atual). `optimistic/intermediate/pessimistic` em `vote_projections` continua no banco, mas a UI passa a chamar tudo de Bom/Médio/Ruim.
+Suporte **offline**: rascunhos ficam no IndexedDB e sincronizam ao reconectar (mesmo padrão já usado no tracking).
 
----
+## Destino da denúncia
 
-## Aba 1 — Visão de Chapa (consolidado)
+**Caixa interna na plataforma + notificação** (recomendado):
+- Nova rota `/juridico` visível apenas para `admin_master` e novo papel `juridico`.
+- Lista com filtros (status, categoria, candidato, território, severidade IA).
+- Status: `nova → em_analise → protocolada → arquivada` com nota obrigatória na mudança (mesmo padrão dos alertas estratégicos).
+- Notificação por **toast + badge** no sino do header para o jurídico ao receber nova denúncia.
+- Export PDF da denúncia + provas + cadeia de custódia (para anexar em representação).
 
-KPIs principais (linha superior, por chapa selecionada / consolidado):
+## Banco de dados
 
-- **Pré-candidatos** (Fed / Est)
-- **Filiação OK / Pendente** + % de prontidão da chapa
-- **Projeção Total** no cenário escolhido (Bom/Médio/Ruim) + delta vs cenário anterior
-- **Quociente Eleitoral estimado** (votos totais da chapa ÷ QE de PR; gauge mostrando quantas cadeiras a chapa elege)
-- **Cobertura territorial** — nº de municípios com ao menos uma liderança vinculada a algum pré-cand da chapa / 399
-- **Lideranças engajadas na chapa** (distintas, somando todas as projeções dos pré-cands)
-- **Ações realizadas** vinculadas à chapa (de `actions` filtradas por candidatos da chapa)
+Nova tabela `fiscalize_reports` (soft-delete, RLS, GRANTs, candidate_id para multi-candidato, created_by para rastreabilidade):
+- `category`, `title`, `denounced_name`, `denounced_role`, `narrative`
+- `lat`, `lng`, `address`, `municipality`
+- `evidence` (jsonb: array de `{url, sha256, mime, exif, ai_score, ai_description}`)
+- `status`, `severity`, `legal_notes`, `protocol_number`
+- `candidate_id`, `created_by`, `assigned_to`
 
-Gráficos:
+Tabela `fiscalize_history` para auditoria de mudanças de status.
 
-- **Ranking de pré-candidatos por projeção** (barra horizontal, cenário ativo) — comparativo entre os pré-cands da mesma chapa.
-- **Heatmap de cobertura PR** — mapa do estado com municípios coloridos pelo nº de pré-cands com presença ali (cruzando lideranças × `municipalities`).
-- **Filiação vs Projeção** (scatter) — eixo X = status de filiação, eixo Y = votos projetados; revela pré-cand forte porém ainda pendente.
-- **Comparativo "Declarado vs Estimado por base"** — barra dupla por pré-cand: votos do `party_slate_candidates` (cenário) vs soma das `vote_projections` das lideranças daquele candidato. Mostra gap entre a expectativa do gestor e o que a base realmente sustenta.
+Bucket privado `fiscalize-evidence` com policies por `created_by` (denunciante vê só as suas) e por papel `juridico`/`admin_master` (vê tudo do candidato ativo).
 
-## Aba 2 — Pré-candidato (drill-down)
+## RLS
+- Denunciante (`operador_campo`, lideranças): cria e lê **apenas as próprias** denúncias.
+- `juridico` e `admin_master`: leem/editam todas dentro do escopo de `candidate_id`.
+- Gestores estaduais (Novo/PL): leem apenas as do seu partido (mesmo padrão `can_view_by_creator_party`).
 
-Substitui o dashboard atual do Proporcional. Acionada clicando num pré-cand na aba 1.
+## Edge function `fiscalize-submit`
+- Recebe payload + arquivos já enviados ao Storage.
+- Revalida SHA-256, grava timestamp do servidor, IP, UA.
+- Chama Lovable AI (Gemini 2.5 Flash) para cada imagem → score de manipulação + descrição.
+- Insere o registro e dispara notificação ao jurídico.
 
-Top do card:
+## Detalhes técnicos
 
-- Foto, nome, partido, cargo, status de filiação, cidade-base, contatos.
-- 3 cenários (Bom/Médio/Ruim) declarados na chapa.
-- 3 cenários (Bom/Médio/Ruim) **calculados** = soma de `vote_projections` agrupada por cenário.
-- **Índice de confiabilidade** agregado (média ponderada do `reliability_index` das projeções).
+- **Stack**: React + Vite + Tailwind + Supabase (já no projeto). Nenhuma dependência nova obrigatória.
+- **Hash client**: `crypto.subtle.digest('SHA-256', ...)` nativo do browser.
+- **Geo**: reaproveita `GeoLocationInput` já existente.
+- **IA**: `LOVABLE_API_KEY` (já configurado) → endpoint `https://ai.gateway.lovable.dev/v1/chat/completions` com `google/gemini-2.5-flash` e input multimodal `image_url`.
+- **Roles**: adiciona `juridico` ao enum `app_role`.
+- **Sidebar**: novo item "Jurídico" visível apenas para `juridico`/`admin_master`.
+- **Página Campo**: adiciona terceiro card "Fiscalize" + rota `/campo/fiscalize`.
 
-Cruzamentos:
+## Entregas (ordem de implementação)
 
-- **Mapa de capilaridade do pré-cand** — municípios com lideranças vinculadas, cor por nº de votos projetados.
-- **Top 10 lideranças** do pré-cand (já existe no Proporcional atual).
-- **Top 10 cidades** com mais projeção (já existe).
-- **Perfis de liderança** que sustentam o pré-cand (donut por `leadership_profiles` via `leader_leadership_profiles`).
-- **Pesquisas e tracking** — se o nome do pré-cand aparece em `tracking_round_questions`/`survey_results`, mostrar % intenção e variação por rodada.
-- **Ações** realizadas no território do pré-cand (de `actions` filtradas por geografia das lideranças).
+1. Migração: enum `app_role` + tabelas `fiscalize_reports` / `fiscalize_history` + bucket + policies.
+2. Edge function `fiscalize-submit` (com triagem IA).
+3. Tela `/campo/fiscalize` (form mobile com captura, hash client, offline draft).
+4. Tela `/juridico` (lista, detalhe, mudança de status, export PDF).
+5. Sidebar + card no `/campo` + notificações.
 
-## Aba 3 — Lideranças & Projeções
-
-Manter exatamente as abas atuais "Lideranças" e "Projeções" do Proporcional (CRUD operacional). Sem mudança de comportamento, só herdando o seletor de cenário Bom/Médio/Ruim na UI.
-
----
-
-## Cruzamentos novos viáveis com o que já existe
-
-| Cruzamento | Tabelas | Insight |
-|---|---|---|
-| Chapa × Lideranças | `party_slate_candidates` ↔ `candidates` ↔ `vote_projections` ↔ `leaders` | Gap "declarado vs sustentado" por pré-cand |
-| Chapa × Território | `vote_projections` × `municipalities` × `municipality_associations` | Mapa de cobertura por Associação (19 regiões) |
-| Chapa × Pesquisa | `party_slate_candidates.name` ≈ `survey_results.candidate` / `tracking_interview_answers` | % de intenção declarada vs projeção interna |
-| Chapa × Ações | `actions` filtradas por `candidate_id` dos pré-cands | Intensidade de campanha por pré-cand |
-| Chapa × Perfis | `leader_leadership_profiles` × `leadership_profiles` | Quais perfis (religioso, empresarial, etc.) sustentam cada pré-cand |
-| Chapa × Tracking de risco | `tracking_ai_alerts` / `strategic_alerts` filtrados pelo território do pré-cand | Alertas por pré-cand |
-| Quociente Eleitoral | soma projeções da chapa ÷ QE | Estimativa de cadeiras eleitas por cenário |
-
----
-
-## Pré-requisito de dados
-
-Para o cruzamento "Chapa × Lideranças" ficar **automático** (sem casamento por nome), precisamos de uma coluna `candidate_id uuid REFERENCES candidates(id)` em `party_slate_candidates`. Hoje os dois mundos não têm chave. Sugestões:
-
-- Adicionar `candidate_id` como nullable + UI no `ChapaPartido` para vincular cada linha a um candidato existente.
-- Enquanto vínculo não for preenchido, fazer o casamento por nome (normalizado lowercase/sem acento) como fallback.
-
-## Implementação (técnica)
-
-- Novo arquivo `src/pages/ProporcionalUnificado.tsx` (ou renomear `Proporcional.tsx`) com `<Tabs>` de 3 abas; aposentar o item de menu "Chapas" (rota `/chapas` redireciona para a aba 1 do novo módulo, preservando `/chapas/:party` para gestão CRUD do `ChapaPartido.tsx` que já existe).
-- Componente reutilizado `ChapasDashboard` vira `<TabConsolidado />`.
-- Novo hook `useChapaCrossAnalytics(party?, cargo?, scenario)` que junta `party_slate_candidates` + agregação de `vote_projections` por candidato.
-- Mapas via Leaflet já presentes no projeto (`MapaEstrategico`), reaproveitar componente de choropleth.
-- Migração leve: adicionar `candidate_id` nullable em `party_slate_candidates` + GRANTs/policy review.
-- Respeitar RLS já existente (admin master vê tudo, gestor de partido vê só sua chapa).
-
-## Fora do escopo
-
-- Reescrever CRUD de lideranças/projeções.
-- Mudar a tela `/chapas/:party` (continua sendo a tela de gestão pesada da chapa).
-- Trocar nomenclatura de cenário no banco (só na UI).
-
-## Pergunta antes de implementar
-
-1. Confirma que quer **fundir os dois itens de menu em um só** ("Proporcional"), removendo a entrada separada "Chapas"?
-2. Pode rodar a migração para adicionar `candidate_id` em `party_slate_candidates`? (Sem isso o cruzamento fica por nome — funciona, mas é frágil.)
-3. Adotar **Bom/Médio/Ruim** como rótulo único em toda a UI do módulo?
+## Fora do escopo deste plano
+- Integração Truepic (deixar gancho pronto, mas só plugar se o jurídico pedir).
+- Link público anônimo para denúncia externa (pode virar v2).
+- Workflow de protocolo automático no TSE/TRE.
