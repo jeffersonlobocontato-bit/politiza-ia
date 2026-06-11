@@ -20,6 +20,8 @@ import Acoes from "./pages/Acoes";
 import Campo from "./pages/Campo";
 import CampoAcao from "./pages/CampoAcao";
 import CampoLiderancas from "./pages/CampoLiderancas";
+import CampoFiscalize from "./pages/CampoFiscalize";
+import Juridico from "./pages/Juridico";
 import CampoLiderancaForm from "./pages/CampoLiderancaForm";
 import CampoDashboard from "./pages/CampoDashboard";
 import AtivosPoliticos from "./pages/AtivosPoliticos";
@@ -58,6 +60,8 @@ const AppRoutes = () => (
     <Route path="/campo" element={<ProtectedRoute><RoleAwareLayout><Campo /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/acao" element={<ProtectedRoute><RoleAwareLayout><CampoAcao /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/liderancas" element={<ProtectedRoute><RoleAwareLayout><CampoLiderancas /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/fiscalize" element={<ProtectedRoute><RoleAwareLayout><CampoFiscalize /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/juridico" element={<ProtectedRoute><RoleAwareLayout><Juridico /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/liderancas/novo" element={<ProtectedRoute><RoleAwareLayout><CampoLiderancaForm /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/liderancas/:id" element={<ProtectedRoute><RoleAwareLayout><CampoLiderancaForm /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/dashboard" element={<ProtectedRoute><RoleAwareLayout><CampoDashboard /></RoleAwareLayout></ProtectedRoute>} />

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Smartphone, ClipboardCheck, Users, BarChart3, ArrowRight } from 'lucide-react';
+import { Smartphone, ClipboardCheck, Users, BarChart3, ArrowRight, ShieldAlert } from 'lucide-react';
 
 const tools = [
   {
@@ -17,6 +17,14 @@ const tools = [
     desc: 'Mapeie lideranças por cidade, bairro e segmento. Qualifique com histórico político e eleitoral.',
     cta: 'Abrir Lideranças',
     accent: 'from-secondary/30 to-secondary/5',
+  },
+  {
+    to: '/campo/fiscalize',
+    icon: ShieldAlert,
+    title: 'Fiscalize',
+    desc: 'Envie ao jurídico da campanha possíveis crimes eleitorais: pré-campanha irregular, abuso do poder econômico, uso da máquina pública ou material irregular.',
+    cta: 'Abrir Fiscalize',
+    accent: 'from-destructive/30 to-destructive/5',
   },
 ];
 
@@ -38,7 +46,7 @@ export default function Campo() {
       </div>
 
       <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-4xl mx-auto grid sm:grid-cols-2 gap-5">
+        <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {tools.map(t => (
             <Link
               key={t.to}
