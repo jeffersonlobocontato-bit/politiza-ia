@@ -253,9 +253,10 @@ export function JuridicoDashboard({
         {!collapsed && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
             <div className="lg:col-span-3 rounded-xl border border-border bg-card overflow-hidden relative isolate" style={{ height: 360, zIndex: 0 }}>
-              <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+              <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom zoomControl={false}>
                 <InvalidateOnResize trigger={`inline-${collapsed}-${expanded}-${!!geo}`} />
                 {renderMapContents(onPick)}
+                <MapZoomControl />
               </MapContainer>
             </div>
 
