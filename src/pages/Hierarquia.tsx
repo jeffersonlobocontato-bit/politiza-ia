@@ -225,7 +225,7 @@ export default function Hierarquia() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowFlow(true)}
+            onClick={() => { setFlowCandidateId(null); setShowFlow(true); }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
           >
             <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
