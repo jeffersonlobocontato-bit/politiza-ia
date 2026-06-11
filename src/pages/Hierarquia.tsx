@@ -142,7 +142,36 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+
+  // Multi-select links state (for the form)
+  const [selectedAssociations, setSelectedAssociations] = useState<string[]>([]);
+  const [selectedMacroregions, setSelectedMacroregions] = useState<string[]>([]);
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+
   const association = useAssociationForCity(geoForm.city);
+  const { data: allAssociations = [] } = useMunicipalityAssociations();
+  const { data: allProfiles = [] } = useLeadershipProfiles(true);
+
+  // Load existing links when editing
+  const { data: editingAssocs } = useMemberAssociations(editingId ?? undefined);
+  const { data: editingMacros } = useMemberMacroregions(editingId ?? undefined);
+  const { data: editingProfiles } = useMemberLeadershipProfiles(editingId ?? undefined);
+  useEffect(() => { if (editingAssocs) setSelectedAssociations(editingAssocs); }, [editingAssocs]);
+  useEffect(() => { if (editingMacros) setSelectedMacroregions(editingMacros); }, [editingMacros]);
+  useEffect(() => { if (editingProfiles) setSelectedProfiles(editingProfiles); }, [editingProfiles]);
+
+  // Auto-suggest association from selected city (only if not already chosen)
+  useEffect(() => {
+    if (association && !selectedAssociations.includes(association.id)) {
+      setSelectedAssociations(prev => [...prev, association.id]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [association?.id]);
+
+  const setAssoc = useSetMemberAssociations();
+  const setMacro = useSetMemberMacroregions();
+  const setProfiles = useSetMemberLeadershipProfiles();
+
   const toggleExpanded = (role: string) => setExpandedRoles(prev => {
     const next = new Set(prev);
     next.has(role) ? next.delete(role) : next.add(role);
