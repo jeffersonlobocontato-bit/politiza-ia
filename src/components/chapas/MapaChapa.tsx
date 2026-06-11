@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, Pane, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
