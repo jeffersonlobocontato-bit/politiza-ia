@@ -702,10 +702,24 @@ export default function Hierarquia() {
                   const renderMemberCard = (m: typeof lvlMembers[number], opts?: { highlight?: boolean; badge?: string }) => (
                     <div
                       key={m.id}
-                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'}`}
+                      onClick={isMajoritario ? () => openFlowForMember(m.name) : undefined}
+                      title={isMajoritario ? `Abrir organograma de ${m.name}` : undefined}
+                      className={`rounded-xl border p-4 group relative ${opts?.highlight ? 'border-primary/60 ring-2 ring-primary/30 shadow-xl' : 'border-border'} ${isMajoritario ? 'cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all' : ''}`}
                       style={{ background: 'var(--gradient-card)' }}
                     >
                       {opts?.badge && (
+                        <div className="absolute -top-2.5 left-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow" style={{ backgroundColor: LEVEL_COLORS[level] }}>
+                          {opts.badge}
+                        </div>
+                      )}
+                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(m); }} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                         <div className="absolute -top-2.5 left-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow" style={{ backgroundColor: LEVEL_COLORS[level] }}>
                           {opts.badge}
                         </div>
