@@ -131,6 +131,16 @@ function colorForAssoc(acronym: string): string {
   return `hsl(${hue} 65% 72%)`;
 }
 
+// Escala de cinza determinística por associação (para modo "calor")
+function grayForAssoc(acronym: string): string {
+  if (!acronym) return '#2a2a2a';
+  let h = 0;
+  for (let i = 0; i < acronym.length; i++) h = (h * 31 + acronym.charCodeAt(i)) >>> 0;
+  // Faixa estreita de cinzas escuros (20–42) para distinguir associações sem competir com o heat
+  const l = 20 + (h % 23);
+  return `hsl(0 0% ${l}%)`;
+}
+
 // Lista de municípios IBGE para PR (id -> nome)
 function useIbgeMunicipios() {
   return useQuery({
