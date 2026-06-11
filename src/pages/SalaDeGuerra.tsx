@@ -3,6 +3,7 @@ import { KpiCard, ChartCard, tooltipStyle, CHART_COLORS, GRADIENT_CARDS, GRID_ST
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
+import MapZoomControl from '@/components/maps/MapZoomControl';
 import {
   Crosshair, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Users, Activity, Zap, Target,
