@@ -98,7 +98,7 @@ export default function MapaEstrategico() {
             center={[-24.7, -51.5]}
             zoom={7}
             style={{ height: '100%', width: '100%' }}
-            zoomControl={true}
+            zoomControl={false}
           >
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -123,6 +123,7 @@ export default function MapaEstrategico() {
             ))}
 
             <LeadsLayer leads={filteredLeads} />
+            <MapZoomControl />
           </MapContainer>
 
           {/* Mini-legenda fixa */}
