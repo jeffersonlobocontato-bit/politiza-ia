@@ -38,7 +38,7 @@ function pinIcon(color: string, size = 28) {
   });
 }
 
-function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
+function PinsLayer({ points }: { points: PointRow[] }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
   useEffect(() => {
@@ -47,7 +47,6 @@ function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
     return () => { map.off('zoomend', h); };
   }, [map]);
 
-  const partyKey: SlateParty = PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL';
   // Tamanho responsivo ao zoom
   const size = Math.round(Math.max(14, Math.min(32, (zoom - 5) * 4.5)));
 
@@ -76,13 +75,14 @@ function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
             const ll = map.layerPointToLatLng(pt);
             lat = ll.lat; lng = ll.lng;
           }
+          const partyKey: SlateParty = PIN_COLOR[p.party as SlateParty] ? (p.party as SlateParty) : 'PL';
           const color = PIN_COLOR[partyKey][p.cargo];
           return (
             <Marker key={p.id} position={[lat, lng]} icon={pinIcon(color, size)} pane="pins-pane">
               <Tooltip direction="top">
                 <div className="text-xs">
                   <div className="font-semibold">{p.name}</div>
-                  <div className="text-muted-foreground">{p.cargo}</div>
+                  <div className="text-muted-foreground">{p.party} · {p.cargo}</div>
                   <div className="text-muted-foreground">{p.city ?? '—'}</div>
                   {p.approximate && <div className="text-[10px] italic text-muted-foreground">posição aproximada</div>}
                 </div>
@@ -94,6 +94,7 @@ function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
     </>
   );
 }
+
 
 const PR_CENTER: [number, number] = [-24.6, -51.5];
 
