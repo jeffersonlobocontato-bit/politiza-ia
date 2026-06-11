@@ -720,18 +720,6 @@ export default function Hierarquia() {
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                        <div className="absolute -top-2.5 left-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow" style={{ backgroundColor: LEVEL_COLORS[level] }}>
-                          {opts.badge}
-                        </div>
-                      )}
-                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(m)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => handleDelete(m.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
                       <div className="flex items-center gap-3 mb-3 pr-16">
                         <div className={`${opts?.highlight ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm'} rounded-full flex items-center justify-center font-bold flex-shrink-0`} style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
                           {m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
