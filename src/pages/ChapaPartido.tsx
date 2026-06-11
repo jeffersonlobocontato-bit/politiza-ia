@@ -67,8 +67,9 @@ export default function ChapaPartido() {
   const [tab, setTab] = useState<SlateCargo>('Deputado Federal');
   const [search, setSearch] = useState('');
   const [filterAssoc, setFilterAssoc] = useState<string>('all');
-  const [filterFiliacao, setFilterFiliacao] = useState<string>('all');
   const [filterCity, setFilterCity] = useState<string>('all');
+  const [votesScenario, setVotesScenario] = useState<'bom' | 'medio' | 'ruim'>('bom');
+  const [votesRank, setVotesRank] = useState<'all' | 'top10' | 'top30' | 'top50' | 'out' | 'sem'>('all');
 
   const [editing, setEditing] = useState<Partial<SlateCandidate> | null>(null);
 
@@ -83,16 +84,45 @@ export default function ChapaPartido() {
     [cargoRows],
   );
 
+  const rankMap = useMemo(() => {
+    const key = votesScenario === 'bom' ? 'votes_bom' : votesScenario === 'medio' ? 'votes_medio' : 'votes_ruim';
+    const ranked = cargoRows
+      .filter(r => (r as any)[key] !== null && (r as any)[key] !== undefined)
+      .sort((a, b) => ((b as any)[key] ?? 0) - ((a as any)[key] ?? 0));
+    const m = new Map<string, number>();
+    ranked.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [cargoRows, votesScenario]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return cargoRows.filter(r => {
+    const arr = cargoRows.filter(r => {
       if (q && !r.name.toLowerCase().includes(q) && !(r.city ?? '').toLowerCase().includes(q)) return false;
       if (filterAssoc !== 'all' && r.association !== filterAssoc) return false;
-      if (filterFiliacao !== 'all' && r.filiacao_status !== filterFiliacao) return false;
       if (filterCity !== 'all' && r.city !== filterCity) return false;
+      const rank = rankMap.get(r.id);
+      if (votesRank === 'sem') {
+        if (rank !== undefined) return false;
+      } else if (votesRank === 'top10') {
+        if (!rank || rank > 10) return false;
+      } else if (votesRank === 'top30') {
+        if (!rank || rank > 30) return false;
+      } else if (votesRank === 'top50') {
+        if (!rank || rank > 50) return false;
+      } else if (votesRank === 'out') {
+        if (!rank || rank <= 50) return false;
+      }
       return true;
     });
-  }, [cargoRows, search, filterAssoc, filterFiliacao, filterCity]);
+    if (votesRank !== 'all') {
+      arr.sort((a, b) => {
+        const ra = rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const rb = rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+        return ra - rb;
+      });
+    }
+    return arr;
+  }, [cargoRows, search, filterAssoc, filterCity, votesRank, rankMap]);
 
   const kpis = useMemo(() => {
     const total = cargoRows.length;
@@ -207,11 +237,23 @@ export default function ChapaPartido() {
                   {cities.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filterFiliacao} onValueChange={setFilterFiliacao}>
-                <SelectTrigger className="w-[170px]"><SelectValue placeholder="Filiação" /></SelectTrigger>
+              <Select value={votesScenario} onValueChange={(v) => setVotesScenario(v as any)}>
+                <SelectTrigger className="w-[150px]"><SelectValue placeholder="Cenário" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  {Object.entries(FIL_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  <SelectItem value="bom">Cenário: Bom</SelectItem>
+                  <SelectItem value="medio">Cenário: Médio</SelectItem>
+                  <SelectItem value="ruim">Cenário: Ruim</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={votesRank} onValueChange={(v) => setVotesRank(v as any)}>
+                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Ranking" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Ranking: Todos</SelectItem>
+                  <SelectItem value="top10">Top 10</SelectItem>
+                  <SelectItem value="top30">Top 30</SelectItem>
+                  <SelectItem value="top50">Top 50</SelectItem>
+                  <SelectItem value="out">Fora do Top 50</SelectItem>
+                  <SelectItem value="sem">Sem projeção</SelectItem>
                 </SelectContent>
               </Select>
               <Button size="sm" onClick={() => setEditing(initialDraft(party, tab))}>
