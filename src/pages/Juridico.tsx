@@ -8,6 +8,7 @@ import {
 import { supabase } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { JuridicoDashboard } from '@/components/juridico/JuridicoDashboard';
 
 type Status = 'nova' | 'em_analise' | 'protocolada' | 'arquivada';
 
@@ -112,7 +113,11 @@ export default function Juridico() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+      <div className="flex-1 overflow-y-auto">
+        {!loading && reports.length > 0 && (
+          <JuridicoDashboard reports={filtered as any} onPick={(id) => setSelectedId(id)} />
+        )}
+        <div className="overflow-x-auto">
         {loading ? (
           <div className="flex items-center justify-center py-10 text-muted-foreground gap-2">
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
@@ -165,6 +170,7 @@ export default function Juridico() {
             ))}
           </div>
         )}
+        </div>
       </div>
 
       {selected && (
