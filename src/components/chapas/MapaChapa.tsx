@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { resolveGeo } from '@/lib/geo';
+import MapZoomControl from '@/components/maps/MapZoomControl';
 import type { SlateCandidate, SlateCargo, SlateParty } from '@/hooks/usePartySlate';
 import { useAllPartySlates } from '@/hooks/usePartySlate';
 import { useAuth } from '@/contexts/AuthContext';
