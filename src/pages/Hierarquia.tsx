@@ -476,6 +476,40 @@ export default function Hierarquia() {
                   <option value="licenca">Licença</option>
                 </select>
               </div>
+
+              {/* Vínculos territoriais (níveis 3+) */}
+              {parseInt(form.hierarchy_level) >= 3 && (
+                <div className="sm:col-span-2 rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Vínculos Territoriais (selecione um ou vários)
+                  </div>
+                  <MultiChipSelect
+                    label="Associações de Municípios"
+                    options={allAssociations.map(a => ({ id: a.id, label: a.acronym, sublabel: a.name }))}
+                    selectedIds={selectedAssociations}
+                    onChange={setSelectedAssociations}
+                    color="hsl(var(--brand-cyan))"
+                    emptyHint="Nenhuma associação cadastrada."
+                  />
+                  <MultiChipSelect
+                    label="Macrorregiões (Mapa Político)"
+                    options={macroRegions.map(m => ({ id: m.id, label: m.name }))}
+                    selectedIds={selectedMacroregions}
+                    onChange={setSelectedMacroregions}
+                    color="hsl(var(--primary))"
+                  />
+                  {parseInt(form.hierarchy_level) === 6 && (
+                    <MultiChipSelect
+                      label="Perfis de Liderança / Entidade"
+                      options={allProfiles.map(p => ({ id: p.id, label: p.name }))}
+                      selectedIds={selectedProfiles}
+                      onChange={setSelectedProfiles}
+                      color="hsl(var(--brand-green))"
+                      emptyHint="Nenhum perfil cadastrado."
+                    />
+                  )}
+                </div>
+              )}
               <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground block mb-1">Observações</label>
                 <textarea value={form.observations} onChange={e => updateForm('observations', e.target.value)} rows={2} placeholder="Notas sobre este membro..." className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none" />
