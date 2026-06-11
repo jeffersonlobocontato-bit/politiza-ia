@@ -270,8 +270,6 @@ export default function Hierarquia() {
           </button>
         </div>
       </div>
-        </div>
-      </div>
 
       <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} initialCandidateId={flowCandidateId} />
 
