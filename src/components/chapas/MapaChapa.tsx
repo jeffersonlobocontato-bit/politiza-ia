@@ -189,7 +189,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
   const { data: geo } = usePrGeoJson();
 
   const effectiveRows = useMemo(() => {
-    if (!isAdmin || partyView === 'current') return rows;
+    if (!isAdmin) return rows;
     const all = allRows ?? [];
     if (partyView === 'both') return all;
     return all.filter(r => r.party === partyView);
