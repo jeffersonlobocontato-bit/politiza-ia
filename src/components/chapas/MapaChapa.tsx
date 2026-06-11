@@ -97,6 +97,15 @@ function PinsLayer({ points }: { points: PointRow[] }) {
   );
 }
 
+function InvalidateOnResize({ trigger }: { trigger: unknown }) {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 200);
+    return () => clearTimeout(t);
+  }, [map, trigger]);
+  return null;
+}
+
 
 const PR_CENTER: [number, number] = [-24.6, -51.5];
 
