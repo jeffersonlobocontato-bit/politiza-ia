@@ -2,7 +2,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
-import { Bell, Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
+import { Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
 import { alerts } from '@/data/mockData';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
