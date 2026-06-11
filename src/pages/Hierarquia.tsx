@@ -92,6 +92,17 @@ export default function Hierarquia() {
   const createMember = useCreateMember();
   const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
+  const { candidates } = useCandidate();
+
+  const lc = (s: string) => (s ?? '').toLowerCase();
+  const openFlowForMember = (memberName: string) => {
+    const match = candidates.find(c => {
+      const parts = lc(c.name).split(/\s+/).filter(Boolean);
+      return parts.length > 0 && parts.every(p => lc(memberName).includes(p));
+    });
+    setFlowCandidateId(match?.id ?? null);
+    setShowFlow(true);
+  };
 
   const [showForm, setShowForm] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
