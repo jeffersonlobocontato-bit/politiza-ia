@@ -175,7 +175,8 @@ export function HierarchyFlowchart({ open, onClose, initialCandidateId = null }:
   const [viewCandidateId, setViewCandidateId] = useState<string | null>(initialCandidateId);
 
   // Sync com prop quando o modal abre ou o id externo muda
-  useMemo(() => { setViewCandidateId(initialCandidateId); }, [initialCandidateId, open]);
+  useEffect(() => { setViewCandidateId(initialCandidateId); }, [initialCandidateId, open]);
+
 
 
   const viewCandidate = viewCandidateId
