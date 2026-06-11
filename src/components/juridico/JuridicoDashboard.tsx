@@ -318,9 +318,10 @@ export function JuridicoDashboard({
             </button>
           </div>
           <div className="flex-1 relative isolate" style={{ zIndex: 0 }}>
-            <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+            <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom zoomControl={false}>
               <InvalidateOnResize trigger={`full-${expanded}-${!!geo}`} />
               {renderMapContents((id) => { onPick(id); setExpanded(false); })}
+              <MapZoomControl />
             </MapContainer>
           </div>
         </div>
