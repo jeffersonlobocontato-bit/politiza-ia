@@ -18,12 +18,14 @@ interface EvidenceFile {
   file: File;
   previewUrl: string;
   uploading: boolean;
+  capturedAt: string;
   uploaded?: {
     url: string;
     path: string;
     sha256: string;
     mime: string;
     size: number;
+    captured_at: string;
   };
 }
 
@@ -31,6 +33,52 @@ async function sha256Hex(file: File): Promise<string> {
   const buf = await file.arrayBuffer();
   const hash = await crypto.subtle.digest('SHA-256', buf);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function formatStamp(d: Date): string {
+  return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' });
+}
+
+// Aplica selo de data/hora + GPS na imagem usando canvas
+async function stampImage(file: File, capturedAt: Date, geoText: string): Promise<File> {
+  if (!file.type.startsWith('image/')) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0);
+
+    const stamp = formatStamp(capturedAt);
+    const lines = [stamp, geoText].filter(Boolean);
+    const base = Math.max(canvas.width, canvas.height);
+    const fontSize = Math.round(base * 0.028);
+    const pad = Math.round(fontSize * 0.6);
+    ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
+    ctx.textBaseline = 'bottom';
+
+    const lineH = fontSize * 1.25;
+    const blockH = lines.length * lineH + pad;
+    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2;
+    const x = pad;
+    const y = canvas.height - pad;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(x - pad / 2, y - blockH, maxW, blockH + pad / 2);
+
+    ctx.fillStyle = '#fff';
+    lines.forEach((l, i) => {
+      ctx.fillText(l, x + pad / 2, y - (lines.length - 1 - i) * lineH);
+    });
+
+    const blob: Blob = await new Promise(res => canvas.toBlob(b => res(b!), 'image/jpeg', 0.92));
+    const newName = file.name.replace(/\.[^.]+$/, '') + '_stamped.jpg';
+    return new File([blob], newName, { type: 'image/jpeg', lastModified: capturedAt.getTime() });
+  } catch {
+    return file;
+  }
 }
 
 type Step = 'evidence' | 'form' | 'confirm';
