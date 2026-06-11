@@ -1,5 +1,5 @@
-import { useState, Fragment } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, Fragment, useMemo } from 'react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
