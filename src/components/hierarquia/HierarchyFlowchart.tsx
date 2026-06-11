@@ -469,13 +469,16 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
 
                   {/* Governador no topo */}
                   <div className="flex justify-center">
-                    <div
-                      className="rounded-xl border-2 px-5 py-2.5 shadow-lg text-center min-w-[240px]"
+                    <button
+                      type="button"
+                      onClick={() => handleSelectCandidate(govName)}
+                      className="rounded-xl border-2 px-5 py-2.5 shadow-lg text-center min-w-[240px] hover:scale-[1.02] transition-transform cursor-pointer"
                       style={{
                         borderColor: 'hsl(var(--primary))',
                         background: 'var(--gradient-primary)',
                         boxShadow: '0 8px 32px hsl(var(--primary) / 0.35)',
                       }}
+                      title={`Ver organograma de ${govName}`}
                     >
                       <div className="flex items-center gap-2 justify-center">
                         <User className="w-4 h-4 text-primary-foreground" />
@@ -484,7 +487,7 @@ export function HierarchyFlowchart({ open, onClose }: Props) {
                       <div className="text-[10px] uppercase tracking-widest text-primary-foreground/85 mt-0.5">
                         {govCargo}
                       </div>
-                    </div>
+                    </button>
                   </div>
 
                   {/* Conector para senadores */}
