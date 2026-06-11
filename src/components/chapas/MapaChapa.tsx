@@ -266,7 +266,6 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           {isAdmin && (
             <div className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
               {([
-                { v: 'current', label: party },
                 { v: 'PL', label: 'PL' },
                 { v: 'Novo', label: 'Novo' },
                 { v: 'both', label: 'Ambos' },
