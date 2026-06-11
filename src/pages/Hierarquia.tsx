@@ -250,6 +250,32 @@ export default function Hierarquia() {
           >
             <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
           </button>
+      <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-3">
+          {viewingCandidateId && (
+            <button
+              onClick={() => setViewingCandidateId(null)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
+              title="Voltar para a hierarquia principal"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Hierarquia principal
+            </button>
+          )}
+          <Network className="w-5 h-5 text-primary" />
+          <div>
+            <h1 className="text-base font-bold text-foreground">
+              {viewingCandidate ? `Hierarquia — ${viewingCandidate.name}` : 'Hierarquia da Campanha'}
+            </h1>
+            <p className="text-xs text-muted-foreground">{members.length} membros em {byLevel.filter(b => b.members.length > 0).length} níveis</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setFlowCandidateId(viewingCandidateId); setShowFlow(true); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
+          >
+            <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
+          </button>
           <button
             onClick={openNew}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
@@ -257,6 +283,8 @@ export default function Hierarquia() {
           >
             <Plus className="w-4 h-4" /> Novo Membro
           </button>
+        </div>
+      </div>
         </div>
       </div>
 
