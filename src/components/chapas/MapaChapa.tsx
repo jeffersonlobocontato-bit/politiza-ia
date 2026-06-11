@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { resolveGeo } from '@/lib/geo';
 import type { SlateCandidate, SlateCargo, SlateParty } from '@/hooks/usePartySlate';
+import { useAllPartySlates } from '@/hooks/usePartySlate';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMunicipalityAssociationMap } from '@/hooks/useMunicipalityAssociation';
 import { MapPin, Flame } from 'lucide-react';
 
@@ -38,7 +40,7 @@ function pinIcon(color: string, size = 28) {
   });
 }
 
-function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
+function PinsLayer({ points }: { points: PointRow[] }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
   useEffect(() => {
@@ -47,7 +49,6 @@ function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
     return () => { map.off('zoomend', h); };
   }, [map]);
 
-  const partyKey: SlateParty = PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL';
   // Tamanho responsivo ao zoom
   const size = Math.round(Math.max(14, Math.min(32, (zoom - 5) * 4.5)));
 
@@ -76,13 +77,14 @@ function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
             const ll = map.layerPointToLatLng(pt);
             lat = ll.lat; lng = ll.lng;
           }
+          const partyKey: SlateParty = PIN_COLOR[p.party as SlateParty] ? (p.party as SlateParty) : 'PL';
           const color = PIN_COLOR[partyKey][p.cargo];
           return (
             <Marker key={p.id} position={[lat, lng]} icon={pinIcon(color, size)} pane="pins-pane">
               <Tooltip direction="top">
                 <div className="text-xs">
                   <div className="font-semibold">{p.name}</div>
-                  <div className="text-muted-foreground">{p.cargo}</div>
+                  <div className="text-muted-foreground">{p.party} · {p.cargo}</div>
                   <div className="text-muted-foreground">{p.city ?? '—'}</div>
                   {p.approximate && <div className="text-[10px] italic text-muted-foreground">posição aproximada</div>}
                 </div>
@@ -94,6 +96,7 @@ function PinsLayer({ points, party }: { points: PointRow[]; party: string }) {
     </>
   );
 }
+
 
 const PR_CENTER: [number, number] = [-24.6, -51.5];
 
@@ -139,18 +142,31 @@ function usePrGeoJson() {
   });
 }
 
+type PartyView = 'current' | 'PL' | 'Novo' | 'both';
+
 export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; party: string }) {
   const [cargo, setCargo] = useState<CargoFilter>('all');
   const [view, setView] = useState<ViewMode>('pins');
+  const [partyView, setPartyView] = useState<PartyView>('current');
 
+  const { isAdmin } = useAuth();
+  const { data: allRows } = useAllPartySlates();
   const { data: assocMap } = useMunicipalityAssociationMap();
   const { data: ibgeNames } = useIbgeMunicipios();
   const { data: geo } = usePrGeoJson();
 
+  const effectiveRows = useMemo(() => {
+    if (!isAdmin || partyView === 'current') return rows;
+    const all = allRows ?? [];
+    if (partyView === 'both') return all;
+    return all.filter(r => r.party === partyView);
+  }, [isAdmin, partyView, rows, allRows]);
+
   const filtered = useMemo(
-    () => rows.filter(r => cargo === 'all' || r.cargo === cargo),
-    [rows, cargo],
+    () => effectiveRows.filter(r => cargo === 'all' || r.cargo === cargo),
+    [effectiveRows, cargo],
   );
+
 
   const points = useMemo(() => {
     return filtered
@@ -207,13 +223,36 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
           <div>
-            <div className="text-sm font-bold">Distribuição da chapa — {party}</div>
+            <div className="text-sm font-bold">
+              Distribuição da chapa — {isAdmin && partyView !== 'current' ? (partyView === 'both' ? 'PL + Novo' : partyView) : party}
+            </div>
             <div className="text-[11px] text-muted-foreground">
               {points.length} candidato(s) plotado(s){missing > 0 ? ` · ${missing} sem cidade reconhecida` : ''}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {isAdmin && (
+            <div className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
+              {([
+                { v: 'current', label: party },
+                { v: 'PL', label: 'PL' },
+                { v: 'Novo', label: 'Novo' },
+                { v: 'both', label: 'Ambos' },
+              ] as { v: PartyView; label: string }[]).map(opt => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setPartyView(opt.v)}
+                  className={`px-2.5 py-1 text-[11px] font-semibold rounded transition-colors ${
+                    partyView === opt.v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
             {([
               { v: 'all', label: 'Ambos' },
@@ -295,7 +334,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           <Pane name="heat-pane" style={{ zIndex: 500 }} />
           <Pane name="pins-pane" style={{ zIndex: 650 }} />
 
-          {view === 'pins' && <PinsLayer points={points} party={party} />}
+          {view === 'pins' && <PinsLayer points={points} />}
 
 
           {view === 'calor' && heatClusters.map((c, i) => {
@@ -342,17 +381,21 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
       <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-border/60 bg-card/50 text-[11px] text-muted-foreground">
         {view === 'pins' ? (
           (() => {
-            const partyKey = (PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL');
+            const visibleParties: SlateParty[] = isAdmin && partyView !== 'current'
+              ? (partyView === 'both' ? ['PL', 'Novo'] : [partyView])
+              : [PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL'];
             return (
               <>
-                <span className="inline-flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[partyKey]['Deputado Federal'] }} />
-                  {partyKey} Federal
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[partyKey]['Deputado Estadual'] }} />
-                  {partyKey} Estadual
-                </span>
+                {visibleParties.flatMap(pk => ([
+                  <span key={`${pk}-fed`} className="inline-flex items-center gap-1">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[pk]['Deputado Federal'] }} />
+                    {pk} Federal
+                  </span>,
+                  <span key={`${pk}-est`} className="inline-flex items-center gap-1">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full border border-white" style={{ background: PIN_COLOR[pk]['Deputado Estadual'] }} />
+                    {pk} Estadual
+                  </span>,
+                ]))}
               </>
             );
           })()
