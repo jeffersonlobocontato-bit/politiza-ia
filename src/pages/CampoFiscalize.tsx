@@ -18,12 +18,14 @@ interface EvidenceFile {
   file: File;
   previewUrl: string;
   uploading: boolean;
+  capturedAt: string;
   uploaded?: {
     url: string;
     path: string;
     sha256: string;
     mime: string;
     size: number;
+    captured_at: string;
   };
 }
 
@@ -31,6 +33,52 @@ async function sha256Hex(file: File): Promise<string> {
   const buf = await file.arrayBuffer();
   const hash = await crypto.subtle.digest('SHA-256', buf);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function formatStamp(d: Date): string {
+  return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' });
+}
+
+// Aplica selo de data/hora + GPS na imagem usando canvas
+async function stampImage(file: File, capturedAt: Date, geoText: string): Promise<File> {
+  if (!file.type.startsWith('image/')) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0);
+
+    const stamp = formatStamp(capturedAt);
+    const lines = [stamp, geoText].filter(Boolean);
+    const base = Math.max(canvas.width, canvas.height);
+    const fontSize = Math.round(base * 0.028);
+    const pad = Math.round(fontSize * 0.6);
+    ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
+    ctx.textBaseline = 'bottom';
+
+    const lineH = fontSize * 1.25;
+    const blockH = lines.length * lineH + pad;
+    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2;
+    const x = pad;
+    const y = canvas.height - pad;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(x - pad / 2, y - blockH, maxW, blockH + pad / 2);
+
+    ctx.fillStyle = '#fff';
+    lines.forEach((l, i) => {
+      ctx.fillText(l, x + pad / 2, y - (lines.length - 1 - i) * lineH);
+    });
+
+    const blob: Blob = await new Promise(res => canvas.toBlob(b => res(b!), 'image/jpeg', 0.92));
+    const newName = file.name.replace(/\.[^.]+$/, '') + '_stamped.jpg';
+    return new File([blob], newName, { type: 'image/jpeg', lastModified: capturedAt.getTime() });
+  } catch {
+    return file;
+  }
 }
 
 type Step = 'evidence' | 'form' | 'confirm';
@@ -89,13 +137,21 @@ export default function CampoFiscalize() {
   async function handleFiles(files: FileList | null) {
     if (!files || !user) return;
     const list = Array.from(files).slice(0, 5 - evidences.length);
-    for (const file of list) {
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name}: arquivo acima de 20MB`);
+    for (const original of list) {
+      if (original.size > 20 * 1024 * 1024) {
+        toast.error(`${original.name}: arquivo acima de 20MB`);
         continue;
       }
+      const capturedAt = new Date();
+      const capturedAtIso = capturedAt.toISOString();
+      const geoText = geo.lat && geo.lng
+        ? `GPS ${geo.lat.toFixed(5)}, ${geo.lng.toFixed(5)}${geo.city ? ` · ${geo.city}` : ''}`
+        : (geo.city || '');
+
+      // Carimba data/hora (+GPS) na imagem antes do upload
+      const file = await stampImage(original, capturedAt, geoText);
       const previewUrl = URL.createObjectURL(file);
-      const item: EvidenceFile = { file, previewUrl, uploading: true };
+      const item: EvidenceFile = { file, previewUrl, uploading: true, capturedAt: capturedAtIso };
       setEvidences(prev => [...prev, item]);
 
       try {
@@ -109,7 +165,7 @@ export default function CampoFiscalize() {
         const { data: pub } = supabase.storage.from('fiscalize-evidence').getPublicUrl(path);
         setEvidences(prev => prev.map(e => e.file === file ? {
           ...e, uploading: false,
-          uploaded: { url: pub.publicUrl, path, sha256: hash, mime: file.type, size: file.size },
+          uploaded: { url: pub.publicUrl, path, sha256: hash, mime: file.type, size: file.size, captured_at: capturedAtIso },
         } : e));
       } catch (err: any) {
         toast.error(`Falha ao enviar ${file.name}: ${err.message}`);
@@ -242,6 +298,9 @@ export default function CampoFiscalize() {
                       <Loader2 className="w-6 h-6 text-white animate-spin" />
                     </div>
                   )}
+                  <div className="absolute top-1 left-1 bg-black/70 rounded px-1.5 py-0.5 text-[9px] text-white font-mono">
+                    {formatStamp(new Date(e.capturedAt))}
+                  </div>
                   {e.uploaded && (
                     <div className="absolute bottom-1 left-1 right-1 bg-black/70 rounded px-1.5 py-0.5 text-[9px] text-white truncate font-mono">
                       sha {e.uploaded.sha256.slice(0, 10)}…
@@ -344,6 +403,8 @@ export default function CampoFiscalize() {
                 { label: 'Local', value: geo.city },
                 { label: 'Coordenadas', value: geo.lat ? `${geo.lat.toFixed(5)}, ${geo.lng?.toFixed(5)}` : '—' },
                 { label: 'Provas anexadas', value: `${evidences.filter(e => e.uploaded).length} arquivo(s)` },
+                { label: 'Primeiro registro', value: evidences[0] ? formatStamp(new Date(evidences[0].capturedAt)) : '—' },
+                { label: 'Último registro', value: evidences.length ? formatStamp(new Date(evidences[evidences.length - 1].capturedAt)) : '—' },
                 { label: 'Candidato vinculado', value: activeCandidate?.name ?? 'Nenhum (visível ao admin master)' },
               ].map(item => (
                 <div key={item.label} className="flex items-start justify-between gap-4">
