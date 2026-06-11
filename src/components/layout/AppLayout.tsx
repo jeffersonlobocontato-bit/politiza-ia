@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { InstallPrompt } from './InstallPrompt';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface AppLayoutProps {
   children: ReactNode;
