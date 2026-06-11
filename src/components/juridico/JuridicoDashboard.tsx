@@ -69,6 +69,15 @@ export function JuridicoDashboard({
   }, [reports]);
 
   const pinned = reports.filter(r => r.lat != null && r.lng != null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  // Lock body scroll when fullscreen
+  useEffect(() => {
+    if (!expanded) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [expanded]);
 
   // Hotspot: aggregate by municipality
   const hotspots = useMemo(() => {
