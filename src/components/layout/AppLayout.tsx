@@ -39,7 +39,7 @@ function MenuButton() {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [time, setTime] = useState(new Date());
-  const unreadAlerts = alerts.filter(a => !a.isRead).length;
+  
   const { theme, setTheme } = useTheme();
   const { profile, user, signOut } = useAuth();
   const navigate = useNavigate();
