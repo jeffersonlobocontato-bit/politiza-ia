@@ -237,21 +237,6 @@ export default function Hierarquia() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <Network className="w-5 h-5 text-primary" />
-          <div>
-            <h1 className="text-base font-bold text-foreground">Hierarquia da Campanha</h1>
-            <p className="text-xs text-muted-foreground">{members.length} membros em {byLevel.filter(b => b.members.length > 0).length} níveis</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { setFlowCandidateId(null); setShowFlow(true); }}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
-          >
-            <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
-          </button>
-      <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
           {viewingCandidateId && (
             <button
               onClick={() => setViewingCandidateId(null)}
