@@ -1,87 +1,48 @@
-## Redesign do Jurídico — Kanban + Detalhe Completo + Colaboração
+## Objetivo
+Permitir vincular membros da Hierarquia a **múltiplas Associações de Municípios** e **múltiplas Macrorregiões** (mapa político), com regras específicas por nível, e reaproveitar **Perfis de Liderança** como "entidade" para a Liderança Municipal.
 
-Reformular `/juridico` para operar como board estilo Trello, com card de detalhe completo, anexos complementares, notas com menções e notificações ao advogado responsável.
+## Regras por nível
 
-### 1. Kanban com scroll lateral
-- 4 colunas fixas: **Nova · Em análise · Protocolada · Arquivada**.
-- Layout horizontal com `overflow-x-auto`, colunas de largura fixa (~320px), scroll interno vertical em cada coluna.
-- Cada card mostra: título, denunciado, município, data, nº de provas, score IA, severidade (borda colorida à esquerda).
-- Mudança de status por:
-  - clique no card → painel lateral (drawer) com ações; ou
-  - botões "mover para →" no rodapé do card (rápido).
-- Filtro atual (chips) vira filtro por candidato/severidade/responsável — o filtro por status sai (board já segmenta).
+| Nível | Multi Associações | Multi Macrorregiões | Cidade | Perfis (entidade) |
+|---|---|---|---|---|
+| 3 — Coord. Macrorregional | ✅ | ✅ | opcional | — |
+| 4 — Coord. Microrregional | ✅ | ✅ | opcional | — |
+| 5 — Coord. Municipal | ✅ (sugerida pela cidade) | herdada | obrigatória | — |
+| 6 — Liderança Local | ✅ (sugerida) | herdada | obrigatória | ✅ multi-select |
 
-### 2. Card aberto — exibir TODOS os dados da denúncia
-Drawer lateral (não modal central) com abas:
+Para níveis 1 e 2, os campos novos ficam ocultos (sem mudança).
 
-**Aba 1 · Denúncia (completo)**
-- Categoria, título, severidade, status atual.
-- Denunciado: nome, cargo, partido.
-- Local: município, endereço, coordenadas (link p/ mapa), `captured_at` da primeira prova.
-- Relato completo (sem clamp).
-- Triagem IA: resumo + score + recomendações.
-- Autor da denúncia (nome + role), data/hora de envio.
-- Cadeia de custódia das provas: SHA-256, mime, tamanho, timestamp do servidor, GPS gravado, link assinado (10 min) para visualizar/baixar; thumbnails para imagens.
+## Banco de dados (migração)
 
-**Aba 2 · Andamento (timeline)**
-- Histórico de `fiscalize_history` ordenado: mudança de status, notas, anexos adicionados, menções, com autor e timestamp.
+Três tabelas N:N + reuso da existente:
 
-**Aba 3 · Anexos do jurídico** (novo)
-- Upload de documentos complementares (PDF, imagens, ofícios) — bucket privado `fiscalize-legal-docs`.
-- Lista com nome, autor, data, link assinado para download.
-- Não substitui as provas originais (imutáveis).
+1. `campaign_member_associations` (member_id, association_id) — FK para `municipality_associations`
+2. `campaign_member_macroregions` (member_id, macroregion_id) — FK para `macroregions`
+3. `campaign_member_leadership_profiles` (member_id, profile_id) — FK para `leadership_profiles` (mesmo padrão de `leader_leadership_profiles`)
 
-**Aba 4 · Notas & menções** (novo)
-- Editor de nota com suporte a `@` para mencionar advogados (autocomplete em `profiles` filtrado por role jurídica).
-- Notas ficam em `fiscalize_notes` com array de menções.
-- Cada menção dispara notificação ao mencionado.
+Cada uma com GRANT + RLS (visível a quem vê o membro, editável pelo criador/admin), e índices em `member_id`.
 
-**Rodapé do drawer**
-- Atribuir/alterar advogado responsável (select de usuários jurídicos) → também notifica.
-- Mudar status (mantém regra de justificativa obrigatória).
+O campo legado `macroregion_id` em `campaign_members` continua existindo para retro-compatibilidade (primário/principal).
 
-### 3. Notificações ao advogado (estilo Trello)
-- Tabela `notifications` (in-app): destinatário, tipo (`mention` | `assignment` | `status_change` | `new_attachment`), report_id, ator, mensagem, lida, created_at.
-- Trigger/edge function ao inserir nota com menções ou ao mudar `assigned_lawyer_id` → cria notificações.
-- Sino global no header com badge de não lidas + dropdown listando as 10 mais recentes (clique abre o card da denúncia correspondente).
-- (Opcional, fora desta entrega) e-mail via Lovable Emails — aviso e ofereço como próxima iteração.
+## Frontend
 
-### 4. Mudanças de banco
+**`src/pages/Hierarquia.tsx`** — formulário (modal "Novo/Editar Membro"):
+- Quando `hierarchy_level` ∈ {3,4,5,6}, mostrar bloco "Vínculos territoriais":
+  - **Associações de Municípios**: chips multi-select (componente similar a `LeadershipProfileSelect`)
+  - **Macrorregiões**: chips multi-select
+- Quando nível = 6: mostrar também **Perfis de Liderança** (multi-select já existente `LeadershipProfileSelect`)
+- Auto-sugestão: ao escolher cidade via `GeoLocationInput`, pré-selecionar a Associação correspondente (via `useAssociationForCity`) e a Macrorregião do município (lookup em `municipalities`) — usuário pode editar.
+- Submit: após salvar/atualizar o membro principal, fazer `delete + insert` nas 3 tabelas-ponte (padrão usado em `useSetLeaderProfiles`).
 
-```text
-fiscalize_reports
-  + assigned_lawyer_id uuid → profiles(id) null
-  + last_activity_at    timestamptz default now()
+**Novos hooks** em `src/hooks/useCampaignMemberLinks.ts`:
+- `useMemberAssociations(memberId)`, `useSetMemberAssociations()`
+- `useMemberMacroregions(memberId)`, `useSetMemberMacroregions()`
+- `useMemberLeadershipProfiles(memberId)`, `useSetMemberLeadershipProfiles()`
 
-fiscalize_notes (nova)
-  id, report_id, author_id, body text, mentions uuid[],
-  created_at, deleted_at
+**Componente** `src/components/hierarquia/MultiChipSelect.tsx`: select com chips reutilizável (Associações e Macrorregiões), seguindo visual de `LeadershipProfileSelect`.
 
-fiscalize_attachments (nova)
-  id, report_id, uploaded_by, path, name, mime, size,
-  created_at, deleted_at
+**Exibição** nos cards de membro da listagem: mostrar badges das associações/macrorregiões/perfis vinculados (compacto, abaixo do cargo).
 
-notifications (nova)
-  id, user_id, type, report_id, actor_id, message,
-  is_read bool, created_at
-```
-- GRANTs para `authenticated` + `service_role` em todas.
-- RLS:
-  - notas/anexos: leitura para quem já vê o report (mesma regra de `fiscalize_reports`); insert por usuários jurídicos/admin.
-  - notifications: cada usuário vê só as suas; update (marcar lida) só pelo próprio.
-- Bucket novo: `fiscalize-legal-docs` (privado) com policies p/ jurídico+admin.
-
-### 5. Arquivos a editar/criar
-- `src/pages/Juridico.tsx` — reescrever para kanban + drawer com abas.
-- `src/components/juridico/JuridicoKanban.tsx` (novo) — colunas e cards.
-- `src/components/juridico/ReportDrawer.tsx` (novo) — abas Denúncia/Andamento/Anexos/Notas.
-- `src/components/juridico/NoteEditor.tsx` (novo) — textarea + autocomplete `@`.
-- `src/components/notifications/NotificationBell.tsx` (novo) — sino no header.
-- Migração SQL (1 arquivo) com as 3 tabelas + colunas + RLS + GRANTs + bucket policies.
-- `supabase/functions/fiscalize-notify/index.ts` (novo) — opcional; também dá para fazer com trigger SQL puro (preferência: trigger SQL, menos peças móveis).
-
-### 6. Pontos a confirmar antes de implementar
-1. **Quem é "advogado/jurídico"?** Criar uma role nova `juridico` em `app_role`, ou usar `admin_master` + lista manual em `profiles`? Recomendo nova role `juridico` para autocomplete e RLS limpos.
-2. **Anexos do jurídico — limite**: ok PDF/imagem até 20MB cada, máx. 10 por denúncia?
-3. **Notificações por e-mail agora ou só in-app nesta entrega?** Recomendo só in-app agora; e-mail numa iteração seguinte usando Lovable Emails.
-4. **Filtros do board**: além de candidato e severidade, quer filtro por "minhas denúncias" (atribuídas a mim)?
+## Fora do escopo
+- Mudanças no fluxograma, dashboard, charts, ou em outras páginas.
+- Migração retroativa de dados existentes (registros antigos seguem com `macroregion_id` único; usuário pode editar para adicionar mais).

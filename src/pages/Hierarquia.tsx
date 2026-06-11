@@ -1,4 +1,4 @@
-import { useState, Fragment, useMemo } from 'react';
+import { useState, Fragment, useMemo, useEffect } from 'react';
 import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
@@ -8,6 +8,17 @@ import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/
 import { HierarchyFlowchart } from '@/components/hierarquia/HierarchyFlowchart';
 import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
 import { useCandidate } from '@/contexts/CandidateContext';
+import {
+  useMunicipalityAssociations,
+  useMemberAssociations,
+  useMemberMacroregions,
+  useMemberLeadershipProfiles,
+  useSetMemberAssociations,
+  useSetMemberMacroregions,
+  useSetMemberLeadershipProfiles,
+} from '@/hooks/useCampaignMemberLinks';
+import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
+import { MultiChipSelect } from '@/components/hierarquia/MultiChipSelect';
 
 const LEVEL_COLORS: Record<number, string> = {
   1: 'hsl(var(--brand-amber))',
@@ -131,7 +142,36 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+
+  // Multi-select links state (for the form)
+  const [selectedAssociations, setSelectedAssociations] = useState<string[]>([]);
+  const [selectedMacroregions, setSelectedMacroregions] = useState<string[]>([]);
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+
   const association = useAssociationForCity(geoForm.city);
+  const { data: allAssociations = [] } = useMunicipalityAssociations();
+  const { data: allProfiles = [] } = useLeadershipProfiles(true);
+
+  // Load existing links when editing
+  const { data: editingAssocs } = useMemberAssociations(editingId ?? undefined);
+  const { data: editingMacros } = useMemberMacroregions(editingId ?? undefined);
+  const { data: editingProfiles } = useMemberLeadershipProfiles(editingId ?? undefined);
+  useEffect(() => { if (editingAssocs) setSelectedAssociations(editingAssocs); }, [editingAssocs]);
+  useEffect(() => { if (editingMacros) setSelectedMacroregions(editingMacros); }, [editingMacros]);
+  useEffect(() => { if (editingProfiles) setSelectedProfiles(editingProfiles); }, [editingProfiles]);
+
+  // Auto-suggest association from selected city (only if not already chosen)
+  useEffect(() => {
+    if (association && !selectedAssociations.includes(association.id)) {
+      setSelectedAssociations(prev => [...prev, association.id]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [association?.id]);
+
+  const setAssoc = useSetMemberAssociations();
+  const setMacro = useSetMemberMacroregions();
+  const setProfiles = useSetMemberLeadershipProfiles();
+
   const toggleExpanded = (role: string) => setExpandedRoles(prev => {
     const next = new Set(prev);
     next.has(role) ? next.delete(role) : next.add(role);
@@ -156,6 +196,9 @@ export default function Hierarquia() {
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedAssociations([]);
+    setSelectedMacroregions([]);
+    setSelectedProfiles([]);
     setShowForm(true);
   };
 
@@ -174,17 +217,22 @@ export default function Hierarquia() {
       observations: member.observations ?? '',
     });
     setGeoForm({ city: member.municipality ?? '', lat: null, lng: null });
+    // links populated by useEffect when queries resolve
+    setSelectedAssociations([]);
+    setSelectedMacroregions([]);
+    setSelectedProfiles([]);
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
     if (!form.name || !geoForm.city) return;
+    const lvl = parseInt(form.hierarchy_level) as 1|2|3|4|5|6;
     const payload = {
       name: form.name,
       email: form.email || null,
       phone: form.phone || null,
       role: form.role,
-      hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5|6,
+      hierarchy_level: lvl,
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
       municipality: geoForm.city || null,
@@ -198,15 +246,29 @@ export default function Hierarquia() {
       user_id: null as string | null,
       created_by: null as string | null,
     };
+    let savedId = editingId;
     if (editingId) {
       await updateMember.mutateAsync({ id: editingId, ...payload });
     } else {
-      await createMember.mutateAsync(payload);
+      const created = await createMember.mutateAsync(payload);
+      savedId = (created as any)?.id ?? null;
+    }
+    if (savedId && lvl >= 3) {
+      await Promise.all([
+        setAssoc.mutateAsync({ memberId: savedId, ids: selectedAssociations }),
+        setMacro.mutateAsync({ memberId: savedId, ids: selectedMacroregions }),
+        lvl === 6
+          ? setProfiles.mutateAsync({ memberId: savedId, ids: selectedProfiles })
+          : setProfiles.mutateAsync({ memberId: savedId, ids: [] }),
+      ]);
     }
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedAssociations([]);
+    setSelectedMacroregions([]);
+    setSelectedProfiles([]);
   };
 
   const handleDelete = async (id: string) => {
@@ -414,6 +476,40 @@ export default function Hierarquia() {
                   <option value="licenca">Licença</option>
                 </select>
               </div>
+
+              {/* Vínculos territoriais (níveis 3+) */}
+              {parseInt(form.hierarchy_level) >= 3 && (
+                <div className="sm:col-span-2 rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Vínculos Territoriais (selecione um ou vários)
+                  </div>
+                  <MultiChipSelect
+                    label="Associações de Municípios"
+                    options={allAssociations.map(a => ({ id: a.id, label: a.acronym, sublabel: a.name }))}
+                    selectedIds={selectedAssociations}
+                    onChange={setSelectedAssociations}
+                    color="hsl(var(--brand-cyan))"
+                    emptyHint="Nenhuma associação cadastrada."
+                  />
+                  <MultiChipSelect
+                    label="Macrorregiões (Mapa Político)"
+                    options={macroRegions.map(m => ({ id: m.id, label: m.name }))}
+                    selectedIds={selectedMacroregions}
+                    onChange={setSelectedMacroregions}
+                    color="hsl(var(--primary))"
+                  />
+                  {parseInt(form.hierarchy_level) === 6 && (
+                    <MultiChipSelect
+                      label="Perfis de Liderança / Entidade"
+                      options={allProfiles.map(p => ({ id: p.id, label: p.name }))}
+                      selectedIds={selectedProfiles}
+                      onChange={setSelectedProfiles}
+                      color="hsl(var(--brand-green))"
+                      emptyHint="Nenhum perfil cadastrado."
+                    />
+                  )}
+                </div>
+              )}
               <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground block mb-1">Observações</label>
                 <textarea value={form.observations} onChange={e => updateForm('observations', e.target.value)} rows={2} placeholder="Notas sobre este membro..." className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none" />

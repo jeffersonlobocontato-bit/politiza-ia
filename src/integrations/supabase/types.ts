@@ -295,6 +295,114 @@ export type Database = {
           },
         ]
       }
+      campaign_member_associations: {
+        Row: {
+          association_id: string
+          created_at: string
+          id: string
+          member_id: string
+        }
+        Insert: {
+          association_id: string
+          created_at?: string
+          id?: string
+          member_id: string
+        }
+        Update: {
+          association_id?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_member_associations_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "municipality_associations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_member_associations_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_member_leadership_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_member_leadership_profiles_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_member_leadership_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_member_macroregions: {
+        Row: {
+          created_at: string
+          id: string
+          macroregion_id: string
+          member_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          macroregion_id: string
+          member_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          macroregion_id?: string
+          member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_member_macroregions_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_member_macroregions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_members: {
         Row: {
           actions_managed: number
