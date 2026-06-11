@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { X, User, Crown, Scale, Megaphone, Truck, Calendar, DollarSign, Handshake, FileText, Download, Loader2, MapPin, ChevronRight, ArrowLeft } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
