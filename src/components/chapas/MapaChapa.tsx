@@ -131,6 +131,16 @@ function colorForAssoc(acronym: string): string {
   return `hsl(${hue} 65% 72%)`;
 }
 
+// Escala de cinza determinística por associação (para modo "calor")
+function grayForAssoc(acronym: string): string {
+  if (!acronym) return '#2a2a2a';
+  let h = 0;
+  for (let i = 0; i < acronym.length; i++) h = (h * 31 + acronym.charCodeAt(i)) >>> 0;
+  // Faixa estreita de cinzas escuros (20–42) para distinguir associações sem competir com o heat
+  const l = 20 + (h % 23);
+  return `hsl(0 0% ${l}%)`;
+}
+
 // Lista de municípios IBGE para PR (id -> nome)
 function useIbgeMunicipios() {
   return useQuery({
@@ -349,11 +359,12 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
               data={geo}
               style={(f: any) => {
                 const info = featureInfo(String(f?.properties?.codarea ?? ''));
+                const heat = view === 'calor';
                 return {
-                  fillColor: view === 'calor' ? '#3a3a3a' : info.color,
-                  fillOpacity: view === 'calor' ? 0.55 : 0.6,
-                  color: view === 'calor' ? '#1f1f1f' : '#ffffff',
-                  weight: 0.6,
+                  fillColor: heat ? grayForAssoc(info.acronym ?? '') : info.color,
+                  fillOpacity: heat ? 0.85 : 0.6,
+                  color: heat ? '#0a0a0a' : '#ffffff',
+                  weight: heat ? 0.8 : 0.6,
                 };
               }}
               onEachFeature={(feature: any, layer: any) => {
