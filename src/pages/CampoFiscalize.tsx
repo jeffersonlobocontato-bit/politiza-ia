@@ -137,13 +137,21 @@ export default function CampoFiscalize() {
   async function handleFiles(files: FileList | null) {
     if (!files || !user) return;
     const list = Array.from(files).slice(0, 5 - evidences.length);
-    for (const file of list) {
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name}: arquivo acima de 20MB`);
+    for (const original of list) {
+      if (original.size > 20 * 1024 * 1024) {
+        toast.error(`${original.name}: arquivo acima de 20MB`);
         continue;
       }
+      const capturedAt = new Date();
+      const capturedAtIso = capturedAt.toISOString();
+      const geoText = geo.lat && geo.lng
+        ? `GPS ${geo.lat.toFixed(5)}, ${geo.lng.toFixed(5)}${geo.city ? ` · ${geo.city}` : ''}`
+        : (geo.city || '');
+
+      // Carimba data/hora (+GPS) na imagem antes do upload
+      const file = await stampImage(original, capturedAt, geoText);
       const previewUrl = URL.createObjectURL(file);
-      const item: EvidenceFile = { file, previewUrl, uploading: true };
+      const item: EvidenceFile = { file, previewUrl, uploading: true, capturedAt: capturedAtIso };
       setEvidences(prev => [...prev, item]);
 
       try {
@@ -157,7 +165,7 @@ export default function CampoFiscalize() {
         const { data: pub } = supabase.storage.from('fiscalize-evidence').getPublicUrl(path);
         setEvidences(prev => prev.map(e => e.file === file ? {
           ...e, uploading: false,
-          uploaded: { url: pub.publicUrl, path, sha256: hash, mime: file.type, size: file.size },
+          uploaded: { url: pub.publicUrl, path, sha256: hash, mime: file.type, size: file.size, captured_at: capturedAtIso },
         } : e));
       } catch (err: any) {
         toast.error(`Falha ao enviar ${file.name}: ${err.message}`);
