@@ -359,11 +359,12 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
               data={geo}
               style={(f: any) => {
                 const info = featureInfo(String(f?.properties?.codarea ?? ''));
+                const heat = view === 'calor';
                 return {
-                  fillColor: view === 'calor' ? '#3a3a3a' : info.color,
-                  fillOpacity: view === 'calor' ? 0.55 : 0.6,
-                  color: view === 'calor' ? '#1f1f1f' : '#ffffff',
-                  weight: 0.6,
+                  fillColor: heat ? grayForAssoc(info.acronym ?? '') : info.color,
+                  fillOpacity: heat ? 0.85 : 0.6,
+                  color: heat ? '#0a0a0a' : '#ffffff',
+                  weight: heat ? 0.8 : 0.6,
                 };
               }}
               onEachFeature={(feature: any, layer: any) => {
