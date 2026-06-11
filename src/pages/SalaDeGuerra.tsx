@@ -3,6 +3,7 @@ import { KpiCard, ChartCard, tooltipStyle, CHART_COLORS, GRADIENT_CARDS, GRID_ST
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
+import MapZoomControl from '@/components/maps/MapZoomControl';
 import {
   Crosshair, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Users, Activity, Zap, Target,
@@ -406,8 +407,8 @@ export default function SalaDeGuerra() {
                 </button>
               </div>
             </div>
-            <div style={{ height: 380 }}>
-              <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl>
+            <div className="relative" style={{ height: 380 }}>
+              <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                 <TileLayer
                   url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   attribution='&copy; <a href="https://carto.com">CARTO</a>'
@@ -465,6 +466,7 @@ export default function SalaDeGuerra() {
                     </Popup>
                   </CircleMarker>
                 ))}
+                <MapZoomControl />
               </MapContainer>
             </div>
             {/* Legend */}

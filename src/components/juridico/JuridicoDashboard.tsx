@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, GeoJSON, useMap } from 'react
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import MapZoomControl from '@/components/maps/MapZoomControl';
 import {
   ShieldAlert, AlertTriangle, FileCheck2, Archive, MapPinned, UserCheck, Clock,
   Maximize2, Minimize2, ChevronDown, ChevronUp,
@@ -252,9 +253,10 @@ export function JuridicoDashboard({
         {!collapsed && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
             <div className="lg:col-span-3 rounded-xl border border-border bg-card overflow-hidden relative isolate" style={{ height: 360, zIndex: 0 }}>
-              <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+              <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom zoomControl={false}>
                 <InvalidateOnResize trigger={`inline-${collapsed}-${expanded}-${!!geo}`} />
                 {renderMapContents(onPick)}
+                <MapZoomControl />
               </MapContainer>
             </div>
 
@@ -316,9 +318,10 @@ export function JuridicoDashboard({
             </button>
           </div>
           <div className="flex-1 relative isolate" style={{ zIndex: 0 }}>
-            <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+            <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom zoomControl={false}>
               <InvalidateOnResize trigger={`full-${expanded}-${!!geo}`} />
               {renderMapContents((id) => { onPick(id); setExpanded(false); })}
+              <MapZoomControl />
             </MapContainer>
           </div>
         </div>
