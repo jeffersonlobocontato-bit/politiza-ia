@@ -103,54 +103,116 @@ export function JuridicoDashboard({
       </div>
 
       {/* Mapa + hotspots */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-        <div className="lg:col-span-3 rounded-xl border border-border bg-card overflow-hidden" style={{ height: 320 }}>
-          <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
-            <TileLayer
-              attribution='&copy; OpenStreetMap'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            />
-            {pinned.map(r => (
-              <Marker
-                key={r.id}
-                position={[r.lat!, r.lng!]}
-                icon={pinIcon(SEV_COLOR[r.severity] ?? '#94a3b8')}
-                eventHandlers={{ click: () => onPick(r.id) }}
-              >
-                <Tooltip direction="top">
-                  <div className="text-xs">
-                    <div className="font-semibold">{r.title}</div>
-                    <div className="text-muted-foreground">{r.municipality ?? '—'} · {r.severity}</div>
-                    <div className="text-[10px] italic">clique para abrir</div>
-                  </div>
-                </Tooltip>
-              </Marker>
-            ))}
-          </MapContainer>
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <MapPinned className="w-4 h-4 text-primary" />
+            <h3 className="text-xs font-bold uppercase tracking-wider">Mapa de denúncias</h3>
+            <span className="text-[10px] text-muted-foreground">
+              {pinned.length} de {kpis.total} com geolocalização
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setExpanded(true)}
+              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              title="Expandir mapa">
+              <Maximize2 className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => setCollapsed(c => !c)}
+              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              title={collapsed ? 'Mostrar mapa' : 'Recolher mapa'}>
+              {collapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <MapPinned className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-bold uppercase tracking-wider">Hotspots</h3>
+        {!collapsed && (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+            <div className="lg:col-span-3 rounded-xl border border-border bg-card overflow-hidden relative isolate" style={{ height: 320, zIndex: 0 }}>
+              <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+                <InvalidateOnResize trigger={`inline-${collapsed}-${expanded}`} />
+                <TileLayer
+                  attribution='&copy; OpenStreetMap'
+                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                />
+                {pinned.map(r => (
+                  <Marker key={r.id} position={[r.lat!, r.lng!]}
+                    icon={pinIcon(SEV_COLOR[r.severity] ?? '#94a3b8')}
+                    eventHandlers={{ click: () => onPick(r.id) }}>
+                    <Tooltip direction="top">
+                      <div className="text-xs">
+                        <div className="font-semibold">{r.title}</div>
+                        <div className="text-muted-foreground">{r.municipality ?? '—'} · {r.severity}</div>
+                        <div className="text-[10px] italic">clique para abrir</div>
+                      </div>
+                    </Tooltip>
+                  </Marker>
+                ))}
+              </MapContainer>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPinned className="w-4 h-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider">Hotspots</h3>
+              </div>
+              {hotspots.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground py-4 text-center">Sem dados</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {hotspots.map(([city, n]) => (
+                    <li key={city} className="flex items-center justify-between text-xs">
+                      <span className="text-foreground truncate">{city}</span>
+                      <span className="font-bold text-destructive">{n}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground">
+                {kpis.geocod} de {kpis.total} denúncias com geolocalização
+              </div>
+            </div>
           </div>
-          {hotspots.length === 0 ? (
-            <p className="text-[11px] text-muted-foreground py-4 text-center">Sem dados</p>
-          ) : (
-            <ul className="space-y-1.5">
-              {hotspots.map(([city, n]) => (
-                <li key={city} className="flex items-center justify-between text-xs">
-                  <span className="text-foreground truncate">{city}</span>
-                  <span className="font-bold text-destructive">{n}</span>
-                </li>
+        )}
+      </div>
+
+      {/* Fullscreen overlay */}
+      {expanded && (
+        <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPinned className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-bold">Mapa de denúncias — visão expandida</h3>
+              <span className="text-[10px] text-muted-foreground">{pinned.length} pins</span>
+            </div>
+            <button onClick={() => setExpanded(false)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border hover:bg-muted text-xs">
+              <Minimize2 className="w-3.5 h-3.5" /> Fechar
+            </button>
+          </div>
+          <div className="flex-1 relative isolate" style={{ zIndex: 0 }}>
+            <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+              <InvalidateOnResize trigger={`full-${expanded}`} />
+              <TileLayer
+                attribution='&copy; OpenStreetMap'
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              />
+              {pinned.map(r => (
+                <Marker key={r.id} position={[r.lat!, r.lng!]}
+                  icon={pinIcon(SEV_COLOR[r.severity] ?? '#94a3b8')}
+                  eventHandlers={{ click: () => { onPick(r.id); setExpanded(false); } }}>
+                  <Tooltip direction="top">
+                    <div className="text-xs">
+                      <div className="font-semibold">{r.title}</div>
+                      <div className="text-muted-foreground">{r.municipality ?? '—'} · {r.severity}</div>
+                    </div>
+                  </Tooltip>
+                </Marker>
               ))}
-            </ul>
-          )}
-          <div className="mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground">
-            {kpis.geocod} de {kpis.total} denúncias com geolocalização
+            </MapContainer>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
