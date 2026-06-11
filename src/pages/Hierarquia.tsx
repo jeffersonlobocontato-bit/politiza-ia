@@ -1,4 +1,4 @@
-import { useState, Fragment, useMemo } from 'react';
+import { useState, Fragment, useMemo, useEffect } from 'react';
 import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
@@ -8,6 +8,17 @@ import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/
 import { HierarchyFlowchart } from '@/components/hierarquia/HierarchyFlowchart';
 import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
 import { useCandidate } from '@/contexts/CandidateContext';
+import {
+  useMunicipalityAssociations,
+  useMemberAssociations,
+  useMemberMacroregions,
+  useMemberLeadershipProfiles,
+  useSetMemberAssociations,
+  useSetMemberMacroregions,
+  useSetMemberLeadershipProfiles,
+} from '@/hooks/useCampaignMemberLinks';
+import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
+import { MultiChipSelect } from '@/components/hierarquia/MultiChipSelect';
 
 const LEVEL_COLORS: Record<number, string> = {
   1: 'hsl(var(--brand-amber))',
