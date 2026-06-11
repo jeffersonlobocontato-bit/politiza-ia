@@ -160,12 +160,14 @@ function usePrGeoJson() {
   });
 }
 
-type PartyView = 'current' | 'PL' | 'Novo' | 'both';
+type PartyView = 'PL' | 'Novo' | 'both';
 
 export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; party: string }) {
   const [cargo, setCargo] = useState<CargoFilter>('all');
   const [view, setView] = useState<ViewMode>('pins');
-  const [partyView, setPartyView] = useState<PartyView>('current');
+  const [partyView, setPartyView] = useState<PartyView>(
+    party === 'PL' || party === 'Novo' ? (party as PartyView) : 'PL',
+  );
   const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
@@ -187,7 +189,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
   const { data: geo } = usePrGeoJson();
 
   const effectiveRows = useMemo(() => {
-    if (!isAdmin || partyView === 'current') return rows;
+    if (!isAdmin) return rows;
     const all = allRows ?? [];
     if (partyView === 'both') return all;
     return all.filter(r => r.party === partyView);
@@ -255,7 +257,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           <MapPin className="w-4 h-4 text-primary" />
           <div>
             <div className="text-sm font-bold">
-              Distribuição da chapa — {isAdmin && partyView !== 'current' ? (partyView === 'both' ? 'PL + Novo' : partyView) : party}
+              Distribuição da chapa — {isAdmin ? (partyView === 'both' ? 'PL + Novo' : partyView) : party}
             </div>
             <div className="text-[11px] text-muted-foreground">
               {points.length} candidato(s) plotado(s){missing > 0 ? ` · ${missing} sem cidade reconhecida` : ''}
@@ -266,7 +268,6 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
           {isAdmin && (
             <div className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
               {([
-                { v: 'current', label: party },
                 { v: 'PL', label: 'PL' },
                 { v: 'Novo', label: 'Novo' },
                 { v: 'both', label: 'Ambos' },
@@ -421,7 +422,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
       <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-border/60 bg-card/50 text-[11px] text-muted-foreground">
         {view === 'pins' ? (
           (() => {
-            const visibleParties: SlateParty[] = isAdmin && partyView !== 'current'
+            const visibleParties: SlateParty[] = isAdmin
               ? (partyView === 'both' ? ['PL', 'Novo'] : [partyView])
               : [PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL'];
             return (
