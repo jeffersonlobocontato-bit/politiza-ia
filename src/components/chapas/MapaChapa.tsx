@@ -160,7 +160,7 @@ function usePrGeoJson() {
   });
 }
 
-type PartyView = 'current' | 'PL' | 'Novo' | 'both';
+type PartyView = 'PL' | 'Novo' | 'both';
 
 export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; party: string }) {
   const [cargo, setCargo] = useState<CargoFilter>('all');
