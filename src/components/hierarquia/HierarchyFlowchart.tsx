@@ -12,6 +12,7 @@ import type { DbCampaignMember } from '@/types/database';
 interface Props {
   open: boolean;
   onClose: () => void;
+  initialCandidateId?: string | null;
 }
 
 interface DeptDef {
