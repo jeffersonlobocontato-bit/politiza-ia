@@ -240,7 +240,7 @@ export default function Hierarquia() {
         </div>
       </div>
 
-      <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} />
+      <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} initialCandidateId={flowCandidateId} />
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {members.length > 0 && (
