@@ -196,6 +196,9 @@ export default function Hierarquia() {
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedAssociations([]);
+    setSelectedMacroregions([]);
+    setSelectedProfiles([]);
     setShowForm(true);
   };
 
@@ -214,17 +217,22 @@ export default function Hierarquia() {
       observations: member.observations ?? '',
     });
     setGeoForm({ city: member.municipality ?? '', lat: null, lng: null });
+    // links populated by useEffect when queries resolve
+    setSelectedAssociations([]);
+    setSelectedMacroregions([]);
+    setSelectedProfiles([]);
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
     if (!form.name || !geoForm.city) return;
+    const lvl = parseInt(form.hierarchy_level) as 1|2|3|4|5|6;
     const payload = {
       name: form.name,
       email: form.email || null,
       phone: form.phone || null,
       role: form.role,
-      hierarchy_level: parseInt(form.hierarchy_level) as 1|2|3|4|5|6,
+      hierarchy_level: lvl,
       macroregion_id: form.macroregion_id || null,
       microregion: form.microregion || null,
       municipality: geoForm.city || null,
@@ -238,15 +246,29 @@ export default function Hierarquia() {
       user_id: null as string | null,
       created_by: null as string | null,
     };
+    let savedId = editingId;
     if (editingId) {
       await updateMember.mutateAsync({ id: editingId, ...payload });
     } else {
-      await createMember.mutateAsync(payload);
+      const created = await createMember.mutateAsync(payload);
+      savedId = (created as any)?.id ?? null;
+    }
+    if (savedId && lvl >= 3) {
+      await Promise.all([
+        setAssoc.mutateAsync({ memberId: savedId, ids: selectedAssociations }),
+        setMacro.mutateAsync({ memberId: savedId, ids: selectedMacroregions }),
+        lvl === 6
+          ? setProfiles.mutateAsync({ memberId: savedId, ids: selectedProfiles })
+          : setProfiles.mutateAsync({ memberId: savedId, ids: [] }),
+      ]);
     }
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());
     setGeoForm({ city: '', lat: null, lng: null });
+    setSelectedAssociations([]);
+    setSelectedMacroregions([]);
+    setSelectedProfiles([]);
   };
 
   const handleDelete = async (id: string) => {
