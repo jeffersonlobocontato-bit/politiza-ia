@@ -334,7 +334,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
         </div>
       </div>
 
-      <div className={fullscreen ? 'flex-1 min-h-0' : ''} style={fullscreen ? { background: 'hsl(var(--muted) / 0.3)' } : { height: 460, background: 'hsl(var(--muted) / 0.3)' }}>
+      <div className={`${fullscreen ? 'flex-1 min-h-0 ' : ''}${view === 'calor' ? 'mapa-chapa-heat ' : ''}`.trim()} style={fullscreen ? { background: 'hsl(var(--muted) / 0.3)' } : { height: 460, background: 'hsl(var(--muted) / 0.3)' }}>
         <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
           <InvalidateOnResize trigger={fullscreen} />
           <TileLayer
@@ -345,14 +345,14 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
 
           {geo && featureInfo && (
             <GeoJSON
-              key={JSON.stringify({ a: !!assocMap, n: !!ibgeNames })}
+              key={JSON.stringify({ a: !!assocMap, n: !!ibgeNames, v: view })}
               data={geo}
               style={(f: any) => {
                 const info = featureInfo(String(f?.properties?.codarea ?? ''));
                 return {
-                  fillColor: info.color,
-                  fillOpacity: 0.6,
-                  color: '#ffffff',
+                  fillColor: view === 'calor' ? '#3a3a3a' : info.color,
+                  fillOpacity: view === 'calor' ? 0.55 : 0.6,
+                  color: view === 'calor' ? '#1f1f1f' : '#ffffff',
                   weight: 0.6,
                 };
               }}
