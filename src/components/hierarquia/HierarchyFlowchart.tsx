@@ -167,12 +167,43 @@ function HorizontalBus({ count, dropH = 16 }: { count: number; dropH?: number })
 }
 
 export function HierarchyFlowchart({ open, onClose }: Props) {
-  const { data: members = [] } = useCampaignMembers();
-  const { activeCandidate } = useCandidate();
+  const { data: allMembers = [] } = useCampaignMembers();
+  const { activeCandidate, candidates } = useCandidate();
   const chartRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+  const [viewCandidateId, setViewCandidateId] = useState<string | null>(null);
 
-  const handleDownloadPdf = async () => {
+  const viewCandidate = viewCandidateId
+    ? candidates.find(c => c.id === viewCandidateId) ?? null
+    : null;
+
+  // Quando navegando para a árvore de um candidato específico, filtra membros pela vinculação.
+  // Caso o candidato não tenha membros vinculados ainda, mostra apenas seu próprio card (Nível 1).
+  const members = useMemo(() => {
+    if (!viewCandidateId) return allMembers;
+    const linked = allMembers.filter(m => (m as any).candidate_id === viewCandidateId);
+    const self = allMembers.filter(m =>
+      m.hierarchy_level === 1 &&
+      viewCandidate &&
+      lc(m.name).includes(lc(viewCandidate.name.split(' ')[0])) &&
+      lc(m.name).includes(lc(viewCandidate.name.split(' ').slice(-1)[0]))
+    );
+    const map = new Map<string, DbCampaignMember>();
+    [...self, ...linked].forEach(m => map.set(m.id, m));
+    return Array.from(map.values());
+  }, [allMembers, viewCandidateId, viewCandidate]);
+
+  const handleSelectCandidate = (memberName: string) => {
+    const match = candidates.find(c =>
+      lc(c.name).split(' ').every(part => lc(memberName).includes(part)) ||
+      lc(memberName).split(' ').every(part => lc(c.name).includes(part))
+    );
+    if (match) setViewCandidateId(match.id);
+    else toast.info(`Nenhuma candidatura vinculada encontrada para ${memberName}.`);
+  };
+
+  const handleResetView = () => setViewCandidateId(null);
+
     if (!chartRef.current) return;
     setExporting(true);
     // Aguarda React aplicar exportMode antes de capturar
