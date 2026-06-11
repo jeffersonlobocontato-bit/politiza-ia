@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
-import { alerts } from '@/data/mockData';
+
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import {
