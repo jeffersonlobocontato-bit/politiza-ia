@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, GeoJSON, useMap } from 'react
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import MapZoomControl from '@/components/maps/MapZoomControl';
 import {
   ShieldAlert, AlertTriangle, FileCheck2, Archive, MapPinned, UserCheck, Clock,
   Maximize2, Minimize2, ChevronDown, ChevronUp,
