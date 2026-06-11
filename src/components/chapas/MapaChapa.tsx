@@ -422,7 +422,7 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
       <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-border/60 bg-card/50 text-[11px] text-muted-foreground">
         {view === 'pins' ? (
           (() => {
-            const visibleParties: SlateParty[] = isAdmin && partyView !== 'current'
+            const visibleParties: SlateParty[] = isAdmin
               ? (partyView === 'both' ? ['PL', 'Novo'] : [partyView])
               : [PIN_COLOR[party as SlateParty] ? (party as SlateParty) : 'PL'];
             return (
