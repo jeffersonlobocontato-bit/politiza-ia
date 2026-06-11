@@ -223,7 +223,9 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
           <div>
-            <div className="text-sm font-bold">Distribuição da chapa — {party}</div>
+            <div className="text-sm font-bold">
+              Distribuição da chapa — {isAdmin && partyView !== 'current' ? (partyView === 'both' ? 'PL + Novo' : partyView) : party}
+            </div>
             <div className="text-[11px] text-muted-foreground">
               {points.length} candidato(s) plotado(s){missing > 0 ? ` · ${missing} sem cidade reconhecida` : ''}
             </div>
