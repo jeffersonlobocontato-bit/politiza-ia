@@ -67,8 +67,9 @@ export default function ChapaPartido() {
   const [tab, setTab] = useState<SlateCargo>('Deputado Federal');
   const [search, setSearch] = useState('');
   const [filterAssoc, setFilterAssoc] = useState<string>('all');
-  const [filterFiliacao, setFilterFiliacao] = useState<string>('all');
   const [filterCity, setFilterCity] = useState<string>('all');
+  const [votesScenario, setVotesScenario] = useState<'bom' | 'medio' | 'ruim'>('bom');
+  const [votesRank, setVotesRank] = useState<'all' | 'top10' | 'top30' | 'top50' | 'out' | 'sem'>('all');
 
   const [editing, setEditing] = useState<Partial<SlateCandidate> | null>(null);
 
