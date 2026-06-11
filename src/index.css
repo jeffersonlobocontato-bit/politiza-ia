@@ -341,3 +341,6 @@
     border-left: 4px solid hsl(var(--status-ai));
   }
 }
+
+/* Mapa da chapa em modo Calor — basemap em escala de cinza */
+.mapa-chapa-heat .leaflet-tile-pane { filter: grayscale(100%) brightness(0.55) contrast(1.05); }
