@@ -313,11 +313,20 @@ export default function MapaChapa({ rows, party }: { rows: SlateCandidate[]; par
               <Flame className="w-3 h-3" /> Calor
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setFullscreen(f => !f)}
+            title={fullscreen ? 'Sair da tela cheia (Esc)' : 'Ampliar mapa'}
+            className="inline-flex items-center justify-center w-8 h-7 rounded-md border border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-primary/10"
+          >
+            {fullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
         </div>
       </div>
 
-      <div style={{ height: 460, background: 'hsl(var(--muted) / 0.3)' }}>
+      <div className={fullscreen ? 'flex-1 min-h-0' : ''} style={fullscreen ? { background: 'hsl(var(--muted) / 0.3)' } : { height: 460, background: 'hsl(var(--muted) / 0.3)' }}>
         <MapContainer center={PR_CENTER} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+          <InvalidateOnResize trigger={fullscreen} />
           <TileLayer
             attribution='&copy; OpenStreetMap, &copy; CARTO'
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
