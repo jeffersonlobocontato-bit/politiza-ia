@@ -11,7 +11,7 @@ export default function MapaEstrategico() {
   const [showFilters, setShowFilters] = useState(true);
   const [showEngagement, setShowEngagement] = useState(false);
   const [activeSources, setActiveSources] = useState<Record<GeoSource, boolean>>({
-    leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false,
+    leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
   });
 
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
