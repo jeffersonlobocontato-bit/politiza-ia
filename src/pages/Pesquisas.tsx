@@ -783,6 +783,48 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
   );
 }
 
+function ScenarioToggles({
+  cargoField, sIdx, scenario, scenarios, updateForm,
+}: {
+  cargoField: 'govScenarios' | 'senScenarios';
+  sIdx: number;
+  scenario: ScenarioEntry;
+  scenarios: ScenarioEntry[];
+  updateForm: (patch: Partial<ImportForm>) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 px-1">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={`main-${cargoField}-${sIdx}`}
+          checked={!!scenario.isMainScenario}
+          onCheckedChange={(v) => {
+            const s = scenarios.map((sc, i) => ({ ...sc, isMainScenario: i === sIdx ? !!v : false }));
+            updateForm({ [cargoField]: s } as Partial<ImportForm>);
+          }}
+        />
+        <label htmlFor={`main-${cargoField}-${sIdx}`} className="text-[11px] text-muted-foreground cursor-pointer">
+          Usar como cenário principal nos cruzamentos
+        </label>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={`rm-${cargoField}-${sIdx}`}
+          checked={!!scenario.isMultipleChoice}
+          onCheckedChange={(v) => {
+            const s = [...scenarios];
+            s[sIdx] = { ...s[sIdx], isMultipleChoice: !!v };
+            updateForm({ [cargoField]: s } as Partial<ImportForm>);
+          }}
+        />
+        <label htmlFor={`rm-${cargoField}-${sIdx}`} className="text-[11px] text-muted-foreground cursor-pointer">
+          Resposta múltipla (RM*) — entrevistado pôde citar mais de 1 candidato
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function CandidatesBlock({
   title, entries, onAdd, onRemove, onChange,
 }: {
