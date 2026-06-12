@@ -1733,7 +1733,8 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
                           const rowQuestion = filteredQuestions.find(q => {
                             const w = waves.find(w => w.id === q.waveId);
-                            return row.label === `${w?.releaseDate ?? q.waveId} — ${q.scenarioLabel}`;
+                            const inst = w?.institute ?? '';
+                            return row.label === `${inst ? inst + ' · ' : ''}${w?.releaseDate ?? q.waveId} — ${q.scenarioLabel}`;
                           });
                           const wasResearched = rowQuestion
                             ? rowQuestion.results.some(r => matchesEntry(r.candidate, entry))
