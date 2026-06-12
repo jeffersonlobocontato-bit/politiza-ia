@@ -111,6 +111,22 @@ export function useGeoLeads(enabled: { [K in GeoSource]?: boolean } = {
         );
       }
 
+      if (enabled.candidates) {
+        tasks.push(
+          fetchAll<any>('party_slate_candidates', 'id,name,party,cargo,city,association').then(rows => {
+            for (const r of rows) {
+              const point = resolveGeo({ ...r, municipality: r.city });
+              if (!point) continue;
+              out.push({
+                id: r.id, source: 'candidates', name: r.name,
+                subtitle: [r.party, r.cargo].filter(Boolean).join(' · '),
+                municipality: r.city, point, raw: r,
+              });
+            }
+          })
+        );
+      }
+
       await Promise.all(tasks);
       return out;
     },
