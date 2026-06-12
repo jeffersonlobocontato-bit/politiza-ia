@@ -485,34 +485,40 @@ export default function SalaDeGuerra() {
                   const acts = m?.actions ?? 0;
                   const done = m?.done ?? 0;
                   const assets = m?.assets ?? 0;
+                  const leadersCount = m?.leaders ?? 0;
+                  const team = m?.team ?? 0;
+                  const cands = m?.candidates ?? 0;
                   const aligned = m?.aligned ?? 0;
                   const opposition = m?.opposition ?? 0;
+                  const presence = assets + leadersCount + team + cands;
                   const execRate = acts > 0 ? (done / acts) * 100 : 0;
                   const engagement = Math.round(
-                    Math.min(100, (acts / maxActions) * 60 + (assets / maxAssets) * 40)
+                    Math.min(100, (acts / maxActions) * 50 + (presence / maxPresence) * 50)
                   );
                   const alignedTotal = aligned + opposition;
                   const alignedPct = alignedTotal > 0 ? (aligned / alignedTotal) * 100 : 0;
 
                   const hasOps = acts > 0;
-                  const hasPol = assets > 0;
-                  const hasEng = acts > 0 || assets > 0;
+                  const hasPol = assets + leadersCount + cands > 0;
+                  const hasEng = acts > 0 || presence > 0;
 
                   const color = mapView === 'calor'
                     ? (hasEng ? engagementColor(engagement) : '#475569')
                     : mapView === 'operacional'
                     ? (hasOps ? execRateColor(execRate) : '#475569')
                     : (hasPol
-                        ? (alignedPct >= 60 ? '#22c55e' : alignedPct >= 40 ? '#f59e0b' : '#ef4444')
+                        ? (alignedTotal > 0
+                            ? (alignedPct >= 60 ? '#22c55e' : alignedPct >= 40 ? '#f59e0b' : '#ef4444')
+                            : '#3b82f6')
                         : '#475569');
 
                   const radiusBase = mapView === 'operacional'
                     ? acts
                     : mapView === 'politico'
-                    ? assets
-                    : acts + assets;
+                    ? assets + leadersCount + cands
+                    : acts + presence;
                   const radius = radiusBase > 0
-                    ? Math.max(6, Math.min(22, 6 + radiusBase * 1.5))
+                    ? Math.max(6, Math.min(22, 6 + radiusBase * 0.6))
                     : 4;
 
                   return (
@@ -527,11 +533,11 @@ export default function SalaDeGuerra() {
                       fillOpacity={hasEng ? 0.7 : 0.25}
                     >
                       <Tooltip>
-                        <div style={{ color: '#1e293b', minWidth: 160 }}>
+                        <div style={{ color: '#1e293b', minWidth: 170 }}>
                           <strong>{muni.name}</strong><br />
-                          Ações: {acts} ({done} realizadas)<br />
-                          Execução: {Math.round(execRate)}%<br />
-                          Ativos políticos: {assets}{alignedTotal > 0 ? ` (${Math.round(alignedPct)}% alinhados)` : ''}<br />
+                          Ações: {acts} ({done} realizadas){acts > 0 ? ` · ${Math.round(execRate)}%` : ''}<br />
+                          Lideranças/Ativos: {assets + leadersCount}{alignedTotal > 0 ? ` (${Math.round(alignedPct)}% alinhados)` : ''}<br />
+                          Equipe: {team} · Pré-candidatos: {cands}<br />
                           Engajamento: {engagement}/100
                         </div>
                       </Tooltip>
