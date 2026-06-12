@@ -22,7 +22,7 @@ async function fetchAll<T>(table: string, columns: string): Promise<T[]> {
 }
 
 export function useGeoLeads(enabled: { [K in GeoSource]?: boolean } = {
-  leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false,
+  leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
 }) {
   return useQuery<GeoLead[]>({
     queryKey: ['geo-leads', enabled],
