@@ -69,11 +69,13 @@ export type Database = {
           executed_date: string | null
           executed_people_count: number | null
           id: string
+          impact_score: number | null
           lat: number | null
           lng: number | null
           macroregion_id: string | null
           microregion: string | null
           municipality: string | null
+          municipality_population_snapshot: number | null
           observations: string | null
           planned_date: string
           planned_time: string | null
@@ -100,11 +102,13 @@ export type Database = {
           executed_date?: string | null
           executed_people_count?: number | null
           id?: string
+          impact_score?: number | null
           lat?: number | null
           lng?: number | null
           macroregion_id?: string | null
           microregion?: string | null
           municipality?: string | null
+          municipality_population_snapshot?: number | null
           observations?: string | null
           planned_date: string
           planned_time?: string | null
@@ -131,11 +135,13 @@ export type Database = {
           executed_date?: string | null
           executed_people_count?: number | null
           id?: string
+          impact_score?: number | null
           lat?: number | null
           lng?: number | null
           macroregion_id?: string | null
           microregion?: string | null
           municipality?: string | null
+          municipality_population_snapshot?: number | null
           observations?: string | null
           planned_date?: string
           planned_time?: string | null
@@ -1193,6 +1199,7 @@ export type Database = {
           name: string
           neighborhood: string | null
           phone: string | null
+          population: number | null
           updated_at: string
         }
         Insert: {
@@ -1204,6 +1211,7 @@ export type Database = {
           name: string
           neighborhood?: string | null
           phone?: string | null
+          population?: number | null
           updated_at?: string
         }
         Update: {
@@ -1215,6 +1223,7 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           phone?: string | null
+          population?: number | null
           updated_at?: string
         }
         Relationships: []
