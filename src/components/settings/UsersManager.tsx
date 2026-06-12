@@ -14,7 +14,7 @@ type AppRole =
   | 'coordenador_regional' | 'coordenador_microrregional' | 'coordenador_municipal'
   | 'lideranca_local' | 'operador_campo' | 'analista_inteligencia'
   | 'analista_pesquisa' | 'executivo_leitura'
-  | 'gestor_estadual_novo' | 'gestor_estadual_pl';
+  | 'gestor_estadual_novo' | 'gestor_estadual_pl' | 'gestor_operacional';
 
 const ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   { value: 'admin_master',              label: 'Admin Master',              description: 'Acesso total. Gerencia plataforma, usuários e candidatos.', color: 'bg-red-500/15 text-red-400 border-red-500/30' },
