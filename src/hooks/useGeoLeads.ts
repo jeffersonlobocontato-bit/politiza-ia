@@ -22,7 +22,7 @@ async function fetchAll<T>(table: string, columns: string): Promise<T[]> {
 }
 
 export function useGeoLeads(enabled: { [K in GeoSource]?: boolean } = {
-  leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false,
+  leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
 }) {
   return useQuery<GeoLead[]>({
     queryKey: ['geo-leads', enabled],
@@ -105,6 +105,22 @@ export function useGeoLeads(enabled: { [K in GeoSource]?: boolean } = {
                 id: r.id, source: 'interviews', name: 'Entrevista',
                 subtitle: [r.respondent_gender, r.respondent_age_range].filter(Boolean).join(' · ') || 'Respondente',
                 municipality: r.municipality, point, raw: r,
+              });
+            }
+          })
+        );
+      }
+
+      if (enabled.candidates) {
+        tasks.push(
+          fetchAll<any>('party_slate_candidates', 'id,name,party,cargo,city,association').then(rows => {
+            for (const r of rows) {
+              const point = resolveGeo({ ...r, municipality: r.city });
+              if (!point) continue;
+              out.push({
+                id: r.id, source: 'candidates', name: r.name,
+                subtitle: [r.party, r.cargo].filter(Boolean).join(' · '),
+                municipality: r.city, point, raw: r,
               });
             }
           })
