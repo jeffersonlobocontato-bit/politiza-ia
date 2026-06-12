@@ -19,7 +19,6 @@ export default function CampoLiderancas() {
   const { data: allLeaders = [], isLoading } = useLeaders();
   const { data: profiles = [] } = useLeadershipProfiles(true);
 
-  // Pega vínculos perfil↔liderança para badges
   const leaderIds = useMemo(() => allLeaders.map(l => l.id), [allLeaders]);
   const { data: leaderProfileLinks = [] } = useQuery<{ leader_id: string; profile_id: string }[]>({
     queryKey: ['leader-profile-links', leaderIds],
@@ -62,91 +61,127 @@ export default function CampoLiderancas() {
   }, [allLeaders, scope, user, search, cityFilter, alignFilter, profileFilter, leaderProfileLinks]);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border flex items-center gap-2 sm:gap-3 flex-shrink-0">
-        <Link to="/campo" className="p-1.5 rounded-md hover:bg-accent text-muted-foreground flex-shrink-0"><ArrowLeft className="w-4 h-4" /></Link>
-        <Users className="w-5 h-5 text-primary flex-shrink-0 hidden sm:block" />
+    <div className="campo-screen">
+      <div className="campo-page-header">
+        <Link to="/campo" className="campo-icon-btn"><ArrowLeft className="w-4 h-4" /></Link>
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center hidden sm:flex"
+          style={{ background: 'rgba(47,168,90,0.15)', border: '1px solid rgba(47,168,90,0.35)' }}
+        >
+          <Users className="w-4 h-4" style={{ color: 'var(--campo-mint-glow)' }} />
+        </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-sm sm:text-base font-bold text-foreground truncate">Lideranças</h1>
-          <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{filtered.length} de {allLeaders.length}</p>
+          <h1>Lideranças</h1>
+          <p>{filtered.length} de {allLeaders.length}</p>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-          <Link to="/campo/dashboard" aria-label="Dashboard" className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border border-border bg-background hover:bg-accent text-foreground transition-colors">
-            <BarChart3 className="w-4 h-4" /> Dashboard
-          </Link>
-          <Link to="/campo/dashboard" aria-label="Dashboard" className="sm:hidden flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground">
-            <BarChart3 className="w-4 h-4" />
-          </Link>
-          <Link to="/campo/liderancas/novo" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 whitespace-nowrap" style={{ background: 'var(--gradient-primary)' }}>
-            <Plus className="w-4 h-4" /> Nova<span className="hidden sm:inline">&nbsp;Liderança</span>
-          </Link>
-        </div>
+        <Link to="/campo/dashboard" aria-label="Painel" className="campo-icon-btn">
+          <BarChart3 className="w-4 h-4" />
+        </Link>
+        <Link to="/campo/liderancas/novo" className="campo-cta px-3 sm:px-4" style={{ height: '2.25rem' }}>
+          <Plus className="w-4 h-4" /> <span className="hidden xs:inline">Nova</span>
+        </Link>
       </div>
 
       {/* Filtros */}
-      <div className="px-4 sm:px-6 py-3 border-b border-border grid grid-cols-1 sm:flex sm:flex-wrap gap-2 flex-shrink-0">
+      <div
+        className="px-4 py-3 grid grid-cols-1 sm:flex sm:flex-wrap gap-2 flex-shrink-0"
+        style={{ borderBottom: '1px solid var(--campo-line)' }}
+      >
         <div className="relative sm:flex-1 sm:min-w-[200px] min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Nome, cidade, bairro..." className="w-full h-9 rounded-lg border border-input bg-background pl-9 pr-3 text-sm" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--campo-text-faint)' }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Nome, cidade, bairro..."
+            className="campo-input pl-9"
+            style={{ height: '2.25rem' }}
+          />
         </div>
         {isAdmin && (
-          <select value={scope} onChange={e => setScope(e.target.value as any)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm">
-            <option value="all">Todas as lideranças</option>
-            <option value="mine">Somente as minhas</option>
+          <select value={scope} onChange={e => setScope(e.target.value as any)} className="campo-select" style={{ height: '2.25rem' }}>
+            <option value="all">Todas</option>
+            <option value="mine">Minhas</option>
           </select>
         )}
-        <select value={cityFilter} onChange={e => setCityFilter(e.target.value)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm min-w-0">
+        <select value={cityFilter} onChange={e => setCityFilter(e.target.value)} className="campo-select" style={{ height: '2.25rem' }}>
           <option value="all">Todas as cidades</option>
           {cities.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={alignFilter} onChange={e => setAlignFilter(e.target.value)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm min-w-0">
+        <select value={alignFilter} onChange={e => setAlignFilter(e.target.value)} className="campo-select" style={{ height: '2.25rem' }}>
           <option value="all">Todos alinhamentos</option>
           {Object.entries(ALIGN_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
-        <select value={profileFilter} onChange={e => setProfileFilter(e.target.value)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm min-w-0">
+        <select value={profileFilter} onChange={e => setProfileFilter(e.target.value)} className="campo-select" style={{ height: '2.25rem' }}>
           <option value="all">Todos segmentos</option>
           {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto px-4 py-4 pb-24">
         {isLoading ? (
-          <div className="text-center text-sm text-muted-foreground py-12">Carregando...</div>
+          <div className="text-center text-sm py-12" style={{ color: 'var(--campo-text-mute)' }}>Carregando...</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
-            <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-4">Nenhuma liderança encontrada com os filtros atuais.</p>
-            <Link to="/campo/liderancas/novo" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground" style={{ background: 'var(--gradient-primary)' }}>
-              <Plus className="w-4 h-4" /> Cadastrar primeira liderança
+            <Users className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--campo-text-faint)' }} />
+            <p className="text-sm mb-4" style={{ color: 'var(--campo-text-mute)' }}>Nenhuma liderança encontrada.</p>
+            <Link to="/campo/liderancas/novo" className="campo-cta inline-flex">
+              <Plus className="w-4 h-4" /> Cadastrar primeira
             </Link>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map(l => {
               const myProfiles = profiles.filter(p => leaderProfileLinks.some(lk => lk.leader_id === l.id && lk.profile_id === p.id));
               const align = l.alignment_status ?? 'indefinido';
               return (
-                <Link key={l.id} to={`/campo/liderancas/${l.id}`} className="group relative rounded-xl border border-border bg-card p-4 hover:border-primary/50 transition-all">
+                <Link key={l.id} to={`/campo/liderancas/${l.id}`} className="campo-card group relative p-4 block">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
-                      {l.photo_url ? <img src={l.photo_url} alt={l.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">{l.name.slice(0,2).toUpperCase()}</div>}
+                    <div
+                      className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0"
+                      style={{ background: 'var(--campo-surface-2)' }}
+                    >
+                      {l.photo_url
+                        ? <img src={l.photo_url} alt={l.name} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center text-xs text-white">{l.name.slice(0,2).toUpperCase()}</div>}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold text-foreground truncate">{l.name}</div>
-                      <div className="text-[11px] text-muted-foreground flex items-center gap-1 truncate"><MapPin className="w-3 h-3" />{l.municipality ?? '—'}{l.neighborhood ? ` · ${l.neighborhood}` : ''}</div>
-                      {l.phone && <div className="text-[11px] text-muted-foreground flex items-center gap-1 truncate"><Phone className="w-3 h-3" />{l.phone}</div>}
+                      <div className="text-sm font-semibold text-white truncate">{l.name}</div>
+                      <div className="text-[11px] flex items-center gap-1 truncate" style={{ color: 'var(--campo-text-mute)' }}>
+                        <MapPin className="w-3 h-3" />{l.municipality ?? '—'}{l.neighborhood ? ` · ${l.neighborhood}` : ''}
+                      </div>
+                      {l.phone && (
+                        <div className="text-[11px] flex items-center gap-1 truncate" style={{ color: 'var(--campo-text-mute)' }}>
+                          <Phone className="w-3 h-3" />{l.phone}
+                        </div>
+                      )}
                     </div>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase" style={{ color: ALIGN_COLORS[align], backgroundColor: `${ALIGN_COLORS[align]}20` }}>{ALIGN_LABELS[align]}</span>
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase"
+                      style={{ color: ALIGN_COLORS[align], backgroundColor: `${ALIGN_COLORS[align]}25` }}
+                    >
+                      {ALIGN_LABELS[align]}
+                    </span>
                   </div>
                   {myProfiles.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3">
                       {myProfiles.slice(0,4).map(p => (
-                        <span key={p.id} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full border" style={{ color: p.color, borderColor: `${p.color}40`, backgroundColor: `${p.color}15` }}>{p.name}</span>
+                        <span
+                          key={p.id}
+                          className="text-[10px] font-medium px-1.5 py-0.5 rounded-full border"
+                          style={{ color: p.color, borderColor: `${p.color}50`, backgroundColor: `${p.color}20` }}
+                        >
+                          {p.name}
+                        </span>
                       ))}
-                      {myProfiles.length > 4 && <span className="text-[10px] text-muted-foreground">+{myProfiles.length-4}</span>}
+                      {myProfiles.length > 4 && (
+                        <span className="text-[10px]" style={{ color: 'var(--campo-text-mute)' }}>+{myProfiles.length-4}</span>
+                      )}
                     </div>
                   )}
-                  <Pencil className="absolute top-3 right-3 w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                  <Pencil
+                    className="absolute top-3 right-3 w-3 h-3 opacity-0 group-hover:opacity-100"
+                    style={{ color: 'var(--campo-text-mute)' }}
+                  />
                 </Link>
               );
             })}
