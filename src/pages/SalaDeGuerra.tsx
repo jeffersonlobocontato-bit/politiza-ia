@@ -147,6 +147,7 @@ export default function SalaDeGuerra() {
   const { data: macroStats = {} } = useMacroStats();
   const { data: macroRegionsDB = [] } = useMacroRegionsDB();
   const { data: actions = [] } = useActions();
+  const { data: politicalAssets = [] } = usePoliticalAssets();
   const { data: dbSurveys } = useSurveys();
   const { data: strategicKPIs } = useStrategicKPIs();
   const markRead = useMarkAlertRead();
