@@ -144,43 +144,35 @@ export default function CampoLiderancaForm() {
     }
   };
 
-  // Design system: dark navy field with mint focus accent
-  const inputCls =
-    'w-full min-w-0 h-11 rounded-xl border border-white/10 bg-[#0F1B33] px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#2FA85A]/60 focus:ring-2 focus:ring-[#2FA85A]/20';
-  const labelCls = 'text-[11px] uppercase tracking-wide text-white/50 block mb-1.5 font-semibold';
+  // Design system: classes globais .campo-* (definidas em styles/campo-mobile.css)
+  const inputCls = 'campo-input';
+  const labelCls = 'campo-label';
 
   return (
-    <div
-      className="min-h-full flex flex-col w-full max-w-2xl mx-auto text-white"
-      style={{ background: 'linear-gradient(180deg, #0B1428 0%, #0A0F1F 100%)' }}
-    >
-      {/* Header — symmetric px-4 */}
-      <div className="px-4 py-4 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
-        <Link to="/campo/liderancas" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 flex-shrink-0">
+    <div className="campo-screen w-full max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="campo-page-header">
+        <Link to="/campo/liderancas" className="campo-icon-btn">
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <div className="min-w-0">
-          <h1 className="text-sm font-bold text-white truncate">{isEdit ? 'Editar Liderança' : 'Nova Liderança de Campo'}</h1>
-          <p className="text-[11px] text-white/50 truncate">Passo {step} de {STEPS.length} — {STEPS[step-1].label}</p>
+        <div className="min-w-0 flex-1">
+          <h1>{isEdit ? 'Editar Liderança' : 'Nova Liderança'}</h1>
+          <p>Passo {step} de {STEPS.length} — {STEPS[step-1].label}</p>
         </div>
       </div>
 
       {/* Stepper */}
-      <div className="px-4 py-3 border-b border-white/5 flex gap-1.5 flex-shrink-0 overflow-x-auto scrollbar-none">
+      <div
+        className="px-4 py-3 flex gap-1.5 flex-shrink-0 overflow-x-auto scrollbar-none"
+        style={{ borderBottom: '1px solid var(--campo-line)' }}
+      >
         {STEPS.map(s => {
           const active = step === s.id;
-          const done = step > s.id;
           return (
             <button
               key={s.id}
               onClick={() => setStep(s.id)}
-              className={`flex-1 min-w-[64px] flex flex-col items-center gap-1 py-2 px-1 rounded-lg text-[10px] font-semibold transition-colors ${
-                active
-                  ? 'bg-[#2FA85A]/15 text-[#5BE0A0] border border-[#2FA85A]/30'
-                  : done
-                  ? 'text-white/60 border border-transparent'
-                  : 'text-white/30 border border-transparent'
-              }`}
+              className={`campo-pill ${active ? 'campo-pill-active' : ''} flex flex-col items-center gap-1 py-2 min-w-[64px]`}
             >
               <s.icon className="w-4 h-4" />
               {s.label}
@@ -318,7 +310,7 @@ export default function CampoLiderancaForm() {
                 value={observations}
                 onChange={e => setObservations(e.target.value)}
                 rows={3}
-                className="w-full min-w-0 rounded-xl border border-white/10 bg-[#0F1B33] px-3 py-3 text-sm text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-[#2FA85A]/60 focus:ring-2 focus:ring-[#2FA85A]/20"
+                className="campo-textarea"
               />
             </div>
           </div>
@@ -326,7 +318,7 @@ export default function CampoLiderancaForm() {
 
         {step === 5 && (
           <div className="space-y-3 animate-fade-in">
-            <div className="rounded-2xl border border-white/10 p-4 space-y-2.5 bg-white/5">
+            <div className="campo-card p-4 space-y-2.5">
               {[
                 { l: 'Nome', v: name },
                 { l: 'Cidade / Bairro', v: `${geo.city || '—'}${neighborhood ? ` · ${neighborhood}` : ''}` },
@@ -341,7 +333,7 @@ export default function CampoLiderancaForm() {
                 { l: 'Apoiou última eleição', v: supportedLast || '—' },
               ].map(r => (
                 <div key={r.l} className="flex items-start justify-between gap-3 text-xs">
-                  <span className="text-white/50 flex-shrink-0">{r.l}</span>
+                  <span style={{ color: 'var(--campo-text-mute)' }} className="flex-shrink-0">{r.l}</span>
                   <span className="font-semibold text-white text-right break-words min-w-0">{r.v}</span>
                 </div>
               ))}
@@ -350,12 +342,15 @@ export default function CampoLiderancaForm() {
         )}
       </div>
 
-      {/* Footer actions — symmetric px-4 */}
-      <div className="px-4 py-3 border-t border-white/10 bg-[#0A0F1F] flex items-center gap-2 flex-shrink-0 sticky bottom-0">
+      {/* Footer actions */}
+      <div
+        className="px-4 py-3 flex items-center gap-2 flex-shrink-0 sticky bottom-0"
+        style={{ background: 'rgba(10,15,31,0.92)', borderTop: '1px solid var(--campo-line)', backdropFilter: 'blur(10px)' }}
+      >
         <button
           onClick={() => setStep(Math.max(1, step - 1))}
           disabled={step === 1}
-          className="h-11 px-3 rounded-xl border border-white/10 bg-white/5 text-white/80 text-sm font-semibold disabled:opacity-30 flex items-center gap-1 flex-shrink-0"
+          className="campo-cta campo-cta-ghost"
         >
           <ArrowLeft className="w-4 h-4" /> Voltar
         </button>
@@ -363,8 +358,7 @@ export default function CampoLiderancaForm() {
           <button
             onClick={() => canAdvance() && setStep(step + 1)}
             disabled={!canAdvance()}
-            className="flex-1 h-11 rounded-xl font-bold text-sm text-white disabled:opacity-30 flex items-center justify-center gap-1.5 shadow-lg shadow-[#2FA85A]/20"
-            style={{ background: 'linear-gradient(135deg, #2FA85A 0%, #1F8444 100%)' }}
+            className="campo-cta flex-1"
           >
             Avançar <ArrowRight className="w-4 h-4" />
           </button>
@@ -372,8 +366,7 @@ export default function CampoLiderancaForm() {
           <button
             onClick={handleSubmit}
             disabled={createLeader.isPending || updateLeader.isPending}
-            className="flex-1 h-11 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-40 shadow-lg shadow-[#2FA85A]/30"
-            style={{ background: 'linear-gradient(135deg, #2FA85A 0%, #1F8444 100%)' }}
+            className="campo-cta flex-1"
           >
             <CheckCircle className="w-5 h-5" /> {isEdit ? 'Salvar' : 'Cadastrar Liderança'}
           </button>

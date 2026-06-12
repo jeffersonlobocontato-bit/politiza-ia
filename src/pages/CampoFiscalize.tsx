@@ -213,13 +213,18 @@ export default function CampoFiscalize() {
 
   if (submitted) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="campo-screen items-center justify-center">
         <div className="text-center animate-fade-in max-w-sm px-6">
-          <div className="w-16 h-16 rounded-full bg-brand-green/20 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-brand-green" />
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'rgba(47,168,90,0.15)', border: '1px solid rgba(47,168,90,0.35)' }}
+          >
+            <CheckCircle className="w-8 h-8" style={{ color: 'var(--campo-mint-glow)' }} />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Denúncia Enviada ao Jurídico</h2>
-          <p className="text-muted-foreground text-sm">A equipe jurídica recebeu sua denúncia com a cadeia de custódia das provas.</p>
+          <h2 className="text-xl font-bold text-white mb-2">Denúncia Enviada</h2>
+          <p className="text-sm" style={{ color: 'var(--campo-text-mute)' }}>
+            A equipe jurídica recebeu a denúncia com cadeia de custódia das provas.
+          </p>
         </div>
       </div>
     );
@@ -228,30 +233,37 @@ export default function CampoFiscalize() {
   const uploading = evidences.some(e => e.uploading);
   const hasEvidence = evidences.length > 0;
 
+  const steps = [
+    { id: 'evidence', label: '1. Provas' },
+    { id: 'form', label: '2. Denúncia' },
+    { id: 'confirm', label: '3. Enviar' },
+  ] as const;
+
   return (
-    <div className="h-full flex flex-col max-w-lg mx-auto relative">
-      <div className="px-6 py-4 border-b border-border flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <ShieldAlert className="w-5 h-5 text-destructive" />
-          <div>
-            <h1 className="text-base font-bold text-foreground">Fiscalize</h1>
-            <p className="text-xs text-muted-foreground">Flagrante eleitoral · capture a prova primeiro</p>
-          </div>
+    <div className="campo-screen max-w-lg mx-auto relative">
+      <div className="campo-page-header">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ background: 'rgba(232,93,58,0.18)', border: '1px solid rgba(232,93,58,0.4)' }}
+        >
+          <ShieldAlert className="w-4 h-4" style={{ color: '#FFB59A' }} />
         </div>
-        <div className="flex gap-2 mt-3">
-          {[
-            { id: 'evidence', label: '1. Provas' },
-            { id: 'form', label: '2. Denúncia' },
-            { id: 'confirm', label: '3. Enviar' },
-          ].map(s => (
-            <button key={s.id} onClick={() => setStep(s.id as Step)}
-              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-                step === s.id ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
-              }`}>
-              {s.label}
-            </button>
-          ))}
+        <div className="min-w-0 flex-1">
+          <h1>Fiscalize</h1>
+          <p>Flagrante eleitoral · capture a prova primeiro</p>
         </div>
+      </div>
+
+      <div className="px-4 py-3 flex gap-1.5" style={{ borderBottom: '1px solid var(--campo-line)' }}>
+        {steps.map(s => (
+          <button
+            key={s.id}
+            onClick={() => setStep(s.id as Step)}
+            className={`campo-pill ${step === s.id ? 'campo-pill-danger-active' : ''}`}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
       {/* Input camera global — sempre montado para o FAB funcionar */}
@@ -259,36 +271,53 @@ export default function CampoFiscalize() {
         capture="environment" multiple
         onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} className="hidden" />
 
-      <div className="flex-1 overflow-auto p-4 pb-24">
+      <div className="flex-1 overflow-auto px-4 py-4 pb-24">
         {step === 'evidence' && (
           <div className="space-y-4 animate-fade-in">
-            <div className="flex gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-              <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground">
+            <div
+              className="flex gap-2 rounded-xl p-3"
+              style={{
+                background: 'rgba(232,93,58,0.08)',
+                border: '1px solid rgba(232,93,58,0.3)',
+              }}
+            >
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#FFB59A' }} />
+              <p className="campo-helper">
                 Capture pela câmera para preservar a cadeia de custódia. Cada arquivo recebe hash SHA-256, GPS e timestamp do servidor.
               </p>
             </div>
 
             {!hasEvidence && (
-              <button onClick={() => captureRef.current?.click()}
-                className="w-full aspect-video rounded-2xl border-2 border-dashed border-destructive/40 bg-destructive/5 flex flex-col items-center justify-center gap-3 hover:bg-destructive/10 transition-colors">
-                <div className="w-14 h-14 rounded-full bg-destructive/15 flex items-center justify-center">
-                  <Camera className="w-7 h-7 text-destructive" />
+              <button
+                onClick={() => captureRef.current?.click()}
+                className="w-full aspect-video rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors"
+                style={{
+                  border: '2px dashed rgba(232,93,58,0.45)',
+                  background: 'rgba(232,93,58,0.06)',
+                }}
+              >
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(232,93,58,0.18)' }}
+                >
+                  <Camera className="w-7 h-7" style={{ color: '#FFB59A' }} />
                 </div>
                 <div className="text-center px-6">
-                  <div className="text-sm font-semibold text-foreground">Abrir câmera</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">Toque para registrar foto, vídeo ou áudio do flagrante</div>
+                  <div className="text-sm font-semibold text-white">Abrir câmera</div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--campo-text-mute)' }}>
+                    Toque para registrar foto, vídeo ou áudio do flagrante
+                  </div>
                 </div>
               </button>
             )}
 
             <div className="grid grid-cols-2 gap-3">
               {evidences.map((e, i) => (
-                <div key={i} className="aspect-square rounded-xl bg-muted border border-border relative overflow-hidden">
+                <div key={i} className="aspect-square rounded-xl campo-card-flat relative overflow-hidden">
                   {e.file.type.startsWith('image/') ? (
                     <img src={e.previewUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted-foreground p-2 text-center">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-xs p-2 text-center" style={{ color: 'var(--campo-text-mute)' }}>
                       <Camera className="w-6 h-6 mb-1" />
                       {e.file.name.slice(0, 24)}
                     </div>
@@ -306,29 +335,41 @@ export default function CampoFiscalize() {
                       sha {e.uploaded.sha256.slice(0, 10)}…
                     </div>
                   )}
-                  <button onClick={() => setEvidences(prev => prev.filter((_, idx) => idx !== i))}
-                    className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white">
+                  <button
+                    onClick={() => setEvidences(prev => prev.filter((_, idx) => idx !== i))}
+                    className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white"
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </div>
               ))}
               {hasEvidence && evidences.length < 5 && (
-                <button onClick={() => captureRef.current?.click()}
-                  className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-destructive/50 hover:bg-destructive/5 transition-colors">
-                  <Plus className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Nova prova</span>
+                <button
+                  onClick={() => captureRef.current?.click()}
+                  className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors"
+                  style={{
+                    border: '2px dashed var(--campo-line-strong)',
+                    background: 'rgba(255,255,255,0.02)',
+                    color: 'var(--campo-text-mute)',
+                  }}
+                >
+                  <Plus className="w-6 h-6" />
+                  <span className="text-xs">Nova prova</span>
                 </button>
               )}
             </div>
 
             {geo.lat && (
-              <div className="text-[10px] text-muted-foreground text-center">
+              <div className="text-[10px] text-center" style={{ color: 'var(--campo-text-mute)' }}>
                 📍 GPS capturado: {geo.lat.toFixed(5)}, {geo.lng?.toFixed(5)}
               </div>
             )}
 
-            <button onClick={() => setStep('form')} disabled={uploading}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-destructive-foreground bg-destructive disabled:opacity-40">
+            <button
+              onClick={() => setStep('form')}
+              disabled={uploading}
+              className="campo-cta campo-cta-red w-full"
+            >
               {uploading ? 'Enviando provas…' : hasEvidence ? 'Próximo: Preencher denúncia →' : 'Pular e preencher sem provas →'}
             </button>
           </div>
@@ -337,39 +378,37 @@ export default function CampoFiscalize() {
         {step === 'form' && (
           <div className="space-y-4 animate-fade-in">
             {hasEvidence && (
-              <div className="rounded-lg bg-brand-green/10 border border-brand-green/30 p-2 text-xs text-foreground">
-                ✓ {evidences.filter(e => e.uploaded).length} prova(s) já preservada(s) com hash e timestamp
+              <div
+                className="rounded-xl p-2.5 text-xs text-white"
+                style={{ background: 'rgba(47,168,90,0.12)', border: '1px solid rgba(47,168,90,0.35)' }}
+              >
+                ✓ {evidences.filter(e => e.uploaded).length} prova(s) preservada(s) com hash e timestamp
               </div>
             )}
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Categoria da Irregularidade *</label>
-              <select value={category} onChange={e => setCategory(e.target.value)}
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+              <label className="campo-label">Categoria da Irregularidade *</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} className="campo-select">
                 <option value="">Selecione...</option>
                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Título da Denúncia *</label>
+              <label className="campo-label">Título da Denúncia *</label>
               <input value={title} onChange={e => setTitle(e.target.value)} maxLength={140}
-                placeholder="Ex: Distribuição de cestas básicas em comício"
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                placeholder="Ex: Distribuição de cestas básicas em comício" className="campo-input" />
             </div>
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Denunciado *</label>
+              <label className="campo-label">Denunciado *</label>
               <input value={denouncedName} onChange={e => setDenouncedName(e.target.value)} maxLength={120}
-                placeholder="Nome do denunciado"
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring mb-2" />
+                placeholder="Nome do denunciado" className="campo-input mb-2" />
               <div className="grid grid-cols-2 gap-2">
                 <input value={denouncedRole} onChange={e => setDenouncedRole(e.target.value)} maxLength={60}
-                  placeholder="Cargo / função"
-                  className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  placeholder="Cargo / função" className="campo-input" />
                 <input value={denouncedParty} onChange={e => setDenouncedParty(e.target.value)} maxLength={20}
-                  placeholder="Partido"
-                  className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  placeholder="Partido" className="campo-input" />
               </div>
             </div>
 
@@ -378,15 +417,17 @@ export default function CampoFiscalize() {
               placeholder="Geolocalizar ou informar endereço" />
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Relato dos Fatos *</label>
+              <label className="campo-label">Relato dos Fatos *</label>
               <textarea value={narrative} onChange={e => setNarrative(e.target.value)} rows={5} maxLength={3000}
                 placeholder="Descreva quando, onde e como a irregularidade ocorreu..."
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
-              <div className="text-[10px] text-muted-foreground text-right mt-1">{narrative.length}/3000</div>
+                className="campo-textarea" />
+              <div className="text-[10px] text-right mt-1" style={{ color: 'var(--campo-text-mute)' }}>
+                {narrative.length}/3000
+              </div>
             </div>
 
             <button onClick={() => baseValid && setStep('confirm')} disabled={!baseValid}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-destructive-foreground bg-destructive disabled:opacity-40 disabled:cursor-not-allowed">
+              className="campo-cta campo-cta-red w-full">
               {baseValid ? 'Próximo: Revisar e Enviar →' : 'Preencha os campos obrigatórios'}
             </button>
           </div>
@@ -394,8 +435,8 @@ export default function CampoFiscalize() {
 
         {step === 'confirm' && (
           <div className="space-y-4 animate-fade-in">
-            <h2 className="text-sm font-semibold text-foreground">Confirmar Denúncia</h2>
-            <div className="rounded-xl border border-border p-4 space-y-3 bg-card">
+            <h2 className="campo-h2">Confirmar Denúncia</h2>
+            <div className="campo-card p-4 space-y-2.5">
               {[
                 { label: 'Categoria', value: CATEGORIES.find(c => c.value === category)?.label ?? '—' },
                 { label: 'Título', value: title },
@@ -407,28 +448,29 @@ export default function CampoFiscalize() {
                 { label: 'Último registro', value: evidences.length ? formatStamp(new Date(evidences[evidences.length - 1].capturedAt)) : '—' },
                 { label: 'Candidato vinculado', value: activeCandidate?.name ?? 'Nenhum (visível ao admin master)' },
               ].map(item => (
-                <div key={item.label} className="flex items-start justify-between gap-4">
-                  <span className="text-xs text-muted-foreground flex-shrink-0">{item.label}</span>
-                  <span className="text-xs font-medium text-foreground text-right">{item.value}</span>
+                <div key={item.label} className="flex items-start justify-between gap-3 text-xs">
+                  <span style={{ color: 'var(--campo-text-mute)' }} className="flex-shrink-0">{item.label}</span>
+                  <span className="font-medium text-white text-right">{item.value}</span>
                 </div>
               ))}
             </div>
-            <div className="rounded-xl border border-border bg-muted/30 p-3">
-              <div className="text-xs text-muted-foreground mb-1">Relato:</div>
-              <div className="text-xs text-foreground whitespace-pre-wrap">{narrative}</div>
+            <div className="campo-card-flat p-3">
+              <div className="text-[11px] mb-1" style={{ color: 'var(--campo-text-mute)' }}>Relato:</div>
+              <div className="text-xs text-white whitespace-pre-wrap">{narrative}</div>
             </div>
             <button onClick={handleSubmit} disabled={submitting || !baseValid}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-destructive-foreground bg-destructive disabled:opacity-40 flex items-center justify-center gap-2">
+              className="campo-cta campo-cta-red w-full">
               {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando ao jurídico…</> : 'Enviar Denúncia ao Jurídico'}
             </button>
           </div>
         )}
       </div>
 
-      {/* FAB +Prova persistente em todas as etapas (exceto quando ainda não há nenhuma e a tela já mostra o botão grande) */}
+      {/* FAB +Prova persistente */}
       {!(step === 'evidence' && !hasEvidence) && evidences.length < 5 && (
         <button onClick={() => captureRef.current?.click()}
-          className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-destructive text-destructive-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+          className="fixed bottom-24 right-5 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform z-30"
+          style={{ background: 'var(--campo-grad-cta-red)', boxShadow: '0 10px 24px -8px rgba(232,93,58,0.6)' }}
           title="Capturar nova prova">
           <Camera className="w-6 h-6" />
         </button>

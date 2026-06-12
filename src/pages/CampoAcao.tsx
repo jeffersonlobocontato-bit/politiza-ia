@@ -28,12 +28,10 @@ export default function CampoAcao() {
   const [submitted, setSubmitted] = useState(false);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
-
   const geoValid = geo.city.trim() !== '' && geo.lat !== null && geo.lng !== null;
 
   const handleSubmit = () => {
     if (!geoValid) return;
-
     createAction.mutate({
       title: input.actionTitle || 'Ação de Campo',
       type: 'mobilizacao_comunitaria',
@@ -76,96 +74,104 @@ export default function CampoAcao() {
 
   if (submitted) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center animate-fade-in">
-          <div className="w-16 h-16 rounded-full bg-brand-green/20 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-brand-green" />
+      <div className="campo-screen items-center justify-center">
+        <div className="text-center animate-fade-in px-6">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'rgba(47,168,90,0.15)', border: '1px solid rgba(47,168,90,0.35)' }}
+          >
+            <CheckCircle className="w-8 h-8" style={{ color: 'var(--campo-mint-glow)' }} />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Ação Registrada!</h2>
-          <p className="text-muted-foreground text-sm">Sua execução foi enviada para o sistema.</p>
-          <p className="text-xs text-muted-foreground mt-1">Já aparece no Mapa Estratégico e na Sala de Guerra.</p>
+          <h2 className="text-xl font-bold text-white mb-2">Ação Registrada!</h2>
+          <p className="text-sm" style={{ color: 'var(--campo-text-mute)' }}>Sua execução foi enviada para o sistema.</p>
         </div>
       </div>
     );
   }
 
+  const steps = [
+    { id: 'form', label: '1. Dados' },
+    { id: 'photo', label: '2. Evidências' },
+    { id: 'confirm', label: '3. Enviar' },
+  ] as const;
+
   return (
-    <div className="h-full flex flex-col max-w-lg mx-auto">
+    <div className="campo-screen max-w-lg mx-auto">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <Smartphone className="w-5 h-5 text-primary" />
-          <div>
-            <h1 className="text-base font-bold text-foreground">Registro de Campo</h1>
-            <p className="text-xs text-muted-foreground">Input de execução — Interface simplificada</p>
-          </div>
+      <div className="campo-page-header">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ background: 'rgba(31,90,180,0.18)', border: '1px solid rgba(31,90,180,0.4)' }}
+        >
+          <Smartphone className="w-4 h-4" style={{ color: '#5BA0FF' }} />
         </div>
-        <div className="flex gap-2 mt-3">
-          {[
-            { id: 'form', label: '1. Dados + Local' },
-            { id: 'photo', label: '2. Evidências' },
-            { id: 'confirm', label: '3. Enviar' },
-          ].map(s => (
-            <button
-              key={s.id}
-              onClick={() => setStep(s.id as any)}
-              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${step === s.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
-            >
-              {s.label}
-            </button>
-          ))}
+        <div className="min-w-0 flex-1">
+          <h1>Registrar Ação</h1>
+          <p>Execução de campo · {steps.find(s => s.id === step)?.label}</p>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
+      {/* Stepper */}
+      <div className="px-4 py-3 flex gap-1.5" style={{ borderBottom: '1px solid var(--campo-line)' }}>
+        {steps.map(s => (
+          <button
+            key={s.id}
+            onClick={() => setStep(s.id as any)}
+            className={`campo-pill ${step === s.id ? 'campo-pill-active' : ''}`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
 
-        {/* ── Step 1: Dados + Localização ── */}
+      <div className="flex-1 overflow-auto px-4 py-4 space-y-4 pb-24">
         {step === 'form' && (
           <div className="space-y-4 animate-fade-in">
-            <h2 className="text-sm font-semibold text-foreground">Dados da Execução</h2>
+            <h2 className="campo-h2">Dados da Execução</h2>
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Título / Nome da Ação *</label>
+              <label className="campo-label">Título / Nome da Ação *</label>
               <input
                 value={input.actionTitle}
                 onChange={e => update('actionTitle', e.target.value)}
                 placeholder="Ex: Panfletagem Centro de Curitiba"
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="campo-input"
               />
             </div>
 
-            {/* Geolocation — obrigatória */}
             <GeoLocationInput
               value={geo}
               onChange={setGeo}
               required
-              label="Cidade / Localização Exata *"
+              label="Cidade / Localização *"
               placeholder="Ex: Curitiba, Londrina, Maringá..."
             />
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Data de Execução</label>
-                <input type="date" value={input.executedDate} onChange={e => update('executedDate', e.target.value)} className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+              <div className="min-w-0">
+                <label className="campo-label">Data</label>
+                <input type="date" value={input.executedDate} onChange={e => update('executedDate', e.target.value)} className="campo-input" />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Horário Real</label>
-                <input type="time" value={input.executedTime} onChange={e => update('executedTime', e.target.value)} className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+              <div className="min-w-0">
+                <label className="campo-label">Horário</label>
+                <input type="time" value={input.executedTime} onChange={e => update('executedTime', e.target.value)} className="campo-input" />
               </div>
             </div>
+
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Pessoas Impactadas (estimativa) *</label>
+              <label className="campo-label">Pessoas Impactadas *</label>
               <input
                 type="number"
                 value={input.peopleCount}
                 onChange={e => update('peopleCount', e.target.value)}
                 placeholder="Ex: 500"
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="campo-input"
               />
             </div>
+
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Resultado Percebido</label>
-              <select value={input.result} onChange={e => update('result', e.target.value)} className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+              <label className="campo-label">Resultado Percebido</label>
+              <select value={input.result} onChange={e => update('result', e.target.value)} className="campo-select">
                 <option value="">Selecione...</option>
                 <option>Ótimo — Alta receptividade</option>
                 <option>Bom — Boa receptividade</option>
@@ -173,93 +179,90 @@ export default function CampoAcao() {
                 <option>Fraco — Baixa receptividade</option>
               </select>
             </div>
+
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Observações</label>
+              <label className="campo-label">Observações</label>
               <textarea
                 value={input.observations}
                 onChange={e => update('observations', e.target.value)}
                 placeholder="Descreva como foi a ação, situações relevantes..."
                 rows={3}
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                className="campo-textarea"
               />
             </div>
+
             <button
               onClick={() => geoValid && setStep('photo')}
               disabled={!geoValid}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: 'var(--gradient-primary)' }}
+              className="campo-cta w-full"
             >
-              {geoValid ? 'Próximo: Adicionar Evidências →' : 'Informe a localização para continuar'}
+              {geoValid ? 'Próximo: Evidências →' : 'Informe a localização para continuar'}
             </button>
           </div>
         )}
 
-        {/* ── Step 2: Evidências ── */}
         {step === 'photo' && (
           <div className="space-y-4 animate-fade-in">
-            <h2 className="text-sm font-semibold text-foreground">Evidências Fotográficas</h2>
-            <p className="text-xs text-muted-foreground">Adicione fotos que comprovem a realização da ação.</p>
+            <h2 className="campo-h2">Evidências Fotográficas</h2>
+            <p className="campo-helper">Adicione fotos que comprovem a realização da ação.</p>
             <div className="grid grid-cols-2 gap-3">
               {photos.map((p, i) => (
-                <div key={i} className="aspect-square rounded-xl bg-muted border border-border flex items-center justify-center relative overflow-hidden">
+                <div key={i} className="aspect-square rounded-xl overflow-hidden relative campo-card-flat">
                   <img src={p} alt={`Evidência ${i + 1}`} className="w-full h-full object-cover" />
-                  <button onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} className="absolute top-2 right-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white text-xs">✕</button>
+                  <button
+                    onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
+                    className="absolute top-2 right-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white text-xs"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
               <button
                 onClick={() => setPhotos([...photos, `https://picsum.photos/200/200?random=${Date.now()}`])}
-                className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors"
+                style={{
+                  border: '2px dashed var(--campo-line-strong)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: 'var(--campo-text-mute)',
+                }}
               >
-                <Camera className="w-6 h-6 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Adicionar foto</span>
+                <Camera className="w-6 h-6" />
+                <span className="text-xs">Adicionar foto</span>
               </button>
             </div>
-            <p className="text-[10px] text-muted-foreground text-center">Clique em "Adicionar foto" para simular upload de evidência</p>
-            <button onClick={() => setStep('confirm')} className="w-full h-12 rounded-xl font-semibold text-sm text-primary-foreground" style={{ background: 'var(--gradient-primary)' }}>
-              Próximo: Confirmar Envio →
+            <button onClick={() => setStep('confirm')} className="campo-cta w-full">
+              Próximo: Confirmar →
             </button>
           </div>
         )}
 
-        {/* ── Step 3: Confirmar ── */}
         {step === 'confirm' && (
           <div className="space-y-4 animate-fade-in">
-            <h2 className="text-sm font-semibold text-foreground">Confirmar Registro</h2>
-            <div className="rounded-xl border border-border p-4 space-y-3" style={{ background: 'var(--gradient-card)' }}>
+            <h2 className="campo-h2">Confirmar Registro</h2>
+            <div className="campo-card p-4 space-y-2.5">
               {[
                 { label: 'Ação', value: input.actionTitle || '(não informado)' },
                 { label: 'Cidade', value: geo.city || '(não informado)' },
-                { label: 'Coordenadas', value: geo.lat ? `${geo.lat.toFixed(5)}, ${geo.lng?.toFixed(5)}` : 'Não definido' },
+                { label: 'Coordenadas', value: geo.lat ? `${geo.lat.toFixed(5)}, ${geo.lng?.toFixed(5)}` : '—' },
                 { label: 'Data/Hora', value: `${input.executedDate} às ${input.executedTime}` },
-                { label: 'Pessoas Impactadas', value: input.peopleCount ? `~${parseInt(input.peopleCount).toLocaleString()}` : '(não informado)' },
-                { label: 'Resultado', value: input.result || '(não informado)' },
+                { label: 'Pessoas', value: input.peopleCount ? `~${parseInt(input.peopleCount).toLocaleString()}` : '—' },
+                { label: 'Resultado', value: input.result || '—' },
                 { label: 'Evidências', value: `${photos.length} foto(s)` },
               ].map(item => (
-                <div key={item.label} className="flex items-start justify-between gap-4">
-                  <span className="text-xs text-muted-foreground flex-shrink-0">{item.label}</span>
-                  <span className="text-xs font-medium text-foreground text-right">{item.value}</span>
+                <div key={item.label} className="flex items-start justify-between gap-3 text-xs">
+                  <span style={{ color: 'var(--campo-text-mute)' }}>{item.label}</span>
+                  <span className="font-semibold text-right text-white">{item.value}</span>
                 </div>
               ))}
             </div>
             {input.observations && (
-              <div className="rounded-xl border border-border p-3 bg-muted/30">
-                <div className="text-xs text-muted-foreground mb-1">Observações:</div>
-                <div className="text-xs text-foreground">{input.observations}</div>
+              <div className="campo-card-flat p-3">
+                <div className="text-[11px] mb-1" style={{ color: 'var(--campo-text-mute)' }}>Observações:</div>
+                <div className="text-xs text-white">{input.observations}</div>
               </div>
             )}
-            {!geoValid && (
-              <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
-                ⚠ Geolocalização não confirmada. Volte ao passo 1 e confirme a cidade.
-              </div>
-            )}
-            <button
-              onClick={handleSubmit}
-              disabled={!geoValid}
-              className="w-full h-12 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, hsl(142 72% 45%), hsl(142 72% 38%))' }}
-            >
-              <CheckCircle className="w-5 h-5" />
-              Confirmar e Enviar Registro
+            <button onClick={handleSubmit} disabled={!geoValid} className="campo-cta w-full">
+              <CheckCircle className="w-5 h-5" /> Confirmar e Enviar
             </button>
           </div>
         )}
