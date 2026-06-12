@@ -30,6 +30,7 @@ const ROLES: { value: AppRole; label: string; description: string; color: string
   { value: 'analista_inteligencia',     label: 'Analista de Inteligência',  description: 'Análise estratégica, alertas e indicadores.',              color: 'bg-violet-500/15 text-violet-400 border-violet-500/30' },
   { value: 'analista_pesquisa',         label: 'Analista de Pesquisa',      description: 'Gerencia pesquisas eleitorais e tracking.',                color: 'bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/30' },
   { value: 'executivo_leitura',         label: 'Executivo (Leitura)',       description: 'Visualiza dashboards sem permissão de edição.',            color: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
+  { value: 'gestor_operacional',        label: 'Gestor Operacional',        description: 'Acesso limitado: dashboard, Pesquisas, Campo, Proporcional, Agenda e Hierarquia.', color: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30' },
 ];
 
 const roleMeta = (r: AppRole) => ROLES.find(x => x.value === r);
