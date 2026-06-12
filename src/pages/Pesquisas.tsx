@@ -190,16 +190,20 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
       // Auto-fill form with parsed data
       const govScenarios = parsed.govScenarios?.length > 0
-        ? parsed.govScenarios.map((s: any) => ({
+        ? parsed.govScenarios.map((s: any, i: number) => ({
             label: s.label || 'Cenário',
             candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+            isMultipleChoice: !!s.isMultipleChoice,
+            isMainScenario: i === 0,
           }))
         : form.govScenarios;
 
       const senScenarios = parsed.senScenarios?.length > 0
-        ? parsed.senScenarios.map((s: any) => ({
+        ? parsed.senScenarios.map((s: any, i: number) => ({
             label: s.label || 'Cenário',
             candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+            isMultipleChoice: !!s.isMultipleChoice,
+            isMainScenario: i === 0,
           }))
         : form.senScenarios;
 
