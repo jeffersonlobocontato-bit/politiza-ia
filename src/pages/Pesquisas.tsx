@@ -1150,6 +1150,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   const [targetCargo, setTargetCargo] = useState<Cargo>('governador');
   const [targetCandidateId, setTargetCandidateId] = useState<string>('');
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
+  const [activeScenarioByWave, setActiveScenarioByWave] = useState<Record<string, string>>({});
 
   const toggleWave = (id: string) => {
     setSelectedWaves(prev =>
