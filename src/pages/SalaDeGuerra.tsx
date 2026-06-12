@@ -244,15 +244,11 @@ export default function SalaDeGuerra() {
     return new Date(d).getTime();
   };
 
-  const allWaves: PollWave[] = [
-    ...(dbSurveys?.waves ?? []),
-    ...pollWaves.filter(w => !(dbSurveys?.waves ?? []).some(dw => dw.id === w.id)),
-  ].sort((a, b) => toTs(a.releaseDate) - toTs(b.releaseDate));
+  // Apenas pesquisas cadastradas na plataforma (sem seed estático)
+  const allWaves: PollWave[] = [...(dbSurveys?.waves ?? [])]
+    .sort((a, b) => toTs(a.releaseDate) - toTs(b.releaseDate));
 
-  const allQuestions: PollQuestion[] = [
-    ...(dbSurveys?.questions ?? []),
-    ...pollQuestions.filter(q => !(dbSurveys?.questions ?? []).some(dq => dq.id === q.id)),
-  ];
+  const allQuestions: PollQuestion[] = dbSurveys?.questions ?? [];
 
   // Normalize candidate name: strip trailing "(PARTY)" suffix so the same person
   // doesn't appear twice in the legend (e.g. "Sergio Moro" vs "Sergio Moro (PL)").
