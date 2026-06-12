@@ -2507,6 +2507,7 @@ export type Database = {
         | "gestor_estadual_novo"
         | "gestor_estadual_pl"
         | "juridico"
+        | "gestor_operacional"
       asset_type:
         | "prefeito"
         | "ex_prefeito"
@@ -2721,6 +2722,7 @@ export const Constants = {
         "gestor_estadual_novo",
         "gestor_estadual_pl",
         "juridico",
+        "gestor_operacional",
       ],
       asset_type: [
         "prefeito",

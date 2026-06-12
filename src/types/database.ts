@@ -4,7 +4,7 @@ export type AppRole =
   | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
   | 'coordenador_regional' | 'coordenador_microrregional' | 'coordenador_municipal'
   | 'lideranca_local' | 'operador_campo' | 'analista_inteligencia'
-  | 'analista_pesquisa' | 'executivo_leitura';
+  | 'analista_pesquisa' | 'executivo_leitura' | 'gestor_operacional';
 
 export type DbActionStatus = 'prevista' | 'confirmada' | 'em_andamento' | 'realizada' | 'atrasada' | 'cancelada' | 'pendente_validacao';
 export type DbActionType = 'reuniao_politica' | 'visita_institucional' | 'mobilizacao_comunitaria' | 'adesivacao' | 'panfletagem' | 'carreata' | 'evento_regional' | 'agenda_candidato' | 'reuniao_empresarios' | 'encontro_liderancas' | 'acao_digital';
@@ -232,6 +232,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   analista_inteligencia: 'Analista de Inteligência',
   analista_pesquisa: 'Analista de Pesquisa',
   executivo_leitura: 'Executivo (Leitura)',
+  gestor_operacional: 'Gestor Operacional',
 };
 
 export const ADMIN_ROLES: AppRole[] = ['admin_master', 'coordenador_geral', 'coordenador_estadual'];
