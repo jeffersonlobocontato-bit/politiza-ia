@@ -570,8 +570,19 @@ export default function SalaDeGuerra() {
                   <span className="text-[10px] text-muted-foreground">{l.label}</span>
                 </div>
               ))}
+              {mapView === 'politico' && [
+                { color: '#22c55e', label: 'Alinhados ≥60%' },
+                { color: '#f59e0b', label: 'Disputado 40-59%' },
+                { color: '#ef4444', label: 'Oposição <40%' },
+                { color: '#475569', label: 'Sem ativos' },
+              ].map(l => (
+                <div key={l.label} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color }} />
+                  <span className="text-[10px] text-muted-foreground">{l.label}</span>
+                </div>
+              ))}
               <span className="ml-auto text-[10px] text-muted-foreground">
-                {actions.filter(a => a.lat && a.lng).length} ações no mapa
+                {totalActionsMapped} ações · {politicalAssets.length} ativos
               </span>
             </div>
           </div>
