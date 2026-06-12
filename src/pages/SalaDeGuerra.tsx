@@ -23,6 +23,7 @@ import {
 import { useSurveys } from '@/hooks/useSurveys';
 import { useDashboardKPIs, useAlerts, useMacroStats, useMacroRegionsDB, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useActions } from '@/hooks/useActions';
+import { usePoliticalAssets } from '@/hooks/usePoliticalAssets';
 import { useStrategicKPIs } from '@/hooks/useStrategicAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import type { DbAlert } from '@/types/database';
