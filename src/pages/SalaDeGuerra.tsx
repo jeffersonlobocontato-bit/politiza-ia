@@ -16,10 +16,7 @@ import {
   ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
 } from 'recharts';
 import { municipalities } from '@/data/mockData';
-import {
-  pollWaves, pollQuestions, CANDIDATE_COLORS,
-  type PollWave, type PollQuestion,
-} from '@/data/pollsData';
+import type { PollWave, PollQuestion } from '@/data/pollsData';
 import { useSurveys } from '@/hooks/useSurveys';
 import { useDashboardKPIs, useAlerts, useMacroStats, useMacroRegionsDB, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useActions } from '@/hooks/useActions';
