@@ -23,6 +23,7 @@ import {
 import { useSurveys } from '@/hooks/useSurveys';
 import { useDashboardKPIs, useAlerts, useMacroStats, useMacroRegionsDB, useMarkAlertRead, useUpdateAlertStatus, useGenerateAlerts } from '@/hooks/useDashboard';
 import { useActions } from '@/hooks/useActions';
+import { usePoliticalAssets } from '@/hooks/usePoliticalAssets';
 import { useStrategicKPIs } from '@/hooks/useStrategicAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import type { DbAlert } from '@/types/database';
@@ -146,6 +147,7 @@ export default function SalaDeGuerra() {
   const { data: macroStats = {} } = useMacroStats();
   const { data: macroRegionsDB = [] } = useMacroRegionsDB();
   const { data: actions = [] } = useActions();
+  const { data: politicalAssets = [] } = usePoliticalAssets();
   const { data: dbSurveys } = useSurveys();
   const { data: strategicKPIs } = useStrategicKPIs();
   const markRead = useMarkAlertRead();
@@ -299,6 +301,42 @@ export default function SalaDeGuerra() {
 
   const recentlyDone = actions.filter(a => a.status === 'realizada').slice(0, 5);
 
+  // ── Real per-municipality metrics from platform data ──
+  const normCity = (s: string | null | undefined) =>
+    (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  const muniMetrics = (() => {
+    const map = new Map<string, { actions: number; done: number; delayed: number; assets: number; aligned: number; opposition: number; impacted: number }>();
+    const ensure = (k: string) => {
+      if (!map.has(k)) map.set(k, { actions: 0, done: 0, delayed: 0, assets: 0, aligned: 0, opposition: 0, impacted: 0 });
+      return map.get(k)!;
+    };
+    for (const a of actions) {
+      const k = normCity(a.municipality);
+      if (!k) continue;
+      const m = ensure(k);
+      m.actions += 1;
+      if (a.status === 'realizada') m.done += 1;
+      if (a.status === 'atrasada') m.delayed += 1;
+      m.impacted += a.executed_people_count ?? 0;
+    }
+    for (const p of politicalAssets) {
+      const k = normCity((p as any).municipality);
+      if (!k) continue;
+      const m = ensure(k);
+      m.assets += 1;
+      if ((p as any).alignment_status === 'alinhado' || (p as any).alignment_status === 'provavel') m.aligned += 1;
+      if ((p as any).alignment_status === 'oposicao') m.opposition += 1;
+    }
+    return map;
+  })();
+
+  const maxActions = Math.max(1, ...Array.from(muniMetrics.values()).map(m => m.actions));
+  const maxAssets = Math.max(1, ...Array.from(muniMetrics.values()).map(m => m.assets));
+
+  const totalActionsMapped = actions.filter(a => a.municipality).length;
+
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -425,17 +463,42 @@ export default function SalaDeGuerra() {
                   url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   attribution='&copy; <a href="https://carto.com">CARTO</a>'
                 />
-                {/* Municipality base circles */}
+                {/* Municipality circles — colored by REAL platform data */}
                 {municipalities.map(muni => {
-                  const s = macroStats[muni.macroregion] ?? { total: 0, done: 0 };
-                  const hasData = s.total > 0;
-                  const rate = hasData ? (s.done / s.total) * 100 : 0;
+                  const m = muniMetrics.get(normCity(muni.name));
+                  const acts = m?.actions ?? 0;
+                  const done = m?.done ?? 0;
+                  const assets = m?.assets ?? 0;
+                  const aligned = m?.aligned ?? 0;
+                  const opposition = m?.opposition ?? 0;
+                  const execRate = acts > 0 ? (done / acts) * 100 : 0;
+                  const engagement = Math.round(
+                    Math.min(100, (acts / maxActions) * 60 + (assets / maxAssets) * 40)
+                  );
+                  const alignedTotal = aligned + opposition;
+                  const alignedPct = alignedTotal > 0 ? (aligned / alignedTotal) * 100 : 0;
+
+                  const hasOps = acts > 0;
+                  const hasPol = assets > 0;
+                  const hasEng = acts > 0 || assets > 0;
+
                   const color = mapView === 'calor'
-                    ? engagementColor(muni.engagementScore)
+                    ? (hasEng ? engagementColor(engagement) : '#475569')
                     : mapView === 'operacional'
-                    ? (hasData ? execRateColor(rate) : '#475569')
-                    : (muni.pollScore && muni.pollScore > 45 ? '#22c55e' : muni.pollScore && muni.pollScore > 40 ? '#f59e0b' : '#ef4444');
-                  const radius = Math.max(8, muni.engagementScore * 0.18);
+                    ? (hasOps ? execRateColor(execRate) : '#475569')
+                    : (hasPol
+                        ? (alignedPct >= 60 ? '#22c55e' : alignedPct >= 40 ? '#f59e0b' : '#ef4444')
+                        : '#475569');
+
+                  const radiusBase = mapView === 'operacional'
+                    ? acts
+                    : mapView === 'politico'
+                    ? assets
+                    : acts + assets;
+                  const radius = radiusBase > 0
+                    ? Math.max(6, Math.min(22, 6 + radiusBase * 1.5))
+                    : 4;
+
                   return (
                     <CircleMarker
                       key={muni.id}
@@ -444,14 +507,16 @@ export default function SalaDeGuerra() {
                       fillColor={color}
                       color={color}
                       weight={1.5}
-                      opacity={0.9}
-                      fillOpacity={0.7}
+                      opacity={hasEng ? 0.9 : 0.4}
+                      fillOpacity={hasEng ? 0.7 : 0.25}
                     >
                       <Tooltip>
-                        <div style={{ color: '#1e293b', minWidth: 140 }}>
+                        <div style={{ color: '#1e293b', minWidth: 160 }}>
                           <strong>{muni.name}</strong><br />
-                          Engajamento: {muni.engagementScore}/100<br />
-                          {muni.pollScore && `Pesquisa: ${muni.pollScore}%`}
+                          Ações: {acts} ({done} realizadas)<br />
+                          Execução: {Math.round(execRate)}%<br />
+                          Ativos políticos: {assets}{alignedTotal > 0 ? ` (${Math.round(alignedPct)}% alinhados)` : ''}<br />
+                          Engajamento: {engagement}/100
                         </div>
                       </Tooltip>
                     </CircleMarker>
@@ -505,8 +570,19 @@ export default function SalaDeGuerra() {
                   <span className="text-[10px] text-muted-foreground">{l.label}</span>
                 </div>
               ))}
+              {mapView === 'politico' && [
+                { color: '#22c55e', label: 'Alinhados ≥60%' },
+                { color: '#f59e0b', label: 'Disputado 40-59%' },
+                { color: '#ef4444', label: 'Oposição <40%' },
+                { color: '#475569', label: 'Sem ativos' },
+              ].map(l => (
+                <div key={l.label} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color }} />
+                  <span className="text-[10px] text-muted-foreground">{l.label}</span>
+                </div>
+              ))}
               <span className="ml-auto text-[10px] text-muted-foreground">
-                {actions.filter(a => a.lat && a.lng).length} ações no mapa
+                {totalActionsMapped} ações · {politicalAssets.length} ativos
               </span>
             </div>
           </div>
