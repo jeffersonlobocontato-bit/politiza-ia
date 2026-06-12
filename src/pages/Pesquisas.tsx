@@ -1279,7 +1279,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
     );
   };
 
-  const colorFor = (c: Candidate) => CANDIDATE_COLORS[c.name] ?? 'hsl(var(--muted-foreground))';
+  const colorFor = (c: Candidate) => lookupCandidateColor(c.name, 'hsl(var(--muted-foreground))');
 
   return (
     <div className="space-y-4">
