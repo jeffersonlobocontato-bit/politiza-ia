@@ -213,13 +213,18 @@ export default function CampoFiscalize() {
 
   if (submitted) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="campo-screen items-center justify-center">
         <div className="text-center animate-fade-in max-w-sm px-6">
-          <div className="w-16 h-16 rounded-full bg-brand-green/20 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-brand-green" />
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'rgba(47,168,90,0.15)', border: '1px solid rgba(47,168,90,0.35)' }}
+          >
+            <CheckCircle className="w-8 h-8" style={{ color: 'var(--campo-mint-glow)' }} />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Denúncia Enviada ao Jurídico</h2>
-          <p className="text-muted-foreground text-sm">A equipe jurídica recebeu sua denúncia com a cadeia de custódia das provas.</p>
+          <h2 className="text-xl font-bold text-white mb-2">Denúncia Enviada</h2>
+          <p className="text-sm" style={{ color: 'var(--campo-text-mute)' }}>
+            A equipe jurídica recebeu a denúncia com cadeia de custódia das provas.
+          </p>
         </div>
       </div>
     );
@@ -228,30 +233,37 @@ export default function CampoFiscalize() {
   const uploading = evidences.some(e => e.uploading);
   const hasEvidence = evidences.length > 0;
 
+  const steps = [
+    { id: 'evidence', label: '1. Provas' },
+    { id: 'form', label: '2. Denúncia' },
+    { id: 'confirm', label: '3. Enviar' },
+  ] as const;
+
   return (
-    <div className="h-full flex flex-col max-w-lg mx-auto relative">
-      <div className="px-6 py-4 border-b border-border flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <ShieldAlert className="w-5 h-5 text-destructive" />
-          <div>
-            <h1 className="text-base font-bold text-foreground">Fiscalize</h1>
-            <p className="text-xs text-muted-foreground">Flagrante eleitoral · capture a prova primeiro</p>
-          </div>
+    <div className="campo-screen max-w-lg mx-auto relative">
+      <div className="campo-page-header">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ background: 'rgba(232,93,58,0.18)', border: '1px solid rgba(232,93,58,0.4)' }}
+        >
+          <ShieldAlert className="w-4 h-4" style={{ color: '#FFB59A' }} />
         </div>
-        <div className="flex gap-2 mt-3">
-          {[
-            { id: 'evidence', label: '1. Provas' },
-            { id: 'form', label: '2. Denúncia' },
-            { id: 'confirm', label: '3. Enviar' },
-          ].map(s => (
-            <button key={s.id} onClick={() => setStep(s.id as Step)}
-              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-                step === s.id ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
-              }`}>
-              {s.label}
-            </button>
-          ))}
+        <div className="min-w-0 flex-1">
+          <h1>Fiscalize</h1>
+          <p>Flagrante eleitoral · capture a prova primeiro</p>
         </div>
+      </div>
+
+      <div className="px-4 py-3 flex gap-1.5" style={{ borderBottom: '1px solid var(--campo-line)' }}>
+        {steps.map(s => (
+          <button
+            key={s.id}
+            onClick={() => setStep(s.id as Step)}
+            className={`campo-pill ${step === s.id ? 'campo-pill-danger-active' : ''}`}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
       {/* Input camera global — sempre montado para o FAB funcionar */}
