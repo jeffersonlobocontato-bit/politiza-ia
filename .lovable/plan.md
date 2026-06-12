@@ -1,84 +1,77 @@
-## Objetivo
+# Módulo de Produtividade Hierárquica
 
-Substituir o dropdown "Resultado Percebido" por uma **barra visual 0–100** que pontua cada ação com base em (a) faixa de pessoas impactadas e (b) proporção em relação à população do município. Persistir o score no banco para alimentar **dois rankings** de lideranças (soma e média).
+Novo módulo acessível **apenas a admin master** (Jefferson, Edson, Julio) que consolida a produtividade de campo a partir do `impact_score` das ações, respeitando a cadeia de comando.
 
-## Fórmula aprovada
+## Lógica de agregação
 
-**1. Faixa base** (a partir das pessoas impactadas):
+```text
+Ação (impact_score)
+   └─ pertence à Liderança (created_by ou coordinator_id)
+        └─ Liderança vinculada ao Coordenador Micro (campaign_members, hierarchy_level micro)
+             └─ Micro vinculado ao Coordenador Macro (supervisor_id)
+                  └─ Macro consolida tudo abaixo
 
-| Pessoas | base_score |
+Se a liderança NÃO tem coordenador micro → pontua direto no macro da cidade.
+```
+
+**Vínculos usados (já existentes no schema):**
+- `actions.created_by` = usuário que registrou (geralmente a liderança/coordenador na ponta)
+- `leaders.coordinator_id` → `campaign_members.id` (coordenador responsável)
+- `campaign_members.supervisor_id` → coordenador imediatamente acima
+- `campaign_members.hierarchy_level` (1 = macro/topo, números maiores = micro/base)
+- `campaign_members.macroregion_id` / `microregion` / `municipality`
+
+## Métricas por nível
+
+Cada card/linha de ranking mostra:
+- **Soma de impact_score** (volume — premia esforço)
+- **Média de impact_score** (eficiência — premia qualidade por ação)
+- **Nº de ações** e **nº de lideranças ativas** sob o escopo
+- **Pessoas impactadas** (somatório)
+
+Dois rankings paralelos (Volume e Eficiência), igual ao padrão já usado em lideranças.
+
+## Estrutura da página `/produtividade`
+
+```text
+┌─ Header: Produtividade · filtro de candidato ativo · período (7/30/90 dias/tudo)
+├─ KPIs globais (4 cards): total de ações, score total, score médio, top performer
+├─ Tabs:
+│   ├─ Macrorregiões      → ranking dos coordenadores macro
+│   ├─ Microrregiões      → ranking dos coordenadores micro (drill-down do macro)
+│   └─ Lideranças         → ranking individual
+└─ Cada linha é clicável → expande para mostrar o nível imediatamente abaixo (drill-down)
+```
+
+## Implementação técnica
+
+**1. RPC `get_productivity_ranking(p_candidate_id uuid, p_period_days int)`** (migration)
+- Retorna JSON com 3 arrays: `macros`, `micros`, `leaders`, cada um com `{id, name, total_score, avg_score, action_count, leader_count, people_impacted}`.
+- CTE base: ações não deletadas, filtradas por candidato + período + `impact_score IS NOT NULL`.
+- Resolve a hierarquia: para cada ação, descobre o coordenador da liderança (`leaders.coordinator_id`), sobe via `supervisor_id` até achar o macro (hierarchy_level mínimo). Se não houver micro, atribui direto ao macro pela `macroregion_id` da liderança/ação.
+- `SECURITY DEFINER` + check `public.is_admin(auth.uid())` no topo; retorna erro se não for admin master.
+
+**2. Frontend novo:**
+- `src/pages/Produtividade.tsx` — página principal com tabs e drill-down
+- `src/hooks/useProductivity.ts` — wrapper `useQuery` para a RPC
+- Reutiliza `InfographicHBar` e `InfographicDonut` para visual consistente Navy-Teal
+- Rota em `App.tsx` protegida por `ProtectedRoute` + check `isAdminMaster`
+- Item de menu em `AppSidebar.tsx` visível apenas para admin master
+
+**3. Sem alterações de schema** além da RPC (todas as colunas já existem: `actions.impact_score`, `leaders.coordinator_id`, `campaign_members.supervisor_id/hierarchy_level/macroregion_id`).
+
+## Arquivos a criar/editar
+
+| Arquivo | Ação |
 |---|---|
-| 0 | 0 |
-| 1–4 | 10 |
-| 5–9 | 20 |
-| 10–19 | 35 |
-| 20–49 | 50 |
-| 50–99 | 65 |
-| 100–299 | 75 |
-| 300–499 | 85 |
-| 500–999 | 92 |
-| 1000+ | 100 |
+| `supabase/migrations/...` | nova RPC `get_productivity_ranking` |
+| `src/pages/Produtividade.tsx` | criar |
+| `src/hooks/useProductivity.ts` | criar |
+| `src/App.tsx` | adicionar rota `/produtividade` |
+| `src/components/layout/AppSidebar.tsx` | adicionar item visível só para admin master |
 
-**2. Fator de proporcionalidade** (usando população IBGE, com piso de 2.000 para evitar gaming de cidades minúsculas):
+## Pendências / suposições
 
-```text
-reach_ratio = pessoas_impactadas / max(populacao_municipio, 2000)
-prop_factor = 0.4 + 0.6 * min(reach_ratio * 10, 1)
-```
-→ Ação que atinge ≥10% da cidade ganha fator 1,0; ação grande em cidade grande mantém ao menos 40% do base_score.
-
-**3. Score final da ação:**
-```text
-impact_score = round(base_score * prop_factor)   // 0–100
-```
-
-**Cor da barra:** interpolada vermelho (#E11D48) → amarelo (#F59E0B) → verde (#2FA85A) conforme o score.
-
-## Implementação
-
-### 1. Banco de dados (migration)
-- Adicionar `impact_score INTEGER` (0–100, nullable) na tabela `actions`.
-- Adicionar `municipality_population_snapshot INTEGER` em `actions` (snapshot da população no momento do registro, para o ranking não mudar se IBGE atualizar depois).
-- Verificar/garantir coluna `population` em `municipalities` (caso não exista, criar e popular depois — fora deste escopo).
-
-### 2. Cálculo no frontend (`src/lib/impactScore.ts` — novo)
-- `calcBaseScore(people: number): number`
-- `calcImpactScore(people: number, population: number): number`
-- `scoreColor(score: number): string`
-- `scoreLabel(score: number): string` (ex: "Baixo", "Bom", "Excelente")
-
-### 3. `src/pages/CampoAcao.tsx`
-- Remover o `<select>` "Resultado Percebido" e o campo `result` do estado.
-- Buscar `population` do município selecionado (via query em `municipalities`).
-- Renderizar abaixo de "Pessoas Impactadas":
-  - Barra horizontal `h-3 rounded-full` com fill colorido e largura = score%.
-  - Texto "Pontuação de Impacto: **{score}/100** — {label}".
-  - Nota explicativa pequena: "Calculado com base em pessoas impactadas e proporção da cidade."
-- Atualizar em tempo real conforme `peopleCount` muda.
-- Na tela de confirmação, mostrar o score em vez de "Resultado".
-- No submit, gravar `impact_score` e `municipality_population_snapshot`.
-
-### 4. Rankings de Lideranças (2 listas separadas)
-Criar página/seção (provavelmente em `src/pages/CampoLiderancas.tsx` ou novo `CampoRanking.tsx` — definir na implementação) com **duas abas**:
-
-- **Ranking por Volume** — `SUM(impact_score)` por liderança (premia esforço).
-- **Ranking por Eficiência** — `AVG(impact_score)` por liderança, com mínimo de 3 ações para entrar (evita que 1 ação perfeita domine).
-
-Implementar via RPC `get_leadership_ranking()` no banco para performance, retornando JSON com liderança, total de ações, soma e média de score.
-
-### 5. Compatibilidade
-- Ações antigas sem `impact_score` aparecem como "—" nos rankings (não quebram).
-- Opcional: script de backfill calculando o score retroativo (decisão posterior).
-
-## Arquivos afetados
-
-- migration SQL (nova coluna + RPC de ranking)
-- `src/lib/impactScore.ts` (novo)
-- `src/pages/CampoAcao.tsx` (substituir dropdown pela barra, persistir score)
-- `src/pages/CampoLiderancas.tsx` ou novo arquivo de ranking (duas abas)
-- `src/integrations/supabase/types.ts` (regenerado automaticamente)
-
-## Pendências/Notas
-
-- População por município precisa existir em `municipalities.population`. Se a coluna estiver vazia para o PR, será necessário um seed (fora deste plano — alerto durante a build se estiver faltando).
-- Score é calculado client-side antes do insert; o snapshot da população garante reprodutibilidade.
+- Assumo que **liderança vincula a uma ação** via `actions.created_by` casando com `leaders.created_by` do mesmo usuário OU via heurística geográfica (mesma cidade). Se quiser um vínculo explícito (ex.: `actions.leader_id`), preciso adicionar essa coluna — me avise.
+- Período padrão = 30 dias; pode ser alterado no filtro.
+- Ações sem `impact_score` (legado) são ignoradas no ranking, mas contadas em "total de ações".
