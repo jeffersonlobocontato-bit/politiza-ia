@@ -61,7 +61,7 @@ export default function CampoAcao() {
       title: input.actionTitle || 'Ação de Campo',
       type: 'mobilizacao_comunitaria',
       category: 'Campo',
-      description: input.observations || input.result || 'Registro de campo',
+      description: input.observations || 'Registro de campo',
       municipality: geo.city,
       microregion: geo.city || null,
       macroregion_id: 'rmc',
@@ -82,7 +82,9 @@ export default function CampoAcao() {
       evidence_photos: photos,
       created_by: null,
       updated_by: null,
-    });
+      impact_score: impactScore,
+      municipality_population_snapshot: cityPopulation,
+    } as any);
 
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
@@ -91,7 +93,7 @@ export default function CampoAcao() {
       actionTitle: '',
       executedDate: new Date().toISOString().split('T')[0],
       executedTime: new Date().toTimeString().slice(0, 5),
-      peopleCount: '', observations: '', result: '',
+      peopleCount: '', observations: '',
     });
     setGeo({ city: '', lat: null, lng: null });
     setPhotos([]);
