@@ -470,6 +470,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           <WaveCard
             key={w.id}
             wave={w}
+            questions={allQuestions.filter(q => q.waveId === w.id)}
             onEdit={dbIds.has(w.id) ? () => handleEditWave(w) : undefined}
             onDelete={() => onDelete(w.id)}
           />
