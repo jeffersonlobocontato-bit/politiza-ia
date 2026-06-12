@@ -61,7 +61,7 @@ export function CandidateBarChart({ results, hideNeutral = false, height = 320 }
   const data = filtered.map(r => ({
     name: r.candidate,
     value: r.percentage,
-    color: CANDIDATE_COLORS[r.candidate] ?? AUTO_PALETTE[autoIdx++ % AUTO_PALETTE.length],
+    color: lookupCandidateColor(r.candidate, AUTO_PALETTE[autoIdx++ % AUTO_PALETTE.length]),
   }));
 
   return (
