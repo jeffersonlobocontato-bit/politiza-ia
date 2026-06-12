@@ -384,10 +384,20 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       methodology: wave.methodology || '',
       tseRegistration: wave.tseRegistration || '',
       govScenarios: govQs.length > 0
-        ? govQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        ? govQs.map(q => ({
+            label: q.scenarioLabel,
+            candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })),
+            isMultipleChoice: !!q.isMultipleChoice,
+            isMainScenario: !!q.isMainScenario,
+          }))
         : [emptyScenario()],
       senScenarios: senQs.length > 0
-        ? senQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        ? senQs.map(q => ({
+            label: q.scenarioLabel,
+            candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })),
+            isMultipleChoice: !!q.isMultipleChoice,
+            isMainScenario: !!q.isMainScenario,
+          }))
         : [emptyScenario()],
     });
     setEditingSurveyId(wave.id);
