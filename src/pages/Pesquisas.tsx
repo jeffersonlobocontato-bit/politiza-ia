@@ -1337,7 +1337,8 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
         });
         return hasAny ? row : null;
       })
-      .filter((r): r is Record<string, any> => r !== null);
+      .filter((r): r is Record<string, any> => r !== null)
+      .reverse();
   }, [filteredQuestions, waves, allSelected]);
 
   const toggleComparison = (key: string) => {
