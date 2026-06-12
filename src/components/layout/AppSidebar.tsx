@@ -73,9 +73,8 @@ export function AppSidebar() {
   const showChapas = isAdmin || isPartyManager;
   void showChapas;
   const visibleItems = navItems
-    .filter(item => isItemVisible(item, campaignType))
-    .filter(item => item.url !== '/juridico' || isJuridico)
-    .filter(item => !isGestorOperacional || allowedForGestorOperacional.has(item.url));
+    .filter(item => isGestorOperacional ? allowedForGestorOperacional.has(item.url) : isItemVisible(item, campaignType))
+    .filter(item => item.url !== '/juridico' || isJuridico);
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
