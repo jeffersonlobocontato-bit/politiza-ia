@@ -92,4 +92,5 @@ export const SOURCE_META: Record<GeoSource, { label: string; color: string; lege
   actions:    { label: 'Ações de Campo',       color: '#F59E0B', legend: 'Âmbar'    },
   interviews: { label: 'Entrevistas Tracking', color: '#06B6D4', legend: 'Ciano'    },
   alerts:     { label: 'Alertas Operacionais', color: '#EF4444', legend: 'Vermelho' },
+  candidates: { label: 'Candidatos (Chapa)',   color: '#A855F7', legend: 'Roxo'     },
 };
