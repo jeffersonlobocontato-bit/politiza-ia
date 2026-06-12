@@ -1325,7 +1325,8 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
     return filteredQuestions
       .map(q => {
         const wave = waves.find(w => w.id === q.waveId);
-        const row: Record<string, any> = { label: `${wave?.releaseDate ?? q.waveId} — ${q.scenarioLabel}` };
+        const institute = wave?.institute ?? '';
+        const row: Record<string, any> = { label: `${institute ? institute + ' · ' : ''}${wave?.releaseDate ?? q.waveId} — ${q.scenarioLabel}` };
         let hasAny = false;
         allSelected.forEach(entry => {
           const result = q.results.find(r => !EXCLUDED_CANDIDATES.includes(r.candidate) && matchesEntry(r.candidate, entry));
