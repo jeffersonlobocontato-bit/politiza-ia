@@ -316,6 +316,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
             cargo: 'governador',
             questionType: 'estimulada',
             scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            isMultipleChoice: scenario.isMultipleChoice ?? false,
+            isMainScenario: scenario.isMainScenario ?? sIdx === 0,
             results: scenario.candidates
               .filter(c => c.name)
               .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
@@ -335,6 +337,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
             cargo: 'senador',
             questionType: 'estimulada',
             scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            isMultipleChoice: scenario.isMultipleChoice ?? false,
+            isMainScenario: scenario.isMainScenario ?? sIdx === 0,
             results: scenario.candidates
               .filter(c => c.name)
               .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
