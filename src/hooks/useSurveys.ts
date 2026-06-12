@@ -32,6 +32,8 @@ export interface DbSurveyQuestion {
   scenario_label: string;
   note: string | null;
   sort_order: number;
+  is_multiple_choice: boolean;
+  is_main_scenario: boolean;
   created_at: string;
 }
 
