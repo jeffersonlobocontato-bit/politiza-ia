@@ -27,6 +27,8 @@ import type { DbAlert } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserParty } from '@/hooks/useUserParty';
 import { useAllPartySlates } from '@/hooks/usePartySlate';
+import { useCampaignMembers } from '@/hooks/useCampaignMembers';
+import { useLeaders } from '@/hooks/useLeaders';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function engagementColor(score: number) {
@@ -145,6 +147,8 @@ export default function SalaDeGuerra() {
   const { data: macroRegionsDB = [] } = useMacroRegionsDB();
   const { data: actions = [] } = useActions();
   const { data: politicalAssets = [] } = usePoliticalAssets();
+  const { data: teamMembers = [] } = useCampaignMembers();
+  const { data: dbLeaders = [] } = useLeaders();
   const { data: dbSurveys } = useSurveys();
   const { data: strategicKPIs } = useStrategicKPIs();
   const markRead = useMarkAlertRead();
@@ -299,9 +303,9 @@ export default function SalaDeGuerra() {
     (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
   const muniMetrics = (() => {
-    const map = new Map<string, { actions: number; done: number; delayed: number; assets: number; aligned: number; opposition: number; impacted: number }>();
+    const map = new Map<string, { actions: number; done: number; delayed: number; assets: number; leaders: number; team: number; candidates: number; aligned: number; opposition: number; impacted: number }>();
     const ensure = (k: string) => {
-      if (!map.has(k)) map.set(k, { actions: 0, done: 0, delayed: 0, assets: 0, aligned: 0, opposition: 0, impacted: 0 });
+      if (!map.has(k)) map.set(k, { actions: 0, done: 0, delayed: 0, assets: 0, leaders: 0, team: 0, candidates: 0, aligned: 0, opposition: 0, impacted: 0 });
       return map.get(k)!;
     };
     for (const a of actions) {
@@ -321,13 +325,32 @@ export default function SalaDeGuerra() {
       if ((p as any).alignment_status === 'alinhado' || (p as any).alignment_status === 'provavel') m.aligned += 1;
       if ((p as any).alignment_status === 'oposicao') m.opposition += 1;
     }
+    for (const l of dbLeaders) {
+      const k = normCity((l as any).municipality);
+      if (!k) continue;
+      const m = ensure(k);
+      m.leaders += 1;
+      if ((l as any).alignment_status === 'alinhado' || (l as any).alignment_status === 'provavel') m.aligned += 1;
+      if ((l as any).alignment_status === 'oposicao') m.opposition += 1;
+    }
+    for (const tm of teamMembers) {
+      const k = normCity((tm as any).municipality);
+      if (!k) continue;
+      ensure(k).team += 1;
+    }
+    for (const c of slates) {
+      const k = normCity((c as any).city);
+      if (!k) continue;
+      ensure(k).candidates += 1;
+    }
     return map;
   })();
 
   const maxActions = Math.max(1, ...Array.from(muniMetrics.values()).map(m => m.actions));
-  const maxAssets = Math.max(1, ...Array.from(muniMetrics.values()).map(m => m.assets));
+  const maxPresence = Math.max(1, ...Array.from(muniMetrics.values()).map(m => m.assets + m.leaders + m.team + m.candidates));
 
   const totalActionsMapped = actions.filter(a => a.municipality).length;
+  const totalLeadership = politicalAssets.length + dbLeaders.length;
 
 
   return (
