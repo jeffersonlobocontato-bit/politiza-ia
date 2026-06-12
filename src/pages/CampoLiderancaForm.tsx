@@ -144,16 +144,12 @@ export default function CampoLiderancaForm() {
     }
   };
 
-  // Design system: dark navy field with mint focus accent
-  const inputCls =
-    'w-full min-w-0 h-11 rounded-xl border border-white/10 bg-[#0F1B33] px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#2FA85A]/60 focus:ring-2 focus:ring-[#2FA85A]/20';
-  const labelCls = 'text-[11px] uppercase tracking-wide text-white/50 block mb-1.5 font-semibold';
+  // Design system: classes globais .campo-* (definidas em styles/campo-mobile.css)
+  const inputCls = 'campo-input';
+  const labelCls = 'campo-label';
 
   return (
-    <div
-      className="min-h-full flex flex-col w-full max-w-2xl mx-auto text-white"
-      style={{ background: 'linear-gradient(180deg, #0B1428 0%, #0A0F1F 100%)' }}
-    >
+    <div className="campo-screen w-full max-w-2xl mx-auto">
       {/* Header — symmetric px-4 */}
       <div className="px-4 py-4 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
         <Link to="/campo/liderancas" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 flex-shrink-0">
