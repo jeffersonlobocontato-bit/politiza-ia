@@ -63,44 +63,47 @@ export default function CampoLiderancas() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-6 py-4 border-b border-border flex items-center gap-3 flex-shrink-0">
-        <Link to="/campo" className="p-1.5 rounded-md hover:bg-accent text-muted-foreground"><ArrowLeft className="w-4 h-4" /></Link>
-        <Users className="w-5 h-5 text-primary" />
-        <div>
-          <h1 className="text-base font-bold text-foreground">Lideranças de Campo</h1>
-          <p className="text-xs text-muted-foreground">{filtered.length} de {allLeaders.length} lideranças</p>
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <Link to="/campo" className="p-1.5 rounded-md hover:bg-accent text-muted-foreground flex-shrink-0"><ArrowLeft className="w-4 h-4" /></Link>
+        <Users className="w-5 h-5 text-primary flex-shrink-0 hidden sm:block" />
+        <div className="min-w-0 flex-1">
+          <h1 className="text-sm sm:text-base font-bold text-foreground truncate">Lideranças</h1>
+          <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{filtered.length} de {allLeaders.length}</p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Link to="/campo/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border border-border bg-background hover:bg-accent text-foreground transition-colors">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          <Link to="/campo/dashboard" aria-label="Dashboard" className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border border-border bg-background hover:bg-accent text-foreground transition-colors">
             <BarChart3 className="w-4 h-4" /> Dashboard
           </Link>
-          <Link to="/campo/liderancas/novo" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90" style={{ background: 'var(--gradient-primary)' }}>
-            <Plus className="w-4 h-4" /> Nova Liderança
+          <Link to="/campo/dashboard" aria-label="Dashboard" className="sm:hidden flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground">
+            <BarChart3 className="w-4 h-4" />
+          </Link>
+          <Link to="/campo/liderancas/novo" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 whitespace-nowrap" style={{ background: 'var(--gradient-primary)' }}>
+            <Plus className="w-4 h-4" /> Nova<span className="hidden sm:inline">&nbsp;Liderança</span>
           </Link>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="px-6 py-3 border-b border-border flex gap-2 flex-wrap flex-shrink-0">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="px-4 sm:px-6 py-3 border-b border-border grid grid-cols-1 sm:flex sm:flex-wrap gap-2 flex-shrink-0">
+        <div className="relative sm:flex-1 sm:min-w-[200px] min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Nome, cidade, bairro..." className="w-full h-9 rounded-lg border border-input bg-background pl-9 pr-3 text-sm" />
         </div>
         {isAdmin && (
-          <select value={scope} onChange={e => setScope(e.target.value as any)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
+          <select value={scope} onChange={e => setScope(e.target.value as any)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm">
             <option value="all">Todas as lideranças</option>
             <option value="mine">Somente as minhas</option>
           </select>
         )}
-        <select value={cityFilter} onChange={e => setCityFilter(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
+        <select value={cityFilter} onChange={e => setCityFilter(e.target.value)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm min-w-0">
           <option value="all">Todas as cidades</option>
           {cities.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={alignFilter} onChange={e => setAlignFilter(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
+        <select value={alignFilter} onChange={e => setAlignFilter(e.target.value)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm min-w-0">
           <option value="all">Todos alinhamentos</option>
           {Object.entries(ALIGN_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
-        <select value={profileFilter} onChange={e => setProfileFilter(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
+        <select value={profileFilter} onChange={e => setProfileFilter(e.target.value)} className="w-full sm:w-auto h-9 rounded-lg border border-input bg-background px-3 text-sm min-w-0">
           <option value="all">Todos segmentos</option>
           {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
