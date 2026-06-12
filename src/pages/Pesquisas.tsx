@@ -1471,6 +1471,24 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       </div>
 
 
+      {/* Aviso de incompatibilidade metodológica RM* */}
+      {(() => {
+        const hasRM = filteredQuestions.some(q => q.isMultipleChoice);
+        const hasSingle = filteredQuestions.some(q => !q.isMultipleChoice);
+        if (!hasRM || !hasSingle) return null;
+        return (
+          <div className="flex items-start gap-2 text-amber-400 text-xs rounded-lg border border-amber-400/30 bg-amber-400/[0.08] px-3 py-2.5">
+            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+            <span>
+              <strong>Atenção — metodologias incompatíveis:</strong> algumas pesquisas selecionadas usam
+              resposta múltipla (RM*), onde cada entrevistado pôde citar mais de 1 candidato.
+              Os percentuais não são diretamente comparáveis com pesquisas de resposta única.
+              Interprete a tendência, não os valores absolutos.
+            </span>
+          </div>
+        );
+      })()}
+
       {/* Chart + table */}
       {chartData.length > 0 ? (
         <div className="rounded-xl border border-[hsl(220,15%,20%)] p-4 bg-[hsl(220,20%,13%)] shadow-lg">
