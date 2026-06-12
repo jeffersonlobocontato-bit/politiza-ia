@@ -1,5 +1,17 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Cell, LabelList } from 'recharts';
 import { CandidateResult, CANDIDATE_COLORS } from '@/data/pollsData';
+import { normalizeName } from '@/lib/candidateMatch';
+
+const NORMALIZED_COLOR_ENTRIES: Array<[string, string]> = Object.entries(CANDIDATE_COLORS).map(
+  ([k, v]) => [normalizeName(k), v] as [string, string]
+);
+
+export function lookupCandidateColor(rawName: string, fallback: string): string {
+  if (CANDIDATE_COLORS[rawName]) return CANDIDATE_COLORS[rawName];
+  const norm = normalizeName(rawName);
+  const found = NORMALIZED_COLOR_ENTRIES.find(([k]) => k === norm);
+  return found ? found[1] : fallback;
+}
 
 const AUTO_PALETTE = [
   '#3b82f6', '#ef4444', '#a855f7', '#f59e0b', '#6366f1',
@@ -49,7 +61,7 @@ export function CandidateBarChart({ results, hideNeutral = false, height = 320 }
   const data = filtered.map(r => ({
     name: r.candidate,
     value: r.percentage,
-    color: CANDIDATE_COLORS[r.candidate] ?? AUTO_PALETTE[autoIdx++ % AUTO_PALETTE.length],
+    color: lookupCandidateColor(r.candidate, AUTO_PALETTE[autoIdx++ % AUTO_PALETTE.length]),
   }));
 
   return (

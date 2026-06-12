@@ -30,6 +30,7 @@ import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { matchesCandidate, cargoToSurveyKey } from '@/lib/candidateMatch';
+import { lookupCandidateColor } from '@/components/polls/CandidateBarChart';
 import { toast } from 'sonner';
 
 // ─── helpers ─────────────────────────────────────────────────
@@ -42,7 +43,7 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
 ];
 
 // ─── WaveCard ────────────────────────────────────────────────
-function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () => void; onEdit?: () => void }) {
+function WaveCard({ wave, questions = [], onDelete, onEdit }: { wave: PollWave; questions?: PollQuestion[]; onDelete?: () => void; onEdit?: () => void }) {
   return (
     <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] p-4 flex flex-col gap-3 relative shadow-lg">
       <div className="absolute top-3 right-3 flex items-center gap-1.5">
@@ -86,7 +87,34 @@ function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () =>
           <div className="text-sm font-bold text-white capitalize">{wave.cargos.map(c => c === 'governador' ? 'Gov' : 'Sen').join(', ')}</div>
         </div>
       </div>
+      {/* Badges de cenários disponíveis */}
+      {(() => {
+        const govScenarios = questions.filter(q => q.cargo === 'governador' && q.questionType === 'estimulada');
+        const senScenarios = questions.filter(q => q.cargo === 'senador' && q.questionType === 'estimulada');
+        const hasRM = questions.some(q => q.isMultipleChoice);
+        if (govScenarios.length === 0 && senScenarios.length === 0 && !hasRM) return null;
+        return (
+          <div className="flex flex-wrap gap-1 border-t border-[hsl(220,15%,20%)] pt-2">
+            {govScenarios.length > 0 && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-300">
+                {govScenarios.length} cenário{govScenarios.length > 1 ? 's' : ''} Gov
+              </span>
+            )}
+            {senScenarios.length > 0 && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                {senScenarios.length} cenário{senScenarios.length > 1 ? 's' : ''} Sen
+              </span>
+            )}
+            {hasRM && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300">
+                RM*
+              </span>
+            )}
+          </div>
+        );
+      })()}
       <div className="text-[10px] text-[#8899aa] border-t border-[hsl(220,15%,20%)] pt-2">
+
         TSE: {wave.tseRegistration}
       </div>
       <div className="text-[10px] text-[#8899aa] leading-relaxed line-clamp-2">
@@ -98,7 +126,12 @@ function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () =>
 
 // ─── Import modal types ───────────────────────────────────────
 interface CandidateEntry { name: string; pct: string }
-interface ScenarioEntry { label: string; candidates: CandidateEntry[] }
+interface ScenarioEntry {
+  label: string;
+  candidates: CandidateEntry[];
+  isMultipleChoice?: boolean;
+  isMainScenario?: boolean;
+}
 interface ImportForm {
   institute: string;
   territory: string;
@@ -185,16 +218,20 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
       // Auto-fill form with parsed data
       const govScenarios = parsed.govScenarios?.length > 0
-        ? parsed.govScenarios.map((s: any) => ({
+        ? parsed.govScenarios.map((s: any, i: number) => ({
             label: s.label || 'Cenário',
             candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+            isMultipleChoice: !!s.isMultipleChoice,
+            isMainScenario: i === 0,
           }))
         : form.govScenarios;
 
       const senScenarios = parsed.senScenarios?.length > 0
-        ? parsed.senScenarios.map((s: any) => ({
+        ? parsed.senScenarios.map((s: any, i: number) => ({
             label: s.label || 'Cenário',
             candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+            isMultipleChoice: !!s.isMultipleChoice,
+            isMainScenario: i === 0,
           }))
         : form.senScenarios;
 
@@ -307,6 +344,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
             cargo: 'governador',
             questionType: 'estimulada',
             scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            isMultipleChoice: scenario.isMultipleChoice ?? false,
+            isMainScenario: scenario.isMainScenario ?? sIdx === 0,
             results: scenario.candidates
               .filter(c => c.name)
               .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
@@ -326,6 +365,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
             cargo: 'senador',
             questionType: 'estimulada',
             scenarioLabel: scenario.label || `Cenário ${sIdx + 1}`,
+            isMultipleChoice: scenario.isMultipleChoice ?? false,
+            isMainScenario: scenario.isMainScenario ?? sIdx === 0,
             results: scenario.candidates
               .filter(c => c.name)
               .map(c => ({ candidate: c.name, percentage: parseFloat(c.pct) || 0 }))
@@ -371,10 +412,20 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       methodology: wave.methodology || '',
       tseRegistration: wave.tseRegistration || '',
       govScenarios: govQs.length > 0
-        ? govQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        ? govQs.map(q => ({
+            label: q.scenarioLabel,
+            candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })),
+            isMultipleChoice: !!q.isMultipleChoice,
+            isMainScenario: !!q.isMainScenario,
+          }))
         : [emptyScenario()],
       senScenarios: senQs.length > 0
-        ? senQs.map(q => ({ label: q.scenarioLabel, candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })) }))
+        ? senQs.map(q => ({
+            label: q.scenarioLabel,
+            candidates: q.results.map(r => ({ name: r.candidate, pct: String(r.percentage) })),
+            isMultipleChoice: !!q.isMultipleChoice,
+            isMainScenario: !!q.isMainScenario,
+          }))
         : [emptyScenario()],
     });
     setEditingSurveyId(wave.id);
@@ -419,6 +470,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           <WaveCard
             key={w.id}
             wave={w}
+            questions={allQuestions.filter(q => q.waveId === w.id)}
             onEdit={dbIds.has(w.id) ? () => handleEditWave(w) : undefined}
             onDelete={() => onDelete(w.id)}
           />
@@ -669,6 +721,13 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
                           </button>
                         )}
                       </div>
+                      <ScenarioToggles
+                        cargoField="govScenarios"
+                        sIdx={sIdx}
+                        scenario={scenario}
+                        scenarios={form.govScenarios}
+                        updateForm={updateForm}
+                      />
                       <CandidatesBlock
                         title=""
                         entries={scenario.candidates}
@@ -707,6 +766,13 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
                           </button>
                         )}
                       </div>
+                      <ScenarioToggles
+                        cargoField="senScenarios"
+                        sIdx={sIdx}
+                        scenario={scenario}
+                        scenarios={form.senScenarios}
+                        updateForm={updateForm}
+                      />
                       <CandidatesBlock
                         title=""
                         entries={scenario.candidates}
@@ -742,6 +808,48 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function ScenarioToggles({
+  cargoField, sIdx, scenario, scenarios, updateForm,
+}: {
+  cargoField: 'govScenarios' | 'senScenarios';
+  sIdx: number;
+  scenario: ScenarioEntry;
+  scenarios: ScenarioEntry[];
+  updateForm: (patch: Partial<ImportForm>) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 px-1">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={`main-${cargoField}-${sIdx}`}
+          checked={!!scenario.isMainScenario}
+          onCheckedChange={(v) => {
+            const s = scenarios.map((sc, i) => ({ ...sc, isMainScenario: i === sIdx ? !!v : false }));
+            updateForm({ [cargoField]: s } as Partial<ImportForm>);
+          }}
+        />
+        <label htmlFor={`main-${cargoField}-${sIdx}`} className="text-[11px] text-muted-foreground cursor-pointer">
+          Usar como cenário principal nos cruzamentos
+        </label>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={`rm-${cargoField}-${sIdx}`}
+          checked={!!scenario.isMultipleChoice}
+          onCheckedChange={(v) => {
+            const s = [...scenarios];
+            s[sIdx] = { ...s[sIdx], isMultipleChoice: !!v };
+            updateForm({ [cargoField]: s } as Partial<ImportForm>);
+          }}
+        />
+        <label htmlFor={`rm-${cargoField}-${sIdx}`} className="text-[11px] text-muted-foreground cursor-pointer">
+          Resposta múltipla (RM*) — entrevistado pôde citar mais de 1 candidato
+        </label>
+      </div>
     </div>
   );
 }
@@ -1071,6 +1179,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   const [targetCargo, setTargetCargo] = useState<Cargo>('governador');
   const [targetCandidateId, setTargetCandidateId] = useState<string>('');
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
+  const [activeScenarioByWave, setActiveScenarioByWave] = useState<Record<string, string>>({});
 
   const toggleWave = (id: string) => {
     setSelectedWaves(prev =>
@@ -1085,14 +1194,43 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       .filter(c => cargoToSurveyKey(c.cargo) === targetCargo);
   }, [masterCandidates, targetCargo]);
 
-  // Filtered survey questions (cargo + metric + selected waves)
+  // Auto-init / mantém cenário ativo por wave
+  useEffect(() => {
+    setActiveScenarioByWave(prev => {
+      const next: Record<string, string> = {};
+      selectedWaves.forEach(waveId => {
+        const candidates = allQuestions.filter(
+          q => q.waveId === waveId && q.cargo === targetCargo && q.questionType === metricType,
+        );
+        if (candidates.length === 0) return;
+        const current = prev[waveId];
+        if (current && candidates.some(q => q.id === current)) {
+          next[waveId] = current;
+        } else {
+          const main = candidates.find(q => q.isMainScenario) ?? candidates[0];
+          next[waveId] = main.id;
+        }
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedWaves, targetCargo, metricType, allQuestions]);
+
+  // Filtered survey questions: respeita cenário ativo por wave (fallback: 1º)
   const filteredQuestions = useMemo(() =>
-    allQuestions.filter(q =>
-      selectedWaves.includes(q.waveId) &&
-      q.cargo === targetCargo &&
-      q.questionType === metricType,
-    ),
-    [allQuestions, selectedWaves, targetCargo, metricType],
+    allQuestions.filter(q => {
+      if (!selectedWaves.includes(q.waveId)) return false;
+      if (q.cargo !== targetCargo) return false;
+      if (q.questionType !== metricType) return false;
+      const active = activeScenarioByWave[q.waveId];
+      if (active) return q.id === active;
+      // Fallback: aceita apenas o primeiro da wave
+      const first = allQuestions.find(
+        x => x.waveId === q.waveId && x.cargo === targetCargo && x.questionType === metricType,
+      );
+      return first?.id === q.id;
+    }),
+    [allQuestions, selectedWaves, targetCargo, metricType, activeScenarioByWave],
   );
 
   // Presença por candidato mestre: nº de pesquisas (waves) em que aparece
@@ -1170,7 +1308,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
     );
   };
 
-  const colorFor = (c: Candidate) => CANDIDATE_COLORS[c.name] ?? 'hsl(var(--muted-foreground))';
+  const colorFor = (c: Candidate) => lookupCandidateColor(c.name, 'hsl(var(--muted-foreground))');
 
   return (
     <div className="space-y-4">
@@ -1199,6 +1337,60 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
             ))}
           </div>
         </div>
+
+        {/* Seletor de cenário por pesquisa */}
+        {selectedWaves.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground font-medium">
+              Cenário a comparar (por pesquisa):
+            </div>
+            <div className="space-y-1.5">
+              {selectedWaves.map(waveId => {
+                const wave = waves.find(w => w.id === waveId);
+                const scenariosForWave = allQuestions.filter(
+                  q => q.waveId === waveId && q.cargo === targetCargo && q.questionType === metricType,
+                );
+                if (scenariosForWave.length === 0) return (
+                  <div key={waveId} className="text-[11px] text-muted-foreground/50 italic">
+                    {wave?.institute}: nenhum cenário disponível para este cargo/métrica.
+                  </div>
+                );
+                return (
+                  <div key={waveId} className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] text-muted-foreground shrink-0 min-w-[140px]">
+                      {wave?.institute} ({wave?.releaseDate}):
+                    </span>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {scenariosForWave.map(q => {
+                        const isActive = activeScenarioByWave[waveId] === q.id;
+                        return (
+                          <button
+                            key={q.id}
+                            onClick={() => setActiveScenarioByWave(prev => ({ ...prev, [waveId]: q.id }))}
+                            className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
+                              isActive
+                                ? 'bg-[#0FFCBE]/10 border-[#0FFCBE] text-[#0FFCBE]'
+                                : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
+                            }`}
+                          >
+                            {q.scenarioLabel}
+                            {q.isMultipleChoice && (
+                              <span className="ml-1 text-[9px] opacity-60">RM*</span>
+                            )}
+                            {q.isMainScenario && !isActive && (
+                              <span className="ml-1 text-[9px] text-amber-400">★</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
 
         {/* Cargo + Métrica */}
         <div className="grid sm:grid-cols-2 gap-3">
@@ -1307,6 +1499,24 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       </div>
 
 
+      {/* Aviso de incompatibilidade metodológica RM* */}
+      {(() => {
+        const hasRM = filteredQuestions.some(q => q.isMultipleChoice);
+        const hasSingle = filteredQuestions.some(q => !q.isMultipleChoice);
+        if (!hasRM || !hasSingle) return null;
+        return (
+          <div className="flex items-start gap-2 text-amber-400 text-xs rounded-lg border border-amber-400/30 bg-amber-400/[0.08] px-3 py-2.5">
+            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+            <span>
+              <strong>Atenção — metodologias incompatíveis:</strong> algumas pesquisas selecionadas usam
+              resposta múltipla (RM*), onde cada entrevistado pôde citar mais de 1 candidato.
+              Os percentuais não são diretamente comparáveis com pesquisas de resposta única.
+              Interprete a tendência, não os valores absolutos.
+            </span>
+          </div>
+        );
+      })()}
+
       {/* Chart + table */}
       {chartData.length > 0 ? (
         <div className="rounded-xl border border-[hsl(220,15%,20%)] p-4 bg-[hsl(220,20%,13%)] shadow-lg">
@@ -1402,17 +1612,33 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                           const val: number | undefined = row[c.id];
                           const prev: number | undefined = i > 0 ? chartData[i - 1][c.id] : undefined;
                           const delta = val !== undefined && prev !== undefined ? val - prev : null;
+
+                          // Identifica a question correspondente a esta linha (row.label = "releaseDate — scenarioLabel")
+                          const rowQuestion = filteredQuestions.find(q => {
+                            const w = waves.find(w => w.id === q.waveId);
+                            return row.label === `${w?.releaseDate ?? q.waveId} — ${q.scenarioLabel}`;
+                          });
+                          const wasResearched = rowQuestion
+                            ? rowQuestion.results.some(r => matchesCandidate(r.candidate, c))
+                            : false;
+
                           return (
                             <td key={c.id} className="py-1.5 px-2 text-right">
                               {val !== undefined ? (
-                                <span className="font-semibold">{val.toFixed(1)}%</span>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                              {delta !== null && (
-                                <span className={`ml-1 text-[10px] font-bold ${delta > 0 ? 'text-brand-green' : delta < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
-                                  {delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)}
+                                <>
+                                  <span className="font-semibold">{val.toFixed(1)}%</span>
+                                  {delta !== null && (
+                                    <span className={`ml-1 text-[10px] font-bold ${delta > 0 ? 'text-[#0FFCBE]' : delta < 0 ? 'text-[#E53935]' : 'text-muted-foreground'}`}>
+                                      {delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)}
+                                    </span>
+                                  )}
+                                </>
+                              ) : !wasResearched && rowQuestion ? (
+                                <span className="text-[9px] text-muted-foreground/50 italic border border-muted/20 rounded px-1 py-0.5 whitespace-nowrap">
+                                  n/p
                                 </span>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">—</span>
                               )}
                             </td>
                           );
@@ -1422,6 +1648,9 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
                   </tbody>
                 </table>
+                <div className="text-[10px] text-muted-foreground/60 mt-2">
+                  n/p = não pesquisado neste instituto/onda · — = candidato presente mas sem resultado registrado
+                </div>
               </div>
             </div>
           )}

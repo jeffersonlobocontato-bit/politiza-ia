@@ -1590,6 +1590,8 @@ export type Database = {
           cargo: string
           created_at: string
           id: string
+          is_main_scenario: boolean
+          is_multiple_choice: boolean
           note: string | null
           question_type: string
           scenario_label: string
@@ -1600,6 +1602,8 @@ export type Database = {
           cargo: string
           created_at?: string
           id?: string
+          is_main_scenario?: boolean
+          is_multiple_choice?: boolean
           note?: string | null
           question_type: string
           scenario_label?: string
@@ -1610,6 +1614,8 @@ export type Database = {
           cargo?: string
           created_at?: string
           id?: string
+          is_main_scenario?: boolean
+          is_multiple_choice?: boolean
           note?: string | null
           question_type?: string
           scenario_label?: string

@@ -1,0 +1,2 @@
+ALTER TABLE public.survey_questions ADD COLUMN IF NOT EXISTS is_multiple_choice boolean NOT NULL DEFAULT false;
+ALTER TABLE public.survey_questions ADD COLUMN IF NOT EXISTS is_main_scenario boolean NOT NULL DEFAULT false;

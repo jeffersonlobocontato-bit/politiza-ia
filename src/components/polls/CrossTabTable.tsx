@@ -1,5 +1,6 @@
-import { CrossTab, CANDIDATE_COLORS } from '@/data/pollsData';
+import { CrossTab } from '@/data/pollsData';
 import { cn } from '@/lib/utils';
+import { lookupCandidateColor } from './CandidateBarChart';
 
 interface CrossTabTableProps {
   crossTab: CrossTab;
@@ -36,7 +37,7 @@ export function CrossTabTable({ crossTab, highlightCandidate }: CrossTabTablePro
                   'py-2 px-2 text-center font-semibold whitespace-nowrap',
                   highlightCandidate === c ? 'text-[#0FFCBE]' : 'text-[#8899aa]',
                 )}
-                style={{ borderLeft: `3px solid ${CANDIDATE_COLORS[c] ?? 'transparent'}` }}
+                style={{ borderLeft: `3px solid ${lookupCandidateColor(c, 'transparent')}` }}
               >
                 {c.length > 16 ? c.split(' ').slice(0, 2).join(' ') : c}
               </th>

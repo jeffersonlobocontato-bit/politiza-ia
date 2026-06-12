@@ -32,6 +32,8 @@ export interface DbSurveyQuestion {
   scenario_label: string;
   note: string | null;
   sort_order: number;
+  is_multiple_choice: boolean;
+  is_main_scenario: boolean;
   created_at: string;
 }
 
@@ -73,6 +75,8 @@ export function dbQuestionToPoll(
     questionType: q.question_type as any,
     scenarioLabel: q.scenario_label,
     note: q.note ?? undefined,
+    isMultipleChoice: (q as any).is_multiple_choice ?? false,
+    isMainScenario: (q as any).is_main_scenario ?? false,
     results: results
       .filter(r => r.question_id === q.id)
       .map(r => ({ candidate: r.candidate_name, percentage: Number(r.percentage) }))
@@ -162,6 +166,8 @@ export function useCreateSurvey() {
             scenario_label: q.scenarioLabel,
             note: q.note ?? null,
             sort_order: i,
+            is_multiple_choice: q.isMultipleChoice ?? false,
+            is_main_scenario: q.isMainScenario ?? false,
           })
           .select()
           .single();
@@ -249,6 +255,8 @@ export function useUpdateSurvey() {
             scenario_label: q.scenarioLabel,
             note: q.note ?? null,
             sort_order: i,
+            is_multiple_choice: q.isMultipleChoice ?? false,
+            is_main_scenario: q.isMainScenario ?? false,
           })
           .select()
           .single();
