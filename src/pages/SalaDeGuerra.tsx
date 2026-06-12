@@ -255,10 +255,12 @@ export default function SalaDeGuerra() {
     ...pollQuestions.filter(q => !(dbSurveys?.questions ?? []).some(dq => dq.id === q.id)),
   ];
 
+  // Normalize candidate name: strip trailing "(PARTY)" suffix so the same person
+  // doesn't appear twice in the legend (e.g. "Sergio Moro" vs "Sergio Moro (PL)").
+  const canonical = (name: string) => name.replace(/\s*\([^)]*\)\s*$/, '').trim();
+
   // Pick the best "Cenário 1 estimulada governador" result per wave → build chart rows
-  const pollChartData = (() => {
-    // Collect all candidates that appear across waves (excluding structural ones)
-    const candidateSet = new Set<string>();
+  const { pollChartData, topCandidates } = (() => {
     const waveRows: { label: string; values: Record<string, number> }[] = [];
 
     for (const wave of allWaves) {
@@ -270,29 +272,29 @@ export default function SalaDeGuerra() {
       q.results
         .filter(r => !EXCLUDED.some(ex => r.candidate.startsWith(ex.split('/')[0].trim())))
         .forEach(r => {
-          row[r.candidate] = r.percentage;
-          candidateSet.add(r.candidate);
+          const key = canonical(r.candidate);
+          // If two variants of the same candidate appear in one wave, keep the larger value
+          row[key] = Math.max(row[key] ?? 0, r.percentage);
         });
       waveRows.push({ label: wave.releaseDate, values: row });
     }
 
-    // Build final chart rows: { label, [candidateName]: pct, ... }
-    return waveRows.map(({ label, values }) => ({ label, ...values }));
-  })();
+    const chartData = waveRows.map(({ label, values }) => ({ label, ...values }));
 
-  // Top candidates by max percentage across all waves (for lines)
-  const topCandidates = (() => {
+    // Top candidates by max percentage across all waves
     const totals: Record<string, number> = {};
-    for (const row of pollChartData) {
+    for (const row of chartData) {
       for (const [k, v] of Object.entries(row)) {
         if (k === 'label') continue;
         totals[k] = Math.max(totals[k] ?? 0, Number(v));
       }
     }
-    return Object.entries(totals)
+    const top = Object.entries(totals)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([name]) => name);
+
+    return { pollChartData: chartData, topCandidates: top };
   })();
 
   const recentlyDone = actions.filter(a => a.status === 'realizada').slice(0, 5);
