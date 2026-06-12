@@ -301,6 +301,42 @@ export default function SalaDeGuerra() {
 
   const recentlyDone = actions.filter(a => a.status === 'realizada').slice(0, 5);
 
+  // ── Real per-municipality metrics from platform data ──
+  const normCity = (s: string | null | undefined) =>
+    (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  const muniMetrics = (() => {
+    const map = new Map<string, { actions: number; done: number; delayed: number; assets: number; aligned: number; opposition: number; impacted: number }>();
+    const ensure = (k: string) => {
+      if (!map.has(k)) map.set(k, { actions: 0, done: 0, delayed: 0, assets: 0, aligned: 0, opposition: 0, impacted: 0 });
+      return map.get(k)!;
+    };
+    for (const a of actions) {
+      const k = normCity(a.municipality);
+      if (!k) continue;
+      const m = ensure(k);
+      m.actions += 1;
+      if (a.status === 'realizada') m.done += 1;
+      if (a.status === 'atrasada') m.delayed += 1;
+      m.impacted += a.executed_people_count ?? 0;
+    }
+    for (const p of politicalAssets) {
+      const k = normCity((p as any).municipality);
+      if (!k) continue;
+      const m = ensure(k);
+      m.assets += 1;
+      if ((p as any).alignment_status === 'alinhado' || (p as any).alignment_status === 'provavel') m.aligned += 1;
+      if ((p as any).alignment_status === 'oposicao') m.opposition += 1;
+    }
+    return map;
+  })();
+
+  const maxActions = Math.max(1, ...Array.from(muniMetrics.values()).map(m => m.actions));
+  const maxAssets = Math.max(1, ...Array.from(muniMetrics.values()).map(m => m.assets));
+
+  const totalActionsMapped = actions.filter(a => a.municipality).length;
+
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
