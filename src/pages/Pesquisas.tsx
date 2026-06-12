@@ -1584,17 +1584,33 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                           const val: number | undefined = row[c.id];
                           const prev: number | undefined = i > 0 ? chartData[i - 1][c.id] : undefined;
                           const delta = val !== undefined && prev !== undefined ? val - prev : null;
+
+                          // Identifica a question correspondente a esta linha (row.label = "releaseDate — scenarioLabel")
+                          const rowQuestion = filteredQuestions.find(q => {
+                            const w = waves.find(w => w.id === q.waveId);
+                            return row.label === `${w?.releaseDate ?? q.waveId} — ${q.scenarioLabel}`;
+                          });
+                          const wasResearched = rowQuestion
+                            ? rowQuestion.results.some(r => matchesCandidate(r.candidate, c))
+                            : false;
+
                           return (
                             <td key={c.id} className="py-1.5 px-2 text-right">
                               {val !== undefined ? (
-                                <span className="font-semibold">{val.toFixed(1)}%</span>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                              {delta !== null && (
-                                <span className={`ml-1 text-[10px] font-bold ${delta > 0 ? 'text-brand-green' : delta < 0 ? 'text-brand-red' : 'text-muted-foreground'}`}>
-                                  {delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)}
+                                <>
+                                  <span className="font-semibold">{val.toFixed(1)}%</span>
+                                  {delta !== null && (
+                                    <span className={`ml-1 text-[10px] font-bold ${delta > 0 ? 'text-[#0FFCBE]' : delta < 0 ? 'text-[#E53935]' : 'text-muted-foreground'}`}>
+                                      {delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)}
+                                    </span>
+                                  )}
+                                </>
+                              ) : !wasResearched && rowQuestion ? (
+                                <span className="text-[9px] text-muted-foreground/50 italic border border-muted/20 rounded px-1 py-0.5 whitespace-nowrap">
+                                  n/p
                                 </span>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">—</span>
                               )}
                             </td>
                           );
@@ -1604,6 +1620,9 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
 
                   </tbody>
                 </table>
+                <div className="text-[10px] text-muted-foreground/60 mt-2">
+                  n/p = não pesquisado neste instituto/onda · — = candidato presente mas sem resultado registrado
+                </div>
               </div>
             </div>
           )}
