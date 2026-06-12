@@ -255,6 +255,8 @@ export function useUpdateSurvey() {
             scenario_label: q.scenarioLabel,
             note: q.note ?? null,
             sort_order: i,
+            is_multiple_choice: q.isMultipleChoice ?? false,
+            is_main_scenario: q.isMainScenario ?? false,
           })
           .select()
           .single();
