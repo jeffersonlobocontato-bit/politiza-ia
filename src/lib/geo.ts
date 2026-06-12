@@ -4,7 +4,7 @@
 
 import { municipalities, macroRegions } from '@/data/mockData';
 
-export type GeoSource = 'leaders' | 'assets' | 'members' | 'actions' | 'interviews' | 'alerts';
+export type GeoSource = 'leaders' | 'assets' | 'members' | 'actions' | 'interviews' | 'alerts' | 'candidates';
 
 export interface ResolvedPoint {
   lat: number;
