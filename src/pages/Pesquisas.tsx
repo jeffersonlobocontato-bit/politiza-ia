@@ -30,6 +30,7 @@ import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { matchesCandidate, cargoToSurveyKey } from '@/lib/candidateMatch';
+import { lookupCandidateColor } from '@/components/polls/CandidateBarChart';
 import { toast } from 'sonner';
 
 // ─── helpers ─────────────────────────────────────────────────
