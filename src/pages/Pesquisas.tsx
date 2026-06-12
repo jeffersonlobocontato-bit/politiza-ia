@@ -87,7 +87,34 @@ function WaveCard({ wave, questions = [], onDelete, onEdit }: { wave: PollWave; 
           <div className="text-sm font-bold text-white capitalize">{wave.cargos.map(c => c === 'governador' ? 'Gov' : 'Sen').join(', ')}</div>
         </div>
       </div>
+      {/* Badges de cenários disponíveis */}
+      {(() => {
+        const govScenarios = questions.filter(q => q.cargo === 'governador' && q.questionType === 'estimulada');
+        const senScenarios = questions.filter(q => q.cargo === 'senador' && q.questionType === 'estimulada');
+        const hasRM = questions.some(q => q.isMultipleChoice);
+        if (govScenarios.length === 0 && senScenarios.length === 0 && !hasRM) return null;
+        return (
+          <div className="flex flex-wrap gap-1 border-t border-[hsl(220,15%,20%)] pt-2">
+            {govScenarios.length > 0 && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-300">
+                {govScenarios.length} cenário{govScenarios.length > 1 ? 's' : ''} Gov
+              </span>
+            )}
+            {senScenarios.length > 0 && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                {senScenarios.length} cenário{senScenarios.length > 1 ? 's' : ''} Sen
+              </span>
+            )}
+            {hasRM && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300">
+                RM*
+              </span>
+            )}
+          </div>
+        );
+      })()}
       <div className="text-[10px] text-[#8899aa] border-t border-[hsl(220,15%,20%)] pt-2">
+
         TSE: {wave.tseRegistration}
       </div>
       <div className="text-[10px] text-[#8899aa] leading-relaxed line-clamp-2">
