@@ -106,11 +106,8 @@ export default function Campo() {
             <img src={candidatePhoto} alt={candidateName} className="w-full h-full object-cover" />
           </div>
           <div className="relative min-w-0">
-            <div className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: '#5BE0A0' }}>
-              Candidato
-            </div>
             <h1 className="text-xl font-extrabold leading-tight text-white truncate">{candidateName}</h1>
-            <div className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{candidateSubtitle}</div>
+            <div className="text-[12px] mt-0.5 font-semibold tracking-wide" style={{ color: '#2FA85A' }}>{candidateSubtitle}</div>
           </div>
         </div>
 
