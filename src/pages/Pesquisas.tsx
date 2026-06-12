@@ -43,7 +43,7 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
 ];
 
 // ─── WaveCard ────────────────────────────────────────────────
-function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () => void; onEdit?: () => void }) {
+function WaveCard({ wave, questions = [], onDelete, onEdit }: { wave: PollWave; questions?: PollQuestion[]; onDelete?: () => void; onEdit?: () => void }) {
   return (
     <div className="rounded-xl bg-[hsl(220,20%,13%)] border border-[hsl(220,15%,20%)] p-4 flex flex-col gap-3 relative shadow-lg">
       <div className="absolute top-3 right-3 flex items-center gap-1.5">
