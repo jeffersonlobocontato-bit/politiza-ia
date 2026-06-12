@@ -37,7 +37,7 @@ export function CrossTabTable({ crossTab, highlightCandidate }: CrossTabTablePro
                   'py-2 px-2 text-center font-semibold whitespace-nowrap',
                   highlightCandidate === c ? 'text-[#0FFCBE]' : 'text-[#8899aa]',
                 )}
-                style={{ borderLeft: `3px solid ${CANDIDATE_COLORS[c] ?? 'transparent'}` }}
+                style={{ borderLeft: `3px solid ${lookupCandidateColor(c, 'transparent')}` }}
               >
                 {c.length > 16 ? c.split(' ').slice(0, 2).join(' ') : c}
               </th>
