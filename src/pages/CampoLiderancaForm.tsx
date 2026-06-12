@@ -47,7 +47,6 @@ export default function CampoLiderancaForm() {
   const [currentParty, setCurrentParty] = useState('');
   const [supportedLast, setSupportedLast] = useState('');
   const [observations, setObservations] = useState('');
-  // histórico político
   const [wasCandidate, setWasCandidate] = useState(false);
   const [timesCandidate, setTimesCandidate] = useState(0);
   const [heldMandate, setHeldMandate] = useState(false);
@@ -56,7 +55,6 @@ export default function CampoLiderancaForm() {
   const [electoralPerformance, setElectoralPerformance] = useState('');
   const [wasNeighborhoodPresident, setWasNeighborhoodPresident] = useState(false);
 
-  // Pré-carrega dados em edição
   useEffect(() => {
     if (existing) {
       setName(existing.name ?? '');
@@ -146,61 +144,91 @@ export default function CampoLiderancaForm() {
     }
   };
 
-  const inputCls = 'w-full h-11 rounded-xl border border-input bg-background px-4 text-sm';
+  // Design system: dark navy field with mint focus accent
+  const inputCls =
+    'w-full min-w-0 h-11 rounded-xl border border-white/10 bg-[#0F1B33] px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#2FA85A]/60 focus:ring-2 focus:ring-[#2FA85A]/20';
+  const labelCls = 'text-[11px] uppercase tracking-wide text-white/50 block mb-1.5 font-semibold';
 
   return (
-    <div className="h-full flex flex-col max-w-2xl mx-auto">
-      <div className="px-6 py-4 border-b border-border flex items-center gap-3 flex-shrink-0">
-        <Link to="/campo/liderancas" className="p-1.5 rounded-md hover:bg-accent text-muted-foreground"><ArrowLeft className="w-4 h-4" /></Link>
-        <div>
-          <h1 className="text-base font-bold text-foreground">{isEdit ? 'Editar Liderança' : 'Nova Liderança de Campo'}</h1>
-          <p className="text-xs text-muted-foreground">Passo {step} de {STEPS.length} — {STEPS[step-1].label}</p>
+    <div
+      className="min-h-full flex flex-col w-full max-w-2xl mx-auto text-white"
+      style={{ background: 'linear-gradient(180deg, #0B1428 0%, #0A0F1F 100%)' }}
+    >
+      {/* Header — symmetric px-4 */}
+      <div className="px-4 py-4 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
+        <Link to="/campo/liderancas" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 flex-shrink-0">
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+        <div className="min-w-0">
+          <h1 className="text-sm font-bold text-white truncate">{isEdit ? 'Editar Liderança' : 'Nova Liderança de Campo'}</h1>
+          <p className="text-[11px] text-white/50 truncate">Passo {step} de {STEPS.length} — {STEPS[step-1].label}</p>
         </div>
       </div>
 
       {/* Stepper */}
-      <div className="px-6 py-3 border-b border-border flex gap-1 flex-shrink-0 overflow-x-auto">
-        {STEPS.map(s => (
-          <button key={s.id} onClick={() => setStep(s.id)} className={`flex-1 min-w-[80px] flex flex-col items-center gap-1 py-2 rounded-lg text-[10px] font-semibold transition-colors ${step === s.id ? 'bg-primary/20 text-primary' : step > s.id ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>
-            <s.icon className="w-4 h-4" />
-            {s.label}
-          </button>
-        ))}
+      <div className="px-4 py-3 border-b border-white/5 flex gap-1.5 flex-shrink-0 overflow-x-auto scrollbar-none">
+        {STEPS.map(s => {
+          const active = step === s.id;
+          const done = step > s.id;
+          return (
+            <button
+              key={s.id}
+              onClick={() => setStep(s.id)}
+              className={`flex-1 min-w-[64px] flex flex-col items-center gap-1 py-2 px-1 rounded-lg text-[10px] font-semibold transition-colors ${
+                active
+                  ? 'bg-[#2FA85A]/15 text-[#5BE0A0] border border-[#2FA85A]/30'
+                  : done
+                  ? 'text-white/60 border border-transparent'
+                  : 'text-white/30 border border-transparent'
+              }`}
+            >
+              <s.icon className="w-4 h-4" />
+              {s.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex-1 overflow-auto p-4 space-y-4">
+      {/* Content — uniform px-4 py-4 (symmetric on all sides) */}
+      <div className="flex-1 overflow-auto px-4 py-4 space-y-4 pb-24">
         {step === 1 && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Nome completo *</label>
+              <label className={labelCls}>Nome completo *</label>
               <input value={name} onChange={e => setName(e.target.value)} className={inputCls} placeholder="Ex: João Silva" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Telefone</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="min-w-0">
+                <label className={labelCls}>Telefone</label>
                 <input value={phone} onChange={e => setPhone(e.target.value)} className={inputCls} placeholder="(41) 99999-0000" />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">E-mail</label>
+              <div className="min-w-0">
+                <label className={labelCls}>E-mail</label>
                 <input value={email} onChange={e => setEmail(e.target.value)} className={inputCls} placeholder="email@dominio.com" />
               </div>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Foto (URL ou simulada)</label>
-              <div className="flex gap-2">
+              <label className={labelCls}>Foto (URL)</label>
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} className={inputCls} placeholder="URL da foto" />
-                <button type="button" onClick={() => setPhotoUrl(`https://i.pravatar.cc/200?u=${Date.now()}`)} className="px-3 rounded-xl border border-input bg-background text-xs flex items-center gap-1"><Camera className="w-3 h-3" /> Simular</button>
+                <button
+                  type="button"
+                  onClick={() => setPhotoUrl(`https://i.pravatar.cc/200?u=${Date.now()}`)}
+                  className="h-11 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 text-xs font-semibold flex items-center justify-center gap-1.5 flex-shrink-0"
+                >
+                  <Camera className="w-3.5 h-3.5" /> Simular
+                </button>
               </div>
-              {photoUrl && <img src={photoUrl} alt="" className="w-16 h-16 rounded-full object-cover mt-2 border border-border" />}
+              {photoUrl && <img src={photoUrl} alt="" className="w-16 h-16 rounded-full object-cover mt-3 border-2 border-[#2FA85A]/40" />}
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
             <GeoLocationInput value={geo} onChange={setGeo} required label="Cidade / GPS *" placeholder="Ex: Curitiba" />
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Bairro / Comunidade</label>
+              <label className={labelCls}>Bairro / Comunidade</label>
               <input value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className={inputCls} placeholder="Ex: Centro, Vila Hauer..." />
             </div>
           </div>
@@ -208,16 +236,16 @@ export default function CampoLiderancaForm() {
 
         {step === 3 && (
           <div className="space-y-3 animate-fade-in">
-            <p className="text-xs text-muted-foreground">Selecione os segmentos em que essa liderança atua (religiosa, comunitária, jovens, etc.).</p>
+            <p className="text-xs text-white/60 leading-relaxed">Selecione os segmentos em que essa liderança atua (religiosa, comunitária, jovens, etc.).</p>
             <LeadershipProfileSelect selectedIds={profileIds} onChange={setProfileIds} label="Segmentos da Liderança" />
           </div>
         )}
 
         {step === 4 && (
-          <div className="space-y-3 animate-fade-in">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Alinhamento</label>
+          <div className="space-y-4 animate-fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="min-w-0">
+                <label className={labelCls}>Alinhamento</label>
                 <select value={alignment} onChange={e => setAlignment(e.target.value)} className={inputCls}>
                   <option value="alinhado">Alinhado</option>
                   <option value="provavel">Provável</option>
@@ -226,67 +254,79 @@ export default function CampoLiderancaForm() {
                   <option value="indefinido">Indefinido</option>
                 </select>
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Partido atual</label>
+              <div className="min-w-0">
+                <label className={labelCls}>Partido atual</label>
                 <input value={currentParty} onChange={e => setCurrentParty(e.target.value)} className={inputCls} placeholder="Ex: PL, Novo..." />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Influência (1-10)</label>
+              <div className="min-w-0">
+                <label className={labelCls}>Influência (1-10)</label>
                 <input type="number" min={1} max={10} value={influence} onChange={e => setInfluence(parseInt(e.target.value) || 5)} className={inputCls} />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Capacidade de mobilização (1-10)</label>
+              <div className="min-w-0">
+                <label className={labelCls}>Mobilização (1-10)</label>
                 <input type="number" min={1} max={10} value={mobilization} onChange={e => setMobilization(parseInt(e.target.value) || 5)} className={inputCls} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Quem apoiou na última eleição?</label>
+              <label className={labelCls}>Quem apoiou na última eleição?</label>
               <input value={supportedLast} onChange={e => setSupportedLast(e.target.value)} className={inputCls} placeholder="Ex: Candidato X (Prefeito 2024)" />
             </div>
 
-            <div className="rounded-xl border border-border p-3 space-y-3 bg-muted/20">
-              <div className="text-xs font-semibold text-foreground">Histórico Político</div>
-              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={wasCandidate} onChange={e => setWasCandidate(e.target.checked)} /> Já foi candidato</label>
+            <div className="rounded-xl border border-white/10 p-3 space-y-3 bg-white/5">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-[#5BE0A0]">Histórico Político</div>
+              <label className="flex items-center gap-2 text-xs text-white/80">
+                <input type="checkbox" checked={wasCandidate} onChange={e => setWasCandidate(e.target.checked)} className="accent-[#2FA85A]" /> Já foi candidato
+              </label>
               {wasCandidate && (
-                <div className="grid grid-cols-2 gap-2 pl-5">
-                  <div>
-                    <label className="text-[10px] text-muted-foreground block mb-1">Quantas vezes</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
+                  <div className="min-w-0">
+                    <label className="text-[10px] text-white/50 block mb-1">Quantas vezes</label>
                     <input type="number" min={0} value={timesCandidate} onChange={e => setTimesCandidate(parseInt(e.target.value) || 0)} className={inputCls} />
                   </div>
-                  <div>
-                    <label className="text-[10px] text-muted-foreground block mb-1">Desempenho (votos/colocação)</label>
+                  <div className="min-w-0">
+                    <label className="text-[10px] text-white/50 block mb-1">Desempenho (votos)</label>
                     <input value={electoralPerformance} onChange={e => setElectoralPerformance(e.target.value)} className={inputCls} placeholder="Ex: 2.300 votos" />
                   </div>
                 </div>
               )}
-              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={heldMandate} onChange={e => setHeldMandate(e.target.checked)} /> Já teve mandato</label>
+              <label className="flex items-center gap-2 text-xs text-white/80">
+                <input type="checkbox" checked={heldMandate} onChange={e => setHeldMandate(e.target.checked)} className="accent-[#2FA85A]" /> Já teve mandato
+              </label>
               {heldMandate && (
-                <div className="grid grid-cols-2 gap-2 pl-5">
-                  <div>
-                    <label className="text-[10px] text-muted-foreground block mb-1">Quantos mandatos</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
+                  <div className="min-w-0">
+                    <label className="text-[10px] text-white/50 block mb-1">Quantos mandatos</label>
                     <input type="number" min={0} value={mandateCount} onChange={e => setMandateCount(parseInt(e.target.value) || 0)} className={inputCls} />
                   </div>
-                  <div>
-                    <label className="text-[10px] text-muted-foreground block mb-1">Cargos ocupados (vírgulas)</label>
+                  <div className="min-w-0">
+                    <label className="text-[10px] text-white/50 block mb-1">Cargos (vírgulas)</label>
                     <input value={positionsHeld} onChange={e => setPositionsHeld(e.target.value)} className={inputCls} placeholder="Vereador, Secretário..." />
                   </div>
                 </div>
               )}
-              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={wasNeighborhoodPresident} onChange={e => setWasNeighborhoodPresident(e.target.checked)} /> Já presidiu associação de bairro/entidade</label>
+              <label className="flex items-start gap-2 text-xs text-white/80 leading-snug">
+                <input type="checkbox" checked={wasNeighborhoodPresident} onChange={e => setWasNeighborhoodPresident(e.target.checked)} className="accent-[#2FA85A] mt-0.5" />
+                <span>Já presidiu associação de bairro/entidade</span>
+              </label>
             </div>
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Observações estratégicas</label>
-              <textarea value={observations} onChange={e => setObservations(e.target.value)} rows={3} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm resize-none" />
+              <label className={labelCls}>Observações estratégicas</label>
+              <textarea
+                value={observations}
+                onChange={e => setObservations(e.target.value)}
+                rows={3}
+                className="w-full min-w-0 rounded-xl border border-white/10 bg-[#0F1B33] px-3 py-3 text-sm text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-[#2FA85A]/60 focus:ring-2 focus:ring-[#2FA85A]/20"
+              />
             </div>
           </div>
         )}
 
         {step === 5 && (
           <div className="space-y-3 animate-fade-in">
-            <div className="rounded-xl border border-border p-4 space-y-2" style={{ background: 'var(--gradient-card)' }}>
+            <div className="rounded-2xl border border-white/10 p-4 space-y-2.5 bg-white/5">
               {[
                 { l: 'Nome', v: name },
                 { l: 'Cidade / Bairro', v: `${geo.city || '—'}${neighborhood ? ` · ${neighborhood}` : ''}` },
@@ -300,9 +340,9 @@ export default function CampoLiderancaForm() {
                 { l: 'Já mandato', v: heldMandate ? `Sim (${mandateCount})` : 'Não' },
                 { l: 'Apoiou última eleição', v: supportedLast || '—' },
               ].map(r => (
-                <div key={r.l} className="flex items-start justify-between gap-4 text-xs">
-                  <span className="text-muted-foreground">{r.l}</span>
-                  <span className="font-medium text-foreground text-right">{r.v}</span>
+                <div key={r.l} className="flex items-start justify-between gap-3 text-xs">
+                  <span className="text-white/50 flex-shrink-0">{r.l}</span>
+                  <span className="font-semibold text-white text-right break-words min-w-0">{r.v}</span>
                 </div>
               ))}
             </div>
@@ -310,15 +350,32 @@ export default function CampoLiderancaForm() {
         )}
       </div>
 
-      <div className="px-4 py-3 border-t border-border flex items-center gap-2 flex-shrink-0">
-        <button onClick={() => setStep(Math.max(1, step - 1))} disabled={step === 1} className="h-11 px-4 rounded-xl border border-input bg-background text-sm font-semibold disabled:opacity-40 flex items-center gap-1"><ArrowLeft className="w-4 h-4" /> Voltar</button>
+      {/* Footer actions — symmetric px-4 */}
+      <div className="px-4 py-3 border-t border-white/10 bg-[#0A0F1F] flex items-center gap-2 flex-shrink-0 sticky bottom-0">
+        <button
+          onClick={() => setStep(Math.max(1, step - 1))}
+          disabled={step === 1}
+          className="h-11 px-3 rounded-xl border border-white/10 bg-white/5 text-white/80 text-sm font-semibold disabled:opacity-30 flex items-center gap-1 flex-shrink-0"
+        >
+          <ArrowLeft className="w-4 h-4" /> Voltar
+        </button>
         {step < STEPS.length ? (
-          <button onClick={() => canAdvance() && setStep(step + 1)} disabled={!canAdvance()} className="flex-1 h-11 rounded-xl font-semibold text-sm text-primary-foreground disabled:opacity-40 flex items-center justify-center gap-1" style={{ background: 'var(--gradient-primary)' }}>
+          <button
+            onClick={() => canAdvance() && setStep(step + 1)}
+            disabled={!canAdvance()}
+            className="flex-1 h-11 rounded-xl font-bold text-sm text-white disabled:opacity-30 flex items-center justify-center gap-1.5 shadow-lg shadow-[#2FA85A]/20"
+            style={{ background: 'linear-gradient(135deg, #2FA85A 0%, #1F8444 100%)' }}
+          >
             Avançar <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
-          <button onClick={handleSubmit} disabled={createLeader.isPending || updateLeader.isPending} className="flex-1 h-11 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-40" style={{ background: 'linear-gradient(135deg, hsl(142 72% 45%), hsl(142 72% 38%))' }}>
-            <CheckCircle className="w-5 h-5" /> {isEdit ? 'Salvar Alterações' : 'Cadastrar Liderança'}
+          <button
+            onClick={handleSubmit}
+            disabled={createLeader.isPending || updateLeader.isPending}
+            className="flex-1 h-11 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-40 shadow-lg shadow-[#2FA85A]/30"
+            style={{ background: 'linear-gradient(135deg, #2FA85A 0%, #1F8444 100%)' }}
+          >
+            <CheckCircle className="w-5 h-5" /> {isEdit ? 'Salvar' : 'Cadastrar Liderança'}
           </button>
         )}
       </div>
