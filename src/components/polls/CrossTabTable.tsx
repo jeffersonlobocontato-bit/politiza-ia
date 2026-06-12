@@ -1,4 +1,4 @@
-import { CrossTab, CANDIDATE_COLORS } from '@/data/pollsData';
+import { CrossTab } from '@/data/pollsData';
 import { cn } from '@/lib/utils';
 import { lookupCandidateColor } from './CandidateBarChart';
 
