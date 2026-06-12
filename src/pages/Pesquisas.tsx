@@ -1310,6 +1310,60 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
           </div>
         </div>
 
+        {/* Seletor de cenário por pesquisa */}
+        {selectedWaves.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground font-medium">
+              Cenário a comparar (por pesquisa):
+            </div>
+            <div className="space-y-1.5">
+              {selectedWaves.map(waveId => {
+                const wave = waves.find(w => w.id === waveId);
+                const scenariosForWave = allQuestions.filter(
+                  q => q.waveId === waveId && q.cargo === targetCargo && q.questionType === metricType,
+                );
+                if (scenariosForWave.length === 0) return (
+                  <div key={waveId} className="text-[11px] text-muted-foreground/50 italic">
+                    {wave?.institute}: nenhum cenário disponível para este cargo/métrica.
+                  </div>
+                );
+                return (
+                  <div key={waveId} className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] text-muted-foreground shrink-0 min-w-[140px]">
+                      {wave?.institute} ({wave?.releaseDate}):
+                    </span>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {scenariosForWave.map(q => {
+                        const isActive = activeScenarioByWave[waveId] === q.id;
+                        return (
+                          <button
+                            key={q.id}
+                            onClick={() => setActiveScenarioByWave(prev => ({ ...prev, [waveId]: q.id }))}
+                            className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
+                              isActive
+                                ? 'bg-[#0FFCBE]/10 border-[#0FFCBE] text-[#0FFCBE]'
+                                : 'border-[hsl(220,15%,20%)] text-muted-foreground hover:bg-[hsl(220,18%,18%)]'
+                            }`}
+                          >
+                            {q.scenarioLabel}
+                            {q.isMultipleChoice && (
+                              <span className="ml-1 text-[9px] opacity-60">RM*</span>
+                            )}
+                            {q.isMainScenario && !isActive && (
+                              <span className="ml-1 text-[9px] text-amber-400">★</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+
         {/* Cargo + Métrica */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
