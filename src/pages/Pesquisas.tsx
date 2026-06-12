@@ -98,7 +98,12 @@ function WaveCard({ wave, onDelete, onEdit }: { wave: PollWave; onDelete?: () =>
 
 // ─── Import modal types ───────────────────────────────────────
 interface CandidateEntry { name: string; pct: string }
-interface ScenarioEntry { label: string; candidates: CandidateEntry[] }
+interface ScenarioEntry {
+  label: string;
+  candidates: CandidateEntry[];
+  isMultipleChoice?: boolean;
+  isMainScenario?: boolean;
+}
 interface ImportForm {
   institute: string;
   territory: string;
