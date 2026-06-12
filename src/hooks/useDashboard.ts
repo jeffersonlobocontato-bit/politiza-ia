@@ -148,6 +148,14 @@ export function useGenerateAlerts() {
       if (error) throw error;
       if (!actions || actions.length === 0) return;
 
+      // Existing open auto-generated alerts (avoid duplicates)
+      const { data: existing } = await db
+        .from('alerts')
+        .select('title, territory, status')
+        .eq('is_auto_generated', true as any)
+        .neq('status', 'resolvido');
+      const existingKeys = new Set((existing ?? []).map((a: any) => `${a.title}::${a.territory ?? ''}`));
+
       const stats: Record<string, { total: number; done: number; delayed: number; overdue: number }> = {};
       const now = new Date();
 
@@ -157,57 +165,54 @@ export function useGenerateAlerts() {
         stats[k].total++;
         if (a.status === 'realizada') stats[k].done++;
         if (a.status === 'atrasada') stats[k].delayed++;
-        // Overdue: prevista but planned_date has passed
         if ((a.status === 'prevista' || a.status === 'confirmada') && new Date(a.planned_date) < now) {
           stats[k].overdue++;
         }
       }
 
       const toInsert: any[] = [];
+      const push = (row: any) => {
+        const key = `${row.title}::${row.territory ?? ''}`;
+        if (existingKeys.has(key)) return;
+        existingKeys.add(key);
+        toInsert.push(row);
+      };
+
       for (const [macroId, s] of Object.entries(stats)) {
         if (s.total === 0) continue;
         const execRate = (s.done / s.total) * 100;
         const delayRate = (s.delayed / s.total) * 100;
 
         if (delayRate >= 30) {
-          toInsert.push({
+          push({
             level: 'critico',
             title: `Alta taxa de atraso — ${macroId}`,
             description: `${s.delayed} de ${s.total} ações atrasadas (${delayRate.toFixed(0)}%)`,
             territory: macroId,
             macroregion_id: macroId === 'unknown' ? null : macroId,
             recommendation: 'Acionar coordenador regional para redistribuição de tarefas imediatamente.',
-            status: 'novo',
-            severity: 9,
-            is_auto_generated: true,
-            is_read: false,
+            status: 'novo', severity: 9, is_auto_generated: true, is_read: false,
           });
         } else if (execRate < 40 && s.total >= 5) {
-          toInsert.push({
+          push({
             level: 'atencao',
             title: `Baixa execução — ${macroId}`,
             description: `Apenas ${execRate.toFixed(0)}% das ações realizadas (${s.done}/${s.total})`,
             territory: macroId,
             macroregion_id: macroId === 'unknown' ? null : macroId,
             recommendation: 'Revisar planejamento e reforçar equipe na região.',
-            status: 'novo',
-            severity: 6,
-            is_auto_generated: true,
-            is_read: false,
+            status: 'novo', severity: 6, is_auto_generated: true, is_read: false,
           });
         }
         if (s.overdue >= 3) {
-          toInsert.push({
+          push({
             level: 'atencao',
             title: `Ações vencidas sem execução — ${macroId}`,
             description: `${s.overdue} ações com data passada ainda não executadas`,
             territory: macroId,
             macroregion_id: macroId === 'unknown' ? null : macroId,
             recommendation: 'Confirmar ou cancelar ações vencidas para manter o planejamento atualizado.',
-            status: 'novo',
-            severity: 7,
-            is_auto_generated: true,
-            is_read: false,
+            status: 'novo', severity: 7, is_auto_generated: true, is_read: false,
           });
         }
       }
