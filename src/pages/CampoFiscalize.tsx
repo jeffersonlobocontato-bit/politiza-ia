@@ -378,39 +378,37 @@ export default function CampoFiscalize() {
         {step === 'form' && (
           <div className="space-y-4 animate-fade-in">
             {hasEvidence && (
-              <div className="rounded-lg bg-brand-green/10 border border-brand-green/30 p-2 text-xs text-foreground">
-                ✓ {evidences.filter(e => e.uploaded).length} prova(s) já preservada(s) com hash e timestamp
+              <div
+                className="rounded-xl p-2.5 text-xs text-white"
+                style={{ background: 'rgba(47,168,90,0.12)', border: '1px solid rgba(47,168,90,0.35)' }}
+              >
+                ✓ {evidences.filter(e => e.uploaded).length} prova(s) preservada(s) com hash e timestamp
               </div>
             )}
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Categoria da Irregularidade *</label>
-              <select value={category} onChange={e => setCategory(e.target.value)}
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+              <label className="campo-label">Categoria da Irregularidade *</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} className="campo-select">
                 <option value="">Selecione...</option>
                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Título da Denúncia *</label>
+              <label className="campo-label">Título da Denúncia *</label>
               <input value={title} onChange={e => setTitle(e.target.value)} maxLength={140}
-                placeholder="Ex: Distribuição de cestas básicas em comício"
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                placeholder="Ex: Distribuição de cestas básicas em comício" className="campo-input" />
             </div>
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Denunciado *</label>
+              <label className="campo-label">Denunciado *</label>
               <input value={denouncedName} onChange={e => setDenouncedName(e.target.value)} maxLength={120}
-                placeholder="Nome do denunciado"
-                className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring mb-2" />
+                placeholder="Nome do denunciado" className="campo-input mb-2" />
               <div className="grid grid-cols-2 gap-2">
                 <input value={denouncedRole} onChange={e => setDenouncedRole(e.target.value)} maxLength={60}
-                  placeholder="Cargo / função"
-                  className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  placeholder="Cargo / função" className="campo-input" />
                 <input value={denouncedParty} onChange={e => setDenouncedParty(e.target.value)} maxLength={20}
-                  placeholder="Partido"
-                  className="w-full h-11 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  placeholder="Partido" className="campo-input" />
               </div>
             </div>
 
@@ -419,15 +417,17 @@ export default function CampoFiscalize() {
               placeholder="Geolocalizar ou informar endereço" />
 
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Relato dos Fatos *</label>
+              <label className="campo-label">Relato dos Fatos *</label>
               <textarea value={narrative} onChange={e => setNarrative(e.target.value)} rows={5} maxLength={3000}
                 placeholder="Descreva quando, onde e como a irregularidade ocorreu..."
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
-              <div className="text-[10px] text-muted-foreground text-right mt-1">{narrative.length}/3000</div>
+                className="campo-textarea" />
+              <div className="text-[10px] text-right mt-1" style={{ color: 'var(--campo-text-mute)' }}>
+                {narrative.length}/3000
+              </div>
             </div>
 
             <button onClick={() => baseValid && setStep('confirm')} disabled={!baseValid}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-destructive-foreground bg-destructive disabled:opacity-40 disabled:cursor-not-allowed">
+              className="campo-cta campo-cta-red w-full">
               {baseValid ? 'Próximo: Revisar e Enviar →' : 'Preencha os campos obrigatórios'}
             </button>
           </div>
@@ -435,8 +435,8 @@ export default function CampoFiscalize() {
 
         {step === 'confirm' && (
           <div className="space-y-4 animate-fade-in">
-            <h2 className="text-sm font-semibold text-foreground">Confirmar Denúncia</h2>
-            <div className="rounded-xl border border-border p-4 space-y-3 bg-card">
+            <h2 className="campo-h2">Confirmar Denúncia</h2>
+            <div className="campo-card p-4 space-y-2.5">
               {[
                 { label: 'Categoria', value: CATEGORIES.find(c => c.value === category)?.label ?? '—' },
                 { label: 'Título', value: title },
@@ -448,28 +448,29 @@ export default function CampoFiscalize() {
                 { label: 'Último registro', value: evidences.length ? formatStamp(new Date(evidences[evidences.length - 1].capturedAt)) : '—' },
                 { label: 'Candidato vinculado', value: activeCandidate?.name ?? 'Nenhum (visível ao admin master)' },
               ].map(item => (
-                <div key={item.label} className="flex items-start justify-between gap-4">
-                  <span className="text-xs text-muted-foreground flex-shrink-0">{item.label}</span>
-                  <span className="text-xs font-medium text-foreground text-right">{item.value}</span>
+                <div key={item.label} className="flex items-start justify-between gap-3 text-xs">
+                  <span style={{ color: 'var(--campo-text-mute)' }} className="flex-shrink-0">{item.label}</span>
+                  <span className="font-medium text-white text-right">{item.value}</span>
                 </div>
               ))}
             </div>
-            <div className="rounded-xl border border-border bg-muted/30 p-3">
-              <div className="text-xs text-muted-foreground mb-1">Relato:</div>
-              <div className="text-xs text-foreground whitespace-pre-wrap">{narrative}</div>
+            <div className="campo-card-flat p-3">
+              <div className="text-[11px] mb-1" style={{ color: 'var(--campo-text-mute)' }}>Relato:</div>
+              <div className="text-xs text-white whitespace-pre-wrap">{narrative}</div>
             </div>
             <button onClick={handleSubmit} disabled={submitting || !baseValid}
-              className="w-full h-12 rounded-xl font-semibold text-sm text-destructive-foreground bg-destructive disabled:opacity-40 flex items-center justify-center gap-2">
+              className="campo-cta campo-cta-red w-full">
               {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando ao jurídico…</> : 'Enviar Denúncia ao Jurídico'}
             </button>
           </div>
         )}
       </div>
 
-      {/* FAB +Prova persistente em todas as etapas (exceto quando ainda não há nenhuma e a tela já mostra o botão grande) */}
+      {/* FAB +Prova persistente */}
       {!(step === 'evidence' && !hasEvidence) && evidences.length < 5 && (
         <button onClick={() => captureRef.current?.click()}
-          className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-destructive text-destructive-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+          className="fixed bottom-24 right-5 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform z-30"
+          style={{ background: 'var(--campo-grad-cta-red)', boxShadow: '0 10px 24px -8px rgba(232,93,58,0.6)' }}
           title="Capturar nova prova">
           <Camera className="w-6 h-6" />
         </button>
