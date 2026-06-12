@@ -1,48 +1,33 @@
-## Objetivo
-Permitir vincular membros da Hierarquia a **múltiplas Associações de Municípios** e **múltiplas Macrorregiões** (mapa político), com regras específicas por nível, e reaproveitar **Perfis de Liderança** como "entidade" para a Liderança Municipal.
+## Problema
 
-## Regras por nível
+Na aba **Cruzar** de `/pesquisas`, a lista "Candidatos para cruzar" só inclui candidatos cadastrados no mestre (Configurações → Candidatos). Nomes que aparecem nas pesquisas mas não estão cadastrados ficam invisíveis e não podem entrar no cruzamento.
 
-| Nível | Multi Associações | Multi Macrorregiões | Cidade | Perfis (entidade) |
-|---|---|---|---|---|
-| 3 — Coord. Macrorregional | ✅ | ✅ | opcional | — |
-| 4 — Coord. Microrregional | ✅ | ✅ | opcional | — |
-| 5 — Coord. Municipal | ✅ (sugerida pela cidade) | herdada | obrigatória | — |
-| 6 — Liderança Local | ✅ (sugerida) | herdada | obrigatória | ✅ multi-select |
+## Solução
 
-Para níveis 1 e 2, os campos novos ficam ocultos (sem mudança).
+Unir, na aba Cruzar:
+1. Candidatos mestre do cargo (comportamento atual, com cor padronizada).
+2. **Todos os nomes mencionados** nos resultados das pesquisas filtradas (waves selecionadas + cargo + métrica), deduplicados por `normalizeName`, excluindo `EXCLUDED_CANDIDATES` (Branco/Nulo/NS/NR) e o candidato principal.
 
-## Banco de dados (migração)
+Cada item da lista mostra: checkbox · bolinha de cor · nome · contador `X/N` (em quantas waves aparece) · badge sutil "não cadastrado" quando vier só das pesquisas.
 
-Três tabelas N:N + reuso da existente:
+Adicionar barra de ações acima da lista:
+- **Selecionar todos** (respeita o máximo de 6 — se ultrapassar, mostra toast e seleciona os 6 com maior presença).
+- **Limpar seleção**.
+- Campo de busca rápida (filtra por nome, case-insensitive).
 
-1. `campaign_member_associations` (member_id, association_id) — FK para `municipality_associations`
-2. `campaign_member_macroregions` (member_id, macroregion_id) — FK para `macroregions`
-3. `campaign_member_leadership_profiles` (member_id, profile_id) — FK para `leadership_profiles` (mesmo padrão de `leader_leadership_profiles`)
+## Mudanças técnicas
 
-Cada uma com GRANT + RLS (visível a quem vê o membro, editável pelo criador/admin), e índices em `member_id`.
+Arquivo: `src/pages/Pesquisas.tsx` (apenas `TabCruzar`).
 
-O campo legado `macroregion_id` em `campaign_members` continua existindo para retro-compatibilidade (primário/principal).
+1. **Novo memo `allCandidatesForCargo`**: percorre `filteredQuestions`, agrega `{ key: normalizeName(name), displayName, presence, isMaster, masterId? }`. Faz merge com `masterForCargo` (mestre vence em displayName/cor).
+2. **`comparisonIds: string[]`** passa a aceitar tanto IDs do mestre quanto chaves normalizadas para não-cadastrados (prefixo `nm:` para evitar colisão). `toggleComparison`, `presenceByCandidate`, `colorFor` e o cálculo do `chartData`/tabela de variação consultam por essa chave unificada.
+3. **`matchesCandidate`**: para não-cadastrados, comparar via `normalizeName` direto contra `r.candidate`.
+4. **Barra de ações**: `Selecionar todos` / `Limpar` / input de busca; máx. 6 com fallback ordenado por presença desc.
+5. Legenda atualizada explicando que a lista inclui nomes oriundos das pesquisas (badge "não cadastrado").
 
-## Frontend
+Sem alterações de schema, hooks ou outros componentes.
 
-**`src/pages/Hierarquia.tsx`** — formulário (modal "Novo/Editar Membro"):
-- Quando `hierarchy_level` ∈ {3,4,5,6}, mostrar bloco "Vínculos territoriais":
-  - **Associações de Municípios**: chips multi-select (componente similar a `LeadershipProfileSelect`)
-  - **Macrorregiões**: chips multi-select
-- Quando nível = 6: mostrar também **Perfis de Liderança** (multi-select já existente `LeadershipProfileSelect`)
-- Auto-sugestão: ao escolher cidade via `GeoLocationInput`, pré-selecionar a Associação correspondente (via `useAssociationForCity`) e a Macrorregião do município (lookup em `municipalities`) — usuário pode editar.
-- Submit: após salvar/atualizar o membro principal, fazer `delete + insert` nas 3 tabelas-ponte (padrão usado em `useSetLeaderProfiles`).
+## Fora de escopo
 
-**Novos hooks** em `src/hooks/useCampaignMemberLinks.ts`:
-- `useMemberAssociations(memberId)`, `useSetMemberAssociations()`
-- `useMemberMacroregions(memberId)`, `useSetMemberMacroregions()`
-- `useMemberLeadershipProfiles(memberId)`, `useSetMemberLeadershipProfiles()`
-
-**Componente** `src/components/hierarquia/MultiChipSelect.tsx`: select com chips reutilizável (Associações e Macrorregiões), seguindo visual de `LeadershipProfileSelect`.
-
-**Exibição** nos cards de membro da listagem: mostrar badges das associações/macrorregiões/perfis vinculados (compacto, abaixo do cargo).
-
-## Fora do escopo
-- Mudanças no fluxograma, dashboard, charts, ou em outras páginas.
-- Migração retroativa de dados existentes (registros antigos seguem com `macroregion_id` único; usuário pode editar para adicionar mais).
+- Cadastrar automaticamente esses nomes no mestre (continua manual em Configurações).
+- Mudar a aba "Comparar" (temporal) — só Cruzar.

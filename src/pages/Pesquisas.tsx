@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import {
   BarChart2, Upload, BookOpen, Search, TrendingUp, GitCompare,
   X, ChevronDown, ChevronUp, Info, Plus, Trash2, FileText, Pencil, Loader2, Sparkles,
+  ListChecks, Eraser,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,7 +30,7 @@ import {
 import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey } from '@/hooks/useSurveys';
 import { supabase } from '@/integrations/supabase/client';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
-import { matchesCandidate, cargoToSurveyKey } from '@/lib/candidateMatch';
+import { matchesCandidate, cargoToSurveyKey, normalizeName } from '@/lib/candidateMatch';
 import { lookupCandidateColor } from '@/components/polls/CandidateBarChart';
 import { toast } from 'sonner';
 
@@ -1172,14 +1173,30 @@ interface CruzarProps {
 
 const EXCLUDED_CANDIDATES = ['Não sabe/ Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo', 'Poderia votar em todos'];
 
+type SelectedEntry = {
+  key: string;            // master id, ou `nm:<normalized>` para nomes vindos só das pesquisas
+  name: string;           // display name
+  isMaster: boolean;
+  master?: Candidate;
+};
+
+const NM_PREFIX = 'nm:';
+const keyForName = (raw: string) => `${NM_PREFIX}${normalizeName(raw)}`;
+
+function matchesEntry(resultName: string, entry: SelectedEntry): boolean {
+  if (entry.isMaster && entry.master) return matchesCandidate(resultName, entry.master);
+  return normalizeName(resultName) === entry.key.slice(NM_PREFIX.length);
+}
+
 function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
   const { candidates: masterCandidates } = useCandidate();
   const [selectedWaves, setSelectedWaves] = useState<string[]>([waves[0]?.id ?? '']);
   const [metricType, setMetricType] = useState<'estimulada' | 'rejeicao'>('estimulada');
   const [targetCargo, setTargetCargo] = useState<Cargo>('governador');
   const [targetCandidateId, setTargetCandidateId] = useState<string>('');
-  const [comparisonIds, setComparisonIds] = useState<string[]>([]);
+  const [comparisonKeys, setComparisonKeys] = useState<string[]>([]);
   const [activeScenarioByWave, setActiveScenarioByWave] = useState<Record<string, string>>({});
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleWave = (id: string) => {
     setSelectedWaves(prev =>
@@ -1224,7 +1241,6 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       if (q.questionType !== metricType) return false;
       const active = activeScenarioByWave[q.waveId];
       if (active) return q.id === active;
-      // Fallback: aceita apenas o primeiro da wave
       const first = allQuestions.find(
         x => x.waveId === q.waveId && x.cargo === targetCargo && x.questionType === metricType,
       );
@@ -1233,65 +1249,88 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
     [allQuestions, selectedWaves, targetCargo, metricType, activeScenarioByWave],
   );
 
-  // Presença por candidato mestre: nº de pesquisas (waves) em que aparece
-  const presenceByCandidate = useMemo(() => {
-    const m = new Map<string, number>();
+  // Lista unificada: mestres do cargo + todos os nomes citados nas pesquisas filtradas
+  const allEntries: SelectedEntry[] = useMemo(() => {
+    const m = new Map<string, SelectedEntry>();
     masterForCargo.forEach(c => {
-      const wavesWith = new Set<string>();
+      m.set(c.id, { key: c.id, name: c.name, isMaster: true, master: c });
+    });
+    filteredQuestions.forEach(q => {
+      q.results.forEach(r => {
+        if (EXCLUDED_CANDIDATES.includes(r.candidate)) return;
+        const matchedMaster = masterForCargo.find(c => matchesCandidate(r.candidate, c));
+        if (matchedMaster) return; // já está como mestre
+        const key = keyForName(r.candidate);
+        if (!m.has(key)) m.set(key, { key, name: r.candidate, isMaster: false });
+      });
+    });
+    return Array.from(m.values());
+  }, [masterForCargo, filteredQuestions]);
+
+  // Presença por entrada: nº de waves em que aparece
+  const presenceByKey = useMemo(() => {
+    const m = new Map<string, number>();
+    allEntries.forEach(entry => {
+      const waveSet = new Set<string>();
       filteredQuestions.forEach(q => {
-        if (q.results.some(r => !EXCLUDED_CANDIDATES.includes(r.candidate) && matchesCandidate(r.candidate, c))) {
-          wavesWith.add(q.waveId);
+        if (q.results.some(r => !EXCLUDED_CANDIDATES.includes(r.candidate) && matchesEntry(r.candidate, entry))) {
+          waveSet.add(q.waveId);
         }
       });
-      m.set(c.id, wavesWith.size);
+      m.set(entry.key, waveSet.size);
     });
     return m;
-  }, [masterForCargo, filteredQuestions]);
+  }, [allEntries, filteredQuestions]);
 
   const totalWaves = selectedWaves.length;
 
   // Auto-select principal: primeiro mestre presente
   useEffect(() => {
     if (targetCandidateId && masterForCargo.some(c => c.id === targetCandidateId)) return;
-    const firstPresent = masterForCargo.find(c => (presenceByCandidate.get(c.id) ?? 0) > 0);
+    const firstPresent = masterForCargo.find(c => (presenceByKey.get(c.id) ?? 0) > 0);
     setTargetCandidateId(firstPresent?.id ?? masterForCargo[0]?.id ?? '');
-  }, [masterForCargo, presenceByCandidate, targetCandidateId]);
+  }, [masterForCargo, presenceByKey, targetCandidateId]);
 
-  // Auto-marcar comparações: todos os outros candidatos mestre presentes em ≥1 pesquisa
+  // Auto-marcar comparações: até 6, priorizando os de maior presença, todos exceto o principal
   useEffect(() => {
-    const auto = masterForCargo
-      .filter(c => c.id !== targetCandidateId && (presenceByCandidate.get(c.id) ?? 0) > 0)
-      .map(c => c.id)
-      .slice(0, 6);
-    setComparisonIds(prev => {
-      // Mantém manual: se o usuário desmarcou algo, não força de volta. Só preenche se vazio.
-      if (prev.length === 0) return auto;
-      // Remove inválidos (principal mudou, perdeu presença, etc.)
-      return prev.filter(id => id !== targetCandidateId && masterForCargo.some(c => c.id === id) && (presenceByCandidate.get(id) ?? 0) > 0);
+    const validEntries = allEntries
+      .filter(e => e.key !== targetCandidateId && (presenceByKey.get(e.key) ?? 0) > 0)
+      .sort((a, b) => (presenceByKey.get(b.key) ?? 0) - (presenceByKey.get(a.key) ?? 0));
+
+    setComparisonKeys(prev => {
+      if (prev.length === 0) {
+        return validEntries.slice(0, 6).map(e => e.key);
+      }
+      // Mantém manual: só remove os que ficaram inválidos
+      return prev.filter(k => k !== targetCandidateId && allEntries.some(e => e.key === k) && (presenceByKey.get(k) ?? 0) > 0);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetCandidateId, masterForCargo, presenceByCandidate]);
+  }, [targetCandidateId, allEntries, presenceByKey]);
 
   const targetCandidate = masterForCargo.find(c => c.id === targetCandidateId) ?? null;
-  const allSelected = useMemo(() => {
-    if (!targetCandidate) return [] as Candidate[];
-    const comps = comparisonIds
-      .map(id => masterForCargo.find(c => c.id === id))
-      .filter((c): c is Candidate => !!c);
-    return [targetCandidate, ...comps];
-  }, [targetCandidate, comparisonIds, masterForCargo]);
+  const targetEntry: SelectedEntry | null = targetCandidate
+    ? { key: targetCandidate.id, name: targetCandidate.name, isMaster: true, master: targetCandidate }
+    : null;
 
-  // Chart data: 1 row por question, 1 chave por candidato mestre
+  const allSelected: SelectedEntry[] = useMemo(() => {
+    if (!targetEntry) return [];
+    const comps = comparisonKeys
+      .map(k => allEntries.find(e => e.key === k))
+      .filter((e): e is SelectedEntry => !!e && e.key !== targetEntry.key);
+    return [targetEntry, ...comps];
+  }, [targetEntry, comparisonKeys, allEntries]);
+
+  // Chart data: 1 row por question, 1 chave por entry selecionada
   const chartData = useMemo(() => {
     return filteredQuestions
       .map(q => {
         const wave = waves.find(w => w.id === q.waveId);
         const row: Record<string, any> = { label: `${wave?.releaseDate ?? q.waveId} — ${q.scenarioLabel}` };
         let hasAny = false;
-        allSelected.forEach(master => {
-          const result = q.results.find(r => !EXCLUDED_CANDIDATES.includes(r.candidate) && matchesCandidate(r.candidate, master));
+        allSelected.forEach(entry => {
+          const result = q.results.find(r => !EXCLUDED_CANDIDATES.includes(r.candidate) && matchesEntry(r.candidate, entry));
           if (result) {
-            row[master.id] = result.percentage;
+            row[entry.key] = result.percentage;
             hasAny = true;
           }
         });
@@ -1300,15 +1339,49 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       .filter((r): r is Record<string, any> => r !== null);
   }, [filteredQuestions, waves, allSelected]);
 
-  const toggleComparison = (id: string) => {
-    setComparisonIds(prev =>
-      prev.includes(id)
-        ? prev.filter(c => c !== id)
-        : prev.length < 6 ? [...prev, id] : prev,
+  const toggleComparison = (key: string) => {
+    setComparisonKeys(prev =>
+      prev.includes(key)
+        ? prev.filter(k => k !== key)
+        : prev.length < 6 ? [...prev, key] : prev,
     );
   };
 
-  const colorFor = (c: Candidate) => lookupCandidateColor(c.name, 'hsl(var(--muted-foreground))');
+  const colorFor = (e: SelectedEntry) => lookupCandidateColor(e.name, 'hsl(var(--muted-foreground))');
+
+  // Lista exibida na coluna de comparações (com busca aplicada)
+  const comparisonList = useMemo(() => {
+    const term = normalizeName(searchTerm);
+    return allEntries
+      .filter(e => e.key !== targetCandidateId)
+      .filter(e => !term || normalizeName(e.name).includes(term))
+      .sort((a, b) => {
+        // Mestres primeiro, depois por presença desc, depois alfabético
+        if (a.isMaster !== b.isMaster) return a.isMaster ? -1 : 1;
+        const pa = presenceByKey.get(a.key) ?? 0;
+        const pb = presenceByKey.get(b.key) ?? 0;
+        if (pa !== pb) return pb - pa;
+        return a.name.localeCompare(b.name);
+      });
+  }, [allEntries, targetCandidateId, searchTerm, presenceByKey]);
+
+  const selectableEntries = useMemo(
+    () => comparisonList.filter(e => (presenceByKey.get(e.key) ?? 0) > 0),
+    [comparisonList, presenceByKey],
+  );
+
+  const selectAllVisible = () => {
+    const ordered = [...selectableEntries].sort(
+      (a, b) => (presenceByKey.get(b.key) ?? 0) - (presenceByKey.get(a.key) ?? 0),
+    );
+    const top = ordered.slice(0, 6).map(e => e.key);
+    if (selectableEntries.length > 6) {
+      toast.warning(`Limite de 6 comparações — selecionados os 6 com maior presença.`);
+    }
+    setComparisonKeys(top);
+  };
+
+  const clearComparisons = () => setComparisonKeys([]);
 
   return (
     <div className="space-y-4">
@@ -1391,7 +1464,6 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
           </div>
         )}
 
-
         {/* Cargo + Métrica */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
@@ -1432,13 +1504,13 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <div className="text-xs text-muted-foreground mb-1.5 font-medium">Candidato principal:</div>
-            <Select value={targetCandidateId} onValueChange={v => { setTargetCandidateId(v); setComparisonIds(prev => prev.filter(id => id !== v)); }}>
+            <Select value={targetCandidateId} onValueChange={v => { setTargetCandidateId(v); setComparisonKeys(prev => prev.filter(k => k !== v)); }}>
               <SelectTrigger className="h-9 text-xs">
                 <SelectValue placeholder="Selecione…" />
               </SelectTrigger>
               <SelectContent>
                 {masterForCargo.map(c => {
-                  const n = presenceByCandidate.get(c.id) ?? 0;
+                  const n = presenceByKey.get(c.id) ?? 0;
                   return (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name} <span className="text-muted-foreground">· {n}/{totalWaves}</span>
@@ -1455,35 +1527,80 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
           </div>
 
           <div>
-            <div className="text-xs text-muted-foreground mb-1.5 font-medium">
-              Candidatos para cruzar <span className="text-[10px]">(máx. 6)</span>:
+            <div className="flex items-center justify-between mb-1.5 gap-2 flex-wrap">
+              <div className="text-xs text-muted-foreground font-medium">
+                Candidatos para cruzar <span className="text-[10px]">({comparisonKeys.length}/6)</span>:
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={selectAllVisible}
+                  disabled={selectableEntries.length === 0}
+                  className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border border-[hsl(220,15%,20%)] text-muted-foreground hover:text-[#0FFCBE] hover:border-[#0FFCBE]/40 disabled:opacity-40 disabled:hover:text-muted-foreground"
+                  title="Selecionar todos (máx. 6)"
+                >
+                  <ListChecks className="w-3 h-3" /> Todos
+                </button>
+                <button
+                  type="button"
+                  onClick={clearComparisons}
+                  disabled={comparisonKeys.length === 0}
+                  className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border border-[hsl(220,15%,20%)] text-muted-foreground hover:text-amber-400 hover:border-amber-400/40 disabled:opacity-40"
+                  title="Limpar seleção"
+                >
+                  <Eraser className="w-3 h-3" /> Limpar
+                </button>
+              </div>
             </div>
-            {masterForCargo.filter(c => c.id !== targetCandidateId).length === 0 ? (
-              <div className="text-xs text-muted-foreground italic">Nenhum outro candidato cadastrado.</div>
+
+            <Input
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Buscar candidato…"
+              className="h-7 text-xs mb-2"
+            />
+
+            {comparisonList.length === 0 ? (
+              <div className="text-xs text-muted-foreground italic">
+                {allEntries.length <= 1
+                  ? 'Nenhum outro candidato disponível.'
+                  : 'Nenhum candidato corresponde à busca.'}
+              </div>
             ) : (
-              <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
-                {masterForCargo.filter(c => c.id !== targetCandidateId).map(c => {
-                  const checked = comparisonIds.includes(c.id);
-                  const presence = presenceByCandidate.get(c.id) ?? 0;
+              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                {comparisonList.map(entry => {
+                  const checked = comparisonKeys.includes(entry.key);
+                  const presence = presenceByKey.get(entry.key) ?? 0;
                   const absent = presence === 0;
+                  const reachedLimit = !checked && comparisonKeys.length >= 6;
+                  const disabled = absent || reachedLimit;
                   return (
-                    <div key={c.id} className="flex items-center gap-2 group">
+                    <div key={entry.key} className="flex items-center gap-2 group">
                       <Checkbox
-                        id={`cmp-${c.id}`}
+                        id={`cmp-${entry.key}`}
                         checked={checked}
-                        disabled={absent}
-                        onCheckedChange={() => !absent && toggleComparison(c.id)}
+                        disabled={disabled}
+                        onCheckedChange={() => !disabled && toggleComparison(entry.key)}
                       />
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorFor(c), opacity: absent ? 0.35 : 1 }} />
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorFor(entry), opacity: absent ? 0.35 : 1 }} />
                       <label
-                        htmlFor={`cmp-${c.id}`}
-                        className={`text-xs cursor-pointer transition-colors select-none flex-1 ${
-                          absent ? 'text-muted-foreground/50 cursor-not-allowed' : 'text-muted-foreground group-hover:text-foreground'
+                        htmlFor={`cmp-${entry.key}`}
+                        className={`text-xs cursor-pointer transition-colors select-none flex-1 truncate ${
+                          disabled ? 'text-muted-foreground/50 cursor-not-allowed' : 'text-muted-foreground group-hover:text-foreground'
                         }`}
+                        title={entry.name}
                       >
-                        {c.name}
+                        {entry.name}
                       </label>
-                      <span className={`text-[10px] font-mono ${absent ? 'text-muted-foreground/40' : presence === totalWaves ? 'text-[#0FFCBE]' : 'text-amber-400'}`}>
+                      {!entry.isMaster && (
+                        <span
+                          className="text-[9px] px-1.5 py-0 rounded border border-amber-400/30 text-amber-400/80 bg-amber-400/[0.06] shrink-0"
+                          title="Nome encontrado nas pesquisas, ainda não cadastrado em Candidatos"
+                        >
+                          não cadastrado
+                        </span>
+                      )}
+                      <span className={`text-[10px] font-mono shrink-0 ${absent ? 'text-muted-foreground/40' : presence === totalWaves ? 'text-[#0FFCBE]' : 'text-amber-400'}`}>
                         {presence}/{totalWaves}
                       </span>
                     </div>
@@ -1492,7 +1609,7 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               </div>
             )}
             <div className="text-[10px] text-muted-foreground mt-2 leading-snug">
-              Mostra todos os candidatos cadastrados. O contador "X/N" indica em quantas das pesquisas selecionadas o candidato aparece. Quem não aparece em nenhuma fica desabilitado.
+              Inclui candidatos cadastrados e nomes citados nas pesquisas selecionadas. "X/N" indica em quantas pesquisas o nome aparece. Quem não aparece em nenhuma fica desabilitado.
             </div>
           </div>
         </div>
@@ -1522,18 +1639,18 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
         <div className="rounded-xl border border-[hsl(220,15%,20%)] p-4 bg-[hsl(220,20%,13%)] shadow-lg">
           {/* Legend */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4">
-            {allSelected.map((c, i) => (
-              <div key={c.id} className="flex items-center gap-1.5">
+            {allSelected.map((entry, i) => (
+              <div key={entry.key} className="flex items-center gap-1.5">
                 <div
                   className="rounded-full shrink-0"
                   style={{
                     width: i === 0 ? 12 : 8,
                     height: i === 0 ? 12 : 8,
-                    backgroundColor: colorFor(c),
+                    backgroundColor: colorFor(entry),
                     opacity: i === 0 ? 1 : 0.75,
                   }}
                 />
-                <span className={`text-xs ${i === 0 ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{c.name}</span>
+                <span className={`text-xs ${i === 0 ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{entry.name}</span>
                 {i === 0 && (
                   <span className="text-[10px] text-muted-foreground">· {metricType === 'estimulada' ? 'Estimulada' : 'Rejeição'} · {targetCargo}</span>
                 )}
@@ -1560,21 +1677,21 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
               <Tooltip
                 contentStyle={{ backgroundColor: 'hsl(220, 18%, 16%)', border: '1px solid hsl(220, 15%, 25%)', borderRadius: 10, fontSize: 12, color: '#fff' }}
                 formatter={(v: any, _key: string, item: any) => {
-                  const master = allSelected.find(c => c.id === item?.dataKey);
-                  return [`${v}%`, master?.name ?? _key];
+                  const entry = allSelected.find(e => e.key === item?.dataKey);
+                  return [`${v}%`, entry?.name ?? _key];
                 }}
               />
-              {allSelected.map((c, i) => (
+              {allSelected.map((entry, i) => (
                 <Line
-                  key={c.id}
+                  key={entry.key}
                   type="monotone"
-                  dataKey={c.id}
-                  name={c.name}
-                  stroke={colorFor(c)}
+                  dataKey={entry.key}
+                  name={entry.name}
+                  stroke={colorFor(entry)}
                   strokeWidth={i === 0 ? 3 : 2}
                   strokeDasharray={i === 0 ? undefined : '5 3'}
                   opacity={i === 0 ? 1 : 0.75}
-                  dot={{ r: i === 0 ? 5 : 3, fill: colorFor(c) }}
+                  dot={{ r: i === 0 ? 5 : 3, fill: colorFor(entry) }}
                   connectNulls
                 />
               ))}
@@ -1591,14 +1708,14 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                   <thead>
                     <tr className="border-b border-[hsl(220,15%,20%)]">
                       <th className="py-1.5 px-2 text-left text-muted-foreground whitespace-nowrap">Onda / Cenário</th>
-                      {allSelected.map(c => (
-                        <th key={c.id} className="py-1.5 px-2 text-right text-muted-foreground whitespace-nowrap">
+                      {allSelected.map(entry => (
+                        <th key={entry.key} className="py-1.5 px-2 text-right text-muted-foreground whitespace-nowrap">
                           <span className="inline-flex items-center gap-1">
                             <span
                               className="inline-block w-2 h-2 rounded-full"
-                              style={{ backgroundColor: colorFor(c) }}
+                              style={{ backgroundColor: colorFor(entry) }}
                             />
-                            {c.name.split(' ')[0]}
+                            {entry.name.split(' ')[0]}
                           </span>
                         </th>
                       ))}
@@ -1608,22 +1725,21 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
                     {chartData.map((row, i) => (
                       <tr key={i} className="border-b border-[hsl(220,15%,20%)] last:border-0">
                         <td className="py-1.5 px-2 text-muted-foreground">{row.label}</td>
-                        {allSelected.map(c => {
-                          const val: number | undefined = row[c.id];
-                          const prev: number | undefined = i > 0 ? chartData[i - 1][c.id] : undefined;
+                        {allSelected.map(entry => {
+                          const val: number | undefined = row[entry.key];
+                          const prev: number | undefined = i > 0 ? chartData[i - 1][entry.key] : undefined;
                           const delta = val !== undefined && prev !== undefined ? val - prev : null;
 
-                          // Identifica a question correspondente a esta linha (row.label = "releaseDate — scenarioLabel")
                           const rowQuestion = filteredQuestions.find(q => {
                             const w = waves.find(w => w.id === q.waveId);
                             return row.label === `${w?.releaseDate ?? q.waveId} — ${q.scenarioLabel}`;
                           });
                           const wasResearched = rowQuestion
-                            ? rowQuestion.results.some(r => matchesCandidate(r.candidate, c))
+                            ? rowQuestion.results.some(r => matchesEntry(r.candidate, entry))
                             : false;
 
                           return (
-                            <td key={c.id} className="py-1.5 px-2 text-right">
+                            <td key={entry.key} className="py-1.5 px-2 text-right">
                               {val !== undefined ? (
                                 <>
                                   <span className="font-semibold">{val.toFixed(1)}%</span>
