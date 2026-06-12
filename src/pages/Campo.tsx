@@ -82,7 +82,7 @@ export default function Campo() {
 
   const candidateName = activeCandidate?.name ?? 'Sergio Moro';
   const candidatePhoto = activeCandidate?.photo_url ?? 'https://sumdjlmjtqgfzkcfkceq.supabase.co/storage/v1/object/public/candidate-photos/sergio-moro.jpg';
-  const candidateSubtitle = 'Pré-campanha ao Governo';
+  const candidateSubtitle = 'PRÉ-CANDIDATO AO GOVERNO';
 
   const displayName = profile?.full_name?.trim() || user?.email || 'Operador de Campo';
   const initials = displayName.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
