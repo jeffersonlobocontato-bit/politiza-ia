@@ -1165,14 +1165,43 @@ function TabCruzar({ waves, questions: allQuestions }: CruzarProps) {
       .filter(c => cargoToSurveyKey(c.cargo) === targetCargo);
   }, [masterCandidates, targetCargo]);
 
-  // Filtered survey questions (cargo + metric + selected waves)
+  // Auto-init / mantém cenário ativo por wave
+  useEffect(() => {
+    setActiveScenarioByWave(prev => {
+      const next: Record<string, string> = {};
+      selectedWaves.forEach(waveId => {
+        const candidates = allQuestions.filter(
+          q => q.waveId === waveId && q.cargo === targetCargo && q.questionType === metricType,
+        );
+        if (candidates.length === 0) return;
+        const current = prev[waveId];
+        if (current && candidates.some(q => q.id === current)) {
+          next[waveId] = current;
+        } else {
+          const main = candidates.find(q => q.isMainScenario) ?? candidates[0];
+          next[waveId] = main.id;
+        }
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedWaves, targetCargo, metricType, allQuestions]);
+
+  // Filtered survey questions: respeita cenário ativo por wave (fallback: 1º)
   const filteredQuestions = useMemo(() =>
-    allQuestions.filter(q =>
-      selectedWaves.includes(q.waveId) &&
-      q.cargo === targetCargo &&
-      q.questionType === metricType,
-    ),
-    [allQuestions, selectedWaves, targetCargo, metricType],
+    allQuestions.filter(q => {
+      if (!selectedWaves.includes(q.waveId)) return false;
+      if (q.cargo !== targetCargo) return false;
+      if (q.questionType !== metricType) return false;
+      const active = activeScenarioByWave[q.waveId];
+      if (active) return q.id === active;
+      // Fallback: aceita apenas o primeiro da wave
+      const first = allQuestions.find(
+        x => x.waveId === q.waveId && x.cargo === targetCargo && x.questionType === metricType,
+      );
+      return first?.id === q.id;
+    }),
+    [allQuestions, selectedWaves, targetCargo, metricType, activeScenarioByWave],
   );
 
   // Presença por candidato mestre: nº de pesquisas (waves) em que aparece
