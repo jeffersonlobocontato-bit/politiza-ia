@@ -35,6 +35,8 @@ export interface PollQuestion {
   results: CandidateResult[];
   crossTabs: CrossTab[];
   note?: string; // e.g. "*Cada entrevistado poderia citar mais de 1 candidato"
+  isMultipleChoice?: boolean; // true = RM* (entrevistado pode citar mais de 1 candidato)
+  isMainScenario?: boolean;   // true = cenário padrão para cruzamento entre pesquisas
 }
 
 export interface ComparativoRow {
