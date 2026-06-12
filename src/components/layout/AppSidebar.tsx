@@ -64,12 +64,18 @@ export function AppSidebar() {
   const { isPartyManager } = useUserParty();
 
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
+  const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
+
+  const allowedForGestorOperacional = new Set<string>([
+    '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
+  ]);
 
   const showChapas = isAdmin || isPartyManager;
   void showChapas;
   const visibleItems = navItems
     .filter(item => isItemVisible(item, campaignType))
-    .filter(item => item.url !== '/juridico' || isJuridico);
+    .filter(item => item.url !== '/juridico' || isJuridico)
+    .filter(item => !isGestorOperacional || allowedForGestorOperacional.has(item.url));
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
