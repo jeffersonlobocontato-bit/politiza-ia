@@ -737,6 +737,13 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
                           </button>
                         )}
                       </div>
+                      <ScenarioToggles
+                        cargoField="senScenarios"
+                        sIdx={sIdx}
+                        scenario={scenario}
+                        scenarios={form.senScenarios}
+                        updateForm={updateForm}
+                      />
                       <CandidatesBlock
                         title=""
                         entries={scenario.candidates}
