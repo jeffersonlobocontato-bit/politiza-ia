@@ -232,6 +232,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   analista_inteligencia: 'Analista de Inteligência',
   analista_pesquisa: 'Analista de Pesquisa',
   executivo_leitura: 'Executivo (Leitura)',
+  gestor_operacional: 'Gestor Operacional',
 };
 
 export const ADMIN_ROLES: AppRole[] = ['admin_master', 'coordenador_geral', 'coordenador_estadual'];
