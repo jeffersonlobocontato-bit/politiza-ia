@@ -596,7 +596,8 @@ export default function SalaDeGuerra() {
                 { color: '#22c55e', label: 'Alinhados ≥60%' },
                 { color: '#f59e0b', label: 'Disputado 40-59%' },
                 { color: '#ef4444', label: 'Oposição <40%' },
-                { color: '#475569', label: 'Sem ativos' },
+                { color: '#3b82f6', label: 'Presença (chapa/equipe)' },
+                { color: '#475569', label: 'Sem dados' },
               ].map(l => (
                 <div key={l.label} className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color }} />
@@ -604,7 +605,7 @@ export default function SalaDeGuerra() {
                 </div>
               ))}
               <span className="ml-auto text-[10px] text-muted-foreground">
-                {totalActionsMapped} ações · {politicalAssets.length} ativos
+                {totalActionsMapped} ações · {totalLeadership} lideranças · {teamMembers.length} equipe · {slates.length} pré-candidatos
               </span>
             </div>
           </div>
