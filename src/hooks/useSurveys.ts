@@ -75,6 +75,8 @@ export function dbQuestionToPoll(
     questionType: q.question_type as any,
     scenarioLabel: q.scenario_label,
     note: q.note ?? undefined,
+    isMultipleChoice: (q as any).is_multiple_choice ?? false,
+    isMainScenario: (q as any).is_main_scenario ?? false,
     results: results
       .filter(r => r.question_id === q.id)
       .map(r => ({ candidate: r.candidate_name, percentage: Number(r.percentage) }))
