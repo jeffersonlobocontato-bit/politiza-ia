@@ -2456,6 +2456,10 @@ export type Database = {
         Returns: boolean
       }
       get_dashboard_kpis: { Args: never; Returns: Json }
+      get_productivity_ranking: {
+        Args: { p_candidate_id?: string; p_period_days?: number }
+        Returns: Json
+      }
       get_tracking_evolution: {
         Args: { p_candidate_id: string }
         Returns: Json

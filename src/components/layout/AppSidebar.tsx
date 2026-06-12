@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel
+  ChevronDown, Check, UsersRound, Gavel, Trophy
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,6 +23,7 @@ interface NavItem {
   icon: any;
   highlight?: boolean;
   scope: ModuleScope;
+  adminMasterOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
   { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
   { title: 'Municípios', url: '/municipios', icon: Building2, scope: 'shared' },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
+  { title: 'Produtividade', url: '/produtividade', icon: Trophy, scope: 'shared', adminMasterOnly: true },
   { title: 'Configurações', url: '/configuracoes', icon: Settings, scope: 'shared' },
 ];
 
@@ -65,6 +67,7 @@ export function AppSidebar() {
 
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
   const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
+  const isAdminMaster = roles?.includes('admin_master' as any);
 
   const allowedForGestorOperacional = new Set<string>([
     '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
@@ -74,7 +77,8 @@ export function AppSidebar() {
   void showChapas;
   const visibleItems = navItems
     .filter(item => isGestorOperacional ? allowedForGestorOperacional.has(item.url) : isItemVisible(item, campaignType))
-    .filter(item => item.url !== '/juridico' || isJuridico);
+    .filter(item => item.url !== '/juridico' || isJuridico)
+    .filter(item => !item.adminMasterOnly || isAdminMaster);
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
