@@ -196,15 +196,41 @@ export default function CampoAcao() {
               />
             </div>
 
-            <div>
-              <label className="campo-label">Resultado Percebido</label>
-              <select value={input.result} onChange={e => update('result', e.target.value)} className="campo-select">
-                <option value="">Selecione...</option>
-                <option>Ótimo — Alta receptividade</option>
-                <option>Bom — Boa receptividade</option>
-                <option>Regular — Receptividade moderada</option>
-                <option>Fraco — Baixa receptividade</option>
-              </select>
+            {/* Pontuação de Impacto (calculada automaticamente) */}
+            <div className="campo-card-flat p-3 space-y-2">
+              <div className="flex items-baseline justify-between">
+                <label className="campo-label !mb-0">Pontuação de Impacto</label>
+                <div className="text-right">
+                  <span className="text-lg font-bold" style={{ color: impactColor }}>
+                    {impactScore}
+                  </span>
+                  <span className="text-xs ml-1" style={{ color: 'var(--campo-text-mute)' }}>/ 100</span>
+                </div>
+              </div>
+              <div
+                className="h-3 rounded-full overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${impactScore}%`,
+                    background: `linear-gradient(90deg, #E11D48 0%, #F59E0B 50%, ${impactColor} 100%)`,
+                    boxShadow: impactScore > 0 ? `0 0 8px ${impactColor}66` : 'none',
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span style={{ color: impactColor, fontWeight: 600 }}>{impactLabel}</span>
+                <span style={{ color: 'var(--campo-text-mute)' }}>
+                  {cityPopulation
+                    ? `${cityPopulation.toLocaleString('pt-BR')} hab. na cidade`
+                    : geo.city ? 'População da cidade não cadastrada' : 'Selecione a cidade'}
+                </span>
+              </div>
+              <p className="text-[10px] leading-snug" style={{ color: 'var(--campo-text-mute)' }}>
+                Calculada a partir de pessoas impactadas + proporção da população do município. Quanto maior a % da cidade alcançada, maior o score.
+              </p>
             </div>
 
             <div>
@@ -273,7 +299,7 @@ export default function CampoAcao() {
                 { label: 'Coordenadas', value: geo.lat ? `${geo.lat.toFixed(5)}, ${geo.lng?.toFixed(5)}` : '—' },
                 { label: 'Data/Hora', value: `${input.executedDate} às ${input.executedTime}` },
                 { label: 'Pessoas', value: input.peopleCount ? `~${parseInt(input.peopleCount).toLocaleString()}` : '—' },
-                { label: 'Resultado', value: input.result || '—' },
+                { label: 'Pontuação', value: `${impactScore}/100 (${impactLabel})` },
                 { label: 'Evidências', value: `${photos.length} foto(s)` },
               ].map(item => (
                 <div key={item.label} className="flex items-start justify-between gap-3 text-xs">
