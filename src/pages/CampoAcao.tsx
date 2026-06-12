@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Smartphone, Camera, CheckCircle } from 'lucide-react';
 import { useCreateAction } from '@/hooks/useActions';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
+import { db } from '@/lib/db';
+import { calcImpactScore, scoreColor, scoreLabel } from '@/lib/impactScore';
 
 interface FieldInput {
   actionTitle: string;
@@ -9,7 +11,6 @@ interface FieldInput {
   executedTime: string;
   peopleCount: string;
   observations: string;
-  result: string;
 }
 
 export default function CampoAcao() {
@@ -21,14 +22,38 @@ export default function CampoAcao() {
     executedTime: new Date().toTimeString().slice(0, 5),
     peopleCount: '',
     observations: '',
-    result: '',
   });
   const [geo, setGeo] = useState<GeoValue>({ city: '', lat: null, lng: null });
   const [photos, setPhotos] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [cityPopulation, setCityPopulation] = useState<number | null>(null);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
   const geoValid = geo.city.trim() !== '' && geo.lat !== null && geo.lng !== null;
+
+  // Busca população do município sempre que a cidade mudar
+  useEffect(() => {
+    const city = geo.city.trim();
+    if (!city) { setCityPopulation(null); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await db
+        .from('municipalities')
+        .select('population')
+        .ilike('name', city)
+        .maybeSingle();
+      if (!cancelled) setCityPopulation((data as any)?.population ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [geo.city]);
+
+  const peopleNum = parseInt(input.peopleCount) || 0;
+  const impactScore = useMemo(
+    () => calcImpactScore(peopleNum, cityPopulation),
+    [peopleNum, cityPopulation]
+  );
+  const impactColor = scoreColor(impactScore);
+  const impactLabel = scoreLabel(impactScore);
 
   const handleSubmit = () => {
     if (!geoValid) return;
