@@ -9,6 +9,7 @@
 @import "./styles/mobnex-typography.css";
 @import "./styles/mobnex-components.css";
 @import "./styles/mobnex-animations.css";
+@import "./styles/campo-mobile.css";
 
 .tracking-tooltip-clean {
   background: transparent !important;
