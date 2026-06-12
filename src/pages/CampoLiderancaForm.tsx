@@ -150,33 +150,29 @@ export default function CampoLiderancaForm() {
 
   return (
     <div className="campo-screen w-full max-w-2xl mx-auto">
-      {/* Header — symmetric px-4 */}
-      <div className="px-4 py-4 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
-        <Link to="/campo/liderancas" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 flex-shrink-0">
+      {/* Header */}
+      <div className="campo-page-header">
+        <Link to="/campo/liderancas" className="campo-icon-btn">
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <div className="min-w-0">
-          <h1 className="text-sm font-bold text-white truncate">{isEdit ? 'Editar Liderança' : 'Nova Liderança de Campo'}</h1>
-          <p className="text-[11px] text-white/50 truncate">Passo {step} de {STEPS.length} — {STEPS[step-1].label}</p>
+        <div className="min-w-0 flex-1">
+          <h1>{isEdit ? 'Editar Liderança' : 'Nova Liderança'}</h1>
+          <p>Passo {step} de {STEPS.length} — {STEPS[step-1].label}</p>
         </div>
       </div>
 
       {/* Stepper */}
-      <div className="px-4 py-3 border-b border-white/5 flex gap-1.5 flex-shrink-0 overflow-x-auto scrollbar-none">
+      <div
+        className="px-4 py-3 flex gap-1.5 flex-shrink-0 overflow-x-auto scrollbar-none"
+        style={{ borderBottom: '1px solid var(--campo-line)' }}
+      >
         {STEPS.map(s => {
           const active = step === s.id;
-          const done = step > s.id;
           return (
             <button
               key={s.id}
               onClick={() => setStep(s.id)}
-              className={`flex-1 min-w-[64px] flex flex-col items-center gap-1 py-2 px-1 rounded-lg text-[10px] font-semibold transition-colors ${
-                active
-                  ? 'bg-[#2FA85A]/15 text-[#5BE0A0] border border-[#2FA85A]/30'
-                  : done
-                  ? 'text-white/60 border border-transparent'
-                  : 'text-white/30 border border-transparent'
-              }`}
+              className={`campo-pill ${active ? 'campo-pill-active' : ''} flex flex-col items-center gap-1 py-2 min-w-[64px]`}
             >
               <s.icon className="w-4 h-4" />
               {s.label}
