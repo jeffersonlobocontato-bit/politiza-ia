@@ -235,10 +235,20 @@ export default function SalaDeGuerra() {
   // ── Poll timeline derived from all available survey waves (DB + static seed) ──
   const EXCLUDED = ['Não sabe/ Não opinou', 'Nenhum/ Branco/ Nulo', 'Ninguém/ Branco/ Nulo', 'Poderia votar em todos', 'Não sabe/Não opinou'];
 
+  // Converte "DD/MM/YYYY" ou "YYYY-MM-DD" para timestamp para ordenação cronológica correta
+  const toTs = (d: string) => {
+    if (!d) return 0;
+    if (d.includes('/')) {
+      const [dd, mm, yyyy] = d.split('/');
+      return new Date(`${yyyy}-${mm}-${dd}`).getTime();
+    }
+    return new Date(d).getTime();
+  };
+
   const allWaves: PollWave[] = [
     ...(dbSurveys?.waves ?? []),
     ...pollWaves.filter(w => !(dbSurveys?.waves ?? []).some(dw => dw.id === w.id)),
-  ].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
+  ].sort((a, b) => toTs(a.releaseDate) - toTs(b.releaseDate));
 
   const allQuestions: PollQuestion[] = [
     ...(dbSurveys?.questions ?? []),
