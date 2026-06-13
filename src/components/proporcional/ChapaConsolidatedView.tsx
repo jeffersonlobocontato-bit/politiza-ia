@@ -434,3 +434,113 @@ function DetailSheet({
     </Sheet>
   );
 }
+
+function TopTenByPartyCargo({
+  rows, parties, scenario, onOpen,
+}: {
+  rows: ReturnType<typeof useChapaCrossAnalytics>['rows'];
+  parties: SlateParty[];
+  scenario: Scenario;
+  onOpen?: (s: SlateCandidate) => void;
+}) {
+  const [party, setParty] = useState<SlateParty>(parties[0] ?? 'PL');
+
+  const top = (cargo: SlateCargo) =>
+    rows
+      .filter((r) => r.slate.party === party && r.slate.cargo === cargo)
+      .map((r) => ({
+        slate: r.slate,
+        declared: slateVote(r.slate, scenario),
+        computed: r.computed[scenario],
+      }))
+      .sort((a, b) => b.declared - a.declared)
+      .slice(0, 10);
+
+  const topFed = top('Deputado Federal');
+  const topEst = top('Deputado Estadual');
+
+  return (
+    <Card className="p-4 bg-card/80 border-border/60 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="text-sm font-bold flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            Top 10 por partido — {SCENARIO_LABEL[scenario]}
+          </h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            Ranking dos 10 pré-candidatos com maior projeção declarada, separado por cargo.
+          </p>
+        </div>
+        <div className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5">
+          {parties.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setParty(p)}
+              className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
+                party === p ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              style={party === p ? { background: `${PARTY_META[p].accent}25` } : {}}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <TopList title="Top 10 Deputado Federal" accent="#1F5AB4" items={topFed} onOpen={onOpen} />
+        <TopList title="Top 10 Deputado Estadual" accent="#2FA85A" items={topEst} onOpen={onOpen} />
+      </div>
+    </Card>
+  );
+}
+
+function TopList({
+  title, accent, items, onOpen,
+}: {
+  title: string;
+  accent: string;
+  items: { slate: SlateCandidate; declared: number; computed: number }[];
+  onOpen?: (s: SlateCandidate) => void;
+}) {
+  const max = items[0]?.declared || 1;
+  return (
+    <div className="rounded-lg border border-border/60 bg-background/30 overflow-hidden">
+      <div className="px-3 py-2 border-b border-border/60 flex items-center gap-2">
+        <span className="inline-block w-1.5 h-4 rounded-sm" style={{ background: accent }} />
+        <span className="text-xs font-bold uppercase tracking-wider">{title}</span>
+        <span className="ml-auto text-[10px] text-muted-foreground">{items.length} de 10</span>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-6">Sem pré-candidatos.</p>
+      ) : (
+        <ol className="divide-y divide-border/40">
+          {items.map((it, i) => (
+            <li key={it.slate.id}>
+              <button
+                type="button"
+                onClick={() => onOpen?.(it.slate)}
+                className="w-full text-left px-3 py-2 hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-5 text-xs font-black text-muted-foreground">{i + 1}</span>
+                  <span className="flex-1 text-sm font-semibold truncate">{it.slate.name}</span>
+                  <span className="text-xs font-mono font-bold" style={{ color: accent }}>{fmt(it.declared)}</span>
+                </div>
+                <div className="ml-7 mt-1 flex items-center gap-2">
+                  <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${(it.declared / max) * 100}%`, background: accent }} />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                    sust. {fmt(it.computed)} · {it.slate.city || '—'}
+                  </span>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
