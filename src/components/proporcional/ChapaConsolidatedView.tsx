@@ -219,6 +219,9 @@ export default function ChapaConsolidatedView({ parties, onOpenPreCandidate }: P
         )}
       </Card>
 
+      {/* Top 10 por partido e cargo */}
+      <TopTenByPartyCargo rows={filteredRows} parties={parties} scenario={scenario} onOpen={onOpenPreCandidate} />
+
       {/* Cards por partido x cargo */}
       {parties.map((p) => {
         const meta = PARTY_META[p];
