@@ -38,6 +38,7 @@ import MobnexShowcase from "./pages/MobnexShowcase";
 import Chapas from "./pages/Chapas";
 import ChapaPartido from "./pages/ChapaPartido";
 import Produtividade from "./pages/Produtividade";
+import Gestao from "./pages/Gestao";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,6 +78,7 @@ const AppRoutes = () => (
     <Route path="/chapas" element={<ProtectedRoute><RoleAwareLayout><Chapas /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/chapas/:party" element={<ProtectedRoute><RoleAwareLayout><ChapaPartido /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/produtividade" element={<ProtectedRoute><RoleAwareLayout><Produtividade /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/gestao" element={<ProtectedRoute><RoleAwareLayout><Gestao /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/tracking/coleta/:shareCode" element={<ProtectedRoute><TrackingColeta /></ProtectedRoute>} />
     <Route path="/mobnex" element={<ProtectedRoute><MobnexShowcase /></ProtectedRoute>} />
     {/* Legacy redirects */}

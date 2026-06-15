@@ -1,77 +1,95 @@
-# Módulo de Produtividade Hierárquica
+# Plano — Módulo Gestão de Equipe (Kanban + Check-ins)
 
-Novo módulo acessível **apenas a admin master** (Jefferson, Edson, Julio) que consolida a produtividade de campo a partir do `impact_score` das ações, respeitando a cadeia de comando.
+## Regra de escopo (núcleo da entrega)
 
-## Lógica de agregação
+Toda query e mutação respeita o **candidato ativo**, exceto admin master, que delega para qualquer equipe.
 
-```text
-Ação (impact_score)
-   └─ pertence à Liderança (created_by ou coordinator_id)
-        └─ Liderança vinculada ao Coordenador Micro (campaign_members, hierarchy_level micro)
-             └─ Micro vinculado ao Coordenador Macro (supervisor_id)
-                  └─ Macro consolida tudo abaixo
+| Ator | Pode ver | Pode criar/atribuir |
+|---|---|---|
+| Admin master (Jefferson, Edson, Julio) | Tarefas e check-ins de **todos os candidatos**; filtro por candidato ativo no UI | Cria tarefas em **qualquer** candidato; atribui a qualquer membro de qualquer equipe |
+| Usuário vinculado em `user_candidates` | Apenas tarefas/check-ins dos candidatos vinculados | Cria/atribui apenas dentro do candidato ativo (que precisa estar entre os vinculados) |
+| Demais autenticados | Nada (RLS bloqueia) | Nada |
 
-Se a liderança NÃO tem coordenador micro → pontua direto no macro da cidade.
-```
+Implementação em RLS via helpers já existentes:
+- `is_admin(auth.uid())` → bypass total.
+- `can_view_candidate_record(auth.uid(), candidate_id)` → restringe por `user_candidates`.
 
-**Vínculos usados (já existentes no schema):**
-- `actions.created_by` = usuário que registrou (geralmente a liderança/coordenador na ponta)
-- `leaders.coordinator_id` → `campaign_members.id` (coordenador responsável)
-- `campaign_members.supervisor_id` → coordenador imediatamente acima
-- `campaign_members.hierarchy_level` (1 = macro/topo, números maiores = micro/base)
-- `campaign_members.macroregion_id` / `microregion` / `municipality`
+---
 
-## Métricas por nível
+## 1. Migration (correções sobre o SQL enviado)
 
-Cada card/linha de ranking mostra:
-- **Soma de impact_score** (volume — premia esforço)
-- **Média de impact_score** (eficiência — premia qualidade por ação)
-- **Nº de ações** e **nº de lideranças ativas** sob o escopo
-- **Pessoas impactadas** (somatório)
+1. **GRANTs obrigatórios** em `tasks` e `daily_checkins` (não vieram no arquivo — sem isso PostgREST nega tudo).
+2. **RLS reescrita**:
+   - `tasks_select`: `is_admin OR can_view_candidate_record(auth.uid(), candidate_id)`
+   - `tasks_insert`: `is_admin OR can_view_candidate_record(...)` no `candidate_id` enviado
+   - `tasks_update/delete`: dono, responsável, ou `is_admin`
+   - `checkins_select`: `auth.uid() = user_id OR is_admin`
+   - `checkins_insert/update`: `auth.uid() = user_id`
+3. **Soft-delete** (memória *Data Compliance*): coluna `deleted_at` em `tasks` e `daily_checkins`; queries filtram `IS NULL`; `useDeleteTask` faz update, não DELETE físico.
+4. **Trigger `updated_at`** reaproveita `public.update_updated_at_column()` em vez de criar nova função.
 
-Dois rankings paralelos (Volume e Eficiência), igual ao padrão já usado em lideranças.
+## 2. Hooks
 
-## Estrutura da página `/produtividade`
+`useTasks.ts`:
+- Novo parâmetro opcional `candidateIdOverride` para o admin master criar tarefa em outro candidato pelo modal de delegação.
+- `useTasks(candidateId)` aceita "Todos" quando admin master quer ver tudo (passa `null`/`'all'`, query não filtra).
+- `queryKey` corrigida para `['tasks', candidateId]` (bug do `useUpdateTaskStatus` que invalidava chave errada).
+- `useDeleteTask` faz update `{ deleted_at: now() }`.
 
-```text
-┌─ Header: Produtividade · filtro de candidato ativo · período (7/30/90 dias/tudo)
-├─ KPIs globais (4 cards): total de ações, score total, score médio, top performer
-├─ Tabs:
-│   ├─ Macrorregiões      → ranking dos coordenadores macro
-│   ├─ Microrregiões      → ranking dos coordenadores micro (drill-down do macro)
-│   └─ Lideranças         → ranking individual
-└─ Cada linha é clicável → expande para mostrar o nível imediatamente abaixo (drill-down)
-```
+`useCheckins.ts`: filtros idem; admin master pode ver semana de todos os candidatos.
 
-## Implementação técnica
+Novo helper hook `useAssignableTeam(candidateId)`:
+- Retorna lista de pessoas (de `campaign_members` + `profiles` vinculados via `user_candidates`) do candidato selecionado para popular o autocomplete "Atribuir a".
+- Admin master vê o autocomplete inteiro por candidato; ao trocar o candidato no modal, a lista recarrega.
 
-**1. RPC `get_productivity_ranking(p_candidate_id uuid, p_period_days int)`** (migration)
-- Retorna JSON com 3 arrays: `macros`, `micros`, `leaders`, cada um com `{id, name, total_score, avg_score, action_count, leader_count, people_impacted}`.
-- CTE base: ações não deletadas, filtradas por candidato + período + `impact_score IS NOT NULL`.
-- Resolve a hierarquia: para cada ação, descobre o coordenador da liderança (`leaders.coordinator_id`), sobe via `supervisor_id` até achar o macro (hierarchy_level mínimo). Se não houver micro, atribui direto ao macro pela `macroregion_id` da liderança/ação.
-- `SECURITY DEFINER` + check `public.is_admin(auth.uid())` no topo; retorna erro se não for admin master.
+## 3. Página `Gestao.tsx` — design inspirado nas referências
 
-**2. Frontend novo:**
-- `src/pages/Produtividade.tsx` — página principal com tabs e drill-down
-- `src/hooks/useProductivity.ts` — wrapper `useQuery` para a RPC
-- Reutiliza `InfographicHBar` e `InfographicDonut` para visual consistente Navy-Teal
-- Rota em `App.tsx` protegida por `ProtectedRoute` + check `isAdminMaster`
-- Item de menu em `AppSidebar.tsx` visível apenas para admin master
+Pegando o que faz sentido nas 4 imagens (Kanban escuro com pill-headers coloridos, contadores grandes tipo "Bucket Board", "Sprint overview" com Status/Burndown/Workload, cards com avatar + tags), traduzido para os **tokens MobNex** (sem cores cruas):
 
-**3. Sem alterações de schema** além da RPC (todas as colunas já existem: `actions.impact_score`, `leaders.coordinator_id`, `campaign_members.supervisor_id/hierarchy_level/macroregion_id`).
+### Header
+- Título com `text-gradient` "Gestão de Equipe", subtítulo com candidato ativo.
+- **Seletor de escopo** (visível só p/ admin master): chips `Candidato ativo • Todos os candidatos • <candidato X>` → controla a chave de query.
+- Botão `+ Nova Tarefa` (variante primária).
 
-## Arquivos a criar/editar
+### Faixa de KPIs (estilo "Bucket Board")
+Cards quadrados com número grande, ícone e label, mas **usando tokens** (`bg-card border`, accents `primary / chart-1..5`). Métricas: A fazer, Em andamento, Bloqueado, Concluído (hoje), Check-ins do dia, Atrasadas.
 
-| Arquivo | Ação |
-|---|---|
-| `supabase/migrations/...` | nova RPC `get_productivity_ranking` |
-| `src/pages/Produtividade.tsx` | criar |
-| `src/hooks/useProductivity.ts` | criar |
-| `src/App.tsx` | adicionar rota `/produtividade` |
-| `src/components/layout/AppSidebar.tsx` | adicionar item visível só para admin master |
+### Painel "Sprint overview" (3 cards lado a lado)
+- **Status overview**: donut Recharts por status (cores chart tokens).
+- **Carga por área**: barras horizontais por `area` (central/regional/partidário).
+- **Carga por pessoa**: avatares + grid de status (estilo Team workload da referência), capado em 6 com link "ver tudo".
 
-## Pendências / suposições
+### Kanban (núcleo)
+- 4 colunas com pill-header colorido (`primary`, `chart-2`, `destructive`, `chart-3` em opacidade Navy-Teal) + contador à direita (como `13/17` da ref).
+- Card: avatar do responsável, título, badges Área + Prioridade (variantes shadcn, não cores hardcoded), data e checkbox de conclusão rápida.
+- Modal de tarefa: campos + **dropdown de candidato (admin master)** + autocomplete de responsável dependente do candidato.
+- Drag-and-drop com `@dnd-kit/core` (já no projeto se disponível; senão manter dropdown de status).
 
-- Assumo que **liderança vincula a uma ação** via `actions.created_by` casando com `leaders.created_by` do mesmo usuário OU via heurística geográfica (mesma cidade). Se quiser um vínculo explícito (ex.: `actions.leader_id`), preciso adicionar essa coluna — me avise.
-- Período padrão = 30 dias; pode ser alterado no filtro.
-- Ações sem `impact_score` (legado) são ignoradas no ranking, mas contadas em "total de ações".
+### Aba Check-ins
+- Form do meu check-in (Entreguei / Vou fazer / Bloqueios) em card lateral.
+- Feed dos check-ins de hoje da equipe (lista com avatar + 3 linhas), filtrada pelo escopo.
+
+### Aba Relatório
+- Heatmap simples por dia da semana + ranking de check-ins consistentes (últimos 7 dias).
+
+### Regras de design (memórias)
+- Zero hex cru. Tudo via `primary`, `secondary`, `accent`, `chart-1..5`, `destructive`, `muted-foreground`.
+- DM Sans em tudo (já global).
+- Cards `bg-card border border-border`, glow nos ícones de header (`bg-primary/10 ring-1 ring-primary/30`).
+- Tema claro/escuro respeitado.
+
+## 4. Integração
+- Rota `/gestao` em `src/App.tsx` (ProtectedRoute + RoleAwareLayout).
+- Item na sidebar `AppSidebar.tsx` com `LayoutGrid` + `ListTodo`.
+- Sem mudança em `types.ts` (regenerado após migration).
+
+## 5. Entregáveis
+1. Migration nova (substitui a enviada).
+2. `src/hooks/useTasks.ts`, `useCheckins.ts`, `useAssignableTeam.ts`.
+3. `src/pages/Gestao.tsx` redesenhada.
+4. `src/App.tsx`, `src/components/layout/AppSidebar.tsx` atualizados.
+
+## Perguntas antes de implementar
+1. **Drag-and-drop no Kanban**: instalar `@dnd-kit/core` agora ou manter o dropdown de status do arquivo original?
+2. **Lista de responsáveis** ao atribuir tarefa: usar somente `campaign_members` do candidato, ou também usuários autenticados vinculados em `user_candidates`?
+3. **Check-ins** quando admin master está em modo "Todos os candidatos": somar globalmente ou exigir candidato selecionado?
