@@ -606,7 +606,27 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Nova tarefa</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Nova tarefa</DialogTitle>
+        </DialogHeader>
+
+        {/* Quem está delegando */}
+        <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs flex items-center gap-2">
+          <Users className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+          {isAdminMaster ? (
+            <span><span className="text-muted-foreground">Delegando como</span> <strong className="text-primary">Admin Master</strong> · pode delegar para qualquer equipe.</span>
+          ) : myMember ? (
+            <span>
+              <span className="text-muted-foreground">Delegando como</span>{' '}
+              <strong className="text-foreground">{myMember.name}</strong>
+              {myMember.role && <span className="text-muted-foreground"> · {myMember.role}</span>}
+              {myMember.hierarchy_level && <span className="text-muted-foreground"> · Nível {myMember.hierarchy_level}</span>}
+            </span>
+          ) : (
+            <span className="text-destructive">Você não possui posição na hierarquia deste candidato.</span>
+          )}
+        </div>
+
         <div className="space-y-3">
           <div>
             <Label className="text-xs">Título *</Label>
