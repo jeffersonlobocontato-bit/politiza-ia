@@ -181,11 +181,20 @@ export default function Gestao() {
                 </SelectContent>
               </Select>
             )}
-            <Button onClick={() => setModalOpen(true)} className="gap-2">
-              <Plus className="w-4 h-4" /> Nova tarefa
-            </Button>
-          </div>
-        </header>
+            <TooltipProvider>
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <span tabIndex={cannotDelegateReason ? 0 : -1}>
+                    <Button onClick={() => setModalOpen(true)} className="gap-2" disabled={!canDelegate}>
+                      <Plus className="w-4 h-4" /> Nova tarefa
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {cannotDelegateReason && (
+                  <TooltipContent className="max-w-xs">{cannotDelegateReason}</TooltipContent>
+                )}
+              </UITooltip>
+            </TooltipProvider>
 
         {/* KPI strip */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
