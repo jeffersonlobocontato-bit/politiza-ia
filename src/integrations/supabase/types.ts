@@ -2565,6 +2565,28 @@ export type Database = {
         Returns: boolean
       }
       get_dashboard_kpis: { Args: never; Returns: Json }
+      get_delegable_members: {
+        Args: { _candidate_id: string; _user_id: string }
+        Returns: {
+          hierarchy_level: number
+          id: string
+          municipality: string
+          name: string
+          role: string
+          supervisor_id: string
+          user_id: string
+        }[]
+      }
+      get_my_campaign_member: {
+        Args: { _candidate_id: string; _user_id: string }
+        Returns: {
+          candidate_id: string
+          hierarchy_level: number
+          id: string
+          name: string
+          role: string
+        }[]
+      }
       get_productivity_ranking: {
         Args: { p_candidate_id?: string; p_period_days?: number }
         Returns: Json

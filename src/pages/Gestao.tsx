@@ -27,7 +27,8 @@ import {
 import {
   useTodayCheckins, useMyCheckinToday, useCreateCheckin, useWeekCheckins,
 } from '@/hooks/useCheckins';
-import { useAssignableTeam } from '@/hooks/useAssignableTeam';
+import { useAssignableTeam, useMyCampaignMember } from '@/hooks/useAssignableTeam';
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ── Constantes de UI (apenas tokens semânticos) ──────────────────────────────
 
@@ -97,6 +98,13 @@ export default function Gestao() {
   const createCheckin = useCreateCheckin();
 
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Posição hierárquica do usuário no candidato ativo (define quem ele pode delegar)
+  const { data: myMember } = useMyCampaignMember(activeCandidate?.id ?? null);
+  const canDelegate = isAdminMaster || !!myMember;
+  const cannotDelegateReason = !canDelegate
+    ? 'Você não possui posição na hierarquia da equipe deste candidato para delegar tarefas.'
+    : null;
 
   // Métricas
   const counts = useMemo(() => {
@@ -173,9 +181,20 @@ export default function Gestao() {
                 </SelectContent>
               </Select>
             )}
-            <Button onClick={() => setModalOpen(true)} className="gap-2">
-              <Plus className="w-4 h-4" /> Nova tarefa
-            </Button>
+            <TooltipProvider>
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <span tabIndex={cannotDelegateReason ? 0 : -1}>
+                    <Button onClick={() => setModalOpen(true)} className="gap-2" disabled={!canDelegate}>
+                      <Plus className="w-4 h-4" /> Nova tarefa
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {cannotDelegateReason && (
+                  <TooltipContent className="max-w-xs">{cannotDelegateReason}</TooltipContent>
+                )}
+              </UITooltip>
+            </TooltipProvider>
           </div>
         </header>
 
@@ -543,7 +562,25 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
   const [candidateId, setCandidateId] = useState<string | null>(defaultCandidateId);
   const [assigneeId, setAssigneeId] = useState<string>('none');
 
-  const { data: team = [] } = useAssignableTeam(candidateId);
+  const { data: team = [], isLoading: teamLoading } = useAssignableTeam(candidateId);
+  const { data: myMember } = useMyCampaignMember(candidateId);
+
+  // Agrupa por nível hierárquico para exibir como grupos no Select
+  const groupedTeam = useMemo(() => {
+    const groups = new Map<number, typeof team>();
+    team.forEach(m => {
+      const lvl = m.hierarchy_level ?? 99;
+      if (!groups.has(lvl)) groups.set(lvl, [] as any);
+      groups.get(lvl)!.push(m);
+    });
+    return [...groups.entries()].sort((a, b) => a[0] - b[0]);
+  }, [team]);
+
+  const levelLabel = (lvl: number) => {
+    if (lvl >= 99) return 'Outros';
+    const names = ['', 'Nível 1 · Direção', 'Nível 2 · Coordenação Geral', 'Nível 3 · Coordenação Regional', 'Nível 4 · Coordenação Municipal', 'Nível 5 · Coordenação Local', 'Nível 6 · Operacional'];
+    return names[lvl] ?? `Nível ${lvl}`;
+  };
 
   // Reset when modal opens
   const handleClose = () => {
@@ -569,7 +606,27 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Nova tarefa</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Nova tarefa</DialogTitle>
+        </DialogHeader>
+
+        {/* Quem está delegando */}
+        <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs flex items-center gap-2">
+          <Users className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+          {isAdminMaster ? (
+            <span><span className="text-muted-foreground">Delegando como</span> <strong className="text-primary">Admin Master</strong> · pode delegar para qualquer equipe.</span>
+          ) : myMember ? (
+            <span>
+              <span className="text-muted-foreground">Delegando como</span>{' '}
+              <strong className="text-foreground">{myMember.name}</strong>
+              {myMember.role && <span className="text-muted-foreground"> · {myMember.role}</span>}
+              {myMember.hierarchy_level && <span className="text-muted-foreground"> · Nível {myMember.hierarchy_level}</span>}
+            </span>
+          ) : (
+            <span className="text-destructive">Você não possui posição na hierarquia deste candidato.</span>
+          )}
+        </div>
+
         <div className="space-y-3">
           <div>
             <Label className="text-xs">Título *</Label>
@@ -619,12 +676,36 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
               <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Responsável</Label>
+              <Label className="text-xs flex items-center justify-between">
+                <span>Delegar a (subordinado)</span>
+                <span className="text-[10px] text-muted-foreground font-normal">{team.length} disponível{team.length === 1 ? '' : 'is'}</span>
+              </Label>
               <Select value={assigneeId} onValueChange={setAssigneeId} disabled={!candidateId}>
-                <SelectTrigger><SelectValue placeholder={candidateId ? 'Selecione' : 'Escolha um candidato'} /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger>
+                  <SelectValue placeholder={candidateId ? 'Selecione um subordinado' : 'Escolha um candidato'} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[320px]">
                   <SelectItem value="none">Sem responsável</SelectItem>
-                  {team.map(m => <SelectItem key={m.id} value={m.id}>{m.name}{m.role ? ` · ${m.role}` : ''}</SelectItem>)}
+                  {teamLoading && <div className="px-2 py-1.5 text-xs text-muted-foreground">Carregando hierarquia...</div>}
+                  {!teamLoading && team.length === 0 && candidateId && (
+                    <div className="px-2 py-2 text-xs text-muted-foreground">
+                      Você não possui subordinados cadastrados neste candidato para delegar.
+                    </div>
+                  )}
+                  {groupedTeam.map(([lvl, members]) => (
+                    <div key={lvl}>
+                      <div className="px-2 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                        {levelLabel(lvl)}
+                      </div>
+                      {members.map(m => (
+                        <SelectItem key={m.id} value={m.id}>
+                          <span className="font-medium">{m.name}</span>
+                          {m.role && <span className="text-muted-foreground"> · {m.role}</span>}
+                          {m.municipality && <span className="text-muted-foreground"> · {m.municipality}</span>}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -1,95 +1,46 @@
-# Plano — Módulo Gestão de Equipe (Kanban + Check-ins)
+## Objetivo
 
-## Regra de escopo (núcleo da entrega)
+No modal **Nova Tarefa**, substituir a lista atual de membros da campanha por uma lista hierárquica: cada gestor só vê (e delega para) seus subordinados na cadeia de comando. Admin master continua podendo delegar para qualquer pessoa de qualquer candidato.
 
-Toda query e mutação respeita o **candidato ativo**, exceto admin master, que delega para qualquer equipe.
+## Regra de delegação
 
-| Ator | Pode ver | Pode criar/atribuir |
-|---|---|---|
-| Admin master (Jefferson, Edson, Julio) | Tarefas e check-ins de **todos os candidatos**; filtro por candidato ativo no UI | Cria tarefas em **qualquer** candidato; atribui a qualquer membro de qualquer equipe |
-| Usuário vinculado em `user_candidates` | Apenas tarefas/check-ins dos candidatos vinculados | Cria/atribui apenas dentro do candidato ativo (que precisa estar entre os vinculados) |
-| Demais autenticados | Nada (RLS bloqueia) | Nada |
+- Cada `campaign_members` tem `supervisor_id` (FK auto-referente) e `hierarchy_level` (1–6).
+- Um usuário autenticado está ligado a um `campaign_members` via `user_id`.
+- **Delegação permitida**: o gestor pode atribuir tarefas a qualquer membro **abaixo dele na árvore** (subordinados diretos + indiretos via `supervisor_id` recursivo), dentro do mesmo `candidate_id`.
+- **Admin master** (Jefferson, Edson, Julio): vê toda a árvore de todos os candidatos; pode escolher o candidato e depois o subordinado.
+- Usuário sem registro em `campaign_members` (ex.: só vinculado via `user_candidates`) só pode delegar se for admin master; caso contrário o botão "Nova Tarefa" fica desabilitado com tooltip explicando.
 
-Implementação em RLS via helpers já existentes:
-- `is_admin(auth.uid())` → bypass total.
-- `can_view_candidate_record(auth.uid(), candidate_id)` → restringe por `user_candidates`.
+## Mudanças
 
----
+### 1. Banco — função SQL (migration)
 
-## 1. Migration (correções sobre o SQL enviado)
+`public.get_delegable_members(_user_id uuid, _candidate_id uuid)` retorna `setof campaign_members`:
+- Se `is_admin(_user_id)` → retorna todos os membros do candidato (excluindo soft-deleted).
+- Senão, localiza o(s) `campaign_members.id` do usuário no candidato e devolve a subárvore via CTE recursiva em `supervisor_id`, excluindo o próprio gestor.
 
-1. **GRANTs obrigatórios** em `tasks` e `daily_checkins` (não vieram no arquivo — sem isso PostgREST nega tudo).
-2. **RLS reescrita**:
-   - `tasks_select`: `is_admin OR can_view_candidate_record(auth.uid(), candidate_id)`
-   - `tasks_insert`: `is_admin OR can_view_candidate_record(...)` no `candidate_id` enviado
-   - `tasks_update/delete`: dono, responsável, ou `is_admin`
-   - `checkins_select`: `auth.uid() = user_id OR is_admin`
-   - `checkins_insert/update`: `auth.uid() = user_id`
-3. **Soft-delete** (memória *Data Compliance*): coluna `deleted_at` em `tasks` e `daily_checkins`; queries filtram `IS NULL`; `useDeleteTask` faz update, não DELETE físico.
-4. **Trigger `updated_at`** reaproveita `public.update_updated_at_column()` em vez de criar nova função.
+Inclui `GRANT EXECUTE ... TO authenticated`.
 
-## 2. Hooks
+### 2. Hook — `src/hooks/useAssignableTeam.ts`
 
-`useTasks.ts`:
-- Novo parâmetro opcional `candidateIdOverride` para o admin master criar tarefa em outro candidato pelo modal de delegação.
-- `useTasks(candidateId)` aceita "Todos" quando admin master quer ver tudo (passa `null`/`'all'`, query não filtra).
-- `queryKey` corrigida para `['tasks', candidateId]` (bug do `useUpdateTaskStatus` que invalidava chave errada).
-- `useDeleteTask` faz update `{ deleted_at: now() }`.
+Reescrever para chamar `supabase.rpc('get_delegable_members', { _user_id, _candidate_id })`. Retorna `TeamMember[]` com campo extra `hierarchy_level` e `supervisor_id` para permitir agrupar a UI por nível.
 
-`useCheckins.ts`: filtros idem; admin master pode ver semana de todos os candidatos.
+Adicionar hook auxiliar `useMyCampaignMember(candidateId)` que devolve o registro do usuário logado naquele candidato (usado para exibir "Você delega como: <nome> – <cargo>" no modal e para desabilitar o botão quando o usuário não tem posição hierárquica).
 
-Novo helper hook `useAssignableTeam(candidateId)`:
-- Retorna lista de pessoas (de `campaign_members` + `profiles` vinculados via `user_candidates`) do candidato selecionado para popular o autocomplete "Atribuir a".
-- Admin master vê o autocomplete inteiro por candidato; ao trocar o candidato no modal, a lista recarrega.
+### 3. UI — `src/pages/Gestao.tsx` (modal "Nova Tarefa")
 
-## 3. Página `Gestao.tsx` — design inspirado nas referências
+- Mostrar bloco informativo no topo do modal: "Delegando como **<nome>** · Nível <n> – <cargo>" (ou "Admin Master · pode delegar para qualquer equipe").
+- Campo "Atribuir a" passa a ser um Select agrupado por nível hierárquico, exibindo `nome – cargo (Nível N · município)`.
+- Lista vazia → mensagem "Você não possui subordinados cadastrados para delegar".
+- Admin master: mantém o seletor de candidato; ao trocar candidato, recarrega a lista.
+- Botão "Nova Tarefa" desabilitado (com tooltip) quando usuário não-admin não tem registro de `campaign_members` no candidato ativo OU quando não há subordinados.
 
-Pegando o que faz sentido nas 4 imagens (Kanban escuro com pill-headers coloridos, contadores grandes tipo "Bucket Board", "Sprint overview" com Status/Burndown/Workload, cards com avatar + tags), traduzido para os **tokens MobNex** (sem cores cruas):
+### 4. Sem mudanças em RLS de `tasks`
 
-### Header
-- Título com `text-gradient` "Gestão de Equipe", subtítulo com candidato ativo.
-- **Seletor de escopo** (visível só p/ admin master): chips `Candidato ativo • Todos os candidatos • <candidato X>` → controla a chave de query.
-- Botão `+ Nova Tarefa` (variante primária).
+A regra de quem pode **visualizar** tarefas continua a mesma (escopo por candidato + admin master). Só restringimos quem aparece como **assignee** no formulário.
 
-### Faixa de KPIs (estilo "Bucket Board")
-Cards quadrados com número grande, ícone e label, mas **usando tokens** (`bg-card border`, accents `primary / chart-1..5`). Métricas: A fazer, Em andamento, Bloqueado, Concluído (hoje), Check-ins do dia, Atrasadas.
+## Itens técnicos
 
-### Painel "Sprint overview" (3 cards lado a lado)
-- **Status overview**: donut Recharts por status (cores chart tokens).
-- **Carga por área**: barras horizontais por `area` (central/regional/partidário).
-- **Carga por pessoa**: avatares + grid de status (estilo Team workload da referência), capado em 6 com link "ver tudo".
-
-### Kanban (núcleo)
-- 4 colunas com pill-header colorido (`primary`, `chart-2`, `destructive`, `chart-3` em opacidade Navy-Teal) + contador à direita (como `13/17` da ref).
-- Card: avatar do responsável, título, badges Área + Prioridade (variantes shadcn, não cores hardcoded), data e checkbox de conclusão rápida.
-- Modal de tarefa: campos + **dropdown de candidato (admin master)** + autocomplete de responsável dependente do candidato.
-- Drag-and-drop com `@dnd-kit/core` (já no projeto se disponível; senão manter dropdown de status).
-
-### Aba Check-ins
-- Form do meu check-in (Entreguei / Vou fazer / Bloqueios) em card lateral.
-- Feed dos check-ins de hoje da equipe (lista com avatar + 3 linhas), filtrada pelo escopo.
-
-### Aba Relatório
-- Heatmap simples por dia da semana + ranking de check-ins consistentes (últimos 7 dias).
-
-### Regras de design (memórias)
-- Zero hex cru. Tudo via `primary`, `secondary`, `accent`, `chart-1..5`, `destructive`, `muted-foreground`.
-- DM Sans em tudo (já global).
-- Cards `bg-card border border-border`, glow nos ícones de header (`bg-primary/10 ring-1 ring-primary/30`).
-- Tema claro/escuro respeitado.
-
-## 4. Integração
-- Rota `/gestao` em `src/App.tsx` (ProtectedRoute + RoleAwareLayout).
-- Item na sidebar `AppSidebar.tsx` com `LayoutGrid` + `ListTodo`.
-- Sem mudança em `types.ts` (regenerado após migration).
-
-## 5. Entregáveis
-1. Migration nova (substitui a enviada).
-2. `src/hooks/useTasks.ts`, `useCheckins.ts`, `useAssignableTeam.ts`.
-3. `src/pages/Gestao.tsx` redesenhada.
-4. `src/App.tsx`, `src/components/layout/AppSidebar.tsx` atualizados.
-
-## Perguntas antes de implementar
-1. **Drag-and-drop no Kanban**: instalar `@dnd-kit/core` agora ou manter o dropdown de status do arquivo original?
-2. **Lista de responsáveis** ao atribuir tarefa: usar somente `campaign_members` do candidato, ou também usuários autenticados vinculados em `user_candidates`?
-3. **Check-ins** quando admin master está em modo "Todos os candidatos": somar globalmente ou exigir candidato selecionado?
+- A CTE recursiva deve ter `WHERE deleted_at IS NULL` (se a coluna existir em `campaign_members` — caso contrário, omitir).
+- A função é `STABLE SECURITY DEFINER SET search_path = public`.
+- Não altera `useTasks.ts` — `assignee_id` continua sendo o `campaign_members.id` escolhido.
+- Pergunta em aberto: **subordinados diretos somente** ou **subárvore completa**? Proponho subárvore completa (gestor pode pular níveis quando necessário); se preferir só diretos, basta remover a recursão.
