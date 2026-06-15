@@ -99,6 +99,13 @@ export default function Gestao() {
 
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Posição hierárquica do usuário no candidato ativo (define quem ele pode delegar)
+  const { data: myMember } = useMyCampaignMember(activeCandidate?.id ?? null);
+  const canDelegate = isAdminMaster || !!myMember;
+  const cannotDelegateReason = !canDelegate
+    ? 'Você não possui posição na hierarquia da equipe deste candidato para delegar tarefas.'
+    : null;
+
   // Métricas
   const counts = useMemo(() => {
     const by: Record<TaskStatus, number> = { a_fazer: 0, em_andamento: 0, bloqueado: 0, concluido: 0 };
