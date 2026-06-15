@@ -562,7 +562,25 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
   const [candidateId, setCandidateId] = useState<string | null>(defaultCandidateId);
   const [assigneeId, setAssigneeId] = useState<string>('none');
 
-  const { data: team = [] } = useAssignableTeam(candidateId);
+  const { data: team = [], isLoading: teamLoading } = useAssignableTeam(candidateId);
+  const { data: myMember } = useMyCampaignMember(candidateId);
+
+  // Agrupa por nível hierárquico para exibir como grupos no Select
+  const groupedTeam = useMemo(() => {
+    const groups = new Map<number, typeof team>();
+    team.forEach(m => {
+      const lvl = m.hierarchy_level ?? 99;
+      if (!groups.has(lvl)) groups.set(lvl, [] as any);
+      groups.get(lvl)!.push(m);
+    });
+    return [...groups.entries()].sort((a, b) => a[0] - b[0]);
+  }, [team]);
+
+  const levelLabel = (lvl: number) => {
+    if (lvl >= 99) return 'Outros';
+    const names = ['', 'Nível 1 · Direção', 'Nível 2 · Coordenação Geral', 'Nível 3 · Coordenação Regional', 'Nível 4 · Coordenação Municipal', 'Nível 5 · Coordenação Local', 'Nível 6 · Operacional'];
+    return names[lvl] ?? `Nível ${lvl}`;
+  };
 
   // Reset when modal opens
   const handleClose = () => {
