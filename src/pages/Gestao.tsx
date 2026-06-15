@@ -27,7 +27,8 @@ import {
 import {
   useTodayCheckins, useMyCheckinToday, useCreateCheckin, useWeekCheckins,
 } from '@/hooks/useCheckins';
-import { useAssignableTeam } from '@/hooks/useAssignableTeam';
+import { useAssignableTeam, useMyCampaignMember } from '@/hooks/useAssignableTeam';
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ── Constantes de UI (apenas tokens semânticos) ──────────────────────────────
 
