@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,7 @@ const navItems: NavItem[] = [
   { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'shared' },
   { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'shared' },
   { title: 'Agenda', url: '/agenda', icon: Calendar, scope: 'shared' },
+  { title: 'Gestão de Equipe', url: '/gestao', icon: LayoutGrid, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
   { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
