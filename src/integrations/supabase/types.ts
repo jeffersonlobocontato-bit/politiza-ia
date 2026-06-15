@@ -544,6 +544,56 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkins: {
+        Row: {
+          blocked: string | null
+          candidate_id: string | null
+          checkin_date: string
+          created_at: string
+          deleted_at: string | null
+          delivered: string
+          id: string
+          planned: string
+          updated_at: string
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          blocked?: string | null
+          candidate_id?: string | null
+          checkin_date?: string
+          created_at?: string
+          deleted_at?: string | null
+          delivered: string
+          id?: string
+          planned: string
+          updated_at?: string
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          blocked?: string | null
+          candidate_id?: string | null
+          checkin_date?: string
+          created_at?: string
+          deleted_at?: string | null
+          delivered?: string
+          id?: string
+          planned?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_checkins_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       electoral_surveys: {
         Row: {
           candidate_id: string | null
@@ -1676,6 +1726,65 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          area: Database["public"]["Enums"]["task_area"]
+          assigned_name: string | null
+          assigned_to: string | null
+          candidate_id: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          area?: Database["public"]["Enums"]["task_area"]
+          assigned_name?: string | null
+          assigned_to?: string | null
+          candidate_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          area?: Database["public"]["Enums"]["task_area"]
+          assigned_name?: string | null
+          assigned_to?: string | null
+          candidate_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tracking_ai_alerts: {
         Row: {
           alert_type: Database["public"]["Enums"]["tracking_alert_type"]
@@ -2545,6 +2654,9 @@ export type Database = {
         | "risco_eleitoral"
         | "ineficiencia_atuacao"
         | "oportunidade_estrategica"
+      task_area: "central" | "regional" | "partidario"
+      task_priority: "urgente" | "alta" | "normal" | "baixa"
+      task_status: "a_fazer" | "em_andamento" | "bloqueado" | "concluido"
       tracking_alert_type:
         | "baixa_capilaridade"
         | "queda_tracking"
@@ -2764,6 +2876,9 @@ export const Constants = {
         "ineficiencia_atuacao",
         "oportunidade_estrategica",
       ],
+      task_area: ["central", "regional", "partidario"],
+      task_priority: ["urgente", "alta", "normal", "baixa"],
+      task_status: ["a_fazer", "em_andamento", "bloqueado", "concluido"],
       tracking_alert_type: [
         "baixa_capilaridade",
         "queda_tracking",
