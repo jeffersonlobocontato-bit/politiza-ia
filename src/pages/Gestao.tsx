@@ -676,12 +676,36 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
               <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Responsável</Label>
+              <Label className="text-xs flex items-center justify-between">
+                <span>Delegar a (subordinado)</span>
+                <span className="text-[10px] text-muted-foreground font-normal">{team.length} disponível{team.length === 1 ? '' : 'is'}</span>
+              </Label>
               <Select value={assigneeId} onValueChange={setAssigneeId} disabled={!candidateId}>
-                <SelectTrigger><SelectValue placeholder={candidateId ? 'Selecione' : 'Escolha um candidato'} /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger>
+                  <SelectValue placeholder={candidateId ? 'Selecione um subordinado' : 'Escolha um candidato'} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[320px]">
                   <SelectItem value="none">Sem responsável</SelectItem>
-                  {team.map(m => <SelectItem key={m.id} value={m.id}>{m.name}{m.role ? ` · ${m.role}` : ''}</SelectItem>)}
+                  {teamLoading && <div className="px-2 py-1.5 text-xs text-muted-foreground">Carregando hierarquia...</div>}
+                  {!teamLoading && team.length === 0 && candidateId && (
+                    <div className="px-2 py-2 text-xs text-muted-foreground">
+                      Você não possui subordinados cadastrados neste candidato para delegar.
+                    </div>
+                  )}
+                  {groupedTeam.map(([lvl, members]) => (
+                    <div key={lvl}>
+                      <div className="px-2 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                        {levelLabel(lvl)}
+                      </div>
+                      {members.map(m => (
+                        <SelectItem key={m.id} value={m.id}>
+                          <span className="font-medium">{m.name}</span>
+                          {m.role && <span className="text-muted-foreground"> · {m.role}</span>}
+                          {m.municipality && <span className="text-muted-foreground"> · {m.municipality}</span>}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
