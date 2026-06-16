@@ -785,7 +785,7 @@ export default function Emendas() {
         <TabsContent value="dashboard" className="mt-4">
           <DashboardTab emendas={emendas} />
         </TabsContent>
-        <TabsContent value="mapa" className="mt-4">
+        <TabsContent value="mapa" className="mt-4 -mx-4 md:-mx-6">
           <MapTab emendas={emendas} />
         </TabsContent>
         <TabsContent value="lista" className="mt-4">
