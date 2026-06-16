@@ -90,7 +90,7 @@ export default function MapaEstrategico() {
 
             <LeadsLegend active={activeSources} counts={counts} onToggle={toggleSource} />
 
-            <div className="pt-3 border-t border-border">
+            <div className="pt-3 border-t border-border space-y-2">
               <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer">
                 <input
                   type="checkbox"
@@ -100,6 +100,31 @@ export default function MapaEstrategico() {
                 />
                 Mostrar engajamento territorial (municípios)
               </label>
+              <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showEmendas}
+                  onChange={() => setShowEmendas(v => !v)}
+                  className="accent-primary"
+                />
+                <FileText className="w-3 h-3 text-primary" />
+                Emendas parlamentares
+                {geoEmendas.length > 0 && (
+                  <span className="text-[10px] text-muted-foreground tabular-nums ml-auto">
+                    {geoEmendas.length}
+                  </span>
+                )}
+              </label>
+              {showEmendas && (
+                <div className="pl-5 grid grid-cols-1 gap-0.5 mt-1">
+                  {FAIXAS.map(f => (
+                    <div key={f.id} className="flex items-center gap-1.5 text-[10px]">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: f.color }} />
+                      <span className="text-muted-foreground truncate">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="pt-3 border-t border-border">
