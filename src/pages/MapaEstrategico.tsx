@@ -203,6 +203,40 @@ export default function MapaEstrategico() {
               </CircleMarker>
             ))}
 
+            {showEmendas && geoEmendas.map(e => {
+              const faixa = getFaixaByValor(e.valor_total);
+              return (
+                <CircleMarker
+                  key={`em-${e.id}`}
+                  center={[e.lat!, e.lng!]}
+                  radius={faixa.id === 'f7_estrategica' ? 12 : faixa.id === 'f6_muito_alta' ? 10 : faixa.id === 'f5_alta' ? 8 : 6}
+                  fillColor={faixa.color}
+                  color={bgMode === 'outline' ? '#1a2a45' : '#ffffff'}
+                  weight={1.5}
+                  fillOpacity={0.88}
+                >
+                  <Popup>
+                    <div style={{ minWidth: 220 }}>
+                      <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, color: faixa.color, fontWeight: 700 }}>
+                        Emenda · {faixa.label}
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 13, marginTop: 2 }}>{e.ente_federativo}</div>
+                      {e.unidade_beneficiaria && (
+                        <div style={{ fontSize: 11, marginTop: 1 }}>{e.unidade_beneficiaria}</div>
+                      )}
+                      {e.area_tematica && (
+                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>📋 {e.area_tematica}</div>
+                      )}
+                      <div style={{ marginTop: 6, fontSize: 14, fontWeight: 700, color: faixa.color }}>
+                        {fmtBRL(e.valor_total)}
+                      </div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>Exercício {e.exercicio}</div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              );
+            })}
+
             <LeadsLayer leads={filteredLeads} />
             <MapZoomControl />
           </MapContainer>
