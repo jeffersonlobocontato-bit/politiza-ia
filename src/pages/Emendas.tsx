@@ -15,6 +15,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import MapZoomControl from '@/components/maps/MapZoomControl';
+import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
 import { useCandidate } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -326,6 +327,8 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
             ))}
           </div>
 
+          <PrAssociationLegend />
+
           <div className="pt-2 border-t border-border">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Exibindo</div>
             <div className="text-2xl font-black text-foreground tabular-nums">{geoEmendas.length}</div>
@@ -346,9 +349,11 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
         )}
         <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl={false}>
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+            opacity={0.35}
           />
+          <PrAssociationChoropleth />
           <MapZoomControl />
           {geoEmendas.map(e => {
             const faixa = getFaixaByValor(e.valor_total);
