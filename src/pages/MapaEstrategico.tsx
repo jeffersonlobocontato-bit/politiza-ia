@@ -1,24 +1,36 @@
 import { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
-import { Map, Filter, X, Users } from 'lucide-react';
+import { Map, Filter, X, Users, FileText } from 'lucide-react';
 import { municipalities, getEngagementColor } from '@/data/mockData';
 import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
 import MapZoomControl from '@/components/maps/MapZoomControl';
 import { SOURCE_META, type GeoSource } from '@/lib/geo';
 import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
+import { useEmendas } from '@/hooks/useEmendas';
+import { FAIXAS, getFaixaByValor } from '@/lib/emendas';
 
 type BgMode = 'colored' | 'outline' | 'hidden';
+
+const fmtBRL = (n: number) =>
+  n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 
 export default function MapaEstrategico() {
   const [showFilters, setShowFilters] = useState(true);
   const [showEngagement, setShowEngagement] = useState(false);
+  const [showEmendas, setShowEmendas] = useState(false);
   const [activeSources, setActiveSources] = useState<Record<GeoSource, boolean>>({
     leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
   });
   const [bgMode, setBgMode] = useState<BgMode>('hidden');
 
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
+  const { data: emendas = [] } = useEmendas();
+  const geoEmendas = useMemo(
+    () => emendas.filter(e => e.lat && e.lng),
+    [emendas]
+  );
+
 
   const bgOptions: { id: BgMode; label: string }[] = [
     { id: 'colored', label: 'Cores' },
@@ -78,7 +90,7 @@ export default function MapaEstrategico() {
 
             <LeadsLegend active={activeSources} counts={counts} onToggle={toggleSource} />
 
-            <div className="pt-3 border-t border-border">
+            <div className="pt-3 border-t border-border space-y-2">
               <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer">
                 <input
                   type="checkbox"
@@ -88,6 +100,31 @@ export default function MapaEstrategico() {
                 />
                 Mostrar engajamento territorial (municípios)
               </label>
+              <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showEmendas}
+                  onChange={() => setShowEmendas(v => !v)}
+                  className="accent-primary"
+                />
+                <FileText className="w-3 h-3 text-primary" />
+                Emendas parlamentares
+                {geoEmendas.length > 0 && (
+                  <span className="text-[10px] text-muted-foreground tabular-nums ml-auto">
+                    {geoEmendas.length}
+                  </span>
+                )}
+              </label>
+              {showEmendas && (
+                <div className="pl-5 grid grid-cols-1 gap-0.5 mt-1">
+                  {FAIXAS.map(f => (
+                    <div key={f.id} className="flex items-center gap-1.5 text-[10px]">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: f.color }} />
+                      <span className="text-muted-foreground truncate">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="pt-3 border-t border-border">
@@ -165,6 +202,40 @@ export default function MapaEstrategico() {
                 </Tooltip>
               </CircleMarker>
             ))}
+
+            {showEmendas && geoEmendas.map(e => {
+              const faixa = getFaixaByValor(e.valor_total);
+              return (
+                <CircleMarker
+                  key={`em-${e.id}`}
+                  center={[e.lat!, e.lng!]}
+                  radius={faixa.id === 'f7_estrategica' ? 12 : faixa.id === 'f6_muito_alta' ? 10 : faixa.id === 'f5_alta' ? 8 : 6}
+                  fillColor={faixa.color}
+                  color={bgMode === 'outline' ? '#1a2a45' : '#ffffff'}
+                  weight={1.5}
+                  fillOpacity={0.88}
+                >
+                  <Popup>
+                    <div style={{ minWidth: 220 }}>
+                      <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, color: faixa.color, fontWeight: 700 }}>
+                        Emenda · {faixa.label}
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 13, marginTop: 2 }}>{e.ente_federativo}</div>
+                      {e.unidade_beneficiaria && (
+                        <div style={{ fontSize: 11, marginTop: 1 }}>{e.unidade_beneficiaria}</div>
+                      )}
+                      {e.area_tematica && (
+                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>📋 {e.area_tematica}</div>
+                      )}
+                      <div style={{ marginTop: 6, fontSize: 14, fontWeight: 700, color: faixa.color }}>
+                        {fmtBRL(e.valor_total)}
+                      </div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>Exercício {e.exercicio}</div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              );
+            })}
 
             <LeadsLayer leads={filteredLeads} />
             <MapZoomControl />
