@@ -40,6 +40,7 @@ import ChapaPartido from "./pages/ChapaPartido";
 import Produtividade from "./pages/Produtividade";
 import Gestao from "./pages/Gestao";
 import Emendas from "./pages/Emendas";
+import MapaEstrategicoImpressao from "./pages/MapaEstrategicoImpressao";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +58,7 @@ const AppRoutes = () => (
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/" element={<ProtectedRoute><RoleAwareLayout><SalaDeGuerra /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/mapa" element={<ProtectedRoute><RoleAwareLayout><MapaEstrategico /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/mapa/imprimir" element={<ProtectedRoute><MapaEstrategicoImpressao /></ProtectedRoute>} />
     <Route path="/territorios" element={<ProtectedRoute><RoleAwareLayout><Territorios /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/municipios" element={<ProtectedRoute><RoleAwareLayout><Municipios /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/acoes" element={<ProtectedRoute><RoleAwareLayout><Acoes /></RoleAwareLayout></ProtectedRoute>} />
