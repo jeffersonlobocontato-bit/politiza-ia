@@ -277,6 +277,8 @@ function DashboardTab({ emendas }: { emendas: Emenda[] }) {
 
 // ─── Map Tab ──────────────────────────────────────────────────────────────────
 
+type BgMode = 'colored' | 'outline' | 'hidden';
+
 function MapTab({ emendas }: { emendas: Emenda[] }) {
   const [activeFaixas, setActiveFaixas] = useState<Set<EmendaFaixa>>(
     new Set(FAIXAS.map(f => f.id))
@@ -285,6 +287,7 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
     new Set(STATUS_OPTIONS.map(s => s.id))
   );
   const [showPanel, setShowPanel] = useState(true);
+  const [bgMode, setBgMode] = useState<BgMode>('colored');
 
   const toggleFaixa = (id: EmendaFaixa) =>
     setActiveFaixas(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -297,8 +300,14 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
     [emendas, activeFaixas, activeStatuses]
   );
 
+  const bgOptions: { id: BgMode; label: string }[] = [
+    { id: 'colored', label: 'Cores' },
+    { id: 'outline', label: 'Contornos' },
+    { id: 'hidden', label: 'Oculto' },
+  ];
+
   return (
-    <div className="flex relative" style={{ height: 'calc(100vh - 220px)', minHeight: 480 }}>
+    <div className="flex relative" style={{ height: 'calc(100vh - 180px)', minHeight: 520 }}>
       {/* Painel lateral */}
       {showPanel && (
         <div className="w-64 border-r border-border p-4 space-y-5 flex-shrink-0 overflow-auto bg-card">
@@ -327,7 +336,31 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
             ))}
           </div>
 
-          <PrAssociationLegend />
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Camada de fundo</p>
+            <div className="grid grid-cols-3 gap-1 p-0.5 rounded-md bg-muted/30 border border-border">
+              {bgOptions.map(o => (
+                <button
+                  key={o.id}
+                  onClick={() => setBgMode(o.id)}
+                  className={`text-[10px] py-1.5 rounded font-medium transition-colors ${
+                    bgMode === o.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5 leading-tight">
+              {bgMode === 'colored' && 'Municípios coloridos por associação.'}
+              {bgMode === 'outline' && 'Mapa branco, apenas contornos — melhor contraste dos pins.'}
+              {bgMode === 'hidden' && 'Apenas o mapa base.'}
+            </p>
+          </div>
+
+          {bgMode === 'colored' && <PrAssociationLegend />}
 
           <div className="pt-2 border-t border-border">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Exibindo</div>
@@ -338,7 +371,7 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
       )}
 
       {/* Mapa */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" style={{ background: bgMode === 'outline' ? '#ffffff' : undefined }}>
         {!showPanel && (
           <button
             onClick={() => setShowPanel(true)}
@@ -347,13 +380,18 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
             <Filter className="w-3.5 h-3.5" /> Filtros
           </button>
         )}
-        <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-            opacity={0.35}
-          />
-          <PrAssociationChoropleth />
+        <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%', background: bgMode === 'outline' ? '#ffffff' : undefined }} zoomControl={false}>
+          {bgMode !== 'outline' && (
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+              opacity={0.35}
+            />
+          )}
+          {bgMode === 'colored' && <PrAssociationChoropleth />}
+          {bgMode === 'outline' && (
+            <PrAssociationChoropleth fillOpacity={0} strokeColor="#94a3b8" strokeWeight={0.5} />
+          )}
           <MapZoomControl />
           {geoEmendas.map(e => {
             const faixa = getFaixaByValor(e.valor_total);
@@ -364,7 +402,7 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
                 center={[e.lat!, e.lng!]}
                 radius={faixa.id === 'f7_estrategica' ? 12 : faixa.id === 'f6_muito_alta' ? 10 : faixa.id === 'f5_alta' ? 8 : 6}
                 fillColor={faixa.color}
-                color="#ffffff"
+                color={bgMode === 'outline' ? '#1a2a45' : '#ffffff'}
                 weight={1.5}
                 fillOpacity={0.88}
               >
@@ -707,7 +745,7 @@ export default function Emendas() {
   const geoCount = emendas.filter(e => e.lat && e.lng).length;
 
   return (
-    <div className="p-4 md:p-6 space-y-5 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -744,13 +782,13 @@ export default function Emendas() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="mt-4">
+        <TabsContent value="dashboard" className="mt-4 max-w-7xl mx-auto">
           <DashboardTab emendas={emendas} />
         </TabsContent>
-        <TabsContent value="mapa" className="mt-4">
+        <TabsContent value="mapa" className="mt-4 -mx-4 md:-mx-6">
           <MapTab emendas={emendas} />
         </TabsContent>
-        <TabsContent value="lista" className="mt-4">
+        <TabsContent value="lista" className="mt-4 max-w-7xl mx-auto">
           <TableTab emendas={emendas} isAdmin={isAdmin} />
         </TabsContent>
       </Tabs>
