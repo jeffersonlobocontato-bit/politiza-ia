@@ -39,6 +39,7 @@ import Chapas from "./pages/Chapas";
 import ChapaPartido from "./pages/ChapaPartido";
 import Produtividade from "./pages/Produtividade";
 import Gestao from "./pages/Gestao";
+import Emendas from "./pages/Emendas";
 
 const queryClient = new QueryClient({
   defaultOptions: {
