@@ -16,8 +16,15 @@ export default function MapaEstrategico() {
   const [activeSources, setActiveSources] = useState<Record<GeoSource, boolean>>({
     leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
   });
+  const [bgMode, setBgMode] = useState<BgMode>('hidden');
 
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
+
+  const bgOptions: { id: BgMode; label: string }[] = [
+    { id: 'colored', label: 'Cores' },
+    { id: 'outline', label: 'Contornos' },
+    { id: 'hidden', label: 'Oculto' },
+  ];
 
   const counts = useMemo(() => {
     const c: Partial<Record<GeoSource, number>> = {};
