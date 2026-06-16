@@ -782,13 +782,13 @@ export default function Emendas() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="mt-4">
+        <TabsContent value="dashboard" className="mt-4 max-w-7xl mx-auto">
           <DashboardTab emendas={emendas} />
         </TabsContent>
         <TabsContent value="mapa" className="mt-4 -mx-4 md:-mx-6">
           <MapTab emendas={emendas} />
         </TabsContent>
-        <TabsContent value="lista" className="mt-4">
+        <TabsContent value="lista" className="mt-4 max-w-7xl mx-auto">
           <TableTab emendas={emendas} isAdmin={isAdmin} />
         </TabsContent>
       </Tabs>
