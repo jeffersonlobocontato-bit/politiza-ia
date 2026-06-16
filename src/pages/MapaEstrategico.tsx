@@ -6,6 +6,9 @@ import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
 import MapZoomControl from '@/components/maps/MapZoomControl';
 import { SOURCE_META, type GeoSource } from '@/lib/geo';
+import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
+
+type BgMode = 'colored' | 'outline' | 'hidden';
 
 export default function MapaEstrategico() {
   const [showFilters, setShowFilters] = useState(true);
@@ -13,8 +16,15 @@ export default function MapaEstrategico() {
   const [activeSources, setActiveSources] = useState<Record<GeoSource, boolean>>({
     leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
   });
+  const [bgMode, setBgMode] = useState<BgMode>('hidden');
 
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
+
+  const bgOptions: { id: BgMode; label: string }[] = [
+    { id: 'colored', label: 'Cores' },
+    { id: 'outline', label: 'Contornos' },
+    { id: 'hidden', label: 'Oculto' },
+  ];
 
   const counts = useMemo(() => {
     const c: Partial<Record<GeoSource, number>> = {};
@@ -81,6 +91,30 @@ export default function MapaEstrategico() {
             </div>
 
             <div className="pt-3 border-t border-border">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Camada de fundo</p>
+              <div className="grid grid-cols-3 gap-1 p-0.5 rounded-md bg-muted/30 border border-border">
+                {bgOptions.map(o => (
+                  <button
+                    key={o.id}
+                    onClick={() => setBgMode(o.id)}
+                    className={`text-[10px] py-1.5 rounded font-medium transition-colors ${
+                      bgMode === o.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5 leading-tight">
+                {bgMode === 'colored' && 'Municípios coloridos por associação.'}
+                {bgMode === 'outline' && 'Mapa branco, apenas contornos — melhor contraste dos pins.'}
+                {bgMode === 'hidden' && 'Apenas o mapa base.'}
+              </p>
+            </div>
+
+            {bgMode === 'colored' && <PrAssociationLegend />}
+
+            <div className="pt-3 border-t border-border">
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Total exibido</div>
               <div className="text-2xl font-black text-foreground tabular-nums">{filteredLeads.length}</div>
               <div className="text-[10px] text-muted-foreground">cadastros georreferenciados</div>
@@ -93,17 +127,27 @@ export default function MapaEstrategico() {
         )}
 
         {/* Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative" style={{ background: bgMode === 'outline' ? '#ffffff' : undefined }}>
           <MapContainer
             center={[-24.7, -51.5]}
             zoom={7}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', width: '100%', background: bgMode === 'outline' ? '#ffffff' : undefined }}
             zoomControl={false}
           >
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://carto.com">CARTO</a>'
-            />
+            {bgMode !== 'outline' && (
+              <TileLayer
+                url={bgMode === 'colored'
+                  ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+                  : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'}
+                attribution='&copy; <a href="https://carto.com">CARTO</a>'
+                opacity={bgMode === 'colored' ? 0.35 : 1}
+              />
+            )}
+
+            {bgMode === 'colored' && <PrAssociationChoropleth />}
+            {bgMode === 'outline' && (
+              <PrAssociationChoropleth fillOpacity={0} strokeColor="#94a3b8" strokeWeight={0.5} />
+            )}
 
             {showEngagement && municipalities.map(m => (
               <CircleMarker
