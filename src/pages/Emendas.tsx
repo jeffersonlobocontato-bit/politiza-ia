@@ -349,9 +349,11 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
         )}
         <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl={false}>
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+            opacity={0.35}
           />
+          <PrAssociationChoropleth />
           <MapZoomControl />
           {geoEmendas.map(e => {
             const faixa = getFaixaByValor(e.valor_total);
