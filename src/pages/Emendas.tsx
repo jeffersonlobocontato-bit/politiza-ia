@@ -327,6 +327,8 @@ function MapTab({ emendas }: { emendas: Emenda[] }) {
             ))}
           </div>
 
+          <PrAssociationLegend />
+
           <div className="pt-2 border-t border-border">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Exibindo</div>
             <div className="text-2xl font-black text-foreground tabular-nums">{geoEmendas.length}</div>
