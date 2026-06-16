@@ -80,6 +80,7 @@ const AppRoutes = () => (
     <Route path="/chapas/:party" element={<ProtectedRoute><RoleAwareLayout><ChapaPartido /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/produtividade" element={<ProtectedRoute><RoleAwareLayout><Produtividade /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/gestao" element={<ProtectedRoute><RoleAwareLayout><Gestao /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/emendas" element={<ProtectedRoute><RoleAwareLayout><Emendas /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/tracking/coleta/:shareCode" element={<ProtectedRoute><TrackingColeta /></ProtectedRoute>} />
     <Route path="/mobnex" element={<ProtectedRoute><MobnexShowcase /></ProtectedRoute>} />
     {/* Legacy redirects */}
