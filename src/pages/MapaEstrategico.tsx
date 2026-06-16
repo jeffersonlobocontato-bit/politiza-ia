@@ -91,6 +91,30 @@ export default function MapaEstrategico() {
             </div>
 
             <div className="pt-3 border-t border-border">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Camada de fundo</p>
+              <div className="grid grid-cols-3 gap-1 p-0.5 rounded-md bg-muted/30 border border-border">
+                {bgOptions.map(o => (
+                  <button
+                    key={o.id}
+                    onClick={() => setBgMode(o.id)}
+                    className={`text-[10px] py-1.5 rounded font-medium transition-colors ${
+                      bgMode === o.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5 leading-tight">
+                {bgMode === 'colored' && 'Municípios coloridos por associação.'}
+                {bgMode === 'outline' && 'Mapa branco, apenas contornos — melhor contraste dos pins.'}
+                {bgMode === 'hidden' && 'Apenas o mapa base.'}
+              </p>
+            </div>
+
+            {bgMode === 'colored' && <PrAssociationLegend />}
+
+            <div className="pt-3 border-t border-border">
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Total exibido</div>
               <div className="text-2xl font-black text-foreground tabular-nums">{filteredLeads.length}</div>
               <div className="text-[10px] text-muted-foreground">cadastros georreferenciados</div>
