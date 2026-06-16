@@ -6,6 +6,9 @@ import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
 import MapZoomControl from '@/components/maps/MapZoomControl';
 import { SOURCE_META, type GeoSource } from '@/lib/geo';
+import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
+
+type BgMode = 'colored' | 'outline' | 'hidden';
 
 export default function MapaEstrategico() {
   const [showFilters, setShowFilters] = useState(true);
