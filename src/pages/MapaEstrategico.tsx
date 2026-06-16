@@ -127,17 +127,27 @@ export default function MapaEstrategico() {
         )}
 
         {/* Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative" style={{ background: bgMode === 'outline' ? '#ffffff' : undefined }}>
           <MapContainer
             center={[-24.7, -51.5]}
             zoom={7}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', width: '100%', background: bgMode === 'outline' ? '#ffffff' : undefined }}
             zoomControl={false}
           >
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://carto.com">CARTO</a>'
-            />
+            {bgMode !== 'outline' && (
+              <TileLayer
+                url={bgMode === 'colored'
+                  ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+                  : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'}
+                attribution='&copy; <a href="https://carto.com">CARTO</a>'
+                opacity={bgMode === 'colored' ? 0.35 : 1}
+              />
+            )}
+
+            {bgMode === 'colored' && <PrAssociationChoropleth />}
+            {bgMode === 'outline' && (
+              <PrAssociationChoropleth fillOpacity={0} strokeColor="#94a3b8" strokeWeight={0.5} />
+            )}
 
             {showEngagement && municipalities.map(m => (
               <CircleMarker
