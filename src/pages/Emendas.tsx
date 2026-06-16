@@ -15,6 +15,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import MapZoomControl from '@/components/maps/MapZoomControl';
+import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
 import { useCandidate } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
