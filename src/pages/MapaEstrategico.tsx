@@ -1,24 +1,36 @@
 import { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
-import { Map, Filter, X, Users } from 'lucide-react';
+import { Map, Filter, X, Users, FileText } from 'lucide-react';
 import { municipalities, getEngagementColor } from '@/data/mockData';
 import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
 import MapZoomControl from '@/components/maps/MapZoomControl';
 import { SOURCE_META, type GeoSource } from '@/lib/geo';
 import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
+import { useEmendas } from '@/hooks/useEmendas';
+import { FAIXAS, getFaixaByValor } from '@/lib/emendas';
 
 type BgMode = 'colored' | 'outline' | 'hidden';
+
+const fmtBRL = (n: number) =>
+  n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 
 export default function MapaEstrategico() {
   const [showFilters, setShowFilters] = useState(true);
   const [showEngagement, setShowEngagement] = useState(false);
+  const [showEmendas, setShowEmendas] = useState(false);
   const [activeSources, setActiveSources] = useState<Record<GeoSource, boolean>>({
     leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
   });
   const [bgMode, setBgMode] = useState<BgMode>('hidden');
 
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
+  const { data: emendas = [] } = useEmendas();
+  const geoEmendas = useMemo(
+    () => emendas.filter(e => e.lat && e.lng),
+    [emendas]
+  );
+
 
   const bgOptions: { id: BgMode; label: string }[] = [
     { id: 'colored', label: 'Cores' },
