@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
-import { Map, Filter, X, Users, FileText } from 'lucide-react';
+import { Map, Filter, X, Users, FileText, Printer } from 'lucide-react';
 import { municipalities, getEngagementColor } from '@/data/mockData';
 import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
@@ -66,13 +67,22 @@ export default function MapaEstrategico() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground hover:bg-accent transition-colors"
-        >
-          <Filter className="w-4 h-4" />
-          Camadas
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/mapa/imprimir"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-primary bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir mapa
+          </Link>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground hover:bg-accent transition-colors"
+          >
+            <Filter className="w-4 h-4" />
+            Camadas
+          </button>
+        </div>
       </div>
 
       <div className="flex relative" style={{ height: 'calc(100vh - 110px)' }}>
