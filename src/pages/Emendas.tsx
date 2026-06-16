@@ -745,7 +745,7 @@ export default function Emendas() {
   const geoCount = emendas.filter(e => e.lat && e.lng).length;
 
   return (
-    <div className="p-4 md:p-6 space-y-5 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
