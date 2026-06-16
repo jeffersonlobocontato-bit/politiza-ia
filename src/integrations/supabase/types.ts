@@ -654,6 +654,129 @@ export type Database = {
         }
         Relationships: []
       }
+      emendas: {
+        Row: {
+          acao_orcamentaria: string | null
+          area_tematica: string | null
+          candidate_id: string | null
+          created_at: string
+          created_by: string | null
+          data_empenho: string | null
+          data_pagamento: string | null
+          ente_federativo: string
+          exercicio: number
+          faixa_valor: Database["public"]["Enums"]["emenda_faixa"] | null
+          finalidade: string | null
+          id: string
+          instrumento_repasse: string | null
+          lat: number | null
+          lng: number | null
+          macroregion_id: string | null
+          municipio: string | null
+          numero_emenda: string | null
+          numero_empenho: string | null
+          numero_ordem_bancaria: string | null
+          observacoes_internas: string | null
+          orgao_gestor: string | null
+          status: Database["public"]["Enums"]["emenda_status"]
+          status_raw: string | null
+          tipo: Database["public"]["Enums"]["emenda_tipo"]
+          unidade_beneficiaria: string | null
+          updated_at: string
+          updated_by: string | null
+          valor_custeio: number | null
+          valor_empenhado: number | null
+          valor_investimento: number | null
+          valor_pago: number | null
+          valor_total: number
+        }
+        Insert: {
+          acao_orcamentaria?: string | null
+          area_tematica?: string | null
+          candidate_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_empenho?: string | null
+          data_pagamento?: string | null
+          ente_federativo: string
+          exercicio: number
+          faixa_valor?: Database["public"]["Enums"]["emenda_faixa"] | null
+          finalidade?: string | null
+          id?: string
+          instrumento_repasse?: string | null
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          municipio?: string | null
+          numero_emenda?: string | null
+          numero_empenho?: string | null
+          numero_ordem_bancaria?: string | null
+          observacoes_internas?: string | null
+          orgao_gestor?: string | null
+          status?: Database["public"]["Enums"]["emenda_status"]
+          status_raw?: string | null
+          tipo?: Database["public"]["Enums"]["emenda_tipo"]
+          unidade_beneficiaria?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor_custeio?: number | null
+          valor_empenhado?: number | null
+          valor_investimento?: number | null
+          valor_pago?: number | null
+          valor_total?: number
+        }
+        Update: {
+          acao_orcamentaria?: string | null
+          area_tematica?: string | null
+          candidate_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_empenho?: string | null
+          data_pagamento?: string | null
+          ente_federativo?: string
+          exercicio?: number
+          faixa_valor?: Database["public"]["Enums"]["emenda_faixa"] | null
+          finalidade?: string | null
+          id?: string
+          instrumento_repasse?: string | null
+          lat?: number | null
+          lng?: number | null
+          macroregion_id?: string | null
+          municipio?: string | null
+          numero_emenda?: string | null
+          numero_empenho?: string | null
+          numero_ordem_bancaria?: string | null
+          observacoes_internas?: string | null
+          orgao_gestor?: string | null
+          status?: Database["public"]["Enums"]["emenda_status"]
+          status_raw?: string | null
+          tipo?: Database["public"]["Enums"]["emenda_tipo"]
+          unidade_beneficiaria?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor_custeio?: number | null
+          valor_empenhado?: number | null
+          valor_investimento?: number | null
+          valor_pago?: number | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emendas_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emendas_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiscalize_attachments: {
         Row: {
           created_at: string
@@ -2665,6 +2788,23 @@ export type Database = {
         | "presidente_entidade"
         | "influenciador_regional"
         | "coordenador_partidario"
+      emenda_faixa:
+        | "f1_micro"
+        | "f2_pequena"
+        | "f3_media"
+        | "f4_relevante"
+        | "f5_alta"
+        | "f6_muito_alta"
+        | "f7_estrategica"
+      emenda_status:
+        | "pago"
+        | "empenhado"
+        | "em_execucao"
+        | "em_analise"
+        | "minuta_aprovado"
+        | "pendente"
+        | "sem_processo"
+      emenda_tipo: "individual" | "bancada" | "politicas_publicas" | "comissao"
       priority_level: "critica" | "alta" | "media" | "baixa"
       strategic_alert_status:
         | "ativo"
@@ -2885,6 +3025,25 @@ export const Constants = {
         "influenciador_regional",
         "coordenador_partidario",
       ],
+      emenda_faixa: [
+        "f1_micro",
+        "f2_pequena",
+        "f3_media",
+        "f4_relevante",
+        "f5_alta",
+        "f6_muito_alta",
+        "f7_estrategica",
+      ],
+      emenda_status: [
+        "pago",
+        "empenhado",
+        "em_execucao",
+        "em_analise",
+        "minuta_aprovado",
+        "pendente",
+        "sem_processo",
+      ],
+      emenda_tipo: ["individual", "bancada", "politicas_publicas", "comissao"],
       priority_level: ["critica", "alta", "media", "baixa"],
       strategic_alert_status: [
         "ativo",
