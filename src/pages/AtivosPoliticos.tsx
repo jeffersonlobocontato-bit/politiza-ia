@@ -7,7 +7,7 @@ import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } fr
 import { useUnifiedPoliticalAssets, type UnifiedAsset, type UnifiedAssetType } from '@/hooks/useUnifiedPoliticalAssets';
 import { useLeadershipProfiles, useAssetLeadershipLinks, useSetAssetProfiles } from '@/hooks/useLeadershipProfiles';
 import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
-import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
+import type { DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { ImportAssetsDialog } from '@/components/ativos/ImportAssetsDialog';
 import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
