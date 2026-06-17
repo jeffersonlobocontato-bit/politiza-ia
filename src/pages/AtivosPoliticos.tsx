@@ -90,6 +90,7 @@ interface AssetForm {
   email: string;
   observations: string;
   relationship_owner: string;
+  referred_by: string;
 }
 
 const emptyForm = (): AssetForm => ({
@@ -104,6 +105,7 @@ const emptyForm = (): AssetForm => ({
   email: '',
   observations: '',
   relationship_owner: '',
+  referred_by: '',
 });
 
 export default function AtivosPoliticos() {
@@ -182,6 +184,7 @@ export default function AtivosPoliticos() {
       email: raw.email ?? '',
       observations: raw.observations ?? '',
       relationship_owner: raw.relationship_owner ?? '',
+      referred_by: (raw as any).referred_by ?? '',
     });
     setGeoForm({ city: raw.municipality ?? '', lat: raw.lat ?? null, lng: raw.lng ?? null });
     setSelectedProfileIds(assetLinks.filter(l => l.asset_id === raw.id).map(l => l.profile_id));
@@ -206,6 +209,7 @@ export default function AtivosPoliticos() {
       lng: geoForm.lng,
       observations: form.observations || null,
       relationship_owner: form.relationship_owner || null,
+      referred_by: form.referred_by || null,
       created_by: null as string | null,
       updated_by: null as string | null,
     };
@@ -415,6 +419,10 @@ export default function AtivosPoliticos() {
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Responsável pelo Relacionamento</label>
                 <input value={form.relationship_owner} onChange={e => updateForm('relationship_owner', e.target.value)} placeholder="Coordenador responsável" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-xs text-muted-foreground block mb-1">Indicado por</label>
+                <input value={form.referred_by} onChange={e => updateForm('referred_by', e.target.value)} placeholder="Nome de quem indicou esta pessoa" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
               <div className="sm:col-span-2">
                 <LeadershipProfileSelect

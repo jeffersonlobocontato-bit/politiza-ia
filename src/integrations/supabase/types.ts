@@ -1595,6 +1595,7 @@ export type Database = {
           observations: string | null
           phone: string | null
           position: string | null
+          referred_by: string | null
           relationship_owner: string | null
           support_status: string | null
           type: Database["public"]["Enums"]["asset_type"]
@@ -1619,6 +1620,7 @@ export type Database = {
           observations?: string | null
           phone?: string | null
           position?: string | null
+          referred_by?: string | null
           relationship_owner?: string | null
           support_status?: string | null
           type?: Database["public"]["Enums"]["asset_type"]
@@ -1643,6 +1645,7 @@ export type Database = {
           observations?: string | null
           phone?: string | null
           position?: string | null
+          referred_by?: string | null
           relationship_owner?: string | null
           support_status?: string | null
           type?: Database["public"]["Enums"]["asset_type"]

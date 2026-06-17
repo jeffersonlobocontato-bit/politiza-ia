@@ -1,0 +1,1 @@
+ALTER TABLE public.political_assets ADD COLUMN IF NOT EXISTS referred_by text;
