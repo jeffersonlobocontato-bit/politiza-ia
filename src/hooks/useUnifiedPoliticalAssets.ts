@@ -61,14 +61,12 @@ function influenceFromLevel(level: number | null | undefined): number {
 }
 
 export function useUnifiedPoliticalAssets() {
-  const { selectedCandidateIds, isViewingAll } = useCandidate();
-
   return useQuery({
-    queryKey: ['unified-political-assets', selectedCandidateIds.join(',')],
+    queryKey: ['unified-political-assets', 'all-candidates-and-coords'],
     queryFn: async (): Promise<UnifiedAsset[]> => {
       const [assetsRes, candidatesRes, membersRes] = await Promise.all([
         db.from('political_assets').select('*').is('deleted_at', null).order('name'),
-        db.from('candidates').select('*').eq('is_active', true),
+        db.from('candidates').select('*').order('name'),
         db.from('campaign_members').select('*').eq('status', 'ativo'),
       ]);
 
