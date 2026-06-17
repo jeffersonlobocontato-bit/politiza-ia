@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Users, Search, Plus, Pencil, Trash2, X, Upload } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, Search, Plus, Pencil, Trash2, X, Upload, ExternalLink, Lock } from 'lucide-react';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
+import { useUnifiedPoliticalAssets, type UnifiedAsset, type UnifiedAssetType } from '@/hooks/useUnifiedPoliticalAssets';
 import { useLeadershipProfiles, useAssetLeadershipLinks, useSetAssetProfiles } from '@/hooks/useLeadershipProfiles';
 import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
-import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus } from '@/types/database';
+import type { DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { ImportAssetsDialog } from '@/components/ativos/ImportAssetsDialog';
 import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
@@ -39,6 +41,32 @@ const ASSET_TYPES: { value: DbAssetType; label: string }[] = [
   { value: 'influenciador_regional', label: 'Influenciador Regional' },
   { value: 'coordenador_partidario', label: 'Coord. Partidário' },
 ];
+
+// Rótulos de exibição extendidos (inclui tipos virtuais agregados)
+const UNIFIED_TYPE_LABELS: Record<UnifiedAssetType, string> = {
+  prefeito: 'Prefeito',
+  ex_prefeito: 'Ex-Prefeito',
+  pretenso_prefeito: 'Pretenso Prefeito',
+  vereador: 'Vereador',
+  ex_vereador: 'Ex-Vereador',
+  pretenso_vereador: 'Pretenso Vereador',
+  lideranca_comunitaria: 'Liderança Comunitária',
+  lideranca_empresarial: 'Liderança Empresarial',
+  lideranca_religiosa: 'Liderança Religiosa',
+  presidente_entidade: 'Presidente de Entidade',
+  influenciador_regional: 'Influenciador Regional',
+  coordenador_partidario: 'Coord. Partidário',
+  candidato: 'Candidato',
+  coord_macro: 'Coord. Macrorregional',
+  coord_micro: 'Coord. Microrregional',
+  coord_cidade: 'Coord. Municipal',
+};
+
+const ORIGIN_BADGE_COLORS: Record<UnifiedAsset['origin'], string> = {
+  nativo: '#6b7280',
+  candidato: '#1F5AB4',
+  coordenador: '#2FA85A',
+};
 
 const ALIGNMENT_OPTIONS: { value: DbAlignmentStatus; label: string }[] = [
   { value: 'alinhado',   label: 'Alinhado' },
@@ -77,18 +105,20 @@ const emptyForm = (): AssetForm => ({
 });
 
 export default function AtivosPoliticos() {
-  const { data: assets = [], isLoading } = usePoliticalAssets();
+  const { data: assets = [], isLoading } = useUnifiedPoliticalAssets();
+  const { data: rawAssets = [] } = usePoliticalAssets();
   const createAsset = useCreateAsset();
   const updateAsset = useUpdateAsset();
   const deleteAsset = useDeleteAsset();
   const { data: leadershipProfiles = [] } = useLeadershipProfiles(true);
-  const assetIds = useMemo(() => assets.map(a => a.id), [assets]);
-  const { data: assetLinks = [] } = useAssetLeadershipLinks(assetIds);
+  const rawAssetIds = useMemo(() => rawAssets.map(a => a.id), [rawAssets]);
+  const { data: assetLinks = [] } = useAssetLeadershipLinks(rawAssetIds);
   const setAssetProfiles = useSetAssetProfiles();
 
   const [search, setSearch] = useState('');
   const [macroFilter, setMacroFilter] = useState('all');
   const [alignFilter, setAlignFilter] = useState('all');
+  const [originFilter, setOriginFilter] = useState<'all' | UnifiedAsset['origin']>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm());
@@ -102,7 +132,8 @@ export default function AtivosPoliticos() {
     const matchSearch = !search || a.name.toLowerCase().includes(q) || (a.municipality ?? '').toLowerCase().includes(q);
     const matchMacro = macroFilter === 'all' || a.macroregion_id === macroFilter;
     const matchAlign = alignFilter === 'all' || a.alignment_status === alignFilter;
-    return matchSearch && matchMacro && matchAlign;
+    const matchOrigin = originFilter === 'all' || a.origin === originFilter;
+    return matchSearch && matchMacro && matchAlign && matchOrigin;
   });
 
   const updateForm = (key: keyof AssetForm, value: string) =>
@@ -116,23 +147,26 @@ export default function AtivosPoliticos() {
     setShowForm(true);
   };
 
-  const openEdit = (asset: DbPoliticalAsset) => {
-    setEditingId(asset.id);
+  const openEdit = (asset: UnifiedAsset) => {
+    if (asset.origin !== 'nativo') return;
+    const raw = rawAssets.find(r => r.id === asset.source_id);
+    if (!raw) return;
+    setEditingId(raw.id);
     setForm({
-      name: asset.name,
-      type: asset.type,
-      macroregion_id: asset.macroregion_id ?? 'rmc',
-      position: asset.position ?? '',
-      influence_level: String(asset.influence_level),
-      alignment_status: asset.alignment_status,
-      support_status: asset.support_status ?? '',
-      phone: asset.phone ?? '',
-      email: asset.email ?? '',
-      observations: asset.observations ?? '',
-      relationship_owner: asset.relationship_owner ?? '',
+      name: raw.name,
+      type: raw.type,
+      macroregion_id: raw.macroregion_id ?? 'rmc',
+      position: raw.position ?? '',
+      influence_level: String(raw.influence_level),
+      alignment_status: raw.alignment_status,
+      support_status: raw.support_status ?? '',
+      phone: raw.phone ?? '',
+      email: raw.email ?? '',
+      observations: raw.observations ?? '',
+      relationship_owner: raw.relationship_owner ?? '',
     });
-    setGeoForm({ city: asset.municipality ?? '', lat: asset.lat ?? null, lng: asset.lng ?? null });
-    setSelectedProfileIds(assetLinks.filter(l => l.asset_id === asset.id).map(l => l.profile_id));
+    setGeoForm({ city: raw.municipality ?? '', lat: raw.lat ?? null, lng: raw.lng ?? null });
+    setSelectedProfileIds(assetLinks.filter(l => l.asset_id === raw.id).map(l => l.profile_id));
     setShowForm(true);
   };
 
@@ -186,15 +220,21 @@ export default function AtivosPoliticos() {
     color: ALIGNMENT_COLORS[a.value],
   })).filter(d => d.value > 0);
 
-  const typeChartData = ASSET_TYPES.map(t => ({
-    name: t.label,
-    value: assets.filter(x => x.type === t.value).length,
+  const typeChartData = (Object.keys(UNIFIED_TYPE_LABELS) as UnifiedAssetType[]).map(t => ({
+    name: UNIFIED_TYPE_LABELS[t],
+    value: assets.filter(x => x.type === t).length,
   })).filter(d => d.value > 0).sort((a, b) => b.value - a.value).slice(0, 8);
 
   const macroCounts = macroRegions.map(m => ({
     name: m.name.replace('Macrorregião ', '').replace('Região ', ''),
     value: assets.filter(x => x.macroregion_id === m.id).length,
   })).filter(d => d.value > 0);
+
+  const originCounts = {
+    nativo: assets.filter(a => a.origin === 'nativo').length,
+    candidato: assets.filter(a => a.origin === 'candidato').length,
+    coordenador: assets.filter(a => a.origin === 'coordenador').length,
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -204,7 +244,9 @@ export default function AtivosPoliticos() {
           <Users className="w-5 h-5 text-primary" />
           <div>
             <h1 className="text-base font-bold text-foreground">Ativos Políticos</h1>
-            <p className="text-xs text-muted-foreground">{assets.length} ativos cadastrados</p>
+            <p className="text-xs text-muted-foreground">
+              {assets.length} ativos · {originCounts.nativo} nativos · {originCounts.candidato} candidatos · {originCounts.coordenador} coordenadores
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -264,6 +306,12 @@ export default function AtivosPoliticos() {
         <select value={alignFilter} onChange={e => setAlignFilter(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
           <option value="all">Todos os alinhamentos</option>
           {ALIGNMENT_OPTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+        </select>
+        <select value={originFilter} onChange={e => setOriginFilter(e.target.value as any)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+          <option value="all">Todas as origens</option>
+          <option value="nativo">Nativos</option>
+          <option value="candidato">Candidatos</option>
+          <option value="coordenador">Coordenadores</option>
         </select>
         <span className="text-xs text-muted-foreground self-center ml-auto">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
       </div>
@@ -390,27 +438,50 @@ export default function AtivosPoliticos() {
                 <div key={asset.id} className="rounded-xl border border-border p-4 hover:border-primary/30 transition-all group relative" style={{ background: 'var(--gradient-card)' }}>
                   {/* Actions */}
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(asset)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDelete(asset.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {asset.origin === 'nativo' ? (
+                      <>
+                        <button onClick={() => openEdit(asset)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground" title="Editar">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(asset.source_id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title="Excluir">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <Link to={asset.source_route} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground" title={`Editar em ${asset.source_label}`}>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </div>
                   <div className="flex items-start justify-between mb-3 pr-16">
                     <div>
-                      <div className="text-sm font-bold text-foreground">{asset.name}</div>
-                      <div className="text-xs text-muted-foreground">{asset.position || ASSET_TYPES.find(t => t.value === asset.type)?.label}</div>
+                      <div className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                        {asset.name}
+                        {asset.readonly && <Lock className="w-3 h-3 text-muted-foreground" />}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{asset.position || UNIFIED_TYPE_LABELS[asset.type]}</div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0" style={{ color: ac, borderColor: `${ac}40`, backgroundColor: `${ac}15` }}>
                       {ALIGNMENT_LABELS[asset.alignment_status] ?? asset.alignment_status}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{ASSET_TYPES.find(t => t.value === asset.type)?.label ?? asset.type}</span>
-                    <span className="text-[10px] text-muted-foreground">{asset.municipality}</span>
-                    {assetLinks
-                      .filter(l => l.asset_id === asset.id)
+                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{UNIFIED_TYPE_LABELS[asset.type] ?? asset.type}</span>
+                    {asset.municipality && (
+                      <span className="text-[10px] text-muted-foreground">{asset.municipality}</span>
+                    )}
+                    <span
+                      className="text-[10px] font-medium px-1.5 py-0.5 rounded-full border"
+                      style={{
+                        color: ORIGIN_BADGE_COLORS[asset.origin],
+                        borderColor: `${ORIGIN_BADGE_COLORS[asset.origin]}40`,
+                        backgroundColor: `${ORIGIN_BADGE_COLORS[asset.origin]}12`,
+                      }}
+                    >
+                      {asset.source_label}
+                    </span>
+                    {asset.origin === 'nativo' && assetLinks
+                      .filter(l => l.asset_id === asset.source_id)
                       .map(l => {
                         const prof = leadershipProfiles.find(p => p.id === l.profile_id);
                         if (!prof) return null;
