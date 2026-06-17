@@ -7,6 +7,8 @@ export type UnifiedAssetOrigin = 'nativo' | 'candidato' | 'coordenador';
 export type UnifiedAssetType =
   | DbAssetType
   | 'candidato'
+  | 'coord_geral'
+  | 'coord_estadual'
   | 'coord_macro'
   | 'coord_micro'
   | 'coord_cidade';
