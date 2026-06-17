@@ -1117,8 +1117,12 @@ export type Database = {
       leader_political_history: {
         Row: {
           created_at: string
+          current_mandate_community: string | null
+          current_mandate_entity: string | null
+          current_mandate_position: string | null
           election_years: string[] | null
           electoral_performance: string | null
+          has_current_mandate: boolean
           held_mandate: boolean | null
           id: string
           leader_id: string
@@ -1134,8 +1138,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_mandate_community?: string | null
+          current_mandate_entity?: string | null
+          current_mandate_position?: string | null
           election_years?: string[] | null
           electoral_performance?: string | null
+          has_current_mandate?: boolean
           held_mandate?: boolean | null
           id?: string
           leader_id: string
@@ -1151,8 +1159,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_mandate_community?: string | null
+          current_mandate_entity?: string | null
+          current_mandate_position?: string | null
           election_years?: string[] | null
           electoral_performance?: string | null
+          has_current_mandate?: boolean
           held_mandate?: boolean | null
           id?: string
           leader_id?: string

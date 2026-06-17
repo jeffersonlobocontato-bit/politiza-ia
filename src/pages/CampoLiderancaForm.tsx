@@ -54,6 +54,10 @@ export default function CampoLiderancaForm() {
   const [positionsHeld, setPositionsHeld] = useState('');
   const [electoralPerformance, setElectoralPerformance] = useState('');
   const [wasNeighborhoodPresident, setWasNeighborhoodPresident] = useState(false);
+  const [hasCurrentMandate, setHasCurrentMandate] = useState(false);
+  const [currentMandatePosition, setCurrentMandatePosition] = useState('');
+  const [currentMandateCommunity, setCurrentMandateCommunity] = useState('');
+  const [currentMandateEntity, setCurrentMandateEntity] = useState('');
 
   useEffect(() => {
     if (existing) {
@@ -82,6 +86,10 @@ export default function CampoLiderancaForm() {
       setPositionsHeld((politicalHistory.positions_held ?? []).join(', '));
       setElectoralPerformance(politicalHistory.electoral_performance ?? '');
       setWasNeighborhoodPresident(politicalHistory.was_neighborhood_president ?? false);
+      setHasCurrentMandate((politicalHistory as any).has_current_mandate ?? false);
+      setCurrentMandatePosition((politicalHistory as any).current_mandate_position ?? '');
+      setCurrentMandateCommunity((politicalHistory as any).current_mandate_community ?? '');
+      setCurrentMandateEntity((politicalHistory as any).current_mandate_entity ?? '');
     }
   }, [politicalHistory]);
 
@@ -135,6 +143,10 @@ export default function CampoLiderancaForm() {
           was_councilperson: false,
           positions_disputed: [],
           election_years: [],
+          has_current_mandate: hasCurrentMandate,
+          current_mandate_position: hasCurrentMandate ? (currentMandatePosition || null) : null,
+          current_mandate_community: hasCurrentMandate && currentMandatePosition === 'lideranca_comunitaria' ? (currentMandateCommunity || null) : null,
+          current_mandate_entity: hasCurrentMandate && currentMandatePosition === 'presidente_entidade' ? (currentMandateEntity || null) : null,
         });
       }
       toast.success(isEdit ? 'Liderança atualizada!' : 'Liderança cadastrada!');
@@ -302,6 +314,69 @@ export default function CampoLiderancaForm() {
                 <input type="checkbox" checked={wasNeighborhoodPresident} onChange={e => setWasNeighborhoodPresident(e.target.checked)} className="accent-[#2FA85A] mt-0.5" />
                 <span>Já presidiu associação de bairro/entidade</span>
               </label>
+
+              <label className="flex items-center gap-2 text-xs text-white/80">
+                <input
+                  type="checkbox"
+                  checked={hasCurrentMandate}
+                  onChange={e => {
+                    setHasCurrentMandate(e.target.checked);
+                    if (!e.target.checked) {
+                      setCurrentMandatePosition('');
+                      setCurrentMandateCommunity('');
+                      setCurrentMandateEntity('');
+                    }
+                  }}
+                  className="accent-[#2FA85A]"
+                /> Tem mandato (atual)
+              </label>
+              {hasCurrentMandate && (
+                <div className="pl-5 space-y-2">
+                  <div>
+                    <label className="text-[10px] text-white/50 block mb-1">Cargo atual</label>
+                    <select
+                      value={currentMandatePosition}
+                      onChange={e => {
+                        const v = e.target.value;
+                        setCurrentMandatePosition(v);
+                        if (v !== 'lideranca_comunitaria') setCurrentMandateCommunity('');
+                        if (v !== 'presidente_entidade') setCurrentMandateEntity('');
+                      }}
+                      className={inputCls}
+                    >
+                      <option value="">Selecione…</option>
+                      <option value="lideranca_comunitaria">Liderança comunitária</option>
+                      <option value="presidente_entidade">Presidente de entidade</option>
+                      <option value="vereador">Vereador</option>
+                      <option value="prefeito">Prefeito</option>
+                      <option value="deputado_estadual">Deputado estadual</option>
+                      <option value="deputado_federal">Deputado federal</option>
+                    </select>
+                  </div>
+                  {currentMandatePosition === 'lideranca_comunitaria' && (
+                    <div>
+                      <label className="text-[10px] text-white/50 block mb-1">Comunidade / Bairro</label>
+                      <input
+                        value={currentMandateCommunity}
+                        onChange={e => setCurrentMandateCommunity(e.target.value)}
+                        className={inputCls}
+                        placeholder="Nome da comunidade ou bairro"
+                      />
+                    </div>
+                  )}
+                  {currentMandatePosition === 'presidente_entidade' && (
+                    <div>
+                      <label className="text-[10px] text-white/50 block mb-1">Entidade</label>
+                      <input
+                        value={currentMandateEntity}
+                        onChange={e => setCurrentMandateEntity(e.target.value)}
+                        className={inputCls}
+                        placeholder="Nome da entidade"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
@@ -330,6 +405,20 @@ export default function CampoLiderancaForm() {
                 { l: 'Influência / Mobilização', v: `${influence} / ${mobilization}` },
                 { l: 'Já candidato', v: wasCandidate ? `Sim (${timesCandidate}x)` : 'Não' },
                 { l: 'Já mandato', v: heldMandate ? `Sim (${mandateCount})` : 'Não' },
+                { l: 'Mandato atual', v: hasCurrentMandate ? (() => {
+                  const labels: Record<string, string> = {
+                    lideranca_comunitaria: 'Liderança comunitária',
+                    presidente_entidade: 'Presidente de entidade',
+                    vereador: 'Vereador',
+                    prefeito: 'Prefeito',
+                    deputado_estadual: 'Deputado estadual',
+                    deputado_federal: 'Deputado federal',
+                  };
+                  const base = labels[currentMandatePosition] || '—';
+                  if (currentMandatePosition === 'lideranca_comunitaria' && currentMandateCommunity) return `${base} · ${currentMandateCommunity}`;
+                  if (currentMandatePosition === 'presidente_entidade' && currentMandateEntity) return `${base} · ${currentMandateEntity}`;
+                  return base;
+                })() : 'Não' },
                 { l: 'Apoiou última eleição', v: supportedLast || '—' },
               ].map(r => (
                 <div key={r.l} className="flex items-start justify-between gap-3 text-xs">
