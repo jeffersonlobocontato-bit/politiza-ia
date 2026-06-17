@@ -54,6 +54,10 @@ export default function CampoLiderancaForm() {
   const [positionsHeld, setPositionsHeld] = useState('');
   const [electoralPerformance, setElectoralPerformance] = useState('');
   const [wasNeighborhoodPresident, setWasNeighborhoodPresident] = useState(false);
+  const [hasCurrentMandate, setHasCurrentMandate] = useState(false);
+  const [currentMandatePosition, setCurrentMandatePosition] = useState('');
+  const [currentMandateCommunity, setCurrentMandateCommunity] = useState('');
+  const [currentMandateEntity, setCurrentMandateEntity] = useState('');
 
   useEffect(() => {
     if (existing) {
