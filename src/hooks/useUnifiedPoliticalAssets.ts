@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/db';
-import { useCandidate } from '@/contexts/CandidateContext';
+
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus, DbCampaignMember } from '@/types/database';
 
 export type UnifiedAssetOrigin = 'nativo' | 'candidato' | 'coordenador';
 export type UnifiedAssetType =
   | DbAssetType
   | 'candidato'
+  | 'coord_geral'
+  | 'coord_estadual'
   | 'coord_macro'
   | 'coord_micro'
   | 'coord_cidade';
@@ -34,6 +36,8 @@ export interface UnifiedAsset {
 }
 
 const COORD_ROLE_TO_TYPE: Record<string, UnifiedAssetType> = {
+  coordenador_geral: 'coord_geral',
+  coordenador_estadual: 'coord_estadual',
   coordenador_regional: 'coord_macro',
   coordenador_microrregional: 'coord_micro',
   coordenador_municipal: 'coord_cidade',
@@ -42,27 +46,27 @@ const COORD_ROLE_TO_TYPE: Record<string, UnifiedAssetType> = {
 function mapCoordRoleType(role: string): UnifiedAssetType | null {
   const k = (role || '').toLowerCase().trim();
   if (COORD_ROLE_TO_TYPE[k]) return COORD_ROLE_TO_TYPE[k];
-  if (k.includes('macro')) return 'coord_macro';
+  if (!k.includes('coord')) return null;
+  if (k.includes('geral')) return 'coord_geral';
+  if (k.includes('estad')) return 'coord_estadual';
+  if (k.includes('macro') || k.includes('region')) return 'coord_macro';
   if (k.includes('micro')) return 'coord_micro';
   if (k.includes('municip') || k.includes('cidade')) return 'coord_cidade';
-  return null;
+  return 'coord_macro';
 }
 
 function influenceFromLevel(level: number | null | undefined): number {
   if (level == null) return 6;
-  // hierarchy_level: 1 = topo. Map 1→10, 2→9, 3→8, ...
   return Math.max(4, Math.min(10, 11 - level));
 }
 
 export function useUnifiedPoliticalAssets() {
-  const { selectedCandidateIds, isViewingAll } = useCandidate();
-
   return useQuery({
-    queryKey: ['unified-political-assets', selectedCandidateIds.join(',')],
+    queryKey: ['unified-political-assets', 'all-candidates-and-coords'],
     queryFn: async (): Promise<UnifiedAsset[]> => {
       const [assetsRes, candidatesRes, membersRes] = await Promise.all([
         db.from('political_assets').select('*').is('deleted_at', null).order('name'),
-        db.from('candidates').select('*').eq('is_active', true),
+        db.from('candidates').select('*').order('name'),
         db.from('campaign_members').select('*').eq('status', 'ativo'),
       ]);
 
@@ -70,9 +74,6 @@ export function useUnifiedPoliticalAssets() {
       if (candidatesRes.error) throw candidatesRes.error;
       if (membersRes.error) throw membersRes.error;
 
-      const filterByCandidate = !isViewingAll && selectedCandidateIds.length > 0;
-      const inScope = (cid: string | null | undefined) =>
-        !filterByCandidate || (cid != null && selectedCandidateIds.includes(cid));
 
       const nativos: UnifiedAsset[] = ((assetsRes.data ?? []) as DbPoliticalAsset[]).map(a => ({
         id: `nativo:${a.id}`,
@@ -97,7 +98,6 @@ export function useUnifiedPoliticalAssets() {
       }));
 
       const candidatos: UnifiedAsset[] = (candidatesRes.data ?? [])
-        .filter((c: any) => inScope(c.id))
         .map((c: any) => ({
           id: `candidato:${c.id}`,
           origin: 'candidato',
@@ -121,7 +121,6 @@ export function useUnifiedPoliticalAssets() {
         }));
 
       const coords: UnifiedAsset[] = ((membersRes.data ?? []) as DbCampaignMember[])
-        .filter(m => inScope(m.candidate_id ?? null))
         .map(m => {
           const t = mapCoordRoleType(m.role);
           if (!t) return null;
