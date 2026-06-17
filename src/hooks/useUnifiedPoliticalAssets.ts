@@ -62,18 +62,19 @@ function influenceFromLevel(level: number | null | undefined): number {
 
 export function useUnifiedPoliticalAssets() {
   return useQuery({
-    queryKey: ['unified-political-assets', 'all-candidates-and-coords'],
+    queryKey: ['unified-political-assets', 'all-candidates-coords-and-proporcional'],
     queryFn: async (): Promise<UnifiedAsset[]> => {
-      const [assetsRes, candidatesRes, membersRes] = await Promise.all([
+      const [assetsRes, candidatesRes, membersRes, slateRes] = await Promise.all([
         db.from('political_assets').select('*').is('deleted_at', null).order('name'),
         db.from('candidates').select('*').order('name'),
         db.from('campaign_members').select('*').eq('status', 'ativo'),
+        (db as any).from('party_slate_candidates').select('*').is('deleted_at', null).order('name'),
       ]);
 
       if (assetsRes.error) throw assetsRes.error;
       if (candidatesRes.error) throw candidatesRes.error;
       if (membersRes.error) throw membersRes.error;
-
+      if (slateRes.error) throw slateRes.error;
 
       const nativos: UnifiedAsset[] = ((assetsRes.data ?? []) as DbPoliticalAsset[]).map(a => ({
         id: `nativo:${a.id}`,
@@ -100,15 +101,15 @@ export function useUnifiedPoliticalAssets() {
       const candidatos: UnifiedAsset[] = (candidatesRes.data ?? [])
         .map((c: any) => ({
           id: `candidato:${c.id}`,
-          origin: 'candidato',
+          origin: 'candidato' as UnifiedAssetOrigin,
           source_id: c.id,
           name: c.name,
-          type: 'candidato',
+          type: 'candidato' as UnifiedAssetType,
           position: `${c.cargo ?? 'Candidato'}${c.party ? ` — ${c.party}` : ''}`,
           municipality: null,
           macroregion_id: null,
           influence_level: 10,
-          alignment_status: 'alinhado',
+          alignment_status: 'alinhado' as DbAlignmentStatus,
           support_status: 'Candidato da coligação',
           phone: null,
           email: null,
@@ -118,6 +119,33 @@ export function useUnifiedPoliticalAssets() {
           readonly: true,
           source_route: '/candidatos',
           source_label: 'via Candidatos',
+        }));
+
+      // Dedup: se o registro da Proporcional já está vinculado a um candidato da base principal, pula
+      const candidatoIds = new Set((candidatesRes.data ?? []).map((c: any) => c.id));
+
+      const proporcionais: UnifiedAsset[] = ((slateRes.data ?? []) as any[])
+        .filter(s => !(s.candidate_id && candidatoIds.has(s.candidate_id)))
+        .map(s => ({
+          id: `proporcional:${s.id}`,
+          origin: 'candidato' as UnifiedAssetOrigin,
+          source_id: s.id,
+          name: s.name,
+          type: 'candidato' as UnifiedAssetType,
+          position: `${s.cargo ?? 'Candidato'}${s.party ? ` — ${s.party}` : ''}`,
+          municipality: s.city ?? null,
+          macroregion_id: null,
+          influence_level: 9,
+          alignment_status: 'alinhado' as DbAlignmentStatus,
+          support_status: s.general_status ?? s.filiacao_status ?? 'Pré-candidato (Proporcional)',
+          phone: s.phone ?? null,
+          email: null,
+          observations: s.notes ?? null,
+          lat: null,
+          lng: null,
+          readonly: true,
+          source_route: '/proporcional',
+          source_label: 'via Proporcional',
         }));
 
       const coords: UnifiedAsset[] = ((membersRes.data ?? []) as DbCampaignMember[])
@@ -148,7 +176,7 @@ export function useUnifiedPoliticalAssets() {
         })
         .filter((x): x is UnifiedAsset => x !== null);
 
-      return [...nativos, ...candidatos, ...coords];
+      return [...nativos, ...candidatos, ...proporcionais, ...coords];
     },
   });
 }
