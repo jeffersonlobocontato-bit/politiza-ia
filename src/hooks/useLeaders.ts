@@ -50,6 +50,10 @@ export interface LeaderPoliticalHistory {
   election_years: string[];
   electoral_performance: string | null;
   observations: string | null;
+  has_current_mandate?: boolean;
+  current_mandate_position?: string | null;
+  current_mandate_community?: string | null;
+  current_mandate_entity?: string | null;
   created_at: string;
   updated_at: string;
 }
