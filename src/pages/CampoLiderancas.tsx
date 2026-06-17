@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Search, Plus, MapPin, Phone, Pencil, BarChart3, ArrowLeft } from 'lucide-react';
+import { Users, Search, Plus, MapPin, Phone, Pencil, BarChart3, ArrowLeft, UserCircle2 } from 'lucide-react';
 import { useLeaders } from '@/hooks/useLeaders';
 import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
 import { useAuth } from '@/contexts/AuthContext';
