@@ -86,6 +86,10 @@ export default function CampoLiderancaForm() {
       setPositionsHeld((politicalHistory.positions_held ?? []).join(', '));
       setElectoralPerformance(politicalHistory.electoral_performance ?? '');
       setWasNeighborhoodPresident(politicalHistory.was_neighborhood_president ?? false);
+      setHasCurrentMandate((politicalHistory as any).has_current_mandate ?? false);
+      setCurrentMandatePosition((politicalHistory as any).current_mandate_position ?? '');
+      setCurrentMandateCommunity((politicalHistory as any).current_mandate_community ?? '');
+      setCurrentMandateEntity((politicalHistory as any).current_mandate_entity ?? '');
     }
   }, [politicalHistory]);
 
