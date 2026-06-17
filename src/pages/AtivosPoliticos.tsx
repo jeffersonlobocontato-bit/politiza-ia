@@ -147,23 +147,26 @@ export default function AtivosPoliticos() {
     setShowForm(true);
   };
 
-  const openEdit = (asset: DbPoliticalAsset) => {
-    setEditingId(asset.id);
+  const openEdit = (asset: UnifiedAsset) => {
+    if (asset.origin !== 'nativo') return;
+    const raw = rawAssets.find(r => r.id === asset.source_id);
+    if (!raw) return;
+    setEditingId(raw.id);
     setForm({
-      name: asset.name,
-      type: asset.type,
-      macroregion_id: asset.macroregion_id ?? 'rmc',
-      position: asset.position ?? '',
-      influence_level: String(asset.influence_level),
-      alignment_status: asset.alignment_status,
-      support_status: asset.support_status ?? '',
-      phone: asset.phone ?? '',
-      email: asset.email ?? '',
-      observations: asset.observations ?? '',
-      relationship_owner: asset.relationship_owner ?? '',
+      name: raw.name,
+      type: raw.type,
+      macroregion_id: raw.macroregion_id ?? 'rmc',
+      position: raw.position ?? '',
+      influence_level: String(raw.influence_level),
+      alignment_status: raw.alignment_status,
+      support_status: raw.support_status ?? '',
+      phone: raw.phone ?? '',
+      email: raw.email ?? '',
+      observations: raw.observations ?? '',
+      relationship_owner: raw.relationship_owner ?? '',
     });
-    setGeoForm({ city: asset.municipality ?? '', lat: asset.lat ?? null, lng: asset.lng ?? null });
-    setSelectedProfileIds(assetLinks.filter(l => l.asset_id === asset.id).map(l => l.profile_id));
+    setGeoForm({ city: raw.municipality ?? '', lat: raw.lat ?? null, lng: raw.lng ?? null });
+    setSelectedProfileIds(assetLinks.filter(l => l.asset_id === raw.id).map(l => l.profile_id));
     setShowForm(true);
   };
 
