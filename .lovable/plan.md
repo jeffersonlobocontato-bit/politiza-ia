@@ -1,45 +1,36 @@
-# Unificar Ativos Políticos: incluir Candidatos e Coordenadores (virtual / read-only)
+Plano de ajuste para Ativos Políticos:
 
-## Objetivo
-Fazer com que **Candidatos ativos** e **Coordenadores Macrorregionais, Microrregionais e de Cidade** apareçam no dashboard de **Ativos Políticos** sem duplicar dados — mantendo a edição em seus módulos de origem (Candidatos / Campanha).
+1. **Regra registrada para implementação**
+   - Todos os nomes cadastrados na base **Proporcional** (`party_slate_candidates`) serão tratados como **candidatos**.
+   - Eles também devem aparecer no dashboard de **Ativos Políticos**, junto com ativos nativos, candidatos da base principal e coordenadores da hierarquia.
 
-## Abordagem: Agregação virtual
-Criar um novo hook `useUnifiedPoliticalAssets` que combina 3 fontes em um único tipo normalizado `UnifiedAsset`:
+2. **Ampliar a agregação do hook unificado**
+   - Atualizar `useUnifiedPoliticalAssets.ts` para consultar também `party_slate_candidates` com `deleted_at IS NULL`.
+   - Não filtrar apenas ativos: considerar todos os nomes cadastrados, conforme solicitado.
+   - Normalizar cada registro proporcional como `UnifiedAsset`:
+     - `origin`: candidato/proporcional
+     - `type`: `candidato`
+     - `name`: nome da base Proporcional
+     - `position`: cargo + partido
+     - `municipality`: cidade
+     - `support_status`: status geral/filiação quando disponível
+     - `phone`: telefone
+     - `observations`: notas
+     - `source_route`: `/proporcional`
+     - `source_label`: `via Proporcional`
+     - `readonly`: `true`
 
-1. `political_assets` (já existente) — origem `nativo`, editável
-2. `candidates` — origem `candidato`, read-only
-3. `campaign_members` filtrados pelos roles de coordenação — origem `coordenador_macro` / `coordenador_micro` / `coordenador_cidade`, read-only
+3. **Evitar duplicidade quando houver vínculo com a base principal**
+   - Se um registro da base Proporcional tiver `candidate_id` e esse candidato já estiver vindo da tabela principal `candidates`, ele não será duplicado.
+   - Se não existir vínculo, o nome proporcional entra normalmente como candidato virtual.
 
-A página `AtivosPoliticos.tsx` passa a consumir esse hook unificado para listagem, filtros, cards e gráficos. As ações de **criar / editar / excluir** continuam disponíveis somente para itens `origin === 'nativo'`; para os virtuais, mostramos um badge "via Candidatos" / "via Campanha" e o botão de editar abre o módulo de origem (link).
+4. **Ajustar o dashboard de Ativos Políticos**
+   - Atualizar os filtros/contadores para deixar claro que candidatos incluem:
+     - candidatos da base principal;
+     - nomes da base Proporcional;
+     - candidatos estaduais e federais cadastrados.
+   - Os cards da base Proporcional aparecerão bloqueados para edição direta, com botão para abrir o módulo **Proporcional**.
 
-## Mudanças
-
-### 1. Novo tipo `UnifiedAsset` (em `src/types/database.ts` ou arquivo novo)
-Campos normalizados: `id`, `origin`, `source_id`, `name`, `type`, `position`, `municipality`, `macroregion_id`, `influence_level`, `alignment_status`, `support_status`, `phone`, `email`, `observations`, `lat`, `lng`, `readonly`, `source_route`.
-
-Mapeamentos:
-- **Candidato** → `type: 'candidato'`, `position` = cargo pleiteado, `alignment_status: 'aliado'` (default), `influence_level: 5`, `source_route: '/candidatos'`.
-- **Coordenador Macro/Micro/Cidade** → `type: 'coord_macro' | 'coord_micro' | 'coord_cidade'`, `position` = role original, `alignment_status: 'aliado'`, `influence_level` derivado do `hierarchy_level` (1→5, 2→4, 3→3…), `source_route: '/campanha'`.
-
-### 2. Novo hook `src/hooks/useUnifiedPoliticalAssets.ts`
-- Faz 3 queries em paralelo (`political_assets`, `candidates` ativos, `campaign_members` com role de coordenação e `status='ativo'`).
-- Respeita filtro de candidato ativo (usar `useActiveCandidate` se aplicável).
-- Normaliza para `UnifiedAsset[]` e retorna combinado.
-
-### 3. Atualizar `src/pages/AtivosPoliticos.tsx`
-- Trocar `usePoliticalAssets()` por `useUnifiedPoliticalAssets()`.
-- Nos cards: adicionar badge da origem (`Nativo` / `Candidato` / `Coordenador`).
-- Para itens com `readonly`, ocultar botões de excluir/editar inline; substituir por um botão "Abrir em [módulo]" que navega para `source_route`.
-- Filtros e KPIs (total, alinhamento, tipo) operam sobre a lista unificada.
-- O modal de criação/edição permanece apenas para `political_assets` nativos.
-
-### 4. Constantes
-Adicionar em `ASSET_TYPES` os novos rótulos: `candidato`, `coord_macro`, `coord_micro`, `coord_cidade` (apenas display; não persistem como `type` no banco).
-
-## Fora do escopo
-- Nenhuma migração de banco.
-- Sem alterações em Candidatos, Campanha ou no Mapa Estratégico.
-- Sem mexer em `useCreateAsset`/`useUpdateAsset`/`useDeleteAsset`.
-
-## Critério de aceite
-Ao abrir **Ativos Políticos** com um candidato ativo selecionado, os cards listam: ativos nativos + o próprio candidato + todos coordenadores macro/micro/cidade vinculados à campanha; KPIs e filtros refletem o conjunto; itens virtuais aparecem com badge de origem e não permitem edição inline.
+5. **Validar resultado**
+   - Conferir que o total de candidatos em Ativos Políticos passa a somar também os registros da base Proporcional.
+   - Conferir que coordenadores da hierarquia continuam aparecendo como ativos políticos.
