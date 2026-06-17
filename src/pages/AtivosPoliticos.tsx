@@ -317,9 +317,13 @@ export default function AtivosPoliticos() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar nome ou município..." className="w-full h-9 rounded-lg border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
         </div>
-        <select value={macroFilter} onChange={e => setMacroFilter(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+        <select value={macroFilter} onChange={e => { setMacroFilter(e.target.value); setCityFilter('all'); }} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
           <option value="all">Todas as regiões</option>
           {macroRegions.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+        </select>
+        <select value={cityFilter} onChange={e => setCityFilter(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring max-w-[220px]">
+          <option value="all">Todas as cidades{macroFilter !== 'all' ? ' da região' : ''}</option>
+          {cityOptions.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
         </select>
         <select value={alignFilter} onChange={e => setAlignFilter(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
           <option value="all">Todos os alinhamentos</option>
