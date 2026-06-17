@@ -57,6 +57,8 @@ const UNIFIED_TYPE_LABELS: Record<UnifiedAssetType, string> = {
   influenciador_regional: 'Influenciador Regional',
   coordenador_partidario: 'Coord. Partidário',
   candidato: 'Candidato',
+  coord_geral: 'Coord. Geral',
+  coord_estadual: 'Coord. Estadual',
   coord_macro: 'Coord. Macrorregional',
   coord_micro: 'Coord. Microrregional',
   coord_cidade: 'Coord. Municipal',
