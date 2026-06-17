@@ -220,15 +220,21 @@ export default function AtivosPoliticos() {
     color: ALIGNMENT_COLORS[a.value],
   })).filter(d => d.value > 0);
 
-  const typeChartData = ASSET_TYPES.map(t => ({
-    name: t.label,
-    value: assets.filter(x => x.type === t.value).length,
+  const typeChartData = (Object.keys(UNIFIED_TYPE_LABELS) as UnifiedAssetType[]).map(t => ({
+    name: UNIFIED_TYPE_LABELS[t],
+    value: assets.filter(x => x.type === t).length,
   })).filter(d => d.value > 0).sort((a, b) => b.value - a.value).slice(0, 8);
 
   const macroCounts = macroRegions.map(m => ({
     name: m.name.replace('Macrorregião ', '').replace('Região ', ''),
     value: assets.filter(x => x.macroregion_id === m.id).length,
   })).filter(d => d.value > 0);
+
+  const originCounts = {
+    nativo: assets.filter(a => a.origin === 'nativo').length,
+    candidato: assets.filter(a => a.origin === 'candidato').length,
+    coordenador: assets.filter(a => a.origin === 'coordenador').length,
+  };
 
   return (
     <div className="h-full flex flex-col">
