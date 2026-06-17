@@ -42,6 +42,32 @@ const ASSET_TYPES: { value: DbAssetType; label: string }[] = [
   { value: 'coordenador_partidario', label: 'Coord. Partidário' },
 ];
 
+// Rótulos de exibição extendidos (inclui tipos virtuais agregados)
+const UNIFIED_TYPE_LABELS: Record<UnifiedAssetType, string> = {
+  prefeito: 'Prefeito',
+  ex_prefeito: 'Ex-Prefeito',
+  pretenso_prefeito: 'Pretenso Prefeito',
+  vereador: 'Vereador',
+  ex_vereador: 'Ex-Vereador',
+  pretenso_vereador: 'Pretenso Vereador',
+  lideranca_comunitaria: 'Liderança Comunitária',
+  lideranca_empresarial: 'Liderança Empresarial',
+  lideranca_religiosa: 'Liderança Religiosa',
+  presidente_entidade: 'Presidente de Entidade',
+  influenciador_regional: 'Influenciador Regional',
+  coordenador_partidario: 'Coord. Partidário',
+  candidato: 'Candidato',
+  coord_macro: 'Coord. Macrorregional',
+  coord_micro: 'Coord. Microrregional',
+  coord_cidade: 'Coord. Municipal',
+};
+
+const ORIGIN_BADGE_COLORS: Record<UnifiedAsset['origin'], string> = {
+  nativo: '#6b7280',
+  candidato: '#1F5AB4',
+  coordenador: '#2FA85A',
+};
+
 const ALIGNMENT_OPTIONS: { value: DbAlignmentStatus; label: string }[] = [
   { value: 'alinhado',   label: 'Alinhado' },
   { value: 'provavel',   label: 'Provável' },
