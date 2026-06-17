@@ -405,6 +405,20 @@ export default function CampoLiderancaForm() {
                 { l: 'Influência / Mobilização', v: `${influence} / ${mobilization}` },
                 { l: 'Já candidato', v: wasCandidate ? `Sim (${timesCandidate}x)` : 'Não' },
                 { l: 'Já mandato', v: heldMandate ? `Sim (${mandateCount})` : 'Não' },
+                { l: 'Mandato atual', v: hasCurrentMandate ? (() => {
+                  const labels: Record<string, string> = {
+                    lideranca_comunitaria: 'Liderança comunitária',
+                    presidente_entidade: 'Presidente de entidade',
+                    vereador: 'Vereador',
+                    prefeito: 'Prefeito',
+                    deputado_estadual: 'Deputado estadual',
+                    deputado_federal: 'Deputado federal',
+                  };
+                  const base = labels[currentMandatePosition] || '—';
+                  if (currentMandatePosition === 'lideranca_comunitaria' && currentMandateCommunity) return `${base} · ${currentMandateCommunity}`;
+                  if (currentMandatePosition === 'presidente_entidade' && currentMandateEntity) return `${base} · ${currentMandateEntity}`;
+                  return base;
+                })() : 'Não' },
                 { l: 'Apoiou última eleição', v: supportedLast || '—' },
               ].map(r => (
                 <div key={r.l} className="flex items-start justify-between gap-3 text-xs">
