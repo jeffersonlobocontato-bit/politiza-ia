@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/db';
-import { useCandidate } from '@/contexts/CandidateContext';
+
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus, DbCampaignMember } from '@/types/database';
 
 export type UnifiedAssetOrigin = 'nativo' | 'candidato' | 'coordenador';
