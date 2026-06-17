@@ -34,6 +34,8 @@ export interface UnifiedAsset {
 }
 
 const COORD_ROLE_TO_TYPE: Record<string, UnifiedAssetType> = {
+  coordenador_geral: 'coord_geral',
+  coordenador_estadual: 'coord_estadual',
   coordenador_regional: 'coord_macro',
   coordenador_microrregional: 'coord_micro',
   coordenador_municipal: 'coord_cidade',
@@ -42,15 +44,17 @@ const COORD_ROLE_TO_TYPE: Record<string, UnifiedAssetType> = {
 function mapCoordRoleType(role: string): UnifiedAssetType | null {
   const k = (role || '').toLowerCase().trim();
   if (COORD_ROLE_TO_TYPE[k]) return COORD_ROLE_TO_TYPE[k];
-  if (k.includes('macro')) return 'coord_macro';
+  if (!k.includes('coord')) return null;
+  if (k.includes('geral')) return 'coord_geral';
+  if (k.includes('estad')) return 'coord_estadual';
+  if (k.includes('macro') || k.includes('region')) return 'coord_macro';
   if (k.includes('micro')) return 'coord_micro';
   if (k.includes('municip') || k.includes('cidade')) return 'coord_cidade';
-  return null;
+  return 'coord_macro';
 }
 
 function influenceFromLevel(level: number | null | undefined): number {
   if (level == null) return 6;
-  // hierarchy_level: 1 = topo. Map 1→10, 2→9, 3→8, ...
   return Math.max(4, Math.min(10, 11 - level));
 }
 
