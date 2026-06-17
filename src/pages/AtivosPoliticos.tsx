@@ -209,6 +209,7 @@ export default function AtivosPoliticos() {
       lng: geoForm.lng,
       observations: form.observations || null,
       relationship_owner: form.relationship_owner || null,
+      referred_by: form.referred_by || null,
       created_by: null as string | null,
       updated_by: null as string | null,
     };
