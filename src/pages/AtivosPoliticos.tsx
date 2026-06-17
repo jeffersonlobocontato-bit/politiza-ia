@@ -247,6 +247,7 @@ export default function AtivosPoliticos() {
             <p className="text-xs text-muted-foreground">
               {assets.length} ativos · {originCounts.nativo} nativos · {originCounts.candidato} candidatos · {originCounts.coordenador} coordenadores
             </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
