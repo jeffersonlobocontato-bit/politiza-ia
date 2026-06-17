@@ -143,6 +143,10 @@ export default function CampoLiderancaForm() {
           was_councilperson: false,
           positions_disputed: [],
           election_years: [],
+          has_current_mandate: hasCurrentMandate,
+          current_mandate_position: hasCurrentMandate ? (currentMandatePosition || null) : null,
+          current_mandate_community: hasCurrentMandate && currentMandatePosition === 'lideranca_comunitaria' ? (currentMandateCommunity || null) : null,
+          current_mandate_entity: hasCurrentMandate && currentMandatePosition === 'presidente_entidade' ? (currentMandateEntity || null) : null,
         });
       }
       toast.success(isEdit ? 'Liderança atualizada!' : 'Liderança cadastrada!');
