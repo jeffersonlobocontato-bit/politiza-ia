@@ -194,6 +194,12 @@ export default function CampoLiderancas() {
                       )}
                     </div>
                   )}
+                  {l.created_by && (
+                    <div className="mt-3 pt-2 flex items-center gap-1.5 text-[10px]" style={{ borderTop: '1px solid var(--campo-line)', color: 'var(--campo-text-mute)' }}>
+                      <UserCircle2 className="w-3 h-3" />
+                      <span className="truncate">Cadastrado por: <span style={{ color: 'var(--campo-text)' }}>{creatorMap.get(l.created_by) ?? '—'}</span></span>
+                    </div>
+                  )}
                   <Pencil
                     className="absolute top-3 right-3 w-3 h-3 opacity-0 group-hover:opacity-100"
                     style={{ color: 'var(--campo-text-mute)' }}
