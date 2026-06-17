@@ -184,6 +184,7 @@ export default function AtivosPoliticos() {
       email: raw.email ?? '',
       observations: raw.observations ?? '',
       relationship_owner: raw.relationship_owner ?? '',
+      referred_by: (raw as any).referred_by ?? '',
     });
     setGeoForm({ city: raw.municipality ?? '', lat: raw.lat ?? null, lng: raw.lng ?? null });
     setSelectedProfileIds(assetLinks.filter(l => l.asset_id === raw.id).map(l => l.profile_id));
