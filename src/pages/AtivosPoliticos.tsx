@@ -438,27 +438,50 @@ export default function AtivosPoliticos() {
                 <div key={asset.id} className="rounded-xl border border-border p-4 hover:border-primary/30 transition-all group relative" style={{ background: 'var(--gradient-card)' }}>
                   {/* Actions */}
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(asset)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDelete(asset.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {asset.origin === 'nativo' ? (
+                      <>
+                        <button onClick={() => openEdit(asset)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground" title="Editar">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(asset.source_id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title="Excluir">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <Link to={asset.source_route} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground" title={`Editar em ${asset.source_label}`}>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </div>
                   <div className="flex items-start justify-between mb-3 pr-16">
                     <div>
-                      <div className="text-sm font-bold text-foreground">{asset.name}</div>
-                      <div className="text-xs text-muted-foreground">{asset.position || ASSET_TYPES.find(t => t.value === asset.type)?.label}</div>
+                      <div className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                        {asset.name}
+                        {asset.readonly && <Lock className="w-3 h-3 text-muted-foreground" />}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{asset.position || UNIFIED_TYPE_LABELS[asset.type]}</div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0" style={{ color: ac, borderColor: `${ac}40`, backgroundColor: `${ac}15` }}>
                       {ALIGNMENT_LABELS[asset.alignment_status] ?? asset.alignment_status}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{ASSET_TYPES.find(t => t.value === asset.type)?.label ?? asset.type}</span>
-                    <span className="text-[10px] text-muted-foreground">{asset.municipality}</span>
-                    {assetLinks
-                      .filter(l => l.asset_id === asset.id)
+                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{UNIFIED_TYPE_LABELS[asset.type] ?? asset.type}</span>
+                    {asset.municipality && (
+                      <span className="text-[10px] text-muted-foreground">{asset.municipality}</span>
+                    )}
+                    <span
+                      className="text-[10px] font-medium px-1.5 py-0.5 rounded-full border"
+                      style={{
+                        color: ORIGIN_BADGE_COLORS[asset.origin],
+                        borderColor: `${ORIGIN_BADGE_COLORS[asset.origin]}40`,
+                        backgroundColor: `${ORIGIN_BADGE_COLORS[asset.origin]}12`,
+                      }}
+                    >
+                      {asset.source_label}
+                    </span>
+                    {asset.origin === 'nativo' && assetLinks
+                      .filter(l => l.asset_id === asset.source_id)
                       .map(l => {
                         const prof = leadershipProfiles.find(p => p.id === l.profile_id);
                         if (!prof) return null;
