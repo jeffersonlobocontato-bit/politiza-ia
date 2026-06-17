@@ -33,6 +33,22 @@ export default function CampoLiderancas() {
     },
   });
 
+  const creatorIds = useMemo(() => Array.from(new Set(allLeaders.map(l => l.created_by).filter(Boolean))) as string[], [allLeaders]);
+  const { data: creatorProfiles = [] } = useQuery<{ id: string; full_name: string | null; email: string | null }[]>({
+    queryKey: ['leader-creators', creatorIds],
+    enabled: creatorIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('profiles').select('id, full_name, email').in('id', creatorIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const creatorMap = useMemo(() => {
+    const m = new Map<string, string>();
+    creatorProfiles.forEach(p => m.set(p.id, p.full_name || p.email || 'Usuário'));
+    return m;
+  }, [creatorProfiles]);
+
   const [search, setSearch] = useState('');
   const [cityFilter, setCityFilter] = useState('all');
   const [alignFilter, setAlignFilter] = useState('all');
