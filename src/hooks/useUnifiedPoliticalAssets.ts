@@ -1,7 +1,27 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/db';
+import { municipalities as mockMunicipalities } from '@/data/mockData';
 
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus, DbCampaignMember } from '@/types/database';
+
+const normalizeCity = (s: string | null | undefined) =>
+  (s ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+
+const CITY_TO_MACRO: Record<string, string> = mockMunicipalities.reduce((acc, m) => {
+  acc[normalizeCity(m.name)] = m.macroregion;
+  acc[normalizeCity(m.id)] = m.macroregion;
+  return acc;
+}, {} as Record<string, string>);
+
+function macroFromCity(city: string | null | undefined): string | null {
+  if (!city) return null;
+  return CITY_TO_MACRO[normalizeCity(city)] ?? null;
+}
 
 export type UnifiedAssetOrigin = 'nativo' | 'candidato' | 'coordenador';
 export type UnifiedAssetType =
@@ -134,7 +154,7 @@ export function useUnifiedPoliticalAssets() {
           type: 'candidato' as UnifiedAssetType,
           position: `${s.cargo ?? 'Candidato'}${s.party ? ` — ${s.party}` : ''}`,
           municipality: s.city ?? null,
-          macroregion_id: null,
+          macroregion_id: macroFromCity(s.city),
           influence_level: 9,
           alignment_status: 'alinhado' as DbAlignmentStatus,
           support_status: s.general_status ?? s.filiacao_status ?? 'Pré-candidato (Proporcional)',
