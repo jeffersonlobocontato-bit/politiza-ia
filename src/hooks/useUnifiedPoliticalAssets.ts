@@ -98,7 +98,6 @@ export function useUnifiedPoliticalAssets() {
       }));
 
       const candidatos: UnifiedAsset[] = (candidatesRes.data ?? [])
-        .filter((c: any) => inScope(c.id))
         .map((c: any) => ({
           id: `candidato:${c.id}`,
           origin: 'candidato',
