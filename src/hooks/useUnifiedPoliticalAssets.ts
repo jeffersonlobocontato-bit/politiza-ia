@@ -74,9 +74,6 @@ export function useUnifiedPoliticalAssets() {
       if (candidatesRes.error) throw candidatesRes.error;
       if (membersRes.error) throw membersRes.error;
 
-      const filterByCandidate = !isViewingAll && selectedCandidateIds.length > 0;
-      const inScope = (cid: string | null | undefined) =>
-        !filterByCandidate || (cid != null && selectedCandidateIds.includes(cid));
 
       const nativos: UnifiedAsset[] = ((assetsRes.data ?? []) as DbPoliticalAsset[]).map(a => ({
         id: `nativo:${a.id}`,
