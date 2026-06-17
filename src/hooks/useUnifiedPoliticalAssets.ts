@@ -121,7 +121,6 @@ export function useUnifiedPoliticalAssets() {
         }));
 
       const coords: UnifiedAsset[] = ((membersRes.data ?? []) as DbCampaignMember[])
-        .filter(m => inScope(m.candidate_id ?? null))
         .map(m => {
           const t = mapCoordRoleType(m.role);
           if (!t) return null;
