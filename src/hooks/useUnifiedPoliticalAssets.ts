@@ -84,17 +84,19 @@ export function useUnifiedPoliticalAssets() {
   return useQuery({
     queryKey: ['unified-political-assets', 'all-candidates-coords-and-proporcional'],
     queryFn: async (): Promise<UnifiedAsset[]> => {
-      const [assetsRes, candidatesRes, membersRes, slateRes] = await Promise.all([
+      const [assetsRes, candidatesRes, membersRes, slateRes, leadersRes] = await Promise.all([
         db.from('political_assets').select('*').is('deleted_at', null).order('name'),
         db.from('candidates').select('*').order('name'),
         db.from('campaign_members').select('*').eq('status', 'ativo'),
         (db as any).from('party_slate_candidates').select('*').is('deleted_at', null).order('name'),
+        (db as any).from('leaders').select('*').is('deleted_at', null).order('name'),
       ]);
 
       if (assetsRes.error) throw assetsRes.error;
       if (candidatesRes.error) throw candidatesRes.error;
       if (membersRes.error) throw membersRes.error;
       if (slateRes.error) throw slateRes.error;
+      if (leadersRes.error) throw leadersRes.error;
 
       const nativos: UnifiedAsset[] = ((assetsRes.data ?? []) as DbPoliticalAsset[]).map(a => ({
         id: `nativo:${a.id}`,
