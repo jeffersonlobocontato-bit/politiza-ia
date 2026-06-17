@@ -307,6 +307,12 @@ export default function AtivosPoliticos() {
           <option value="all">Todos os alinhamentos</option>
           {ALIGNMENT_OPTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
         </select>
+        <select value={originFilter} onChange={e => setOriginFilter(e.target.value as any)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+          <option value="all">Todas as origens</option>
+          <option value="nativo">Nativos</option>
+          <option value="candidato">Candidatos</option>
+          <option value="coordenador">Coordenadores</option>
+        </select>
         <span className="text-xs text-muted-foreground self-center ml-auto">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
