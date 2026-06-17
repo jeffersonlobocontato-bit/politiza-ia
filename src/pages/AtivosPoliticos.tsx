@@ -118,6 +118,7 @@ export default function AtivosPoliticos() {
   const setAssetProfiles = useSetAssetProfiles();
 
   const [search, setSearch] = useState('');
+  const [cityFilter, setCityFilter] = useState('all');
   const [macroFilter, setMacroFilter] = useState('all');
   const [alignFilter, setAlignFilter] = useState('all');
   const [originFilter, setOriginFilter] = useState<'all' | UnifiedAsset['origin']>('all');
@@ -129,13 +130,28 @@ export default function AtivosPoliticos() {
   const [showImport, setShowImport] = useState(false);
   const association = useAssociationForCity(geoForm.city);
 
+  // Lista única de cidades presentes nos ativos (respeita filtro de macrorregião)
+  const cityOptions = useMemo(() => {
+    const set = new Map<string, string>(); // key (normalized) -> display
+    assets.forEach(a => {
+      if (!a.municipality) return;
+      if (macroFilter !== 'all' && a.macroregion_id !== macroFilter) return;
+      const key = a.municipality.trim().toLowerCase();
+      if (!set.has(key)) set.set(key, a.municipality.trim());
+    });
+    return Array.from(set.entries())
+      .map(([key, label]) => ({ key, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+  }, [assets, macroFilter]);
+
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
     const matchSearch = !search || a.name.toLowerCase().includes(q) || (a.municipality ?? '').toLowerCase().includes(q);
+    const matchCity = cityFilter === 'all' || (a.municipality ?? '').trim().toLowerCase() === cityFilter;
     const matchMacro = macroFilter === 'all' || a.macroregion_id === macroFilter;
     const matchAlign = alignFilter === 'all' || a.alignment_status === alignFilter;
     const matchOrigin = originFilter === 'all' || a.origin === originFilter;
-    return matchSearch && matchMacro && matchAlign && matchOrigin;
+    return matchSearch && matchCity && matchMacro && matchAlign && matchOrigin;
   });
 
   const updateForm = (key: keyof AssetForm, value: string) =>
