@@ -198,7 +198,29 @@ export function useUnifiedPoliticalAssets() {
         })
         .filter((x): x is UnifiedAsset => x !== null);
 
-      return [...nativos, ...candidatos, ...proporcionais, ...coords];
+      const leaders: UnifiedAsset[] = ((leadersRes.data ?? []) as any[]).map(l => ({
+        id: `lider:${l.id}`,
+        origin: 'coordenador' as UnifiedAssetOrigin,
+        source_id: l.id,
+        name: l.name,
+        type: 'lideranca_comunitaria' as UnifiedAssetType,
+        position: l.current_party ? `Liderança — ${l.current_party}` : 'Liderança',
+        municipality: l.municipality ?? null,
+        macroregion_id: l.macroregion_id ?? macroFromCity(l.municipality),
+        influence_level: l.influence_level ?? 6,
+        alignment_status: (l.alignment_status as DbAlignmentStatus) ?? 'indefinido',
+        support_status: l.support_status ?? 'Liderança de campo',
+        phone: l.phone ?? null,
+        email: l.email ?? null,
+        observations: l.observations ?? null,
+        lat: l.lat ?? null,
+        lng: l.lng ?? null,
+        readonly: true,
+        source_route: `/campo/liderancas/${l.id}`,
+        source_label: 'via Lideranças',
+      }));
+
+      return [...nativos, ...candidatos, ...proporcionais, ...coords, ...leaders];
     },
   });
 }
