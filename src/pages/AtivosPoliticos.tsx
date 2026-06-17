@@ -105,18 +105,20 @@ const emptyForm = (): AssetForm => ({
 });
 
 export default function AtivosPoliticos() {
-  const { data: assets = [], isLoading } = usePoliticalAssets();
+  const { data: assets = [], isLoading } = useUnifiedPoliticalAssets();
+  const { data: rawAssets = [] } = usePoliticalAssets();
   const createAsset = useCreateAsset();
   const updateAsset = useUpdateAsset();
   const deleteAsset = useDeleteAsset();
   const { data: leadershipProfiles = [] } = useLeadershipProfiles(true);
-  const assetIds = useMemo(() => assets.map(a => a.id), [assets]);
-  const { data: assetLinks = [] } = useAssetLeadershipLinks(assetIds);
+  const rawAssetIds = useMemo(() => rawAssets.map(a => a.id), [rawAssets]);
+  const { data: assetLinks = [] } = useAssetLeadershipLinks(rawAssetIds);
   const setAssetProfiles = useSetAssetProfiles();
 
   const [search, setSearch] = useState('');
   const [macroFilter, setMacroFilter] = useState('all');
   const [alignFilter, setAlignFilter] = useState('all');
+  const [originFilter, setOriginFilter] = useState<'all' | UnifiedAsset['origin']>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm());
@@ -130,7 +132,8 @@ export default function AtivosPoliticos() {
     const matchSearch = !search || a.name.toLowerCase().includes(q) || (a.municipality ?? '').toLowerCase().includes(q);
     const matchMacro = macroFilter === 'all' || a.macroregion_id === macroFilter;
     const matchAlign = alignFilter === 'all' || a.alignment_status === alignFilter;
-    return matchSearch && matchMacro && matchAlign;
+    const matchOrigin = originFilter === 'all' || a.origin === originFilter;
+    return matchSearch && matchMacro && matchAlign && matchOrigin;
   });
 
   const updateForm = (key: keyof AssetForm, value: string) =>
