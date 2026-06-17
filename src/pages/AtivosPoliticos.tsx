@@ -90,6 +90,7 @@ interface AssetForm {
   email: string;
   observations: string;
   relationship_owner: string;
+  referred_by: string;
 }
 
 const emptyForm = (): AssetForm => ({
@@ -104,6 +105,7 @@ const emptyForm = (): AssetForm => ({
   email: '',
   observations: '',
   relationship_owner: '',
+  referred_by: '',
 });
 
 export default function AtivosPoliticos() {
