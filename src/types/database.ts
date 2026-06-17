@@ -114,6 +114,7 @@ export interface DbPoliticalAsset {
   lng: number | null;
   observations: string | null;
   relationship_owner: string | null;
+  referred_by: string | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
