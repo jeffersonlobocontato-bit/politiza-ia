@@ -41,6 +41,8 @@ import Produtividade from "./pages/Produtividade";
 import Gestao from "./pages/Gestao";
 import Emendas from "./pages/Emendas";
 import MapaEstrategicoImpressao from "./pages/MapaEstrategicoImpressao";
+import EventoPublico from "./pages/EventoPublico";
+import Eventos from "./pages/Eventos";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +58,9 @@ const AppRoutes = () => (
     <Route path="/login" element={<Login />} />
     <Route path="/forgot-password" element={<ForgotPassword />} />
     <Route path="/reset-password" element={<ResetPassword />} />
+    {/* Página pública de inscrição — sem login */}
+    <Route path="/e/:slug" element={<EventoPublico />} />
+    <Route path="/eventos" element={<ProtectedRoute><RoleAwareLayout><Eventos /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/" element={<ProtectedRoute><RoleAwareLayout><SalaDeGuerra /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/mapa" element={<ProtectedRoute><RoleAwareLayout><MapaEstrategico /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/mapa/imprimir" element={<ProtectedRoute><MapaEstrategicoImpressao /></ProtectedRoute>} />

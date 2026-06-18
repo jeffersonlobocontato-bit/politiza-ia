@@ -161,8 +161,12 @@ export function useUploadEventoBanner() {
         .from('evento-banners')
         .upload(path, file, { contentType: file.type, upsert: true });
       if (error) throw error;
-      const { data: pub } = supabase.storage.from('evento-banners').getPublicUrl(path);
-      return pub.publicUrl;
+      // Bucket privado — usamos signed URL com expiração longa (10 anos)
+      const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
+      const { data: signed, error: sErr } = await supabase.storage
+        .from('evento-banners').createSignedUrl(path, TEN_YEARS);
+      if (sErr) throw sErr;
+      return signed.signedUrl;
     },
   });
 }
