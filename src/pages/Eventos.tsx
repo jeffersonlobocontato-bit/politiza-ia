@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calendar, Plus, Users, CheckCircle2, Clock, MapPin, Link2,
+  Calendar, Plus, Users, CheckCircle2, Clock, MapPin, Link2, MessageCircle,
   Copy, ExternalLink, Search, X, Loader2, QrCode, UserCheck,
   TrendingUp, Edit2, Trash2, Eye, EyeOff, Copy as CopyIcon, RefreshCw,
 } from 'lucide-react';
