@@ -313,6 +313,127 @@ function EventosLista({ onSelect }: { onSelect: (id: string) => void }) {
 
 // ─── Detalhe do Evento + Check-in ──────────────────────────────────────────────
 
+const ASPECT_OPTIONS: { id: string; label: string; ratio: string }[] = [
+  { id: '21/9', label: 'Ultra-wide 21:9', ratio: '21 / 9' },
+  { id: '16/9', label: 'Padrão 16:9', ratio: '16 / 9' },
+  { id: '3/1',  label: 'Banner 3:1',     ratio: '3 / 1'  },
+  { id: '4/3',  label: 'Clássico 4:3',   ratio: '4 / 3'  },
+  { id: '1/1',  label: 'Quadrado 1:1',   ratio: '1 / 1'  },
+];
+
+function aspectToCss(id: string) {
+  return (ASPECT_OPTIONS.find(o => o.id === id)?.ratio) ?? '16 / 9';
+}
+
+function BannerEditor({
+  imageUrl, aspectId, posX, posY, zoom,
+  onAspectChange, onPosChange, onZoomChange,
+}: {
+  imageUrl: string | null;
+  aspectId: string;
+  posX: number;
+  posY: number;
+  zoom: number;
+  onAspectChange: (id: string) => void;
+  onPosChange: (x: number, y: number) => void;
+  onZoomChange: (z: number) => void;
+}) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef<{ startX: number; startY: number; baseX: number; baseY: number } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!imageUrl) return;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragging.current = { startX: e.clientX, startY: e.clientY, baseX: posX, baseY: posY };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current || !boxRef.current) return;
+    const rect = boxRef.current.getBoundingClientRect();
+    const dx = e.clientX - dragging.current.startX;
+    const dy = e.clientY - dragging.current.startY;
+    // Drag move "para a esquerda" deve revelar parte direita (aumenta posX visual). Invertemos sinal.
+    const nx = Math.max(0, Math.min(100, dragging.current.baseX - (dx / rect.width) * 100));
+    const ny = Math.max(0, Math.min(100, dragging.current.baseY - (dy / rect.height) * 100));
+    onPosChange(nx, ny);
+  };
+  const onPointerUp = () => { dragging.current = null; };
+
+  return (
+    <div className="space-y-2.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Proporção:</span>
+        {ASPECT_OPTIONS.map(o => (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onAspectChange(o.id)}
+            className={`px-2.5 py-1 rounded-md border text-[11px] transition-all ${
+              aspectId === o.id ? 'border-primary bg-primary/10 text-foreground' : 'border-border text-muted-foreground hover:bg-accent/40'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      <div
+        ref={boxRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className="relative w-full rounded-lg overflow-hidden border border-border bg-muted/20 select-none touch-none"
+        style={{ aspectRatio: aspectToCss(aspectId), cursor: imageUrl ? (dragging.current ? 'grabbing' : 'grab') : 'default' }}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt="banner"
+            draggable={false}
+            className="w-full h-full object-cover pointer-events-none"
+            style={{
+              objectPosition: `${posX}% ${posY}%`,
+              transform: `scale(${zoom})`,
+              transformOrigin: `${posX}% ${posY}%`,
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-[11px] text-muted-foreground">
+            Envie uma imagem para ajustar
+          </div>
+        )}
+        {imageUrl && (
+          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/50 text-[10px] text-white/80 pointer-events-none">
+            arraste para reposicionar
+          </div>
+        )}
+      </div>
+
+      {imageUrl && (
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-[11px] text-muted-foreground flex-1">
+            Zoom
+            <input
+              type="range" min={1} max={3} step={0.05}
+              value={zoom}
+              onChange={e => onZoomChange(Number(e.target.value))}
+              className="flex-1 accent-primary"
+            />
+            <span className="font-mono text-foreground w-10 text-right">{zoom.toFixed(2)}x</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => { onPosChange(50, 50); onZoomChange(1); }}
+            className="px-2 py-1 rounded border border-border text-[11px] text-muted-foreground hover:bg-accent"
+          >
+            Resetar
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EditarTemaCard({ evento }: { evento: Evento }) {
   const updateEvento = useUpdateEvento();
   const uploadBanner = useUploadEventoBanner();
@@ -321,6 +442,10 @@ function EditarTemaCard({ evento }: { evento: Evento }) {
   const [corCustomEscura, setCorCustomEscura] = useState(evento.tema_cor_primaria_escura || '#1F8444');
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(evento.imagem_capa_url ?? null);
+  const [aspectId, setAspectId] = useState<string>(evento.banner_aspect_ratio || '16/9');
+  const [posX, setPosX] = useState<number>(evento.banner_position_x ?? 50);
+  const [posY, setPosY] = useState<number>(evento.banner_position_y ?? 50);
+  const [zoom, setZoom] = useState<number>(evento.banner_zoom ?? 1);
   const [salvando, setSalvando] = useState(false);
 
   const handleBannerChange = (file: File | null) => {
@@ -348,8 +473,12 @@ function EditarTemaCard({ evento }: { evento: Evento }) {
         tema_cor_primaria: corPrimariaAtual,
         tema_cor_primaria_escura: corEscuraAtual,
         imagem_capa_url: imagemUrl,
+        banner_aspect_ratio: aspectId,
+        banner_position_x: posX,
+        banner_position_y: posY,
+        banner_zoom: zoom,
       });
-      toast.success('Tema atualizado!');
+      toast.success('Banner e tema atualizados!');
       setBannerFile(null);
     } catch { toast.error('Erro ao salvar tema'); }
     setSalvando(false);
@@ -361,21 +490,20 @@ function EditarTemaCard({ evento }: { evento: Evento }) {
         <Palette className="w-3.5 h-3.5" /> Banner e cor do tema
       </h3>
 
-      <div className="mb-4">
-        {bannerPreview ? (
-          <div className="relative rounded-lg overflow-hidden border border-border h-36">
-            <img src={bannerPreview} alt="banner" className="w-full h-full object-cover" />
-            <label className="absolute bottom-2 right-2 px-2.5 py-1.5 rounded-lg bg-black/60 text-white text-[11px] cursor-pointer hover:bg-black/80">
-              Trocar imagem
-              <input type="file" accept="image/*" className="hidden" onChange={e => handleBannerChange(e.target.files?.[0] ?? null)} />
-            </label>
-          </div>
-        ) : (
-          <label className="flex items-center justify-center gap-2 h-24 rounded-lg border border-dashed border-border text-xs text-muted-foreground cursor-pointer hover:bg-accent/40 transition-colors">
-            <ImageIcon className="w-4 h-4" /> Selecionar imagem de banner
-            <input type="file" accept="image/*" className="hidden" onChange={e => handleBannerChange(e.target.files?.[0] ?? null)} />
-          </label>
-        )}
+      <div className="mb-3">
+        <BannerEditor
+          imageUrl={bannerPreview}
+          aspectId={aspectId}
+          posX={posX} posY={posY} zoom={zoom}
+          onAspectChange={setAspectId}
+          onPosChange={(x, y) => { setPosX(x); setPosY(y); }}
+          onZoomChange={setZoom}
+        />
+        <label className="mt-2 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-border text-[11px] text-muted-foreground cursor-pointer hover:bg-accent/40">
+          <ImageIcon className="w-3.5 h-3.5" />
+          {bannerPreview ? 'Trocar imagem' : 'Selecionar imagem'}
+          <input type="file" accept="image/*" className="hidden" onChange={e => handleBannerChange(e.target.files?.[0] ?? null)} />
+        </label>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-2">
@@ -412,7 +540,7 @@ function EditarTemaCard({ evento }: { evento: Evento }) {
 
       <button onClick={handleSalvar} disabled={salvando}
         className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:bg-primary/90">
-        {salvando ? 'Salvando…' : 'Salvar tema'}
+        {salvando ? 'Salvando…' : 'Salvar banner e tema'}
       </button>
     </Card>
   );
