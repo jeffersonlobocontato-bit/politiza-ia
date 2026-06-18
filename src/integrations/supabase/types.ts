@@ -779,6 +779,10 @@ export type Database = {
       }
       eventos: {
         Row: {
+          banner_aspect_ratio: string
+          banner_position_x: number
+          banner_position_y: number
+          banner_zoom: number
           campos_extra: Json | null
           candidate_id: string | null
           capacidade_maxima: number | null
@@ -808,6 +812,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          banner_aspect_ratio?: string
+          banner_position_x?: number
+          banner_position_y?: number
+          banner_zoom?: number
           campos_extra?: Json | null
           candidate_id?: string | null
           capacidade_maxima?: number | null
@@ -837,6 +845,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          banner_aspect_ratio?: string
+          banner_position_x?: number
+          banner_position_y?: number
+          banner_zoom?: number
           campos_extra?: Json | null
           candidate_id?: string | null
           capacidade_maxima?: number | null
@@ -2842,6 +2854,10 @@ export type Database = {
     Views: {
       eventos_com_contagem: {
         Row: {
+          banner_aspect_ratio: string | null
+          banner_position_x: number | null
+          banner_position_y: number | null
+          banner_zoom: number | null
           campos_extra: Json | null
           candidate_id: string | null
           capacidade_maxima: number | null
@@ -2871,6 +2887,76 @@ export type Database = {
           total_inscritos: number | null
           total_presentes: number | null
           updated_at: string | null
+        }
+        Insert: {
+          banner_aspect_ratio?: string | null
+          banner_position_x?: number | null
+          banner_position_y?: number | null
+          banner_zoom?: number | null
+          campos_extra?: Json | null
+          candidate_id?: string | null
+          capacidade_maxima?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          endereco?: string | null
+          exige_aprovacao?: boolean | null
+          id?: string | null
+          imagem_capa_url?: string | null
+          is_online?: boolean | null
+          lat?: number | null
+          link_online?: string | null
+          lng?: number | null
+          local_nome?: string | null
+          macroregion_id?: string | null
+          municipio?: string | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["evento_status"] | null
+          tema_cor_overlay?: string | null
+          tema_cor_primaria?: string | null
+          tema_cor_primaria_escura?: string | null
+          tema_paleta_id?: string | null
+          titulo?: string | null
+          total_inscritos?: never
+          total_presentes?: never
+          updated_at?: string | null
+        }
+        Update: {
+          banner_aspect_ratio?: string | null
+          banner_position_x?: number | null
+          banner_position_y?: number | null
+          banner_zoom?: number | null
+          campos_extra?: Json | null
+          candidate_id?: string | null
+          capacidade_maxima?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          endereco?: string | null
+          exige_aprovacao?: boolean | null
+          id?: string | null
+          imagem_capa_url?: string | null
+          is_online?: boolean | null
+          lat?: number | null
+          link_online?: string | null
+          lng?: number | null
+          local_nome?: string | null
+          macroregion_id?: string | null
+          municipio?: string | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["evento_status"] | null
+          tema_cor_overlay?: string | null
+          tema_cor_primaria?: string | null
+          tema_cor_primaria_escura?: string | null
+          tema_paleta_id?: string | null
+          titulo?: string | null
+          total_inscritos?: never
+          total_presentes?: never
+          updated_at?: string | null
         }
         Relationships: [
           {
