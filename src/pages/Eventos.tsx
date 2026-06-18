@@ -567,7 +567,7 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
 
   if (!evento) return null;
 
-  const linkPublico = `${PUBLIC_BASE_URL}/e/${evento.slug}`;
+  const linkPublico = `${PUBLIC_BASE_URL}/${evento.slug}`;
 
   const copiarLink = () => { navigator.clipboard.writeText(linkPublico); toast.success('Link copiado!'); };
 
