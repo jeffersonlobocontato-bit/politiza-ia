@@ -194,6 +194,51 @@ export function useInscricoes(eventoId: string | null) {
   });
 }
 
+export interface InscricaoComEvento extends Inscricao {
+  evento_titulo: string;
+  evento_data_inicio: string;
+  evento_municipio: string | null;
+  evento_slug: string;
+}
+
+export function useTodasInscricoes() {
+  const { activeCandidate } = useCandidate();
+  const candidateId = activeCandidate?.id ?? null;
+
+  return useQuery({
+    queryKey: ['inscricoes-todas', candidateId],
+    queryFn: async () => {
+      let eventosQ = (supabase as any).from('eventos').select('id, titulo, data_inicio, municipio, slug');
+      if (candidateId) eventosQ = eventosQ.eq('candidate_id', candidateId);
+      const { data: eventos, error: eErr } = await eventosQ;
+      if (eErr) throw eErr;
+      const eventoIds = (eventos ?? []).map((e: any) => e.id);
+      if (eventoIds.length === 0) return [] as InscricaoComEvento[];
+
+      const { data: inscricoes, error } = await (supabase as any)
+        .from('inscricoes')
+        .select('*')
+        .in('evento_id', eventoIds)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+
+      const eventoMap = new Map<string, any>((eventos ?? []).map((e: any) => [e.id, e]));
+      return ((inscricoes ?? []) as Inscricao[]).map(i => {
+        const ev = eventoMap.get(i.evento_id);
+        return {
+          ...i,
+          evento_titulo: ev?.titulo ?? 'Evento',
+          evento_data_inicio: ev?.data_inicio ?? '',
+          evento_municipio: ev?.municipio ?? null,
+          evento_slug: ev?.slug ?? '',
+        } as InscricaoComEvento;
+      });
+    },
+    staleTime: 15_000,
+  });
+}
+
+
 export function useCheckinInscricao() {
   const qc = useQueryClient();
   return useMutation({
