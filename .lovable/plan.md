@@ -1,44 +1,73 @@
 ## Objetivo
 
-Trocar as URLs públicas de eventos do formato atual `/e/:slug` para um formato amigável baseado em **cidade + data do evento**, ex.: `politiza.ia.br/curitiba25-12-2026`, `politiza.ia.br/cascavel10-01-2027`.
+Quando alguém compartilhar a URL de um evento (ex.: `politiza.ia.br/curitiba25-12-2026`) em WhatsApp, Telegram, Facebook, X, LinkedIn etc., o preview do link deve mostrar:
 
-A data garante unicidade quando houver mais de um evento na mesma cidade.
+- **Imagem**: banner do evento (com o recorte/posição configurados)
+- **Título**: título do evento
+- **Descrição**: descrição do evento
+- **URL**: link amigável do evento
 
-## Formato do slug
+## Contexto técnico
 
-- Padrão: `{cidade-normalizada}{DD-MM-AAAA}` (sem separador entre cidade e data, conforme exemplo do usuário).
-- Normalização da cidade: minúsculas, sem acento, espaços viram `-` (ex.: "São José dos Pinhais" → `sao-jose-dos-pinhais`).
-- Data: dia do evento (`data_inicio`) formatada como `DD-MM-AAAA`.
-- Exemplo final: `sao-jose-dos-pinhais25-12-2026`.
+Hoje a página `EventoPublico` define o `<title>` e meta tags via JavaScript (React), mas crawlers de redes sociais (WhatsApp, Facebook, etc.) **não executam JS** — eles leem só o HTML estático servido. Resultado: o preview hoje mostra título/imagem genéricos do `index.html`, não os do evento.
 
-## Mudanças
+A solução é renderizar as meta tags Open Graph / Twitter Card no servidor, antes do HTML chegar ao crawler.
 
-### 1. Banco (migration)
-- Garantir `UNIQUE` no campo `slug` da tabela `eventos` (já provável, confirmar).
-- Backfill: recalcular `slug` dos eventos existentes para o novo padrão (cidade + data_inicio).
-- Nenhum schema novo — apenas atualização de dados via migration.
+## Implementação
 
-### 2. Geração de slug (`src/pages/Eventos.tsx` e/ou helper novo)
-- Criar util `gerarSlugEvento(cidade, dataInicio)` em `src/lib/eventoSlug.ts`.
-- Ao criar/editar evento, regenerar o slug automaticamente sempre que cidade ou data mudarem.
-- Mostrar preview da URL final no formulário (`politiza.ia.br/{slug}`).
+### 1. Edge function `og-evento` (Deno, pública, sem JWT)
 
-### 3. Roteamento (`src/App.tsx`)
-- Manter `/e/:slug` como rota legado (redireciona para o novo formato) para não quebrar links antigos.
-- Adicionar rota raiz dinâmica `/:slug` apontando para `EventoPublico`.
-- Implementar **lista de rotas reservadas** (`eventos`, `campo`, `login`, `dashboard`, `auth`, etc.) — se o slug bater com uma reservada, segue o fluxo normal do app (não trata como evento).
-- `EventoPublico` busca o evento pelo `slug`. Se não existir, mostra 404.
+- Rota: chamada a partir de uma reescrita para qualquer URL de evento
+- Recebe o `slug` do evento
+- Busca o evento na tabela `eventos` (somente publicados)
+- Detecta o User-Agent:
+  - **Crawler** (WhatsApp, facebookexternalhit, Twitterbot, LinkedInBot, Slackbot, TelegramBot, Discordbot, etc.): retorna um HTML mínimo só com as meta tags Open Graph + Twitter Card preenchidas com dados do evento
+  - **Navegador humano**: faz redirect 302 para `/<slug>` (a SPA continua funcionando como hoje)
+- Imagem: usa a URL pública do banner do evento (bucket `evento-banners`); se o bucket for privado, gera URL assinada de longa duração. Tamanho recomendado 1200×630.
 
-### 4. Compartilhamento
-- Atualizar todos os pontos que exibem/copiam o link público do evento em `src/pages/Eventos.tsx` para usar `https://politiza.ia.br/{slug}`.
+### 2. Roteamento público
 
-## Detalhes técnicos
+- Em `index.html` ou via `_redirects` (Lovable/Netlify-style), configurar que requisições de bots para `/{slug}` caiam na edge function antes da SPA.
+- Como detectar bot no edge sem alterar nginx: a edge function é chamada **para todos** e ela decide entre devolver HTML-meta ou redirect — assim humanos veem a SPA normalmente.
 
-- Conflito com rotas internas resolvido pela lista de reservadas + ordem de matching no React Router (rotas específicas declaradas antes de `/:slug`).
-- Slug é regenerado em update — se o organizador mudar a data, o link muda. Aceitável para o caso de uso.
-- Rate-limit e RLS de `inscricoes`/`eventos` permanecem inalterados.
+### 3. Meta tags geradas
+
+```text
+<title>{titulo} — {cidade}</title>
+<meta name="description" content="{descricao curta}">
+<link rel="canonical" href="https://politiza.ia.br/{slug}">
+
+<meta property="og:type" content="event">
+<meta property="og:url" content="https://politiza.ia.br/{slug}">
+<meta property="og:title" content="{titulo}">
+<meta property="og:description" content="{descricao}">
+<meta property="og:image" content="{banner_url}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Politiza.IA">
+<meta property="og:locale" content="pt_BR">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{titulo}">
+<meta name="twitter:description" content="{descricao}">
+<meta name="twitter:image" content="{banner_url}">
+```
+
+### 4. Fallback dentro da SPA
+
+Manter no `EventoPublico.tsx` o ajuste de `document.title` e meta tags via React (já existe) — útil para abas de navegador e para usuários que chegam direto.
+
+### 5. Cache
+
+Resposta da edge function com `Cache-Control: public, max-age=300, s-maxage=600` para acelerar previews repetidos sem ficar desatualizada por muito tempo.
 
 ## Fora de escopo
 
-- Histórico de slugs antigos / redirects permanentes por slug (apenas o redirect genérico `/e/:slug`).
-- Customização manual do slug pelo organizador.
+- Não alteramos o slug atual nem o fluxo de inscrição.
+- Não geramos imagem dinâmica (OG image gerada on-the-fly) — usamos o próprio banner do evento.
+- Não tocamos no design da página pública.
+
+## Pontos a confirmar
+
+1. O bucket `evento-banners` é privado hoje. Posso torná-lo **público** para que o WhatsApp consiga buscar a imagem direto? (Alternativa: gerar URLs assinadas com validade longa, mais frágil.)
+2. A descrição usada no preview deve ser a `descricao` do evento truncada em ~200 caracteres, OK?
