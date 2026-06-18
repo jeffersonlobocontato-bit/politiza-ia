@@ -258,13 +258,27 @@ export default function EventoPublico() {
   };
   const temaVars = temaToCssVars(tema);
 
+  const bannerAspect = (evento.banner_aspect_ratio || '16/9').replace('/', ' / ');
+  const bannerPosX = evento.banner_position_x ?? 50;
+  const bannerPosY = evento.banner_position_y ?? 50;
+  const bannerZoom = evento.banner_zoom ?? 1;
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--campo-grad-bg)', ...temaVars }}>
       {/* Banner de topo */}
-      <div className="relative h-48 sm:h-64 overflow-hidden">
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: bannerAspect }}>
         {evento.imagem_capa_url ? (
           <>
-            <img src={evento.imagem_capa_url} alt={evento.titulo} className="w-full h-full object-cover" />
+            <img
+              src={evento.imagem_capa_url}
+              alt={evento.titulo}
+              className="w-full h-full object-cover"
+              style={{
+                objectPosition: `${bannerPosX}% ${bannerPosY}%`,
+                transform: `scale(${bannerZoom})`,
+                transformOrigin: `${bannerPosX}% ${bannerPosY}%`,
+              }}
+            />
             <div className="absolute inset-0" style={{ background: 'var(--evento-overlay)' }} />
           </>
         ) : (
@@ -272,6 +286,7 @@ export default function EventoPublico() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--campo-bg-deep)] via-transparent to-transparent" />
       </div>
+
 
       <div className="max-w-2xl mx-auto px-4 -mt-12 relative pb-16">
         {/* Card principal */}
