@@ -83,7 +83,7 @@ function EventosLista({ onSelect }: { onSelect: (id: string) => void }) {
     }
     try {
       const evento = await createEvento.mutateAsync({
-        slug: slugify(form.titulo) + '-' + Math.random().toString(36).slice(2, 6),
+        slug: gerarSlugEvento(form.municipio, new Date(form.data_inicio).toISOString(), form.titulo),
         titulo: form.titulo,
         descricao: form.descricao || null,
         data_inicio: new Date(form.data_inicio).toISOString(),
