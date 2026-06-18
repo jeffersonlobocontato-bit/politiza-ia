@@ -728,6 +728,7 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
   const checkin = useCheckinInscricao();
   const deleteInscricao = useDeleteInscricao();
   const [search, setSearch] = useState('');
+  const [editando, setEditando] = useState(false);
 
   const filtered = useMemo(() => inscricoes.filter(i =>
     !search ||
