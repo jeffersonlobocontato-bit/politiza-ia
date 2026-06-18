@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Calendar, Plus, Users, CheckCircle2, Clock, MapPin, Link2,
   Copy, ExternalLink, Search, X, Loader2, QrCode, UserCheck,
-  TrendingUp, Edit2, Trash2, Eye, EyeOff,
+  TrendingUp, Edit2, Trash2, Eye, EyeOff, Copy as CopyIcon, RefreshCw,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
