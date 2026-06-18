@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calendar, Plus, Users, CheckCircle2, Clock, MapPin, Link2,
+  Calendar, Plus, Users, CheckCircle2, Clock, MapPin, Link2, MessageCircle,
   Copy, ExternalLink, Search, X, Loader2, QrCode, UserCheck,
   TrendingUp, Edit2, Trash2, Eye, EyeOff, Copy as CopyIcon, RefreshCw,
 } from 'lucide-react';
@@ -750,6 +750,14 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
     toast.success('Link copiado! Ao compartilhar, mostrará imagem e descrição do evento.');
   };
 
+  const compartilharWhatsApp = () => {
+    const dataHora = fmtDataHora(evento.data_inicio);
+    const cidade = evento.municipio ? ` · ${evento.municipio}` : '';
+    const descricao = evento.descricao ? evento.descricao.slice(0, 200) + (evento.descricao.length > 200 ? '…' : '') : '';
+    const mensagem = `${evento.titulo}${cidade}\n${dataHora}${descricao ? '\n\n' + descricao : ''}\n\n${linkShare}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, '_blank');
+  };
+
   return (
     <div className="space-y-5">
       <button onClick={onBack} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
@@ -771,6 +779,9 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
           </button>
           <button onClick={copiarLink} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
             <Copy className="w-3.5 h-3.5" /> Copiar link de compartilhamento
+          </button>
+          <button onClick={compartilharWhatsApp} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-[#25D366]/10 hover:border-[#25D366] hover:text-[#25D366] transition-colors">
+            <MessageCircle className="w-3.5 h-3.5" /> Enviar no WhatsApp
           </button>
           <a href={linkPublico} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
