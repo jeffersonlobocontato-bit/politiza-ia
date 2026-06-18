@@ -591,19 +591,18 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
         <div>
           <h2 className="text-lg font-bold text-foreground">{evento.titulo}</h2>
           <p className="text-xs text-muted-foreground mt-1">{fmtDataHora(evento.data_inicio)} {evento.municipio ? `· ${evento.municipio}` : ''}</p>
-          <p className="text-[11px] text-primary mt-1 font-mono break-all">{linkPublico}</p>
+          <p className="text-[11px] text-primary mt-1 font-mono break-all">{linkShare}</p>
           <p className="text-[10px] text-muted-foreground mt-0.5">
-            Link de compartilhamento (com preview de imagem):{' '}
-            <span className="font-mono break-all text-foreground/80">{linkShare}</span>
+            Use este link ao compartilhar (WhatsApp, redes sociais) — exibe imagem e descrição do evento.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={copiarLink} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
-            <Copy className="w-3.5 h-3.5" /> Copiar link público
+            <Copy className="w-3.5 h-3.5" /> Copiar link de compartilhamento
           </button>
           <a href={linkPublico} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
-            <ExternalLink className="w-3.5 h-3.5" /> Abrir
+            <ExternalLink className="w-3.5 h-3.5" /> Abrir página
           </a>
         </div>
       </div>
