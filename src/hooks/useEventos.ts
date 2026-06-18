@@ -30,6 +30,10 @@ export interface Evento {
   tema_cor_primaria: string;
   tema_cor_primaria_escura: string;
   tema_cor_overlay: string;
+  banner_aspect_ratio: string;
+  banner_position_x: number;
+  banner_position_y: number;
+  banner_zoom: number;
   candidate_id: string | null;
   created_at: string;
   updated_at: string;
