@@ -44,6 +44,11 @@ function fmtDataHora(iso: string) {
 }
 
 const PUBLIC_BASE_URL = typeof window !== 'undefined' ? window.location.origin : '';
+// URL de compartilhamento: passa pela edge function que entrega meta tags Open Graph
+// (imagem + título + descrição) para crawlers de WhatsApp/Telegram/Facebook/etc.,
+// e redireciona humanos para a URL amigável /{slug}.
+const SHARE_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-evento`;
+const linkCompartilhavel = (slug: string) => `${SHARE_BASE_URL}/${slug}`;
 
 // ─── Lista de Eventos ──────────────────────────────────────────────────────────
 
@@ -121,8 +126,8 @@ function EventosLista({ onSelect }: { onSelect: (id: string) => void }) {
   };
 
   const copiarLink = (slug: string) => {
-    navigator.clipboard.writeText(`${PUBLIC_BASE_URL}/${slug}`);
-    toast.success('Link copiado!');
+    navigator.clipboard.writeText(linkCompartilhavel(slug));
+    toast.success('Link copiado! Ao compartilhar, mostrará imagem e descrição do evento.');
   };
 
   if (isLoading) {
@@ -569,8 +574,12 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
   if (!evento) return null;
 
   const linkPublico = `${PUBLIC_BASE_URL}/${evento.slug}`;
+  const linkShare = linkCompartilhavel(evento.slug);
 
-  const copiarLink = () => { navigator.clipboard.writeText(linkPublico); toast.success('Link copiado!'); };
+  const copiarLink = () => {
+    navigator.clipboard.writeText(linkShare);
+    toast.success('Link copiado! Ao compartilhar, mostrará imagem e descrição do evento.');
+  };
 
   return (
     <div className="space-y-5">
@@ -583,6 +592,10 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
           <h2 className="text-lg font-bold text-foreground">{evento.titulo}</h2>
           <p className="text-xs text-muted-foreground mt-1">{fmtDataHora(evento.data_inicio)} {evento.municipio ? `· ${evento.municipio}` : ''}</p>
           <p className="text-[11px] text-primary mt-1 font-mono break-all">{linkPublico}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            Link de compartilhamento (com preview de imagem):{' '}
+            <span className="font-mono break-all text-foreground/80">{linkShare}</span>
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={copiarLink} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
