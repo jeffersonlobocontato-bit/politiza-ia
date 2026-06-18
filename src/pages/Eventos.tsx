@@ -781,7 +781,7 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
             <Copy className="w-3.5 h-3.5" /> Copiar link de compartilhamento
           </button>
           <button onClick={compartilharWhatsApp} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-[#25D366]/10 hover:border-[#25D366] hover:text-[#25D366] transition-colors">
-            <WhatsAppIcon className="w-3.5 h-3.5" /> Enviar no WhatsApp
+            <MessageCircle className="w-3.5 h-3.5" /> Enviar no WhatsApp
           </button>
           <a href={linkPublico} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
