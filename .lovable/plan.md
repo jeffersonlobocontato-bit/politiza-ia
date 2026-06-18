@@ -1,41 +1,44 @@
 ## Objetivo
 
-Na aba **Político** do cadastro de nova liderança (`/campo/liderancas/novo`), adicionar dentro de **Histórico Político** o campo **"Tem mandato"**. Quando marcado, exibir lista de cargos e, para dois deles, exibir um campo extra.
+Trocar as URLs públicas de eventos do formato atual `/e/:slug` para um formato amigável baseado em **cidade + data do evento**, ex.: `politiza.ia.br/curitiba25-12-2026`, `politiza.ia.br/cascavel10-01-2027`.
+
+A data garante unicidade quando houver mais de um evento na mesma cidade.
+
+## Formato do slug
+
+- Padrão: `{cidade-normalizada}{DD-MM-AAAA}` (sem separador entre cidade e data, conforme exemplo do usuário).
+- Normalização da cidade: minúsculas, sem acento, espaços viram `-` (ex.: "São José dos Pinhais" → `sao-jose-dos-pinhais`).
+- Data: dia do evento (`data_inicio`) formatada como `DD-MM-AAAA`.
+- Exemplo final: `sao-jose-dos-pinhais25-12-2026`.
 
 ## Mudanças
 
-### 1. Banco de dados (migration)
+### 1. Banco (migration)
+- Garantir `UNIQUE` no campo `slug` da tabela `eventos` (já provável, confirmar).
+- Backfill: recalcular `slug` dos eventos existentes para o novo padrão (cidade + data_inicio).
+- Nenhum schema novo — apenas atualização de dados via migration.
 
-Adicionar 4 colunas em `public.leader_political_history`:
+### 2. Geração de slug (`src/pages/Eventos.tsx` e/ou helper novo)
+- Criar util `gerarSlugEvento(cidade, dataInicio)` em `src/lib/eventoSlug.ts`.
+- Ao criar/editar evento, regenerar o slug automaticamente sempre que cidade ou data mudarem.
+- Mostrar preview da URL final no formulário (`politiza.ia.br/{slug}`).
 
-- `has_current_mandate boolean default false`
-- `current_mandate_position text` — um dos valores: `lideranca_comunitaria`, `presidente_entidade`, `vereador`, `prefeito`, `deputado_estadual`, `deputado_federal`
-- `current_mandate_community text` — bairro/comunidade (apenas quando cargo = liderança comunitária)
-- `current_mandate_entity text` — nome da entidade (apenas quando cargo = presidente de entidade)
+### 3. Roteamento (`src/App.tsx`)
+- Manter `/e/:slug` como rota legado (redireciona para o novo formato) para não quebrar links antigos.
+- Adicionar rota raiz dinâmica `/:slug` apontando para `EventoPublico`.
+- Implementar **lista de rotas reservadas** (`eventos`, `campo`, `login`, `dashboard`, `auth`, etc.) — se o slug bater com uma reservada, segue o fluxo normal do app (não trata como evento).
+- `EventoPublico` busca o evento pelo `slug`. Se não existir, mostra 404.
 
-### 2. Formulário — `src/pages/CampoLiderancaForm.tsx` (aba Político, step 4)
+### 4. Compartilhamento
+- Atualizar todos os pontos que exibem/copiam o link público do evento em `src/pages/Eventos.tsx` para usar `https://politiza.ia.br/{slug}`.
 
-Adicionar abaixo do bloco "Já teve mandato":
+## Detalhes técnicos
 
-- Checkbox **"Tem mandato (atual)"**
-- Se marcado, mostrar `<select>` **Cargo atual** com opções:
-  - Liderança comunitária
-  - Presidente de entidade
-  - Vereador
-  - Prefeito
-  - Deputado estadual
-  - Deputado federal
-- Se cargo = "Liderança comunitária" → input **Comunidade / Bairro**
-- Se cargo = "Presidente de entidade" → input **Nome da entidade**
+- Conflito com rotas internas resolvido pela lista de reservadas + ordem de matching no React Router (rotas específicas declaradas antes de `/:slug`).
+- Slug é regenerado em update — se o organizador mudar a data, o link muda. Aceitável para o caso de uso.
+- Rate-limit e RLS de `inscricoes`/`eventos` permanecem inalterados.
 
-Estados novos: `hasCurrentMandate`, `currentMandatePosition`, `currentMandateCommunity`, `currentMandateEntity`. Resetar campos condicionais ao trocar de cargo/desmarcar.
+## Fora de escopo
 
-Adicionar uma linha de resumo no step 5 (revisão): **"Mandato atual"** com o cargo formatado (+ comunidade/entidade quando aplicável).
-
-### 3. Persistência
-
-Incluir os 4 campos no objeto `history` salvo via `useLeaders` (insert/update em `leader_political_history`) e no carregamento (`politicalHistory.*`) para pré-preenchimento ao editar.
-
-### Fora de escopo
-
-Sem alterações em outros formulários (ex.: `LeaderFormDialog.tsx` da aba Proporcional) — somente o wizard de cadastro de liderança de campo solicitado.
+- Histórico de slugs antigos / redirects permanentes por slug (apenas o redirect genérico `/e/:slug`).
+- Customização manual do slug pelo organizador.
