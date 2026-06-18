@@ -93,6 +93,8 @@ const AppRoutes = () => (
     {/* Legacy redirects */}
     <Route path="/alertas" element={<ProtectedRoute><RoleAwareLayout><SalaDeCrise /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/inteligencia" element={<ProtectedRoute><RoleAwareLayout><SalaDeCrise /></RoleAwareLayout></ProtectedRoute>} />
+    {/* URL amigável de evento público: /{cidade}{DD-MM-AAAA} — DEVE vir por último, antes do 404 */}
+    <Route path="/:slug" element={<EventoPublico />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
