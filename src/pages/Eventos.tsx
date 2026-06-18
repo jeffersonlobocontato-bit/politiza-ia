@@ -120,7 +120,7 @@ function EventosLista({ onSelect }: { onSelect: (id: string) => void }) {
   };
 
   const copiarLink = (slug: string) => {
-    navigator.clipboard.writeText(`${PUBLIC_BASE_URL}/e/${slug}`);
+    navigator.clipboard.writeText(`${PUBLIC_BASE_URL}/${slug}`);
     toast.success('Link copiado!');
   };
 
