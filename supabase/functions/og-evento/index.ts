@@ -1,6 +1,12 @@
 // Edge function pública que entrega meta tags Open Graph para crawlers
 // (WhatsApp, Facebook, Telegram, X, LinkedIn, etc.) e redireciona humanos
 // para a URL amigável do evento.
+//
+// Rotas:
+//   GET /og-evento?slug=xxx          → HTML com meta tags + redirect
+//   GET /og-evento/{slug}            → idem
+//   GET /og-evento/image/{slug}      → bytes da imagem de capa (proxy limpo,
+//                                       sem signed URL gigante — WhatsApp gosta)
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SITE_ORIGIN = "https://politiza.ia.br";
@@ -24,27 +30,83 @@ function notFoundHtml(slug: string): string {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=${url}"><title>Evento não encontrado</title></head><body><script>location.replace(${JSON.stringify(url)})</script><a href="${url}">${url}</a></body></html>`;
 }
 
+// Extrai o caminho do objeto no bucket "evento-banners" a partir de uma URL
+// salva no banco (pode ser signed URL antiga ou public URL).
+function extractBannerPath(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const m = u.pathname.match(/\/evento-banners\/(.+)$/);
+    if (m) return decodeURIComponent(m[1]);
+  } catch (_) {/* ignore */}
+  return null;
+}
+
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
-
-    // Aceita /og-evento/{slug} ou ?slug=
-    let slug = url.searchParams.get("slug") ?? "";
-    if (!slug) {
-      const parts = url.pathname.split("/").filter(Boolean);
-      slug = parts[parts.length - 1] ?? "";
-      if (slug === "og-evento") slug = "";
-    }
-    slug = slug.toLowerCase().trim();
-
-    if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
-      return new Response("Slug inválido", { status: 400 });
-    }
+    const parts = url.pathname.split("/").filter(Boolean);
+    // Remove o prefixo da função, se presente
+    const idx = parts.indexOf("og-evento");
+    const sub = idx >= 0 ? parts.slice(idx + 1) : parts;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // ───────── Rota: proxy de imagem ─────────
+    if (sub[0] === "image" && sub[1]) {
+      const slug = sub[1].toLowerCase().trim();
+      if (!/^[a-z0-9-]+$/.test(slug)) {
+        return new Response("Slug inválido", { status: 400 });
+      }
+      const { data: ev } = await supabase
+        .from("eventos")
+        .select("imagem_capa_url")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      const path = extractBannerPath(ev?.imagem_capa_url ?? null);
+      if (!path) {
+        // Fallback: redireciona para o og-image padrão do site
+        return Response.redirect(`${SITE_ORIGIN}/og-image.png`, 302);
+      }
+
+      const { data: file, error: dErr } = await supabase.storage
+        .from("evento-banners")
+        .download(path);
+      if (dErr || !file) {
+        return Response.redirect(`${SITE_ORIGIN}/og-image.png`, 302);
+      }
+
+      const ext = path.split(".").pop()?.toLowerCase() ?? "jpg";
+      const mime = ext === "png"
+        ? "image/png"
+        : ext === "webp"
+        ? "image/webp"
+        : ext === "gif"
+        ? "image/gif"
+        : "image/jpeg";
+
+      return new Response(file, {
+        status: 200,
+        headers: {
+          "Content-Type": mime,
+          "Cache-Control": "public, max-age=86400, s-maxage=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // ───────── Rota: HTML com Open Graph ─────────
+    let slug = url.searchParams.get("slug") ?? "";
+    if (!slug) slug = sub[sub.length - 1] ?? "";
+    slug = slug.toLowerCase().trim();
+
+    if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+      return new Response("Slug inválido", { status: 400 });
+    }
 
     const { data: evento, error } = await supabase
       .from("eventos")
@@ -70,7 +132,13 @@ Deno.serve(async (req) => {
         `Inscreva-se no evento ${titulo}${cidade ? ` em ${cidade}` : ""}.`,
       200,
     );
-    const image = evento.imagem_capa_url || `${SITE_ORIGIN}/og-image.png`;
+
+    // og:image SEMPRE via proxy limpo desta função — URL curta, sem token,
+    // funciona em WhatsApp/Telegram/Facebook sem drama.
+    const functionsBase = `${Deno.env.get("SUPABASE_URL")!}/functions/v1/og-evento`;
+    const image = evento.imagem_capa_url
+      ? `${functionsBase}/image/${encodeURIComponent(slug)}`
+      : `${SITE_ORIGIN}/og-image.png`;
 
     const html = `<!doctype html>
 <html lang="pt-BR" prefix="og: https://ogp.me/ns#">
@@ -81,7 +149,7 @@ Deno.serve(async (req) => {
   <meta name="description" content="${escapeHtml(descricao)}">
   <link rel="canonical" href="${friendlyUrl}">
 
-  <meta property="og:type" content="event">
+  <meta property="og:type" content="website">
   <meta property="og:site_name" content="Politiza.IA">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:url" content="${friendlyUrl}">
@@ -89,6 +157,7 @@ Deno.serve(async (req) => {
   <meta property="og:description" content="${escapeHtml(descricao)}">
   <meta property="og:image" content="${escapeHtml(image)}">
   <meta property="og:image:secure_url" content="${escapeHtml(image)}">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="${escapeHtml(titulo)}">
@@ -98,8 +167,8 @@ Deno.serve(async (req) => {
   <meta name="twitter:description" content="${escapeHtml(descricao)}">
   <meta name="twitter:image" content="${escapeHtml(image)}">
 
-  <meta http-equiv="refresh" content="0; url=${friendlyUrl}">
-  <script>window.location.replace(${JSON.stringify(friendlyUrl)});</script>
+  <meta http-equiv="refresh" content="1; url=${friendlyUrl}">
+  <script>setTimeout(function(){window.location.replace(${JSON.stringify(friendlyUrl)})}, 50);</script>
 </head>
 <body>
   <p>Redirecionando para <a href="${friendlyUrl}">${friendlyUrl}</a>…</p>
