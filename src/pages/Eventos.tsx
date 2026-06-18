@@ -581,6 +581,7 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
         <div>
           <h2 className="text-lg font-bold text-foreground">{evento.titulo}</h2>
           <p className="text-xs text-muted-foreground mt-1">{fmtDataHora(evento.data_inicio)} {evento.municipio ? `· ${evento.municipio}` : ''}</p>
+          <p className="text-[11px] text-primary mt-1 font-mono break-all">{linkPublico}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={copiarLink} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
