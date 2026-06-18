@@ -23,7 +23,7 @@ function macroFromCity(city: string | null | undefined): string | null {
   return CITY_TO_MACRO[normalizeCity(city)] ?? null;
 }
 
-export type UnifiedAssetOrigin = 'nativo' | 'candidato' | 'coordenador';
+export type UnifiedAssetOrigin = 'nativo' | 'candidato' | 'coordenador' | 'evento';
 export type UnifiedAssetType =
   | DbAssetType
   | 'candidato'
@@ -31,7 +31,9 @@ export type UnifiedAssetType =
   | 'coord_estadual'
   | 'coord_macro'
   | 'coord_micro'
-  | 'coord_cidade';
+  | 'coord_cidade'
+  | 'publico_eventos';
+
 
 export interface UnifiedAsset {
   id: string;
@@ -84,12 +86,13 @@ export function useUnifiedPoliticalAssets() {
   return useQuery({
     queryKey: ['unified-political-assets', 'all-candidates-coords-and-proporcional'],
     queryFn: async (): Promise<UnifiedAsset[]> => {
-      const [assetsRes, candidatesRes, membersRes, slateRes, leadersRes] = await Promise.all([
+      const [assetsRes, candidatesRes, membersRes, slateRes, leadersRes, inscricoesRes] = await Promise.all([
         db.from('political_assets').select('*').is('deleted_at', null).order('name'),
         db.from('candidates').select('*').order('name'),
         db.from('campaign_members').select('*').eq('status', 'ativo'),
         (db as any).from('party_slate_candidates').select('*').is('deleted_at', null).order('name'),
         (db as any).from('leaders').select('*').is('deleted_at', null).order('name'),
+        (db as any).from('inscricoes').select('id, nome, telefone, email, municipio, cargo_interesse, partido, observacoes, evento_id, created_at, status'),
       ]);
 
       if (assetsRes.error) throw assetsRes.error;
@@ -97,6 +100,8 @@ export function useUnifiedPoliticalAssets() {
       if (membersRes.error) throw membersRes.error;
       if (slateRes.error) throw slateRes.error;
       if (leadersRes.error) throw leadersRes.error;
+      // inscricoes: não bloqueia o restante se falhar (ex.: usuário sem permissão)
+
 
       const nativos: UnifiedAsset[] = ((assetsRes.data ?? []) as DbPoliticalAsset[]).map(a => ({
         id: `nativo:${a.id}`,
@@ -220,7 +225,32 @@ export function useUnifiedPoliticalAssets() {
         source_label: 'via Lideranças',
       }));
 
-      return [...nativos, ...candidatos, ...proporcionais, ...coords, ...leaders];
+      const publicoEventos: UnifiedAsset[] = ((inscricoesRes?.data ?? []) as any[]).map(i => ({
+        id: `evento-lead:${i.id}`,
+        origin: 'evento' as UnifiedAssetOrigin,
+        source_id: i.id,
+        name: i.nome,
+        type: 'publico_eventos' as UnifiedAssetType,
+        position: i.cargo_interesse
+          ? `${i.cargo_interesse}${i.partido ? ` — ${i.partido}` : ''}`
+          : (i.partido ? `Filiado(a) ${i.partido}` : 'Público de evento'),
+        municipality: i.municipio ?? null,
+        macroregion_id: macroFromCity(i.municipio),
+        influence_level: 4,
+        alignment_status: 'provavel' as DbAlignmentStatus,
+        support_status: 'Inscrito em evento',
+        phone: i.telefone ?? null,
+        email: i.email ?? null,
+        observations: i.observacoes ?? null,
+        lat: null,
+        lng: null,
+        readonly: true,
+        source_route: '/eventos',
+        source_label: 'PÚBLICO EVENTOS',
+      }));
+
+      return [...nativos, ...candidatos, ...proporcionais, ...coords, ...leaders, ...publicoEventos];
     },
   });
 }
+

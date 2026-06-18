@@ -62,13 +62,16 @@ const UNIFIED_TYPE_LABELS: Record<UnifiedAssetType, string> = {
   coord_macro: 'Coord. Macrorregional',
   coord_micro: 'Coord. Microrregional',
   coord_cidade: 'Coord. Municipal',
+  publico_eventos: 'PÚBLICO EVENTOS',
 };
 
 const ORIGIN_BADGE_COLORS: Record<UnifiedAsset['origin'], string> = {
   nativo: '#6b7280',
   candidato: '#1F5AB4',
   coordenador: '#2FA85A',
+  evento: '#E2A23B',
 };
+
 
 const ALIGNMENT_OPTIONS: { value: DbAlignmentStatus; label: string }[] = [
   { value: 'alinhado',   label: 'Alinhado' },
