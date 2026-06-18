@@ -2,6 +2,8 @@
 // Sistema de tema editável por evento — usa os tokens do design system
 // "Campo Mobile" (mint/blue/amber/red) como paletas pré-definidas,
 // mais a opção de cor livre.
+import type React from 'react';
+
 
 export interface EventoTema {
   paletaId: TemaPaletaId;      // qual paleta pré-definida (ou 'custom')
