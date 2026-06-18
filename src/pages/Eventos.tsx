@@ -1,6 +1,6 @@
 // src/pages/Eventos.tsx
 // Painel interno (autenticado) de gestão de eventos e inscrições.
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar, Plus, Users, CheckCircle2, Clock, MapPin, Link2,
