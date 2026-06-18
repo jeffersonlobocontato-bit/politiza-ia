@@ -17,6 +17,7 @@ import {
   type Evento, type EventoStatus,
 } from '@/hooks/useEventos';
 import { TEMA_PRESETS, getPresetById, isValidHex, type TemaPaletaId } from '@/lib/eventoTema';
+import { gerarSlugEvento } from '@/lib/eventoSlug';
 import { Image as ImageIcon, Palette } from 'lucide-react';
 
 const STATUS_LABELS: Record<EventoStatus, string> = {
@@ -82,7 +83,7 @@ function EventosLista({ onSelect }: { onSelect: (id: string) => void }) {
     }
     try {
       const evento = await createEvento.mutateAsync({
-        slug: slugify(form.titulo) + '-' + Math.random().toString(36).slice(2, 6),
+        slug: gerarSlugEvento(form.municipio, new Date(form.data_inicio).toISOString(), form.titulo),
         titulo: form.titulo,
         descricao: form.descricao || null,
         data_inicio: new Date(form.data_inicio).toISOString(),
@@ -119,7 +120,7 @@ function EventosLista({ onSelect }: { onSelect: (id: string) => void }) {
   };
 
   const copiarLink = (slug: string) => {
-    navigator.clipboard.writeText(`${PUBLIC_BASE_URL}/e/${slug}`);
+    navigator.clipboard.writeText(`${PUBLIC_BASE_URL}/${slug}`);
     toast.success('Link copiado!');
   };
 
@@ -566,7 +567,7 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
 
   if (!evento) return null;
 
-  const linkPublico = `${PUBLIC_BASE_URL}/e/${evento.slug}`;
+  const linkPublico = `${PUBLIC_BASE_URL}/${evento.slug}`;
 
   const copiarLink = () => { navigator.clipboard.writeText(linkPublico); toast.success('Link copiado!'); };
 
@@ -580,6 +581,7 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
         <div>
           <h2 className="text-lg font-bold text-foreground">{evento.titulo}</h2>
           <p className="text-xs text-muted-foreground mt-1">{fmtDataHora(evento.data_inicio)} {evento.municipio ? `· ${evento.municipio}` : ''}</p>
+          <p className="text-[11px] text-primary mt-1 font-mono break-all">{linkPublico}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={copiarLink} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
