@@ -17,6 +17,7 @@ import {
   type Evento, type EventoStatus,
 } from '@/hooks/useEventos';
 import { TEMA_PRESETS, getPresetById, isValidHex, type TemaPaletaId } from '@/lib/eventoTema';
+import { gerarSlugEvento } from '@/lib/eventoSlug';
 import { Image as ImageIcon, Palette } from 'lucide-react';
 
 const STATUS_LABELS: Record<EventoStatus, string> = {
