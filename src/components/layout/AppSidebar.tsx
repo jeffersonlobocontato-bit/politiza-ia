@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,6 +46,7 @@ const navItems: NavItem[] = [
   { title: 'Municípios', url: '/municipios', icon: Building2, scope: 'shared' },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
   { title: 'Produtividade', url: '/produtividade', icon: Trophy, scope: 'shared', adminMasterOnly: true },
+  { title: 'Eventos', url: '/eventos', icon: CalendarCheck, scope: 'shared' },
   { title: 'Configurações', url: '/configuracoes', icon: Settings, scope: 'shared' },
 ];
 

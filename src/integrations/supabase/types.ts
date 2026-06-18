@@ -777,6 +777,111 @@ export type Database = {
           },
         ]
       }
+      eventos: {
+        Row: {
+          campos_extra: Json | null
+          candidate_id: string | null
+          capacidade_maxima: number | null
+          created_at: string
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          endereco: string | null
+          exige_aprovacao: boolean
+          id: string
+          imagem_capa_url: string | null
+          is_online: boolean
+          lat: number | null
+          link_online: string | null
+          lng: number | null
+          local_nome: string | null
+          macroregion_id: string | null
+          municipio: string | null
+          slug: string
+          status: Database["public"]["Enums"]["evento_status"]
+          tema_cor_overlay: string
+          tema_cor_primaria: string
+          tema_cor_primaria_escura: string
+          tema_paleta_id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          campos_extra?: Json | null
+          candidate_id?: string | null
+          capacidade_maxima?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          descricao?: string | null
+          endereco?: string | null
+          exige_aprovacao?: boolean
+          id?: string
+          imagem_capa_url?: string | null
+          is_online?: boolean
+          lat?: number | null
+          link_online?: string | null
+          lng?: number | null
+          local_nome?: string | null
+          macroregion_id?: string | null
+          municipio?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["evento_status"]
+          tema_cor_overlay?: string
+          tema_cor_primaria?: string
+          tema_cor_primaria_escura?: string
+          tema_paleta_id?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          campos_extra?: Json | null
+          candidate_id?: string | null
+          capacidade_maxima?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          endereco?: string | null
+          exige_aprovacao?: boolean
+          id?: string
+          imagem_capa_url?: string | null
+          is_online?: boolean
+          lat?: number | null
+          link_online?: string | null
+          lng?: number | null
+          local_nome?: string | null
+          macroregion_id?: string | null
+          municipio?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["evento_status"]
+          tema_cor_overlay?: string
+          tema_cor_primaria?: string
+          tema_cor_primaria_escura?: string
+          tema_paleta_id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiscalize_attachments: {
         Row: {
           created_at: string
@@ -1036,6 +1141,75 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inscricoes: {
+        Row: {
+          cargo_interesse: string | null
+          checkin_at: string | null
+          codigo_confirmacao: string
+          created_at: string
+          email: string | null
+          evento_id: string
+          id: string
+          ip_origem: string | null
+          municipio: string
+          nome: string
+          observacoes: string | null
+          partido: string | null
+          respostas_extra: Json | null
+          status: Database["public"]["Enums"]["inscricao_status"]
+          telefone: string
+        }
+        Insert: {
+          cargo_interesse?: string | null
+          checkin_at?: string | null
+          codigo_confirmacao?: string
+          created_at?: string
+          email?: string | null
+          evento_id: string
+          id?: string
+          ip_origem?: string | null
+          municipio: string
+          nome: string
+          observacoes?: string | null
+          partido?: string | null
+          respostas_extra?: Json | null
+          status?: Database["public"]["Enums"]["inscricao_status"]
+          telefone: string
+        }
+        Update: {
+          cargo_interesse?: string | null
+          checkin_at?: string | null
+          codigo_confirmacao?: string
+          created_at?: string
+          email?: string | null
+          evento_id?: string
+          id?: string
+          ip_origem?: string | null
+          municipio?: string
+          nome?: string
+          observacoes?: string | null
+          partido?: string | null
+          respostas_extra?: Json | null
+          status?: Database["public"]["Enums"]["inscricao_status"]
+          telefone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos_com_contagem"
             referencedColumns: ["id"]
           },
         ]
@@ -2666,6 +2840,55 @@ export type Database = {
       }
     }
     Views: {
+      eventos_com_contagem: {
+        Row: {
+          campos_extra: Json | null
+          candidate_id: string | null
+          capacidade_maxima: number | null
+          created_at: string | null
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          endereco: string | null
+          exige_aprovacao: boolean | null
+          id: string | null
+          imagem_capa_url: string | null
+          is_online: boolean | null
+          lat: number | null
+          link_online: string | null
+          lng: number | null
+          local_nome: string | null
+          macroregion_id: string | null
+          municipio: string | null
+          slug: string | null
+          status: Database["public"]["Enums"]["evento_status"] | null
+          tema_cor_overlay: string | null
+          tema_cor_primaria: string | null
+          tema_cor_primaria_escura: string | null
+          tema_paleta_id: string | null
+          titulo: string | null
+          total_inscritos: number | null
+          total_presentes: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       juridico_users: {
         Row: {
           email: string | null
@@ -2820,6 +3043,8 @@ export type Database = {
         | "pendente"
         | "sem_processo"
       emenda_tipo: "individual" | "bancada" | "politicas_publicas" | "comissao"
+      evento_status: "rascunho" | "publicado" | "encerrado" | "cancelado"
+      inscricao_status: "confirmada" | "cancelada" | "presente" | "ausente"
       priority_level: "critica" | "alta" | "media" | "baixa"
       strategic_alert_status:
         | "ativo"
@@ -3059,6 +3284,8 @@ export const Constants = {
         "sem_processo",
       ],
       emenda_tipo: ["individual", "bancada", "politicas_publicas", "comissao"],
+      evento_status: ["rascunho", "publicado", "encerrado", "cancelado"],
+      inscricao_status: ["confirmada", "cancelada", "presente", "ausente"],
       priority_level: ["critica", "alta", "media", "baixa"],
       strategic_alert_status: [
         "ativo",
