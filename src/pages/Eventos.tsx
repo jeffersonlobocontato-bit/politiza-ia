@@ -766,6 +766,9 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={() => setEditando(v => !v)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
+            <Edit2 className="w-3.5 h-3.5" /> {editando ? 'Fechar edição' : 'Editar evento'}
+          </button>
           <button onClick={copiarLink} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent">
             <Copy className="w-3.5 h-3.5" /> Copiar link de compartilhamento
           </button>
@@ -775,6 +778,15 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
           </a>
         </div>
       </div>
+
+      {editando && (
+        <EventoForm
+          modo="editar"
+          eventoBase={evento}
+          onSalvo={() => setEditando(false)}
+          onCancelar={() => setEditando(false)}
+        />
+      )}
 
       <EditarTemaCard evento={evento} />
 
