@@ -632,7 +632,7 @@ export default function Hierarquia() {
 
                         const macroName = member ? macroRegions.find(mr => mr.id === member.macroregion_id)?.name : undefined;
                         const territory = member && member.hierarchy_level >= 3 && member.hierarchy_level <= 5
-                          ? [member.municipality, macroName, member.microregion].filter(Boolean).join(' - ')
+                          ? [member.municipality, macroName].filter(Boolean).join(' - ')
                           : '';
                         const sup = member?.supervisor_id ? memberById.get(member.supervisor_id) : null;
                         const supRoleShort = sup ? (sup.role || '').replace('Coordenador ', '').replace('Coordenação ', '').replace('de ', '') : '';
@@ -894,6 +894,11 @@ export default function Hierarquia() {
                         <div className="min-w-0">
                           <div className={`${opts?.highlight ? 'text-base' : 'text-sm'} font-semibold text-foreground truncate`}>{m.name}</div>
                           <div className="text-xs text-muted-foreground truncate">{m.role}</div>
+                          {m.hierarchy_level >= 3 && m.hierarchy_level <= 5 && m.municipality && (
+                            <div className="text-[11px] text-muted-foreground font-medium truncate mt-0.5">
+                              {[m.municipality, macroRegions.find(mr => mr.id === m.macroregion_id)?.name ?? m.macroregion_id].filter(Boolean).join(' - ')}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -908,9 +913,6 @@ export default function Hierarquia() {
                           </div>
                         </div>
                       </div>
-                      {m.municipality && (
-                        <div className="mt-2 text-[10px] text-muted-foreground">{m.municipality} {m.macroregion_id ? `· ${m.macroregion_id}` : ''}</div>
-                      )}
                       {m.supervisor_id && memberById.get(m.supervisor_id) && (
                         <div className="mt-1 text-[10px] text-muted-foreground truncate">
                           ↑ Vinculado a <span className="font-semibold text-foreground">{memberById.get(m.supervisor_id)!.name}</span> · {memberById.get(m.supervisor_id)!.role}
