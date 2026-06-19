@@ -159,6 +159,7 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
   const coordinatorAssets: AssetRow[] = campaignMembers
     .filter(cm => (cm.role || '').toLowerCase().includes('coord') && cm.status === 'ativo')
     .map(cm => ({
+      ...cm,
       id: `coord:${cm.id}`,
       name: cm.name,
       type: cm.role,
