@@ -669,6 +669,26 @@ export default function Hierarquia() {
                                     </div>
                                   </div>
                                   <div className={`text-xs font-medium truncate ${hasSubs ? 'pl-5' : ''}`} style={{ color: group.color }}>{role.replace('Coordenador ', '').replace('de ', '')}</div>
+                                  {(member.hierarchy_level >= 3 && member.hierarchy_level <= 5) && (() => {
+                                    const macroName = macroRegions.find(mr => mr.id === member.macroregion_id)?.name;
+                                    const territory = [member.municipality, macroName, member.microregion].filter(Boolean).join(' · ');
+                                    const sup = member.supervisor_id ? memberById.get(member.supervisor_id) : null;
+                                    const supRoleShort = sup ? (sup.role || '').replace('Coordenador ', '').replace('Coordenação ', '').replace('de ', '') : '';
+                                    return (
+                                      <div className={`mt-1.5 space-y-1 ${hasSubs ? 'pl-5' : ''}`}>
+                                        {territory && (
+                                          <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground font-medium">
+                                            {territory}
+                                          </span>
+                                        )}
+                                        <div className="text-[10px] text-muted-foreground truncate">
+                                          {sup
+                                            ? <>↑ Gestor: <span className="text-foreground font-medium">{sup.name}</span>{supRoleShort ? ` · ${supRoleShort}` : ''}</>
+                                            : <span className="italic">— gestor não definido —</span>}
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
                                   <div className={`mt-2 flex items-center gap-2 ${hasSubs ? 'pl-5' : ''}`}>
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${member.status === 'ativo' ? 'bg-brand-green/15 text-brand-green' : 'bg-muted text-muted-foreground'}`}>
                                       {member.status}
