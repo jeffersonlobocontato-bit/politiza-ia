@@ -50,7 +50,9 @@ interface CampaignMemberRow {
   role: string;
   status: string;
   phone: string | null;
+  hierarchy_level: number | null;
 }
+
 
 interface ActionRow {
   id: string;
@@ -109,8 +111,8 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
         supabase.from('political_assets').select('id, name, type, alignment_status, influence_level, position, phone')
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
-        supabase.from('campaign_members').select('id, name, role, status, phone')
-          .eq('municipality', cityName).order('name'),
+        supabase.from('campaign_members').select('id, name, role, status, phone, hierarchy_level')
+          .eq('municipality', cityName).order('hierarchy_level').order('name'),
         supabase.from('actions').select('id, title, status, planned_date, type')
           .eq('municipality', cityName).is('deleted_at', null).order('planned_date', { ascending: false }).limit(10),
         supabase.from('tracking_interviews').select('id, round_id, municipality')
@@ -150,16 +152,32 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
     fetchAll();
   }, [cityName]);
 
-  // Alignment summary for leaders + assets
+  // Coordinators (from hierarchy) treated as political assets too
+  const coordinatorAssets: AssetRow[] = campaignMembers
+    .filter(cm => (cm.role || '').toLowerCase().includes('coord') && cm.status === 'ativo')
+    .map(cm => ({
+      id: `coord:${cm.id}`,
+      name: cm.name,
+      type: cm.role,
+      alignment_status: 'alinhado',
+      influence_level: Math.max(4, Math.min(10, 11 - (cm.hierarchy_level ?? 5))),
+      position: cm.role,
+      phone: cm.phone,
+    }));
+
+  const allAssets: AssetRow[] = [...assets, ...coordinatorAssets];
+
+  // Alignment summary for leaders + assets (including coordinators)
   const alignmentSummary = (() => {
     const all = [
       ...leaders.map(l => l.alignment_status || 'indefinido'),
-      ...assets.map(a => a.alignment_status || 'indefinido'),
+      ...allAssets.map(a => a.alignment_status || 'indefinido'),
     ];
     const counts: Record<string, number> = {};
     all.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
     return counts;
   })();
+
 
   if (loading) {
     return (
@@ -200,7 +218,7 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
           {[
             { label: 'Lideranças', value: leaders.length, icon: Crown, color: 'hsl(var(--primary))' },
-            { label: 'Ativos Políticos', value: assets.length, icon: Users, color: '#60a5fa' },
+            { label: 'Ativos Políticos', value: allAssets.length, icon: Users, color: '#60a5fa' },
             { label: 'Equipe Campanha', value: campaignMembers.length, icon: UserCheck, color: '#a78bfa' },
             { label: 'Ações', value: actions.length, icon: Flag, color: '#f59e0b' },
             { label: 'Entrevistas Tracking', value: trackingCount, icon: Activity, color: '#2dd4bf' },
@@ -215,7 +233,7 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         </div>
 
         {/* Alignment summary bar */}
-        {(leaders.length > 0 || assets.length > 0) && (
+        {(leaders.length > 0 || allAssets.length > 0) && (
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <h3 className="text-xs font-semibold text-muted-foreground mb-3">Mapa de Alinhamento</h3>
             <div className="flex gap-3 flex-wrap">
@@ -293,13 +311,13 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         )}
 
         {/* Political Assets */}
-        {assets.length > 0 && (
+        {allAssets.length > 0 && (
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" /> Ativos Políticos ({assets.length})
+              <Users className="w-4 h-4 text-primary" /> Ativos Políticos ({allAssets.length})
             </h3>
             <div className="space-y-2">
-              {assets.map(a => {
+              {allAssets.map(a => {
                 const typeLabel = a.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
                 return (
                   <div key={a.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/20 transition-colors">
