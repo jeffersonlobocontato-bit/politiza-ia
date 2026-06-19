@@ -1,9 +1,52 @@
 import { useState, useEffect } from 'react';
 import {
   ArrowLeft, Building2, Phone, MapPin, Users, UserCheck, Shield,
-  BarChart3, Activity, Loader2, Crown, Flag
+  BarChart3, Activity, Loader2, Crown, Flag, ChevronDown, Mail
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+
+const FIELD_LABELS: Record<string, string> = {
+  name: 'Nome', phone: 'Telefone', email: 'E-mail', role: 'Função',
+  position: 'Cargo', type: 'Tipo', municipality: 'Município',
+  macroregion_id: 'Macrorregião', microregion: 'Microrregião',
+  influence_level: 'Influência', alignment_status: 'Alinhamento',
+  support_status: 'Status de apoio', observations: 'Observações',
+  hierarchy_level: 'Nível hierárquico', status: 'Status',
+  party: 'Partido', current_party: 'Partido atual',
+  lat: 'Latitude', lng: 'Longitude', address: 'Endereço',
+  neighborhood: 'Bairro', cep: 'CEP', created_at: 'Cadastrado em',
+  updated_at: 'Atualizado em', birth_date: 'Nascimento',
+  supervisor_id: 'Supervisor', candidate_id: 'Candidato',
+};
+const HIDDEN_FIELDS = new Set(['id', 'deleted_at', 'created_by', 'updated_by', 'candidate_id', 'supervisor_id']);
+
+function DetailsGrid({ data }: { data: Record<string, any> }) {
+  const entries = Object.entries(data).filter(([k, v]) => {
+    if (HIDDEN_FIELDS.has(k)) return false;
+    if (v === null || v === undefined || v === '') return false;
+    if (Array.isArray(v) && v.length === 0) return false;
+    if (typeof v === 'object') return false;
+    return true;
+  });
+  if (entries.length === 0) return <div className="text-[11px] text-muted-foreground">Sem informações adicionais.</div>;
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 pt-3 mt-3 border-t border-border/50">
+      {entries.map(([k, v]) => {
+        let display = String(v);
+        if (k.endsWith('_at') || k === 'birth_date') {
+          try { display = new Date(v).toLocaleString('pt-BR'); } catch {}
+        }
+        return (
+          <div key={k} className="min-w-0">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{FIELD_LABELS[k] || k.replace(/_/g, ' ')}</div>
+            <div className="text-xs text-foreground break-words">{display}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 
 interface MunicipioRaioXProps {
   cityName: string;
@@ -42,6 +85,7 @@ interface AssetRow {
   influence_level: number;
   position: string | null;
   phone: string | null;
+  [key: string]: any;
 }
 
 interface CampaignMemberRow {
@@ -51,7 +95,9 @@ interface CampaignMemberRow {
   status: string;
   phone: string | null;
   hierarchy_level: number | null;
+  [key: string]: any;
 }
+
 
 
 interface ActionRow {
@@ -84,6 +130,8 @@ function AlignmentBadge({ status }: { status: string | null }) {
 
 export function MunicipioRaioX({ cityName, onBack, associations, members, assocColorMap }: MunicipioRaioXProps) {
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const toggle = (id: string) => setExpandedId(prev => (prev === id ? null : id));
   const [municipality, setMunicipality] = useState<MunicipalityData | null>(null);
   const [leaders, setLeaders] = useState<LeaderRow[]>([]);
   const [assets, setAssets] = useState<AssetRow[]>([]);
@@ -109,9 +157,9 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         supabase.from('municipalities').select('*').eq('name', cityName).maybeSingle(),
         supabase.from('leaders').select('id, name, alignment_status, support_status, influence_level, phone, current_party, coverage_type')
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
-        supabase.from('political_assets').select('id, name, type, alignment_status, influence_level, position, phone')
+        supabase.from('political_assets').select('*')
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
-        supabase.from('campaign_members').select('id, name, role, status, phone, hierarchy_level')
+        supabase.from('campaign_members').select('*')
           .eq('municipality', cityName).order('hierarchy_level').order('name'),
         supabase.from('actions').select('id, title, status, planned_date, type')
           .eq('municipality', cityName).is('deleted_at', null).order('planned_date', { ascending: false }).limit(10),
@@ -156,6 +204,7 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
   const coordinatorAssets: AssetRow[] = campaignMembers
     .filter(cm => (cm.role || '').toLowerCase().includes('coord') && cm.status === 'ativo')
     .map(cm => ({
+      ...cm,
       id: `coord:${cm.id}`,
       name: cm.name,
       type: cm.role,
@@ -319,22 +368,38 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
             <div className="space-y-2">
               {allAssets.map(a => {
                 const typeLabel = a.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const key = `asset:${a.id}`;
+                const isOpen = expandedId === key;
                 return (
-                  <div key={a.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/20 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                        <Users className="w-3.5 h-3.5 text-blue-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-foreground truncate">{a.name}</div>
-                        <div className="text-[10px] text-muted-foreground">
-                          {typeLabel}
-                          {a.position && <> · {a.position}</>}
-                          {' · '}Influência: {a.influence_level}/10
+                  <div key={a.id} className="rounded-lg border border-border/50 hover:border-primary/30 transition-colors overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => toggle(key)}
+                      className="w-full flex items-center justify-between p-3 text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                          <Users className="w-3.5 h-3.5 text-blue-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-foreground truncate">{a.name}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {typeLabel}
+                            {a.position && <> · {a.position}</>}
+                            {' · '}Influência: {a.influence_level}/10
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <AlignmentBadge status={a.alignment_status} />
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <AlignmentBadge status={a.alignment_status} />
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-3 pb-3">
+                        <DetailsGrid data={a} />
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -349,24 +414,42 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
               <UserCheck className="w-4 h-4 text-primary" /> Equipe de Campanha ({campaignMembers.length})
             </h3>
             <div className="space-y-2">
-              {campaignMembers.map(cm => (
-                <div key={cm.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                      <UserCheck className="w-3.5 h-3.5 text-purple-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-foreground truncate">{cm.name}</div>
-                      <div className="text-[10px] text-muted-foreground">{cm.role}</div>
-                    </div>
+              {campaignMembers.map(cm => {
+                const key = `cm:${cm.id}`;
+                const isOpen = expandedId === key;
+                return (
+                  <div key={cm.id} className="rounded-lg border border-border/50 hover:border-primary/30 transition-colors overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => toggle(key)}
+                      className="w-full flex items-center justify-between p-3 text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                          <UserCheck className="w-3.5 h-3.5 text-purple-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-foreground truncate">{cm.name}</div>
+                          <div className="text-[10px] text-muted-foreground">{cm.role}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          cm.status === 'ativo' ? 'text-emerald-400 bg-emerald-400/10' : 'text-muted-foreground bg-muted'
+                        }`}>
+                          {cm.status}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-3 pb-3">
+                        <DetailsGrid data={cm} />
+                      </div>
+                    )}
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    cm.status === 'ativo' ? 'text-emerald-400 bg-emerald-400/10' : 'text-muted-foreground bg-muted'
-                  }`}>
-                    {cm.status}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
