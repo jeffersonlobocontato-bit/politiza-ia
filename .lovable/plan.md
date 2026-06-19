@@ -1,31 +1,47 @@
-Entendi a frustração. O problema real não é o texto do botão: é que o WhatsApp não executa React/JavaScript e precisa receber uma página HTML já pronta com Open Graph no primeiro carregamento.
+## Objetivo
 
-O que identifiquei:
-- `https://politiza.ia.br/cascavel18-06-2026b` hoje entrega a página React da LP, como um app estático. Para humanos funciona, mas para WhatsApp não há HTML inicial com `og:title`, `og:description` e `og:image` específicos do evento.
-- A edge function `/og-evento/...` já busca o título, descrição e imagem corretos, mas ainda está com comportamento que pode atrapalhar o WhatsApp: ela inclui redirecionamento automático no mesmo HTML que contém os metadados.
-- O Sympla faz de forma mais robusta: o próprio link compartilhável entrega HTML server-side com metadados do evento e imagem pública/CDN já no primeiro HTML. A imagem não depende de JavaScript nem de URL assinada longa.
+No "Por Camadas" da página **Hierarquia**, cada card de coordenador (níveis 3 Macrorregional, 4 Microrregional e 5 Municipal) passa a exibir:
 
-Plano de correção:
+1. **Cidade · Região** logo abaixo do nome e da função (tag territorial).
+2. **Gestor imediato** (supervisor direto) abaixo, resolvido via `supervisor_id`.
 
-1. Ajustar a edge function `og-evento` para separar humanos de robôs
-   - Detectar User-Agent de WhatsApp, Facebook, Telegram, LinkedIn, X/Twitter e crawlers sociais.
-   - Para robôs: retornar HTML estático com `title`, `description`, `og:title`, `og:description`, `og:image`, `twitter:*` e sem meta refresh / sem script de redirect.
-   - Para humanos: redirecionar para `https://politiza.ia.br/<slug>`.
+E mantém a flexibilidade já planejada de vincular Macro/Micro/Municipal diretamente à Coordenação Política Estadual quando o nível intermediário não existir.
 
-2. Corrigir a URL da imagem para ficar no padrão aceito por WhatsApp
-   - Melhor opção: tornar o bucket `evento-banners` público, porque o banner já é exibido publicamente na LP de inscrição.
-   - Passar a usar URL pública curta do storage/CDN no `og:image`, em vez de signed URL gigante.
-   - Manter fallback para imagem padrão se o evento não tiver banner.
+## Mudanças no card (`src/pages/Hierarquia.tsx`, função `renderCard`, ~linhas 614-712)
 
-3. Ajustar o botão “Enviar no WhatsApp”
-   - Enviar prioritariamente o link crawleável `/functions/v1/og-evento/<slug>`.
-   - Simplificar a mensagem para não competir com o preview do WhatsApp.
-   - Garantir que o link compartilhado seja o último/único URL da mensagem.
+Estrutura visual nova, na ordem de cima para baixo, dentro do bloco `member ? (...)`:
 
-4. Validar como crawler
-   - Testar a função com User-Agent de WhatsApp.
-   - Confirmar que o HTML retornado contém os dados do evento `cascavel18-06-2026b`.
-   - Confirmar que `og:image` retorna imagem pública com `200` e `Content-Type` correto.
+```text
+[Avatar]  Nome
+          telefone/email
+Função (cor do grupo)
+[ Cidade · Macrorregião ( · Microrregião se houver ) ]   ← NOVO (tag pill discreta)
+↑ Gestor: <Nome> · <papel curto>                          ← NOVO
+[status]  [Equipe: N]
+```
 
-Limite técnico importante:
-- O link direto `https://politiza.ia.br/<slug>` não consegue ter Open Graph dinâmico por evento enquanto for servido como SPA estática. Para preview correto no WhatsApp, o link compartilhado precisa passar pela rota crawleável da edge function, exatamente para entregar metadados antes do React carregar.
+Detalhes:
+
+- A tag de território usa os campos já existentes no membro: `member.municipality`, `member.macroregion_id` (resolvido pelo `macroRegions` já importado para nome legível) e `member.microregion` quando preenchido. Renderizada como `span` pill com `bg-muted/40 text-[10px]`.
+- Linha de gestor: resolve `member.supervisor_id` em um lookup `memberById` (criar `useMemo(() => new Map(members.map(m => [m.id, m])), [members])`). Mostra `↑ Gestor: <Nome> · <papel resumido>`. Se vazio → texto cinza `— gestor não definido —`. Quando o supervisor for Nível 2 (Estadual), aparece o nome do coordenador estadual automaticamente.
+- Aplica-se aos cards de Macro, Micro e Municipal (todos passam pelo `renderCard`). Nível 6 (Liderança Local), renderizado em bloco separado (~linha 872), **não muda** — já mostra cidade.
+
+## Flexibilidade de vínculo (mantida do plano anterior)
+
+Select "Vinculado a — supervisor direto" no formulário (`~linhas 415-449`) com `<optgroup>` por nível:
+
+- Nível 4 (Micro): opções = Nível 3 (Macro filtrado pela macrorregião) **ou** Nível 2 (Estadual).
+- Nível 5 (Municipal): opções = Nível 4 (Micro filtrado por macro+micro) **ou** Nível 3 (Macro filtrado) **ou** Nível 2 (Estadual).
+- Nível 6: inalterado.
+
+Nota curta abaixo do campo: "Se ainda não houver coordenador macro/micro, vincule diretamente ao estadual. Pode ser re-hierarquizado depois."
+
+## Fora de escopo
+
+- Sem mudanças de schema, RLS, hooks ou `HierarchyFlowchart.tsx`.
+- Sem mudanças no card de Lideranças Locais (Nível 6).
+- Sem migração de dados.
+
+## Arquivo alterado
+
+- `src/pages/Hierarquia.tsx` (único).
