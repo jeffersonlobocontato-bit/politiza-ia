@@ -111,8 +111,8 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
         supabase.from('political_assets').select('id, name, type, alignment_status, influence_level, position, phone')
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
-        supabase.from('campaign_members').select('id, name, role, status, phone')
-          .eq('municipality', cityName).order('name'),
+        supabase.from('campaign_members').select('id, name, role, status, phone, hierarchy_level')
+          .eq('municipality', cityName).order('hierarchy_level').order('name'),
         supabase.from('actions').select('id, title, status, planned_date, type')
           .eq('municipality', cityName).is('deleted_at', null).order('planned_date', { ascending: false }).limit(10),
         supabase.from('tracking_interviews').select('id, round_id, municipality')
