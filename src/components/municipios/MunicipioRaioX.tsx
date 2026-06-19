@@ -112,9 +112,9 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         supabase.from('municipalities').select('*').eq('name', cityName).maybeSingle(),
         supabase.from('leaders').select('id, name, alignment_status, support_status, influence_level, phone, current_party, coverage_type')
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
-        supabase.from('political_assets').select('id, name, type, alignment_status, influence_level, position, phone')
+        supabase.from('political_assets').select('*')
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
-        supabase.from('campaign_members').select('id, name, role, status, phone, hierarchy_level')
+        supabase.from('campaign_members').select('*')
           .eq('municipality', cityName).order('hierarchy_level').order('name'),
         supabase.from('actions').select('id, title, status, planned_date, type')
           .eq('municipality', cityName).is('deleted_at', null).order('planned_date', { ascending: false }).limit(10),
