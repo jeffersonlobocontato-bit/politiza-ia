@@ -311,13 +311,13 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         )}
 
         {/* Political Assets */}
-        {assets.length > 0 && (
+        {allAssets.length > 0 && (
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" /> Ativos Políticos ({assets.length})
+              <Users className="w-4 h-4 text-primary" /> Ativos Políticos ({allAssets.length})
             </h3>
             <div className="space-y-2">
-              {assets.map(a => {
+              {allAssets.map(a => {
                 const typeLabel = a.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
                 return (
                   <div key={a.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/20 transition-colors">
