@@ -751,10 +751,7 @@ function EventoDetalhe({ eventoId, onBack }: { eventoId: string; onBack: () => v
   };
 
   const compartilharWhatsApp = () => {
-    const dataHora = fmtDataHora(evento.data_inicio);
-    const cidade = evento.municipio ? ` · ${evento.municipio}` : '';
-    const descricao = evento.descricao ? evento.descricao.slice(0, 200) + (evento.descricao.length > 200 ? '…' : '') : '';
-    const mensagem = `${evento.titulo}${cidade}\n${dataHora}${descricao ? '\n\n' + descricao : ''}\n\n${linkShare}`;
+    const mensagem = `${evento.titulo}\n${linkShare}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, '_blank');
   };
 

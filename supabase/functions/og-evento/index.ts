@@ -25,6 +25,19 @@ function truncate(s: string, n: number): string {
   return t.length > n ? t.slice(0, n - 1) + "…" : t;
 }
 
+function isSocialCrawler(userAgent: string): boolean {
+  return /whatsapp|facebookexternalhit|facebot|telegrambot|twitterbot|x-twitter|linkedinbot|slackbot|discordbot|googlebot|bingbot|pinterest|vkshare|skypeuripreview|embedly|quora link preview|outbrain|ia_archiver/i
+    .test(userAgent);
+}
+
+function resolveImageType(pathOrUrl: string | null): string {
+  const clean = (pathOrUrl ?? "").split("?")[0].toLowerCase();
+  if (clean.endsWith(".png")) return "image/png";
+  if (clean.endsWith(".webp")) return "image/webp";
+  if (clean.endsWith(".gif")) return "image/gif";
+  return "image/jpeg";
+}
+
 function notFoundHtml(slug: string): string {
   const url = `${SITE_ORIGIN}/${encodeURIComponent(slug)}`;
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=${url}"><title>Evento não encontrado</title></head><body><script>location.replace(${JSON.stringify(url)})</script><a href="${url}">${url}</a></body></html>`;
@@ -80,20 +93,14 @@ Deno.serve(async (req) => {
         return Response.redirect(`${SITE_ORIGIN}/og-image.png`, 302);
       }
 
-      const ext = path.split(".").pop()?.toLowerCase() ?? "jpg";
-      const mime = ext === "png"
-        ? "image/png"
-        : ext === "webp"
-        ? "image/webp"
-        : ext === "gif"
-        ? "image/gif"
-        : "image/jpeg";
+      const mime = resolveImageType(path);
 
       return new Response(file, {
         status: 200,
         headers: {
           "Content-Type": mime,
-          "Cache-Control": "public, max-age=86400, s-maxage=86400",
+          "Content-Length": String(file.size),
+          "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
           "Access-Control-Allow-Origin": "*",
         },
       });
@@ -139,6 +146,9 @@ Deno.serve(async (req) => {
     const image = evento.imagem_capa_url
       ? `${functionsBase}/image/${encodeURIComponent(slug)}`
       : `${SITE_ORIGIN}/og-image.png`;
+    const imageType = resolveImageType(evento.imagem_capa_url);
+    const userAgent = req.headers.get("user-agent") ?? "";
+    const crawler = isSocialCrawler(userAgent);
 
     const html = `<!doctype html>
 <html lang="pt-BR" prefix="og: https://ogp.me/ns#">
@@ -157,7 +167,7 @@ Deno.serve(async (req) => {
   <meta property="og:description" content="${escapeHtml(descricao)}">
   <meta property="og:image" content="${escapeHtml(image)}">
   <meta property="og:image:secure_url" content="${escapeHtml(image)}">
-  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:type" content="${imageType}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="${escapeHtml(titulo)}">
@@ -167,20 +177,25 @@ Deno.serve(async (req) => {
   <meta name="twitter:description" content="${escapeHtml(descricao)}">
   <meta name="twitter:image" content="${escapeHtml(image)}">
 
-  <meta http-equiv="refresh" content="1; url=${friendlyUrl}">
-  <script>setTimeout(function(){window.location.replace(${JSON.stringify(friendlyUrl)})}, 50);</script>
+  ${crawler ? "" : `<meta http-equiv="refresh" content="0; url=${friendlyUrl}">`}
+  ${crawler ? "" : `<script>window.location.replace(${JSON.stringify(friendlyUrl)})</script>`}
 </head>
 <body>
   <p>Redirecionando para <a href="${friendlyUrl}">${friendlyUrl}</a>…</p>
 </body>
 </html>`;
 
+    if (!crawler) {
+      return Response.redirect(friendlyUrl, 302);
+    }
+
     return new Response(html, {
       status: 200,
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=300, s-maxage=600",
+        "Cache-Control": "public, max-age=300, s-maxage=300",
         "X-Robots-Tag": "all",
+        "Vary": "User-Agent",
       },
     });
   } catch (e) {
