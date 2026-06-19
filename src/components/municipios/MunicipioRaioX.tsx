@@ -218,7 +218,7 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
           {[
             { label: 'Lideranças', value: leaders.length, icon: Crown, color: 'hsl(var(--primary))' },
-            { label: 'Ativos Políticos', value: assets.length, icon: Users, color: '#60a5fa' },
+            { label: 'Ativos Políticos', value: allAssets.length, icon: Users, color: '#60a5fa' },
             { label: 'Equipe Campanha', value: campaignMembers.length, icon: UserCheck, color: '#a78bfa' },
             { label: 'Ações', value: actions.length, icon: Flag, color: '#f59e0b' },
             { label: 'Entrevistas Tracking', value: trackingCount, icon: Activity, color: '#2dd4bf' },
