@@ -368,22 +368,38 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
             <div className="space-y-2">
               {allAssets.map(a => {
                 const typeLabel = a.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const key = `asset:${a.id}`;
+                const isOpen = expandedId === key;
                 return (
-                  <div key={a.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/20 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                        <Users className="w-3.5 h-3.5 text-blue-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-foreground truncate">{a.name}</div>
-                        <div className="text-[10px] text-muted-foreground">
-                          {typeLabel}
-                          {a.position && <> · {a.position}</>}
-                          {' · '}Influência: {a.influence_level}/10
+                  <div key={a.id} className="rounded-lg border border-border/50 hover:border-primary/30 transition-colors overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => toggle(key)}
+                      className="w-full flex items-center justify-between p-3 text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                          <Users className="w-3.5 h-3.5 text-blue-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-foreground truncate">{a.name}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {typeLabel}
+                            {a.position && <> · {a.position}</>}
+                            {' · '}Influência: {a.influence_level}/10
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <AlignmentBadge status={a.alignment_status} />
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <AlignmentBadge status={a.alignment_status} />
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-3 pb-3">
+                        <DetailsGrid data={a} />
+                      </div>
+                    )}
                   </div>
                 );
               })}
