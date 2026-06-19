@@ -415,34 +415,52 @@ export default function Hierarquia() {
               {(() => {
                 const lvl = parseInt(form.hierarchy_level);
                 if (lvl < 4) return null;
-                const supLvl = lvl - 1;
-                const supLabel = LEVEL_LABELS[supLvl];
-                let candidates = members.filter(m => m.hierarchy_level === supLvl && m.id !== editingId);
-                if (lvl === 4) {
-                  candidates = candidates.filter(m => !form.macroregion_id || m.macroregion_id === form.macroregion_id);
-                } else if (lvl === 5) {
-                  candidates = candidates.filter(m =>
-                    (!form.macroregion_id || m.macroregion_id === form.macroregion_id) &&
-                    (!form.microregion || (m.microregion ?? '').toLowerCase() === form.microregion.toLowerCase())
-                  );
-                } else if (lvl === 6) {
-                  candidates = candidates.filter(m =>
-                    !geoForm.city || (m.municipality ?? '').toLowerCase() === geoForm.city.toLowerCase()
-                  );
-                }
+                // Allowed superior levels (skip-level permitido até o Estadual)
+                const allowedLevels: number[] = lvl === 4 ? [3, 2]
+                  : lvl === 5 ? [4, 3, 2]
+                  : /* 6 */     [5];
+                const filterByLevel = (lv: number, m: DbCampaignMember) => {
+                  if (m.id === editingId) return false;
+                  if (lv === 5) {
+                    return !geoForm.city || (m.municipality ?? '').toLowerCase() === geoForm.city.toLowerCase();
+                  }
+                  if (lv === 4) {
+                    return (!form.macroregion_id || m.macroregion_id === form.macroregion_id) &&
+                      (!form.microregion || (m.microregion ?? '').toLowerCase() === form.microregion.toLowerCase());
+                  }
+                  if (lv === 3) {
+                    return !form.macroregion_id || m.macroregion_id === form.macroregion_id;
+                  }
+                  return true; // nível 2 (Estadual): sem filtro territorial
+                };
+                const groups = allowedLevels.map(lv => ({
+                  level: lv,
+                  label: LEVEL_LABELS[lv],
+                  options: members.filter(m => m.hierarchy_level === lv && filterByLevel(lv, m)),
+                }));
+                const total = groups.reduce((s, g) => s + g.options.length, 0);
                 return (
                   <div className="sm:col-span-2">
-                    <label className="text-xs text-muted-foreground block mb-1">Vinculado a — {supLabel}</label>
+                    <label className="text-xs text-muted-foreground block mb-1">Vinculado a — supervisor direto</label>
                     <select value={form.supervisor_id} onChange={e => updateForm('supervisor_id', e.target.value)} className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
                       <option value="">— Sem vínculo definido —</option>
-                      {candidates.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} · {c.role}{c.municipality ? ` · ${c.municipality}` : ''}
-                        </option>
+                      {groups.map(g => g.options.length > 0 && (
+                        <optgroup key={g.level} label={g.label}>
+                          {g.options.map(c => (
+                            <option key={c.id} value={c.id}>
+                              {c.name} · {c.role}{c.municipality ? ` · ${c.municipality}` : ''}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
-                    {candidates.length === 0 && (
-                      <p className="text-[10px] text-muted-foreground mt-1">Nenhum {supLabel.toLowerCase()} cadastrado no território selecionado.</p>
+                    {lvl !== 6 && (
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Se ainda não houver coordenador macro/micro, vincule diretamente ao estadual. Pode ser re-hierarquizado depois.
+                      </p>
+                    )}
+                    {total === 0 && (
+                      <p className="text-[10px] text-muted-foreground mt-1">Nenhum supervisor disponível no território selecionado.</p>
                     )}
                   </div>
                 );
