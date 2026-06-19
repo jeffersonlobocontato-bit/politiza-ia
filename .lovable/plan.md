@@ -1,35 +1,31 @@
-## Objetivo
-Permitir editar eventos existentes, duplicar evento como base para um novo, e editar o slug/URL.
+Entendi a frustração. O problema real não é o texto do botão: é que o WhatsApp não executa React/JavaScript e precisa receber uma página HTML já pronta com Open Graph no primeiro carregamento.
 
-## Mudanças em `src/pages/Eventos.tsx`
+O que identifiquei:
+- `https://politiza.ia.br/cascavel18-06-2026b` hoje entrega a página React da LP, como um app estático. Para humanos funciona, mas para WhatsApp não há HTML inicial com `og:title`, `og:description` e `og:image` específicos do evento.
+- A edge function `/og-evento/...` já busca o título, descrição e imagem corretos, mas ainda está com comportamento que pode atrapalhar o WhatsApp: ela inclui redirecionamento automático no mesmo HTML que contém os metadados.
+- O Sympla faz de forma mais robusta: o próprio link compartilhável entrega HTML server-side com metadados do evento e imagem pública/CDN já no primeiro HTML. A imagem não depende de JavaScript nem de URL assinada longa.
 
-1. **Refatorar o formulário de criação** em um componente `EventoForm` reutilizável, com estado controlado, que aceita:
-   - `modo`: `'criar' | 'editar' | 'duplicar'`
-   - `eventoBase?: Evento` (para preencher campos quando editando ou duplicando)
-   - `onSalvar`, `onCancelar`
+Plano de correção:
 
-2. **Adicionar campo "URL do evento (slug)"** no formulário:
-   - Texto editável, normalizado via `slugify` ao digitar (lowercase, sem acento, hífens).
-   - Botão "Gerar automaticamente" que reaplica `gerarSlugEvento(municipio, data, titulo)`.
-   - Preview da URL final: `politiza.ia.br/<slug>` e do link de compartilhamento.
-   - Validação: obrigatório, mínimo 3 caracteres, único (tratar erro de violação de unique no submit com toast "Esse endereço já está em uso").
+1. Ajustar a edge function `og-evento` para separar humanos de robôs
+   - Detectar User-Agent de WhatsApp, Facebook, Telegram, LinkedIn, X/Twitter e crawlers sociais.
+   - Para robôs: retornar HTML estático com `title`, `description`, `og:title`, `og:description`, `og:image`, `twitter:*` e sem meta refresh / sem script de redirect.
+   - Para humanos: redirecionar para `https://politiza.ia.br/<slug>`.
 
-3. **Botão "Editar"** em cada card de evento (lista) e no header da página de detalhe:
-   - Abre o `EventoForm` em modo edição preenchido com todos os campos (incluindo banner atual, tema e slug).
-   - Usa `useUpdateEvento` para salvar. Banner novo passa por `useUploadEventoBanner`.
-   - Avisa o usuário, quando o slug muda, que links antigos compartilhados deixam de funcionar.
+2. Corrigir a URL da imagem para ficar no padrão aceito por WhatsApp
+   - Melhor opção: tornar o bucket `evento-banners` público, porque o banner já é exibido publicamente na LP de inscrição.
+   - Passar a usar URL pública curta do storage/CDN no `og:image`, em vez de signed URL gigante.
+   - Manter fallback para imagem padrão se o evento não tiver banner.
 
-4. **Botão "Duplicar"** em cada card:
-   - Abre o `EventoForm` em modo duplicar, pré-preenchido com tudo do evento original (título + " (cópia)", mesma descrição, local, tema, banner) **exceto**:
-     - `slug`: gera novo via `gerarSlugEvento` (usuário pode editar antes de salvar).
-     - `status`: força `'rascunho'`.
-     - datas: mantidas, mas destacadas para o usuário ajustar.
-   - Banner: copia a `imagem_capa_url` (mesma URL pública do bucket) — não re-uploada. Se o usuário trocar a imagem no form, novo upload é feito no novo evento.
-   - Salva via `useCreateEvento` (novo registro).
+3. Ajustar o botão “Enviar no WhatsApp”
+   - Enviar prioritariamente o link crawleável `/functions/v1/og-evento/<slug>`.
+   - Simplificar a mensagem para não competir com o preview do WhatsApp.
+   - Garantir que o link compartilhado seja o último/único URL da mensagem.
 
-## Sem mudanças de schema
-A tabela `eventos` já tem `slug` como coluna editável (unique). Nenhuma migração necessária.
+4. Validar como crawler
+   - Testar a função com User-Agent de WhatsApp.
+   - Confirmar que o HTML retornado contém os dados do evento `cascavel18-06-2026b`.
+   - Confirmar que `og:image` retorna imagem pública com `200` e `Content-Type` correto.
 
-## Itens fora de escopo
-- Não muda RLS nem hooks (`useUpdateEvento` já aceita qualquer campo, inclusive `slug`).
-- Não muda a edge function `og-evento`.
+Limite técnico importante:
+- O link direto `https://politiza.ia.br/<slug>` não consegue ter Open Graph dinâmico por evento enquanto for servido como SPA estática. Para preview correto no WhatsApp, o link compartilhado precisa passar pela rota crawleável da edge function, exatamente para entregar metadados antes do React carregar.
