@@ -414,24 +414,42 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
               <UserCheck className="w-4 h-4 text-primary" /> Equipe de Campanha ({campaignMembers.length})
             </h3>
             <div className="space-y-2">
-              {campaignMembers.map(cm => (
-                <div key={cm.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                      <UserCheck className="w-3.5 h-3.5 text-purple-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-foreground truncate">{cm.name}</div>
-                      <div className="text-[10px] text-muted-foreground">{cm.role}</div>
-                    </div>
+              {campaignMembers.map(cm => {
+                const key = `cm:${cm.id}`;
+                const isOpen = expandedId === key;
+                return (
+                  <div key={cm.id} className="rounded-lg border border-border/50 hover:border-primary/30 transition-colors overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => toggle(key)}
+                      className="w-full flex items-center justify-between p-3 text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                          <UserCheck className="w-3.5 h-3.5 text-purple-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-foreground truncate">{cm.name}</div>
+                          <div className="text-[10px] text-muted-foreground">{cm.role}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          cm.status === 'ativo' ? 'text-emerald-400 bg-emerald-400/10' : 'text-muted-foreground bg-muted'
+                        }`}>
+                          {cm.status}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-3 pb-3">
+                        <DetailsGrid data={cm} />
+                      </div>
+                    )}
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    cm.status === 'ativo' ? 'text-emerald-400 bg-emerald-400/10' : 'text-muted-foreground bg-muted'
-                  }`}>
-                    {cm.status}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
