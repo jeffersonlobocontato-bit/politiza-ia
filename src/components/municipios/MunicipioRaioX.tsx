@@ -1,9 +1,52 @@
 import { useState, useEffect } from 'react';
 import {
   ArrowLeft, Building2, Phone, MapPin, Users, UserCheck, Shield,
-  BarChart3, Activity, Loader2, Crown, Flag
+  BarChart3, Activity, Loader2, Crown, Flag, ChevronDown, Mail
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+
+const FIELD_LABELS: Record<string, string> = {
+  name: 'Nome', phone: 'Telefone', email: 'E-mail', role: 'Função',
+  position: 'Cargo', type: 'Tipo', municipality: 'Município',
+  macroregion_id: 'Macrorregião', microregion: 'Microrregião',
+  influence_level: 'Influência', alignment_status: 'Alinhamento',
+  support_status: 'Status de apoio', observations: 'Observações',
+  hierarchy_level: 'Nível hierárquico', status: 'Status',
+  party: 'Partido', current_party: 'Partido atual',
+  lat: 'Latitude', lng: 'Longitude', address: 'Endereço',
+  neighborhood: 'Bairro', cep: 'CEP', created_at: 'Cadastrado em',
+  updated_at: 'Atualizado em', birth_date: 'Nascimento',
+  supervisor_id: 'Supervisor', candidate_id: 'Candidato',
+};
+const HIDDEN_FIELDS = new Set(['id', 'deleted_at', 'created_by', 'updated_by', 'candidate_id', 'supervisor_id']);
+
+function DetailsGrid({ data }: { data: Record<string, any> }) {
+  const entries = Object.entries(data).filter(([k, v]) => {
+    if (HIDDEN_FIELDS.has(k)) return false;
+    if (v === null || v === undefined || v === '') return false;
+    if (Array.isArray(v) && v.length === 0) return false;
+    if (typeof v === 'object') return false;
+    return true;
+  });
+  if (entries.length === 0) return <div className="text-[11px] text-muted-foreground">Sem informações adicionais.</div>;
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 pt-3 mt-3 border-t border-border/50">
+      {entries.map(([k, v]) => {
+        let display = String(v);
+        if (k.endsWith('_at') || k === 'birth_date') {
+          try { display = new Date(v).toLocaleString('pt-BR'); } catch {}
+        }
+        return (
+          <div key={k} className="min-w-0">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{FIELD_LABELS[k] || k.replace(/_/g, ' ')}</div>
+            <div className="text-xs text-foreground break-words">{display}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 
 interface MunicipioRaioXProps {
   cityName: string;
