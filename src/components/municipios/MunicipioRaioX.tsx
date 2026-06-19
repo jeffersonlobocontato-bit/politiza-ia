@@ -152,16 +152,32 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
     fetchAll();
   }, [cityName]);
 
-  // Alignment summary for leaders + assets
+  // Coordinators (from hierarchy) treated as political assets too
+  const coordinatorAssets: AssetRow[] = campaignMembers
+    .filter(cm => (cm.role || '').toLowerCase().includes('coord') && cm.status === 'ativo')
+    .map(cm => ({
+      id: `coord:${cm.id}`,
+      name: cm.name,
+      type: cm.role,
+      alignment_status: 'alinhado',
+      influence_level: Math.max(4, Math.min(10, 11 - (cm.hierarchy_level ?? 5))),
+      position: cm.role,
+      phone: cm.phone,
+    }));
+
+  const allAssets: AssetRow[] = [...assets, ...coordinatorAssets];
+
+  // Alignment summary for leaders + assets (including coordinators)
   const alignmentSummary = (() => {
     const all = [
       ...leaders.map(l => l.alignment_status || 'indefinido'),
-      ...assets.map(a => a.alignment_status || 'indefinido'),
+      ...allAssets.map(a => a.alignment_status || 'indefinido'),
     ];
     const counts: Record<string, number> = {};
     all.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
     return counts;
   })();
+
 
   if (loading) {
     return (
