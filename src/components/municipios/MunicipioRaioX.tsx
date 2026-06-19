@@ -130,6 +130,8 @@ function AlignmentBadge({ status }: { status: string | null }) {
 
 export function MunicipioRaioX({ cityName, onBack, associations, members, assocColorMap }: MunicipioRaioXProps) {
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const toggle = (id: string) => setExpandedId(prev => (prev === id ? null : id));
   const [municipality, setMunicipality] = useState<MunicipalityData | null>(null);
   const [leaders, setLeaders] = useState<LeaderRow[]>([]);
   const [assets, setAssets] = useState<AssetRow[]>([]);
