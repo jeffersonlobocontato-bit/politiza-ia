@@ -42,6 +42,7 @@ interface AssetRow {
   influence_level: number;
   position: string | null;
   phone: string | null;
+  [key: string]: any;
 }
 
 interface CampaignMemberRow {
@@ -51,7 +52,9 @@ interface CampaignMemberRow {
   status: string;
   phone: string | null;
   hierarchy_level: number | null;
+  [key: string]: any;
 }
+
 
 
 interface ActionRow {
