@@ -233,7 +233,7 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
         </div>
 
         {/* Alignment summary bar */}
-        {(leaders.length > 0 || assets.length > 0) && (
+        {(leaders.length > 0 || allAssets.length > 0) && (
           <div className="rounded-xl border border-border p-4" style={{ background: 'var(--gradient-card)' }}>
             <h3 className="text-xs font-semibold text-muted-foreground mb-3">Mapa de Alinhamento</h3>
             <div className="flex gap-3 flex-wrap">
