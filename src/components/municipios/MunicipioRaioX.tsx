@@ -50,7 +50,9 @@ interface CampaignMemberRow {
   role: string;
   status: string;
   phone: string | null;
+  hierarchy_level: number | null;
 }
+
 
 interface ActionRow {
   id: string;
