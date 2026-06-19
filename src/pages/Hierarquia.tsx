@@ -629,6 +629,14 @@ export default function Hierarquia() {
                         const hasSubs = subRoles.length > 0 || hasTeam;
                         const expandKey = member ? `team::${member.id}` : role;
                         const isExpanded = expandedRoles.has(expandKey);
+
+                        const macroName = member ? macroRegions.find(mr => mr.id === member.macroregion_id)?.name : undefined;
+                        const territory = member && member.hierarchy_level >= 3 && member.hierarchy_level <= 5
+                          ? [member.municipality, macroName, member.microregion].filter(Boolean).join(' · ')
+                          : '';
+                        const sup = member?.supervisor_id ? memberById.get(member.supervisor_id) : null;
+                        const supRoleShort = sup ? (sup.role || '').replace('Coordenador ', '').replace('Coordenação ', '').replace('de ', '') : '';
+
                         return (
                           <Fragment key={key}>
                             <div
@@ -659,36 +667,30 @@ export default function Hierarquia() {
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                   </div>
-                                  <div className={`flex items-center gap-3 mb-2 pr-12 ${hasSubs ? 'pl-5' : ''}`}>
+                                  <div className={`flex items-center gap-3 mb-1 pr-12 ${hasSubs ? 'pl-5' : ''}`}>
                                     <div className={`${opts?.lead ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm'} rounded-full flex items-center justify-center font-bold flex-shrink-0`} style={{ backgroundColor: `${group.color}20`, color: group.color }}>
                                       {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                                     </div>
                                     <div className="min-w-0">
                                       <div className={`${opts?.lead ? 'text-base' : 'text-sm'} font-semibold text-foreground truncate`}>{member.name}</div>
+                                      {territory && (
+                                        <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground font-medium mt-0.5">
+                                          {territory}
+                                        </span>
+                                      )}
                                       <div className="text-[10px] text-muted-foreground truncate">{member.phone || member.email || ''}</div>
                                     </div>
                                   </div>
                                   <div className={`text-xs font-medium truncate ${hasSubs ? 'pl-5' : ''}`} style={{ color: group.color }}>{role.replace('Coordenador ', '').replace('de ', '')}</div>
-                                  {(member.hierarchy_level >= 3 && member.hierarchy_level <= 5) && (() => {
-                                    const macroName = macroRegions.find(mr => mr.id === member.macroregion_id)?.name;
-                                    const territory = [member.municipality, macroName, member.microregion].filter(Boolean).join(' · ');
-                                    const sup = member.supervisor_id ? memberById.get(member.supervisor_id) : null;
-                                    const supRoleShort = sup ? (sup.role || '').replace('Coordenador ', '').replace('Coordenação ', '').replace('de ', '') : '';
-                                    return (
-                                      <div className={`mt-1.5 space-y-1 ${hasSubs ? 'pl-5' : ''}`}>
-                                        {territory && (
-                                          <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground font-medium">
-                                            {territory}
-                                          </span>
-                                        )}
-                                        <div className="text-[10px] text-muted-foreground truncate">
-                                          {sup
-                                            ? <>↑ Gestor: <span className="text-foreground font-medium">{sup.name}</span>{supRoleShort ? ` · ${supRoleShort}` : ''}</>
-                                            : <span className="italic">— gestor não definido —</span>}
-                                        </div>
+                                  {(member.hierarchy_level >= 3 && member.hierarchy_level <= 5) && (
+                                    <div className={`mt-1.5 ${hasSubs ? 'pl-5' : ''}`}>
+                                      <div className="text-[10px] text-muted-foreground truncate">
+                                        {sup
+                                          ? <>↑ Gestor: <span className="text-foreground font-medium">{sup.name}</span>{supRoleShort ? ` · ${supRoleShort}` : ''}</>
+                                          : <span className="italic">— gestor não definido —</span>}
                                       </div>
-                                    );
-                                  })()}
+                                    </div>
+                                  )}
                                   <div className={`mt-2 flex items-center gap-2 ${hasSubs ? 'pl-5' : ''}`}>
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${member.status === 'ativo' ? 'bg-brand-green/15 text-brand-green' : 'bg-muted text-muted-foreground'}`}>
                                       {member.status}
