@@ -3,7 +3,7 @@ import { useState, useMemo, useRef } from 'react';
 import {
   FileText, LayoutDashboard, Map, Table2, Plus, Upload, Download,
   Search, Filter, X, Loader2, CheckCircle2, AlertCircle, Edit2, Trash2,
-  ChevronDown, TrendingUp, Banknote, BarChart3, Target,
+  ChevronDown, TrendingUp, Banknote, BarChart3, Target, AlertTriangle,
 } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -158,6 +158,10 @@ function DashboardTab({ emendas }: { emendas: Emenda[] }) {
   }, [emendas]);
 
   const dataSet = filteredByCity;
+
+  const semCidade = useMemo(() =>
+    dataSet.filter(e => !e.municipio || e.municipio.trim() === '').length,
+  [dataSet]);
   const totalDestinado = dataSet.reduce((s, e) => s + e.valor_total, 0);
   const totalPago      = dataSet.reduce((s, e) => s + e.valor_pago, 0);
   const totalEmpenhado = dataSet.reduce((s, e) => s + e.valor_empenhado, 0);
@@ -242,12 +246,13 @@ function DashboardTab({ emendas }: { emendas: Emenda[] }) {
       </Card>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-        <KpiCard icon={Banknote}   label="Total destinado"   value={fmtBRL(totalDestinado)} sub={`${dataSet.length} emendas`}     accent="#378ADD" />
-        <KpiCard icon={TrendingUp} label="Total pago"        value={fmtBRL(totalPago)}      sub={`${pctExecucao}% do destinado`}  accent="#1D9E75" />
-        <KpiCard icon={Target}     label="Empenhado"         value={fmtBRL(totalEmpenhado)} sub="valor com empenho"               accent="#7F77DD" />
-        <KpiCard icon={BarChart3}  label="Taxa de execução"  value={`${pctExecucao}%`}      sub="pago / destinado"               accent="#BA7517" />
-        <KpiCard icon={Map}        label="Cidades atendidas" value={String(cidadesAtendidas)} sub="municípios distintos"         accent="#1A9FAA" />
+      <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
+        <KpiCard icon={Banknote}      label="Total destinado"     value={fmtBRL(totalDestinado)}   sub={`${dataSet.length} emendas`}       accent="#378ADD" />
+        <KpiCard icon={TrendingUp}    label="Total pago"          value={fmtBRL(totalPago)}        sub={`${pctExecucao}% do destinado`}    accent="#1D9E75" />
+        <KpiCard icon={Target}        label="Empenhado"           value={fmtBRL(totalEmpenhado)}   sub="valor com empenho"                 accent="#7F77DD" />
+        <KpiCard icon={BarChart3}     label="Taxa de execução"    value={`${pctExecucao}%`}        sub="pago / destinado"                   accent="#BA7517" />
+        <KpiCard icon={Map}           label="Cidades atendidas"   value={String(cidadesAtendidas)} sub="municípios distintos"              accent="#1A9FAA" />
+        <KpiCard icon={AlertTriangle} label="Sem cidade"          value={String(semCidade)}        sub="lançadas como Paraná"              accent="#E24B4A" />
       </div>
 
       {/* Barra de progresso geral */}
