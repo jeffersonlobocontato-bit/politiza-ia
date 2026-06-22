@@ -3,7 +3,7 @@ import { useState, useMemo, useRef } from 'react';
 import {
   FileText, LayoutDashboard, Map, Table2, Plus, Upload, Download,
   Search, Filter, X, Loader2, CheckCircle2, AlertCircle, Edit2, Trash2,
-  ChevronDown, TrendingUp, Banknote, BarChart3, Target,
+  ChevronDown, TrendingUp, Banknote, BarChart3, Target, AlertTriangle,
 } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
