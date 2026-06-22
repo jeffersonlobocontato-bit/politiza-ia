@@ -153,7 +153,7 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
     async function fetchAll() {
       setLoading(true);
 
-      const [munRes, leadRes, assetRes, cmRes, actRes, trackIntRes] = await Promise.all([
+      const [munRes, leadRes, assetRes, cmRes, actRes, trackIntRes, cmmRes] = await Promise.all([
         supabase.from('municipalities').select('*').eq('name', cityName).maybeSingle(),
         supabase.from('leaders').select('id, name, alignment_status, support_status, influence_level, phone, current_party, coverage_type')
           .eq('municipality', cityName).is('deleted_at', null).order('influence_level', { ascending: false }),
@@ -165,12 +165,21 @@ export function MunicipioRaioX({ cityName, onBack, associations, members, assocC
           .eq('municipality', cityName).is('deleted_at', null).order('planned_date', { ascending: false }).limit(10),
         supabase.from('tracking_interviews').select('id, round_id, municipality')
           .eq('municipality', cityName),
+        (supabase as any).from('campaign_member_municipalities').select('member_id').ilike('municipality', cityName),
       ]);
+
+      // Also load microregional coordinators linked to this city via M2M (not necessarily with municipality = cityName)
+      const linkedIds = ((cmmRes as any)?.data ?? []).map((r: any) => r.member_id);
+      let linkedMembers: any[] = [];
+      if (linkedIds.length > 0) {
+        const { data: lm } = await supabase.from('campaign_members').select('*').in('id', linkedIds);
+        linkedMembers = (lm ?? []).filter((m: any) => !(cmRes.data ?? []).some((x: any) => x.id === m.id));
+      }
 
       setMunicipality(munRes.data || { id: '', name: cityName, mayor_name: null, phone: null, address: null, neighborhood: null, cep: null });
       setLeaders(leadRes.data || []);
       setAssets(assetRes.data || []);
-      setCampaignMembers(cmRes.data || []);
+      setCampaignMembers([...(cmRes.data || []), ...linkedMembers]);
       setActions(actRes.data || []);
 
       const interviews = trackIntRes.data || [];
