@@ -157,6 +157,10 @@ function DashboardTab({ emendas }: { emendas: Emenda[] }) {
     return [...s].sort((a, b) => a.localeCompare(b, 'pt-BR'));
   }, [emendas]);
 
+  const semCidade = useMemo(() =>
+    dataSet.filter(e => !e.municipio || e.municipio.trim() === '').length,
+  [dataSet]);
+
   const dataSet = filteredByCity;
   const totalDestinado = dataSet.reduce((s, e) => s + e.valor_total, 0);
   const totalPago      = dataSet.reduce((s, e) => s + e.valor_pago, 0);
