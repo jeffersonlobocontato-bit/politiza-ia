@@ -207,6 +207,7 @@ export default function Hierarquia() {
     setSelectedAssociations([]);
     setSelectedMacroregions([]);
     setSelectedProfiles([]);
+    setSelectedMunicipalities([]);
     setShowForm(true);
   };
 
@@ -229,6 +230,7 @@ export default function Hierarquia() {
     setSelectedAssociations([]);
     setSelectedMacroregions([]);
     setSelectedProfiles([]);
+    setSelectedMunicipalities([]);
     setShowForm(true);
   };
 
