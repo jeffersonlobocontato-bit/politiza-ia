@@ -150,6 +150,7 @@ export default function Hierarquia() {
   const [selectedAssociations, setSelectedAssociations] = useState<string[]>([]);
   const [selectedMacroregions, setSelectedMacroregions] = useState<string[]>([]);
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+  const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>([]);
 
   const association = useAssociationForCity(geoForm.city);
   const { data: allAssociations = [] } = useMunicipalityAssociations();
