@@ -16,6 +16,9 @@ import {
   useSetMemberAssociations,
   useSetMemberMacroregions,
   useSetMemberLeadershipProfiles,
+  useMemberMunicipalities,
+  useSetMemberMunicipalities,
+  useAllMunicipalities,
 } from '@/hooks/useCampaignMemberLinks';
 import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
 import { MultiChipSelect } from '@/components/hierarquia/MultiChipSelect';
@@ -147,18 +150,22 @@ export default function Hierarquia() {
   const [selectedAssociations, setSelectedAssociations] = useState<string[]>([]);
   const [selectedMacroregions, setSelectedMacroregions] = useState<string[]>([]);
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+  const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>([]);
 
   const association = useAssociationForCity(geoForm.city);
   const { data: allAssociations = [] } = useMunicipalityAssociations();
   const { data: allProfiles = [] } = useLeadershipProfiles(true);
+  const { data: allMunis = [] } = useAllMunicipalities();
 
   // Load existing links when editing
   const { data: editingAssocs } = useMemberAssociations(editingId ?? undefined);
   const { data: editingMacros } = useMemberMacroregions(editingId ?? undefined);
   const { data: editingProfiles } = useMemberLeadershipProfiles(editingId ?? undefined);
+  const { data: editingMunis } = useMemberMunicipalities(editingId ?? undefined);
   useEffect(() => { if (editingAssocs) setSelectedAssociations(editingAssocs); }, [editingAssocs]);
   useEffect(() => { if (editingMacros) setSelectedMacroregions(editingMacros); }, [editingMacros]);
   useEffect(() => { if (editingProfiles) setSelectedProfiles(editingProfiles); }, [editingProfiles]);
+  useEffect(() => { if (editingMunis) setSelectedMunicipalities(editingMunis); }, [editingMunis]);
 
   // Auto-suggest association from selected city (only if not already chosen)
   useEffect(() => {
@@ -171,6 +178,7 @@ export default function Hierarquia() {
   const setAssoc = useSetMemberAssociations();
   const setMacro = useSetMemberMacroregions();
   const setProfiles = useSetMemberLeadershipProfiles();
+  const setMunis = useSetMemberMunicipalities();
 
   const toggleExpanded = (role: string) => setExpandedRoles(prev => {
     const next = new Set(prev);
@@ -199,6 +207,7 @@ export default function Hierarquia() {
     setSelectedAssociations([]);
     setSelectedMacroregions([]);
     setSelectedProfiles([]);
+    setSelectedMunicipalities([]);
     setShowForm(true);
   };
 
@@ -221,6 +230,7 @@ export default function Hierarquia() {
     setSelectedAssociations([]);
     setSelectedMacroregions([]);
     setSelectedProfiles([]);
+    setSelectedMunicipalities([]);
     setShowForm(true);
   };
 
@@ -260,6 +270,9 @@ export default function Hierarquia() {
         lvl === 6
           ? setProfiles.mutateAsync({ memberId: savedId, ids: selectedProfiles })
           : setProfiles.mutateAsync({ memberId: savedId, ids: [] }),
+        lvl === 4
+          ? setMunis.mutateAsync({ memberId: savedId, names: selectedMunicipalities })
+          : setMunis.mutateAsync({ memberId: savedId, names: [] }),
       ]);
     }
     setShowForm(false);
@@ -269,6 +282,7 @@ export default function Hierarquia() {
     setSelectedAssociations([]);
     setSelectedMacroregions([]);
     setSelectedProfiles([]);
+    setSelectedMunicipalities([]);
   };
 
   const handleDelete = async (id: string) => {
@@ -516,6 +530,18 @@ export default function Hierarquia() {
                     onChange={setSelectedMacroregions}
                     color="hsl(var(--primary))"
                   />
+                  {parseInt(form.hierarchy_level) === 4 && (
+                    <MultiChipSelect
+                      label="Municípios sob responsabilidade (Microrregional)"
+                      options={allMunis
+                        .filter(m => !form.macroregion_id || m.macroregion_id === form.macroregion_id)
+                        .map(m => ({ id: m.name, label: m.name }))}
+                      selectedIds={selectedMunicipalities}
+                      onChange={setSelectedMunicipalities}
+                      color="hsl(var(--chart-4))"
+                      emptyHint="Nenhum município disponível para a macrorregião selecionada."
+                    />
+                  )}
                   {parseInt(form.hierarchy_level) === 6 && (
                     <MultiChipSelect
                       label="Perfis de Liderança / Entidade"
