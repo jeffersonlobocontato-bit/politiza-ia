@@ -270,6 +270,9 @@ export default function Hierarquia() {
         lvl === 6
           ? setProfiles.mutateAsync({ memberId: savedId, ids: selectedProfiles })
           : setProfiles.mutateAsync({ memberId: savedId, ids: [] }),
+        lvl === 4
+          ? setMunis.mutateAsync({ memberId: savedId, names: selectedMunicipalities })
+          : setMunis.mutateAsync({ memberId: savedId, names: [] }),
       ]);
     }
     setShowForm(false);
@@ -279,6 +282,7 @@ export default function Hierarquia() {
     setSelectedAssociations([]);
     setSelectedMacroregions([]);
     setSelectedProfiles([]);
+    setSelectedMunicipalities([]);
   };
 
   const handleDelete = async (id: string) => {
