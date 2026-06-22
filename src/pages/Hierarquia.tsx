@@ -155,14 +155,17 @@ export default function Hierarquia() {
   const association = useAssociationForCity(geoForm.city);
   const { data: allAssociations = [] } = useMunicipalityAssociations();
   const { data: allProfiles = [] } = useLeadershipProfiles(true);
+  const { data: allMunis = [] } = useAllMunicipalities();
 
   // Load existing links when editing
   const { data: editingAssocs } = useMemberAssociations(editingId ?? undefined);
   const { data: editingMacros } = useMemberMacroregions(editingId ?? undefined);
   const { data: editingProfiles } = useMemberLeadershipProfiles(editingId ?? undefined);
+  const { data: editingMunis } = useMemberMunicipalities(editingId ?? undefined);
   useEffect(() => { if (editingAssocs) setSelectedAssociations(editingAssocs); }, [editingAssocs]);
   useEffect(() => { if (editingMacros) setSelectedMacroregions(editingMacros); }, [editingMacros]);
   useEffect(() => { if (editingProfiles) setSelectedProfiles(editingProfiles); }, [editingProfiles]);
+  useEffect(() => { if (editingMunis) setSelectedMunicipalities(editingMunis); }, [editingMunis]);
 
   // Auto-suggest association from selected city (only if not already chosen)
   useEffect(() => {
@@ -175,6 +178,7 @@ export default function Hierarquia() {
   const setAssoc = useSetMemberAssociations();
   const setMacro = useSetMemberMacroregions();
   const setProfiles = useSetMemberLeadershipProfiles();
+  const setMunis = useSetMemberMunicipalities();
 
   const toggleExpanded = (role: string) => setExpandedRoles(prev => {
     const next = new Set(prev);
