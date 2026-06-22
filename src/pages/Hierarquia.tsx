@@ -16,6 +16,9 @@ import {
   useSetMemberAssociations,
   useSetMemberMacroregions,
   useSetMemberLeadershipProfiles,
+  useMemberMunicipalities,
+  useSetMemberMunicipalities,
+  useAllMunicipalities,
 } from '@/hooks/useCampaignMemberLinks';
 import { useLeadershipProfiles } from '@/hooks/useLeadershipProfiles';
 import { MultiChipSelect } from '@/components/hierarquia/MultiChipSelect';
