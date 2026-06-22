@@ -4,6 +4,7 @@ import { supabase } from '@/contexts/AuthContext';
 const KEY_ASSOC = 'cm-associations';
 const KEY_MACRO = 'cm-macroregions';
 const KEY_PROFILE = 'cm-leadership-profiles';
+const KEY_MUNI = 'cm-municipalities';
 
 export function useMemberAssociations(memberId: string | undefined) {
   return useQuery<string[]>({
