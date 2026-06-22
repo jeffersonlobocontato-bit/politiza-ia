@@ -530,6 +530,18 @@ export default function Hierarquia() {
                     onChange={setSelectedMacroregions}
                     color="hsl(var(--primary))"
                   />
+                  {parseInt(form.hierarchy_level) === 4 && (
+                    <MultiChipSelect
+                      label="Municípios sob responsabilidade (Microrregional)"
+                      options={allMunis
+                        .filter(m => !form.macroregion_id || m.macroregion_id === form.macroregion_id)
+                        .map(m => ({ id: m.name, label: m.name }))}
+                      selectedIds={selectedMunicipalities}
+                      onChange={setSelectedMunicipalities}
+                      color="hsl(var(--chart-4))"
+                      emptyHint="Nenhum município disponível para a macrorregião selecionada."
+                    />
+                  )}
                   {parseInt(form.hierarchy_level) === 6 && (
                     <MultiChipSelect
                       label="Perfis de Liderança / Entidade"
