@@ -131,15 +131,42 @@ function FaixaLegend({ active, onToggle }: {
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
 function DashboardTab({ emendas }: { emendas: Emenda[] }) {
-  const totalDestinado = emendas.reduce((s, e) => s + e.valor_total, 0);
-  const totalPago      = emendas.reduce((s, e) => s + e.valor_pago, 0);
-  const totalEmpenhado = emendas.reduce((s, e) => s + e.valor_empenhado, 0);
+  const [citySearch, setCitySearch] = useState('');
+
+  const filteredByCity = useMemo(() => {
+    const q = citySearch.trim().toLowerCase();
+    if (!q) return emendas;
+    return emendas.filter(e =>
+      (e.municipio ?? '').toLowerCase().includes(q) ||
+      e.ente_federativo.toLowerCase().includes(q)
+    );
+  }, [emendas, citySearch]);
+
+  const cidadesAtendidas = useMemo(() => {
+    const s = new Set<string>();
+    filteredByCity.forEach(e => {
+      const c = (e.municipio ?? e.ente_federativo ?? '').trim();
+      if (c) s.add(c.toLowerCase());
+    });
+    return s.size;
+  }, [filteredByCity]);
+
+  const cidadeSuggestions = useMemo(() => {
+    const s = new Set<string>();
+    emendas.forEach(e => { if (e.municipio) s.add(e.municipio); });
+    return [...s].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [emendas]);
+
+  const dataSet = filteredByCity;
+  const totalDestinado = dataSet.reduce((s, e) => s + e.valor_total, 0);
+  const totalPago      = dataSet.reduce((s, e) => s + e.valor_pago, 0);
+  const totalEmpenhado = dataSet.reduce((s, e) => s + e.valor_empenhado, 0);
   const pctExecucao    = totalDestinado > 0 ? Math.round((totalPago / totalDestinado) * 100) : 0;
 
   // Por área
   const porArea = useMemo(() => {
     const m: Record<string, { valor: number; qtd: number }> = {};
-    emendas.forEach(e => {
+    dataSet.forEach(e => {
       const a = e.area_tematica ?? 'Outras';
       if (!m[a]) m[a] = { valor: 0, qtd: 0 };
       m[a].valor += e.valor_total;
@@ -149,12 +176,12 @@ function DashboardTab({ emendas }: { emendas: Emenda[] }) {
       .map(([area, d]) => ({ area, valor: d.valor, qtd: d.qtd }))
       .sort((a, b) => b.valor - a.valor)
       .slice(0, 10);
-  }, [emendas]);
+  }, [dataSet]);
 
   // Por exercício
   const porExercicio = useMemo(() => {
     const m: Record<number, { destinado: number; pago: number }> = {};
-    emendas.forEach(e => {
+    dataSet.forEach(e => {
       if (!m[e.exercicio]) m[e.exercicio] = { destinado: 0, pago: 0 };
       m[e.exercicio].destinado += e.valor_total;
       m[e.exercicio].pago      += e.valor_pago;
@@ -162,32 +189,65 @@ function DashboardTab({ emendas }: { emendas: Emenda[] }) {
     return Object.entries(m)
       .map(([ano, d]) => ({ ano, ...d }))
       .sort((a, b) => Number(a.ano) - Number(b.ano));
-  }, [emendas]);
+  }, [dataSet]);
 
   // Por faixa (pizza)
   const porFaixa = useMemo(() => {
     const m: Record<string, number> = {};
-    emendas.forEach(e => { m[e.faixa_valor] = (m[e.faixa_valor] ?? 0) + 1; });
+    dataSet.forEach(e => { m[e.faixa_valor] = (m[e.faixa_valor] ?? 0) + 1; });
     return FAIXAS.map(f => ({ name: f.labelCurto, value: m[f.id] ?? 0, color: f.color }))
       .filter(f => f.value > 0);
-  }, [emendas]);
+  }, [dataSet]);
 
   // Por status
   const porStatus = useMemo(() => {
     const m: Record<string, number> = {};
-    emendas.forEach(e => { m[e.status] = (m[e.status] ?? 0) + 1; });
+    dataSet.forEach(e => { m[e.status] = (m[e.status] ?? 0) + 1; });
     return STATUS_OPTIONS.map(s => ({ name: s.label, value: m[s.id] ?? 0, color: s.color }))
       .filter(s => s.value > 0);
-  }, [emendas]);
+  }, [dataSet]);
 
   return (
     <div className="space-y-5">
+      {/* Busca por cidade */}
+      <Card className="p-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              list="emendas-cidades-list"
+              className="w-full bg-background border border-border rounded-lg pl-9 pr-9 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Buscar cidade no painel…"
+              value={citySearch}
+              onChange={e => setCitySearch(e.target.value)}
+            />
+            {citySearch && (
+              <button
+                onClick={() => setCitySearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-accent text-muted-foreground"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <datalist id="emendas-cidades-list">
+              {cidadeSuggestions.map(c => <option key={c} value={c} />)}
+            </datalist>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {citySearch
+              ? <>Mostrando {dataSet.length} emenda(s) em {cidadesAtendidas} cidade(s)</>
+              : <>{cidadeSuggestions.length} município(s) com emendas cadastradas</>}
+          </span>
+        </div>
+      </Card>
+
       {/* KPIs */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <KpiCard icon={Banknote}   label="Total destinado"  value={fmtBRL(totalDestinado)} sub={`${emendas.length} emendas`}        accent="#378ADD" />
-        <KpiCard icon={TrendingUp} label="Total pago"       value={fmtBRL(totalPago)}      sub={`${pctExecucao}% do destinado`}     accent="#1D9E75" />
-        <KpiCard icon={Target}     label="Empenhado"        value={fmtBRL(totalEmpenhado)} sub="valor com empenho"                  accent="#7F77DD" />
-        <KpiCard icon={BarChart3}  label="Taxa de execução" value={`${pctExecucao}%`}      sub="pago / destinado"                  accent="#BA7517" />
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
+        <KpiCard icon={Banknote}   label="Total destinado"   value={fmtBRL(totalDestinado)} sub={`${dataSet.length} emendas`}     accent="#378ADD" />
+        <KpiCard icon={TrendingUp} label="Total pago"        value={fmtBRL(totalPago)}      sub={`${pctExecucao}% do destinado`}  accent="#1D9E75" />
+        <KpiCard icon={Target}     label="Empenhado"         value={fmtBRL(totalEmpenhado)} sub="valor com empenho"               accent="#7F77DD" />
+        <KpiCard icon={BarChart3}  label="Taxa de execução"  value={`${pctExecucao}%`}      sub="pago / destinado"               accent="#BA7517" />
+        <KpiCard icon={Map}        label="Cidades atendidas" value={String(cidadesAtendidas)} sub="municípios distintos"         accent="#1A9FAA" />
       </div>
 
       {/* Barra de progresso geral */}
