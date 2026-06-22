@@ -86,6 +86,68 @@ export function useSetMemberLeadershipProfiles() {
   });
 }
 
+export function useMemberMunicipalities(memberId: string | undefined) {
+  return useQuery<string[]>({
+    queryKey: [KEY_MUNI, memberId],
+    enabled: !!memberId,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('campaign_member_municipalities')
+        .select('municipality')
+        .eq('member_id', memberId);
+      if (error) throw error;
+      return (data ?? []).map((r: any) => r.municipality);
+    },
+  });
+}
+
+export function useSetMemberMunicipalities() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ memberId, names }: { memberId: string; names: string[] }) => {
+      await (supabase as any).from('campaign_member_municipalities').delete().eq('member_id', memberId);
+      if (names.length === 0) return;
+      const rows = names.map(n => ({ member_id: memberId, municipality: n }));
+      const { error } = await (supabase as any).from('campaign_member_municipalities').insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: [KEY_MUNI, vars.memberId] });
+      qc.invalidateQueries({ queryKey: [KEY_MUNI] });
+    },
+  });
+}
+
+export function useMembersByMunicipality(municipality: string | undefined) {
+  return useQuery({
+    queryKey: [KEY_MUNI, 'by-city', municipality?.toLowerCase()],
+    enabled: !!municipality,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('campaign_member_municipalities')
+        .select('member_id, municipality')
+        .ilike('municipality', municipality!);
+      if (error) throw error;
+      return (data ?? []) as { member_id: string; municipality: string }[];
+    },
+  });
+}
+
+export function useAllMunicipalities() {
+  return useQuery({
+    queryKey: ['all-municipalities-list'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('municipalities')
+        .select('id, name, macroregion_id')
+        .order('name');
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string; macroregion_id: string | null }[];
+    },
+    staleTime: 1000 * 60 * 30,
+  });
+}
+
 export function useMunicipalityAssociations() {
   return useQuery({
     queryKey: ['municipality-associations-list'],
