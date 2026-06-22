@@ -409,6 +409,35 @@ export type Database = {
           },
         ]
       }
+      campaign_member_municipalities: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          municipality: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          municipality: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          municipality?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_member_municipalities_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_members: {
         Row: {
           actions_managed: number
