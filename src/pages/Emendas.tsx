@@ -246,12 +246,13 @@ function DashboardTab({ emendas }: { emendas: Emenda[] }) {
       </Card>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-        <KpiCard icon={Banknote}   label="Total destinado"   value={fmtBRL(totalDestinado)} sub={`${dataSet.length} emendas`}     accent="#378ADD" />
-        <KpiCard icon={TrendingUp} label="Total pago"        value={fmtBRL(totalPago)}      sub={`${pctExecucao}% do destinado`}  accent="#1D9E75" />
-        <KpiCard icon={Target}     label="Empenhado"         value={fmtBRL(totalEmpenhado)} sub="valor com empenho"               accent="#7F77DD" />
-        <KpiCard icon={BarChart3}  label="Taxa de execução"  value={`${pctExecucao}%`}      sub="pago / destinado"               accent="#BA7517" />
-        <KpiCard icon={Map}        label="Cidades atendidas" value={String(cidadesAtendidas)} sub="municípios distintos"         accent="#1A9FAA" />
+      <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
+        <KpiCard icon={Banknote}      label="Total destinado"     value={fmtBRL(totalDestinado)}   sub={`${dataSet.length} emendas`}       accent="#378ADD" />
+        <KpiCard icon={TrendingUp}    label="Total pago"          value={fmtBRL(totalPago)}        sub={`${pctExecucao}% do destinado`}    accent="#1D9E75" />
+        <KpiCard icon={Target}        label="Empenhado"           value={fmtBRL(totalEmpenhado)}   sub="valor com empenho"                 accent="#7F77DD" />
+        <KpiCard icon={BarChart3}     label="Taxa de execução"    value={`${pctExecucao}%`}        sub="pago / destinado"                   accent="#BA7517" />
+        <KpiCard icon={Map}           label="Cidades atendidas"   value={String(cidadesAtendidas)} sub="municípios distintos"              accent="#1A9FAA" />
+        <KpiCard icon={AlertTriangle} label="Sem cidade"          value={String(semCidade)}        sub="lançadas como Paraná"              accent="#E24B4A" />
       </div>
 
       {/* Barra de progresso geral */}
