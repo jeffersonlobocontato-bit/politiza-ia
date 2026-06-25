@@ -156,14 +156,14 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
 
   // Normaliza seleção "todos marcados" para o modo consolidado real.
   useEffect(() => {
-    if (loading || !hasFullAccess || allActiveCandidates.length === 0) return;
+    if (loading || allActiveCandidates.length === 0) return;
     if (selectedIds.length === allActiveCandidates.length) {
       setSelectedIds([]);
       persistSelection([]);
     }
     // Executa apenas quando o escopo inicial termina de carregar.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, hasFullAccess, allActiveCandidates.length]);
+  }, [loading, allActiveCandidates.length]);
 
   const setActive = useCallback((id: string | null) => {
     const next = id ? [id] : [];
