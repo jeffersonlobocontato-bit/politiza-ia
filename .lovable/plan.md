@@ -1,46 +1,95 @@
-## Problema
 
-Já corrigimos o card de identidade em `/campo` (linha 2 = função do `campaign_members.role`, chip = área/tier). Mas a identificação do usuário no resto da plataforma (header global e rodapé do sidebar) **não usa** essa função. Hoje:
+## Importar "Lista de contatos.xlsx" para Ativos Políticos — somente Paraná
 
-- **Header (AppLayout)** — dropdown do avatar mostra só nome + e-mail, sem indicar que o Zé Elias está na Coordenação Geral com função "Coordenação Operacional / Eventos".
-- **Sidebar (AppSidebar)** — o rodapé mostra apenas o candidato ativo, nada sobre o usuário logado.
+### Decisões confirmadas
+1. **Vice-Prefeito** → criar novo enum `vice_prefeito`.
+2. **Deputados** → criar enums `deputado_estadual` e `deputado_federal`.
+3. **Dedupe** (mesmo `name` + `municipality`, case/acento-insensível): **atualizar** `phone` e concatenar texto novo em `observations` (não duplicar).
+4. **Owner** padrão: `relationship_owner = "Equipe Senador"` · `referred_by = "Lista de contatos – Gabinete"`.
 
-Resultado: em qualquer tela que não seja `/campo`, não fica claro que o Zé Elias integra a Coordenação Geral com uma função específica — e onde aparece algo (Hierarquia, lead da Coordenação Central) o subtítulo "Coordenador Geral" é hardcoded e dá a entender que ele é *o* coordenador titular.
+### Filtro Paraná
+- Carrega as 399 cidades do PR de `municipalities`.
+- Normaliza `Cidade` (trim, sem acento, lower).
+- Mantém se: cidade ∈ PR **ou** aba = Deputados Estaduais/Federais (mandato PR).
+- Descarta: cidade vazia em abas municipais, cidade fora do PR (ex.: SP/DF), cidade não reconhecida.
+- Gera `descartados.csv` com o motivo.
 
-Confirmado no banco:
-- `profiles`: Zé Elias, role de sistema `coordenador_geral`.
-- `campaign_members`: `role = "Coordenação Operacional / Eventos"`, `hierarchy_level = 2`, casado por email pelo RPC `get_my_campaign_member` (já testado, retorna o registro correto).
+### Etapas técnicas
 
-## Solução
+**1. Migração SQL** (única migration)
+- `ALTER TYPE asset_type ADD VALUE 'vice_prefeito'`
+- `ALTER TYPE asset_type ADD VALUE 'deputado_estadual'`
+- `ALTER TYPE asset_type ADD VALUE 'deputado_federal'`
 
-Reaproveitar o `useMyCampaignMembership()` e o mapa `ROLE_AREA_LABELS` já criados na correção anterior, propagando o mesmo padrão de 2 linhas em mais 2 pontos:
+**2. Tipos / labels**
+- `src/types/database.ts`: adicionar os 3 valores em `DbAssetType`.
+- Onde houver mapa de rótulos de tipo (página `AtivosPoliticos.tsx`, filtros, badges, `ImportAssetsDialog.tsx` `VALID_TYPES`), incluir os novos com labels: "Vice-Prefeito(a)", "Deputado Estadual", "Deputado Federal".
 
-### 1. `src/components/layout/AppLayout.tsx` — dropdown do avatar
-Atualizar o `DropdownMenuLabel` (linhas 107-111) para 3 linhas:
+**3. Script de import dedicado** `scripts/import-lista-contatos.ts`
+- Lê `Lista de contatos.xlsx` (5 abas) com `xlsx`.
+- Aplica filtro PR + parser (regras abaixo).
+- Para cada linha: faz `SELECT` em `political_assets` por `unaccent(lower(name))` + município; se existir → `UPDATE` (telefone novo + `observations` apensado); senão → `INSERT`.
+- Imprime resumo (inseridos / atualizados / descartados) e grava `descartados.csv`.
 
-```
-Zé Elias                                    ← profile.full_name (semibold)
-Coordenação Operacional / Eventos           ← membership.role  (xs, primary)
-[chip] Coordenação Geral · Nível 2          ← ROLE_AREA_LABELS + level
-zeelias@usa.net                             ← email (xs, muted)
-```
+**4. Mapeamento Planilha → `political_assets`**
 
-- Sem `membership?.role` → linha 2 vira "Integrante".
-- Sem hit em `campaign_members` → omite o "Nível N".
+| Coluna planilha | Campo | Transformação |
+|---|---|---|
+| Nome | `name` | Trim + Title Case quando vier tudo em MAIÚSCULAS |
+| Cargo/Entidade | `position` | Texto livre; também usado para inferir `type` |
+| Cidade | `municipality` | Trim + Title Case; obrigatório p/ abas municipais |
+| Telefone | `phone` | Primeiro número antes de "/"; extras → `observations` |
+| Assunto | `observations` | Concatenado com telefones extras e origem |
+| — | `type` | Por aba + cargo (regras abaixo) |
+| — | `macroregion_id` | Via `macroFromCity` |
+| — | `alignment_status` | `indefinido` |
+| — | `influence_level` | 7 prefeito/deputado · 6 vice/vereador · 5 demais |
+| — | `relationship_owner` | "Equipe Senador" |
+| — | `referred_by` | "Lista de contatos – Gabinete" |
+| — | `created_by` | usuário que dispara o import |
 
-### 2. `src/components/layout/AppSidebar.tsx` — rodapé
-Adicionar acima do bloco do candidato ativo (linha 152) um mini-card de identidade do usuário com a mesma estrutura: nome + função + chip de área. Visível só quando o sidebar não está colapsado e quando há `profile`.
+**Regras de `type`**
+- Aba **Prefeitos** → `prefeito` (`position = "Prefeito(a)"`)
+- Aba **Vice Prefeitos** → `vice_prefeito` (`position = "Vice-Prefeito(a)"`)
+- Aba **Deputados Estaduais** → `deputado_estadual` (`position = "Deputado Estadual"`)
+- Aba **Deputados Federais** → `deputado_federal` (`position = "Deputado Federal"`)
+- Aba **Contatos Gerais** (por cargo): vereador → `vereador`; prefeito → `prefeito`; presidente/sigla → `presidente_entidade`; advogado/empresário → `lideranca_empresarial`; pastor/padre/bispo/igreja → `lideranca_religiosa`; coordenador → `coordenador_partidario`; fallback → `lideranca_comunitaria`.
 
-### 3. `src/pages/Hierarquia.tsx` — subtítulo do lead da Coordenação Central
-Hoje (linha 807) renderiza `subtitle: 'Coordenador Geral'` fixo no card lead da Coordenação Central. Trocar por:
+**Limpeza de telefones**
+`"41 99145 6691/ 41 98496 6922"` →
+- `phone`: `(41) 99145-6691`
+- `observations`: `Telefones adicionais: (41) 98496-6922`
 
-- Se o `campaign_members.role` do próprio card existir → usar `role` dele.
-- Senão → manter "Coordenador Geral".
+**Regra de dedupe (atualização)**
+- Match: `unaccent(lower(trim(name)))` + `unaccent(lower(trim(municipality)))` iguais e `deleted_at IS NULL`.
+- Update: `phone = COALESCE(phone, novo)`; se já tinha telefone diferente → manda o novo para `observations` como "Telefone alternativo: ...".
+- `observations` recebe append: `\n— [origem]: <assunto/telefones extras>` (sem sobrescrever).
+- `position`, `type`, `referred_by`, `relationship_owner` só são preenchidos se estiverem nulos.
 
-Isso evita que qualquer membro lead da Coordenação Central apareça rotulado como "Coordenador Geral".
+### Exemplo de validação (10 linhas, apenas PR)
 
-## Fora de escopo
+| Origem | name | type | position | municipality | macro | phone | observations |
+|---|---|---|---|---|---|---|---|
+| Prefeitos / Abatia | Sonia Aparecida de Souza Chaves | prefeito | Prefeita | Abatia | norte_pioneiro | (43) 99656-8666 | Importado: Prefeitos |
+| Prefeitos / Almirante Tamandaré | Camilo Daniel Lovato | prefeito | Prefeito | Almirante Tamandaré | rmc | (41) 99642-1300 | Importado: Prefeitos |
+| Vice Prefeitos / Abatia | Luciano Guimarães | vice_prefeito | Vice-Prefeito | Abatia | norte_pioneiro | (43) 99607-4401 | Importado: Vice Prefeitos |
+| Vice Prefeitos / Adrianópolis | Pardal (Israel Rodrigues) | vice_prefeito | Vice-Prefeito | Adrianópolis | rmc | (41) 97446-6167 | Cel. do filho Murilo. Pardal não usa celular. Importado: Vice Prefeitos |
+| Deputados Estaduais | Ademar Traiano | deputado_estadual | Deputado Estadual | — | — | (41) 3350-4040 | Telefones adicionais: (41) 9212-8777. Importado: Deputados Estaduais |
+| Deputados Federais | Aliel Machado | deputado_federal | Deputado Federal | — | — | (42) 99927-1718 | Importado: Deputados Federais |
+| Contatos Gerais | Acyr de Gerone | lideranca_empresarial | Advogado | Curitiba | curitiba | (41) 99145-6691 | Telefones adicionais: (41) 98496-6922. Importado: Contatos Gerais |
+| Contatos Gerais | Ademar | vereador | Vereador | Boa Ventura de São Roque | centro | (42) 8423-9496 | Assunto: agenda com Senador. Importado: Contatos Gerais |
+| Contatos Gerais | Adolfo Sasaki | presidente_entidade | Presidente CRMV/PR | Curitiba | curitiba | (41) 98847-8952 | Telefones adicionais: (41) 99960-4177. Importado: Contatos Gerais |
+| Contatos Gerais | ADEVIPAR | presidente_entidade | Entidade | Curitiba | curitiba | (41) 9695-8692 | Assunto: emenda / Direcionado para Michelle. Importado: Contatos Gerais |
 
-- Mudanças de schema, RLS ou no RPC `get_my_campaign_member` (já funcionam).
-- Outras telas além de AppLayout, AppSidebar e o card-lead da Hierarquia.
-- Edição da função do `campaign_members` (já feita na tela de Hierarquia).
+### Descartados (`descartados.csv`)
+| Linha | Motivo |
+|---|---|
+| Contatos Gerais / "…SP" | Cidade fora do PR |
+| Contatos Gerais / cidade em branco | Cidade ausente em aba que exige |
+| Cidade não na lista das 399 do PR | Cidade não reconhecida |
+
+### Entrega
+1. Aplico migração dos enums.
+2. Atualizo `DbAssetType` + labels nas telas.
+3. Rodo o script de import contra a planilha real.
+4. Devolvo: total inserido, total atualizado (dedupe), `descartados.csv` e amostra de 20 linhas reais para validação final.
