@@ -65,7 +65,7 @@ const emptyQuestion = (): NewQuestion => ({
 });
 
 export default function TrackingDashboard() {
-  const { activeCandidate } = useCandidate();
+  const { activeCandidate, activeCandidates } = useCandidate();
   const { rounds, isLoading, interviewCounts, createRound, updateRound, updateRoundStatus } = useTrackingRounds();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -85,29 +85,35 @@ export default function TrackingDashboard() {
   const [questions, setQuestions] = useState<NewQuestion[]>([]);
   const [newOptionText, setNewOptionText] = useState<Record<number, string>>({});
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
+  const activeCandidateIds = activeCandidates.map(c => c.id);
 
   // Interviewer count
   const { data: interviewerCount = 0 } = useQuery({
-    queryKey: ['tracking-interviewer-count', activeCandidate?.id],
+    queryKey: ['tracking-interviewer-count', activeCandidateIds],
     queryFn: async () => {
-      if (!activeCandidate?.id) return 0;
-      const { count } = await (supabase as any)
+      if (!activeCandidateIds.length) return 0;
+      let q = (supabase as any)
         .from('tracking_interviewers')
         .select('*', { count: 'exact', head: true })
-        .eq('candidate_id', activeCandidate.id)
         .eq('status', 'ativo');
+
+      q = activeCandidateIds.length === 1
+        ? q.eq('candidate_id', activeCandidateIds[0])
+        : q.in('candidate_id', activeCandidateIds);
+
+      const { count } = await q;
       return count || 0;
     },
-    enabled: !!activeCandidate?.id,
+    enabled: activeCandidateIds.length > 0,
   });
 
-  if (!activeCandidate) {
+  if (activeCandidates.length === 0) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <Card className="p-8 text-center max-w-md">
           <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-lg font-bold text-foreground mb-2">Nenhum candidato ativo</h2>
-          <p className="text-sm text-muted-foreground">Ative um candidato em Configurações para usar o Tracking.</p>
+          <p className="text-sm text-muted-foreground">Ative ou selecione candidatos em Configurações para usar o Tracking.</p>
         </Card>
       </div>
     );
@@ -526,7 +532,7 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
 
   // Load all interviews — paginated to overcome 1000-row limit
   const { data: allInterviews = [] } = useQuery({
-    queryKey: ['tracking-all-interviews', activeCandidate?.id, rounds.length],
+    queryKey: ['tracking-all-interviews', rounds.map((r: any) => r.id)],
     queryFn: async () => {
       const roundIds = rounds.map((r: any) => r.id);
       if (!roundIds.length) return [];

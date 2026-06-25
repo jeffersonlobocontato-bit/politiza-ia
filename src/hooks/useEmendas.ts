@@ -56,18 +56,19 @@ export function useEmendas(filters?: {
   faixa?: EmendaFaixa;
   municipio?: string;
 }) {
-  const { activeCandidate } = useCandidate();
-  const candidateId = activeCandidate?.id ?? null;
+  const { selectedCandidateIds, isViewingAll } = useCandidate();
+  const candidateIds = isViewingAll ? [] : selectedCandidateIds;
 
   return useQuery({
-    queryKey: ['emendas', candidateId, filters],
+    queryKey: ['emendas', candidateIds, filters],
     queryFn: async () => {
       let q = (supabase as any)
         .from(TABLE)
         .select('*')
         .order('valor_total', { ascending: false });
 
-      if (candidateId) q = q.eq('candidate_id', candidateId);
+      if (candidateIds.length === 1) q = q.eq('candidate_id', candidateIds[0]);
+      else if (candidateIds.length > 1) q = q.in('candidate_id', candidateIds);
       if (filters?.exercicio) q = q.eq('exercicio', filters.exercicio);
       if (filters?.status)    q = q.eq('status', filters.status);
       if (filters?.area)      q = q.eq('area_tematica', filters.area);

@@ -221,7 +221,7 @@ export function AppSidebar() {
                     </div>
                     <div className="max-h-72 overflow-y-auto">
                       {allActiveCandidates.map(c => {
-                        const checked = selectedCandidateIds.includes(c.id);
+                        const checked = isViewingAll || selectedCandidateIds.includes(c.id);
                         return (
                           <label
                             key={c.id}
@@ -230,9 +230,10 @@ export function AppSidebar() {
                             <Checkbox
                               checked={checked}
                               onCheckedChange={(v) => {
+                                const base = isViewingAll ? allActiveCandidates.map(item => item.id) : selectedCandidateIds;
                                 const next = v
-                                  ? [...selectedCandidateIds, c.id]
-                                  : selectedCandidateIds.filter(id => id !== c.id);
+                                  ? [...base, c.id]
+                                  : base.filter(id => id !== c.id);
                                 setSelectedCandidateIds(next);
                               }}
                               className="mt-0.5"

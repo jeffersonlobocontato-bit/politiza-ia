@@ -61,17 +61,18 @@ export interface Inscricao {
 // ─── EVENTOS (uso interno, autenticado) ───────────────────────────────────────
 
 export function useEventos() {
-  const { activeCandidate } = useCandidate();
-  const candidateId = activeCandidate?.id ?? null;
+  const { selectedCandidateIds, isViewingAll } = useCandidate();
+  const candidateIds = isViewingAll ? [] : selectedCandidateIds;
 
   return useQuery({
-    queryKey: ['eventos', candidateId],
+    queryKey: ['eventos', candidateIds],
     queryFn: async () => {
       let q = (supabase as any)
         .from('eventos_com_contagem')
         .select('*')
         .order('data_inicio', { ascending: false });
-      if (candidateId) q = q.eq('candidate_id', candidateId);
+      if (candidateIds.length === 1) q = q.eq('candidate_id', candidateIds[0]);
+      else if (candidateIds.length > 1) q = q.in('candidate_id', candidateIds);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as Evento[];
@@ -202,14 +203,15 @@ export interface InscricaoComEvento extends Inscricao {
 }
 
 export function useTodasInscricoes() {
-  const { activeCandidate } = useCandidate();
-  const candidateId = activeCandidate?.id ?? null;
+  const { selectedCandidateIds, isViewingAll } = useCandidate();
+  const candidateIds = isViewingAll ? [] : selectedCandidateIds;
 
   return useQuery({
-    queryKey: ['inscricoes-todas', candidateId],
+    queryKey: ['inscricoes-todas', candidateIds],
     queryFn: async () => {
       let eventosQ = (supabase as any).from('eventos').select('id, titulo, data_inicio, municipio, slug');
-      if (candidateId) eventosQ = eventosQ.eq('candidate_id', candidateId);
+      if (candidateIds.length === 1) eventosQ = eventosQ.eq('candidate_id', candidateIds[0]);
+      else if (candidateIds.length > 1) eventosQ = eventosQ.in('candidate_id', candidateIds);
       const { data: eventos, error: eErr } = await eventosQ;
       if (eErr) throw eErr;
       const eventoIds = (eventos ?? []).map((e: any) => e.id);
