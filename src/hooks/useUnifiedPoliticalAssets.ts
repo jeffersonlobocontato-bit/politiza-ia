@@ -88,7 +88,7 @@ export function useUnifiedPoliticalAssets() {
     queryFn: async (): Promise<UnifiedAsset[]> => {
       // Paginação explícita: o PostgREST corta em 1000 linhas por padrão.
       // Sem isto, os contadores/etiquetas dos dashboards param de crescer ao bater 1000.
-      const [assetsData, candidatesData, membersData, slateData, leadersData, inscricoesData] = await Promise.all([
+      const [assetsData, candidatesData, membersData, slateData, leadersData, inscricoesData, municipalitiesData] = await Promise.all([
         fetchAllRows<DbPoliticalAsset>(() => db.from('political_assets').select('*').is('deleted_at', null).order('name')),
         fetchAllRows<any>(() => db.from('candidates').select('*').order('name')),
         fetchAllRows<DbCampaignMember>(() => db.from('campaign_members').select('*').eq('status', 'ativo')),
@@ -96,7 +96,9 @@ export function useUnifiedPoliticalAssets() {
         fetchAllRows<any>(() => (db as any).from('leaders').select('*').is('deleted_at', null).order('name')),
         // inscricoes: não bloqueia o restante se falhar (ex.: usuário sem permissão)
         fetchAllRows<any>(() => (db as any).from('inscricoes').select('id, nome, telefone, email, municipio, cargo_interesse, partido, observacoes, evento_id, created_at, status')).catch(() => [] as any[]),
+        fetchAllRows<any>(() => (db as any).from('municipalities').select('id, name, mayor_name, phone').not('mayor_name', 'is', null)),
       ]);
+
 
       const assetsRes = { data: assetsData };
       const candidatesRes = { data: candidatesData };
@@ -252,7 +254,39 @@ export function useUnifiedPoliticalAssets() {
         source_label: 'PÚBLICO EVENTOS',
       }));
 
-      return [...nativos, ...candidatos, ...proporcionais, ...coords, ...leaders, ...publicoEventos];
+      // Prefeitos cadastrados na aba Municípios
+      const nativosKey = new Set(
+        nativos
+          .filter(n => n.type === 'prefeito')
+          .map(n => `${normalizeCity(n.name)}|${normalizeCity(n.municipality)}`)
+      );
+      const prefeitos: UnifiedAsset[] = ((municipalitiesData ?? []) as any[])
+        .filter(m => m.mayor_name && String(m.mayor_name).trim().length > 0)
+        .filter(m => !nativosKey.has(`${normalizeCity(m.mayor_name)}|${normalizeCity(m.name)}`))
+        .map(m => ({
+          id: `prefeito-mun:${m.id}`,
+          origin: 'coordenador' as UnifiedAssetOrigin,
+          source_id: m.id,
+          name: m.mayor_name,
+          type: 'prefeito' as UnifiedAssetType,
+          position: `Prefeito(a) de ${m.name}`,
+          municipality: m.name ?? null,
+          macroregion_id: macroFromCity(m.name),
+          influence_level: 9,
+          alignment_status: 'indefinido' as DbAlignmentStatus,
+          support_status: 'Prefeito em exercício',
+          phone: m.phone ?? null,
+          email: null,
+          observations: null,
+          lat: null,
+          lng: null,
+          readonly: true,
+          source_route: '/municipios',
+          source_label: 'via Municípios',
+        }));
+
+      return [...nativos, ...candidatos, ...proporcionais, ...coords, ...leaders, ...publicoEventos, ...prefeitos];
+
     },
   });
 }
