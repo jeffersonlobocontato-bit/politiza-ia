@@ -48,6 +48,9 @@ const ASSET_TYPES: { value: DbAssetType; label: string }[] = [
 // Rótulos de exibição extendidos (inclui tipos virtuais agregados)
 const UNIFIED_TYPE_LABELS: Record<UnifiedAssetType, string> = {
   prefeito: 'Prefeito',
+  vice_prefeito: 'Vice-Prefeito',
+  deputado_estadual: 'Deputado Estadual',
+  deputado_federal: 'Deputado Federal',
   ex_prefeito: 'Ex-Prefeito',
   pretenso_prefeito: 'Pretenso Prefeito',
   vereador: 'Vereador',
