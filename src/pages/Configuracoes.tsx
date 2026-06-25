@@ -66,6 +66,35 @@ export default function Configuracoes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activating, setActivating] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande (máx. 5MB)');
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${editingId ?? 'new'}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('candidate-photos')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('candidate-photos').getPublicUrl(path);
+      form.setValue('photo_url', data.publicUrl, { shouldValidate: true, shouldDirty: true });
+      toast.success('Foto carregada');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Falha ao enviar foto');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
