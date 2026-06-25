@@ -1,0 +1,1 @@
+ALTER TABLE public.campaign_members ADD COLUMN IF NOT EXISTS photo_url text;
