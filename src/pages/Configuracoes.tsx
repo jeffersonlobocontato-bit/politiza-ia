@@ -392,9 +392,48 @@ export default function Configuracoes() {
                 <Label>Ano da eleição</Label>
                 <Input type="number" {...form.register('election_year')} />
               </div>
-              <div className="col-span-2 space-y-1.5">
-                <Label>URL da foto</Label>
-                <Input placeholder="https://..." {...form.register('photo_url')} />
+              <div className="col-span-2 space-y-2">
+                <Label>Foto do candidato</Label>
+                <div className="flex items-start gap-3">
+                  <div className="w-20 h-20 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center flex-shrink-0 relative">
+                    {form.watch('photo_url') ? (
+                      <>
+                        <img src={form.watch('photo_url')} alt="Prévia" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => form.setValue('photo_url', '', { shouldDirty: true })}
+                          className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5 hover:opacity-90"
+                          aria-label="Remover foto"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <User className="w-7 h-7 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex gap-2">
+                      <label className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border border-border bg-background hover:bg-accent cursor-pointer transition-colors">
+                        {uploadingPhoto ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        {uploadingPhoto ? 'Enviando...' : 'Fazer upload'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingPhoto}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handlePhotoUpload(f);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <span className="text-[11px] text-muted-foreground self-center">ou cole uma URL abaixo</span>
+                    </div>
+                    <Input placeholder="https://..." {...form.register('photo_url')} />
+                  </div>
+                </div>
               </div>
               <div className="col-span-2 space-y-1.5">
                 <Label>Biografia / contexto</Label>
