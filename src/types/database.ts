@@ -237,3 +237,20 @@ export const ROLE_LABELS: Record<AppRole, string> = {
 };
 
 export const ADMIN_ROLES: AppRole[] = ['admin_master', 'coordenador_geral', 'coordenador_estadual'];
+
+// Área/tier do sistema — descreve o grupo de coordenação, NÃO o cargo individual.
+// Use para etiquetas/chips ("integra a Coordenação Geral"), nunca como cargo do usuário.
+export const ROLE_AREA_LABELS: Record<AppRole, string> = {
+  admin_master: 'Administração Master',
+  coordenador_geral: 'Coordenação Geral',
+  coordenador_estadual: 'Coordenação Estadual',
+  coordenador_regional: 'Coordenação Regional',
+  coordenador_microrregional: 'Coordenação Microrregional',
+  coordenador_municipal: 'Coordenação Municipal',
+  lideranca_local: 'Liderança Local',
+  operador_campo: 'Campo',
+  analista_inteligencia: 'Inteligência',
+  analista_pesquisa: 'Pesquisa',
+  executivo_leitura: 'Executivo',
+  gestor_operacional: 'Operacional',
+};
