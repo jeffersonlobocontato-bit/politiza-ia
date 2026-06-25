@@ -12,6 +12,8 @@ import {
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserParty } from '@/hooks/useUserParty';
+import { useMyCampaignMembership } from '@/hooks/useMyCampaignMembership';
+import { ROLE_AREA_LABELS } from '@/types/database';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -65,7 +67,11 @@ export function AppSidebar() {
   };
   const location = useLocation();
   const { activeCandidate, campaignType, activeCandidates, allActiveCandidates, hasFullAccess, isViewingAll, selectedCandidateIds, setActive, setSelectedCandidateIds } = useCandidate();
-  const { isAdmin, roles } = useAuth();
+  const { isAdmin, roles, profile } = useAuth();
+  const { data: membership } = useMyCampaignMembership();
+  const userFunctionLabel = membership?.role?.trim() || 'Integrante';
+  const userAreaLabel = roles[0] ? ROLE_AREA_LABELS[roles[0]] : null;
+  const userLevelTag = membership?.hierarchy_level ? `Nível ${membership.hierarchy_level}` : null;
   const { isPartyManager } = useUserParty();
 
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
@@ -150,6 +156,19 @@ export function AppSidebar() {
         {/* Candidate / campaign type badge + profile */}
         {!collapsed && (
           <div className="mt-auto p-4 border-t border-sidebar-border/30">
+            {/* User identity */}
+            {profile && (
+              <div className="mb-3 p-2 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-xs font-semibold text-white truncate">{profile.full_name || 'Usuário'}</div>
+                <div className="text-[11px] font-medium text-primary truncate">{userFunctionLabel}</div>
+                {(userAreaLabel || userLevelTag) && (
+                  <div className="mt-1 inline-flex items-center text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border border-primary/40 text-primary/90 bg-primary/10">
+                    {userAreaLabel}{userLevelTag ? ` · ${userLevelTag}` : ''}
+                  </div>
+                )}
+              </div>
+            )}
+
             {campaignType && (
               <div className={`mb-3 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-center ${
                 campaignType === 'majoritaria'

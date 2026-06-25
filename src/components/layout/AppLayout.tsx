@@ -6,6 +6,8 @@ import { Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
 
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMyCampaignMembership } from '@/hooks/useMyCampaignMembership';
+import { ROLE_AREA_LABELS } from '@/types/database';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +43,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [time, setTime] = useState(new Date());
   
   const { theme, setTheme } = useTheme();
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, roles, signOut } = useAuth();
+  const { data: membership } = useMyCampaignMembership();
+  const functionLabel = membership?.role?.trim() || 'Integrante';
+  const areaLabel = roles[0] ? ROLE_AREA_LABELS[roles[0]] : null;
+  const levelTag = membership?.hierarchy_level ? `Nível ${membership.hierarchy_level}` : null;
   const navigate = useNavigate();
 
   const displayName = profile?.full_name?.trim() || user?.email || 'Usuário';
@@ -105,9 +111,15 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="flex flex-col gap-0.5">
+                    <DropdownMenuLabel className="flex flex-col gap-1 py-2">
                       <span className="text-sm font-semibold truncate">{displayName}</span>
-                      {email && <span className="text-xs font-normal text-muted-foreground truncate">{email}</span>}
+                      <span className="text-xs font-medium text-primary truncate">{functionLabel}</span>
+                      {(areaLabel || levelTag) && (
+                        <span className="inline-flex items-center self-start text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full border border-primary/30 text-primary bg-primary/5">
+                          {areaLabel}{levelTag ? ` · ${levelTag}` : ''}
+                        </span>
+                      )}
+                      {email && <span className="text-xs font-normal text-muted-foreground truncate mt-0.5">{email}</span>}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
