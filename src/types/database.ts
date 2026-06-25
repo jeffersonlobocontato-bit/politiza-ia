@@ -144,6 +144,7 @@ export interface DbCampaignMember {
   updated_at: string;
   created_by: string | null;
   candidate_id?: string | null;
+  photo_url?: string | null;
 }
 
 export interface DbElectoralSurvey {

@@ -1,5 +1,7 @@
-import { useState, Fragment, useMemo, useEffect } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
+import { useState, Fragment, useMemo, useEffect, useRef } from 'react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
@@ -86,6 +88,7 @@ interface MemberForm {
   supervisor_id: string;
   status: string;
   observations: string;
+  photo_url: string;
 }
 
 const emptyForm = (): MemberForm => ({
@@ -99,6 +102,7 @@ const emptyForm = (): MemberForm => ({
   supervisor_id: '',
   status: 'ativo',
   observations: '',
+  photo_url: '',
 });
 
 export default function Hierarquia() {
@@ -224,6 +228,7 @@ export default function Hierarquia() {
       supervisor_id: member.supervisor_id ?? '',
       status: member.status,
       observations: member.observations ?? '',
+      photo_url: member.photo_url ?? '',
     });
     setGeoForm({ city: member.municipality ?? '', lat: null, lng: null });
     // links populated by useEffect when queries resolve
@@ -232,6 +237,31 @@ export default function Hierarquia() {
     setSelectedProfiles([]);
     setSelectedMunicipalities([]);
     setShowForm(true);
+  };
+
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) { toast.error('Selecione um arquivo de imagem'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Imagem muito grande (máx. 5MB)'); return; }
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `members/${editingId ?? 'new'}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('candidate-photos')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('candidate-photos').getPublicUrl(path);
+      setForm(prev => ({ ...prev, photo_url: data.publicUrl }));
+      toast.success('Foto carregada');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Falha ao enviar foto');
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -253,6 +283,7 @@ export default function Hierarquia() {
       completion_rate: 0,
       status: form.status,
       observations: form.observations || null,
+      photo_url: form.photo_url || null,
       user_id: null as string | null,
       created_by: null as string | null,
     };
@@ -385,6 +416,58 @@ export default function Hierarquia() {
               </button>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
+              <div className="sm:col-span-2">
+                <label className="text-xs text-muted-foreground block mb-2">Foto do membro</label>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-16 h-16 rounded-full bg-muted overflow-hidden flex-shrink-0 border border-border">
+                    {form.photo_url ? (
+                      <>
+                        <img src={form.photo_url} alt="Prévia" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, photo_url: '' }))}
+                          className="absolute top-0 right-0 p-0.5 rounded-bl bg-background/80 hover:bg-destructive/20"
+                          aria-label="Remover foto"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground font-bold">
+                        {(form.name || '?').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => photoInputRef.current?.click()}
+                        disabled={uploadingPhoto}
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-input bg-background hover:bg-accent text-xs font-medium disabled:opacity-50"
+                      >
+                        {uploadingPhoto ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        {uploadingPhoto ? 'Enviando...' : 'Fazer upload'}
+                      </button>
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingPhoto}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ''; }}
+                      />
+                      <span className="text-[10px] text-muted-foreground">JPG/PNG até 5MB</span>
+                    </div>
+                    <input
+                      value={form.photo_url}
+                      onChange={e => setForm(prev => ({ ...prev, photo_url: e.target.value }))}
+                      placeholder="ou cole uma URL https://..."
+                      className="w-full h-8 rounded-lg border border-input bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                  </div>
+                </div>
+              </div>
               <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground block mb-1">Nome Completo *</label>
                 <input value={form.name} onChange={e => updateForm('name', e.target.value)} placeholder="Nome do membro" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
