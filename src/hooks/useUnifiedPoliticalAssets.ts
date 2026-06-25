@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { db } from '@/lib/db';
+import { db, fetchAllRows } from '@/lib/db';
 import { municipalities as mockMunicipalities } from '@/data/mockData';
 
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus, DbCampaignMember } from '@/types/database';
@@ -86,21 +86,24 @@ export function useUnifiedPoliticalAssets() {
   return useQuery({
     queryKey: ['unified-political-assets', 'all-candidates-coords-and-proporcional'],
     queryFn: async (): Promise<UnifiedAsset[]> => {
-      const [assetsRes, candidatesRes, membersRes, slateRes, leadersRes, inscricoesRes] = await Promise.all([
-        db.from('political_assets').select('*').is('deleted_at', null).order('name'),
-        db.from('candidates').select('*').order('name'),
-        db.from('campaign_members').select('*').eq('status', 'ativo'),
-        (db as any).from('party_slate_candidates').select('*').is('deleted_at', null).order('name'),
-        (db as any).from('leaders').select('*').is('deleted_at', null).order('name'),
-        (db as any).from('inscricoes').select('id, nome, telefone, email, municipio, cargo_interesse, partido, observacoes, evento_id, created_at, status'),
+      // Paginação explícita: o PostgREST corta em 1000 linhas por padrão.
+      // Sem isto, os contadores/etiquetas dos dashboards param de crescer ao bater 1000.
+      const [assetsData, candidatesData, membersData, slateData, leadersData, inscricoesData] = await Promise.all([
+        fetchAllRows<DbPoliticalAsset>(() => db.from('political_assets').select('*').is('deleted_at', null).order('name')),
+        fetchAllRows<any>(() => db.from('candidates').select('*').order('name')),
+        fetchAllRows<DbCampaignMember>(() => db.from('campaign_members').select('*').eq('status', 'ativo')),
+        fetchAllRows<any>(() => (db as any).from('party_slate_candidates').select('*').is('deleted_at', null).order('name')),
+        fetchAllRows<any>(() => (db as any).from('leaders').select('*').is('deleted_at', null).order('name')),
+        // inscricoes: não bloqueia o restante se falhar (ex.: usuário sem permissão)
+        fetchAllRows<any>(() => (db as any).from('inscricoes').select('id, nome, telefone, email, municipio, cargo_interesse, partido, observacoes, evento_id, created_at, status')).catch(() => [] as any[]),
       ]);
 
-      if (assetsRes.error) throw assetsRes.error;
-      if (candidatesRes.error) throw candidatesRes.error;
-      if (membersRes.error) throw membersRes.error;
-      if (slateRes.error) throw slateRes.error;
-      if (leadersRes.error) throw leadersRes.error;
-      // inscricoes: não bloqueia o restante se falhar (ex.: usuário sem permissão)
+      const assetsRes = { data: assetsData };
+      const candidatesRes = { data: candidatesData };
+      const membersRes = { data: membersData };
+      const slateRes = { data: slateData };
+      const leadersRes = { data: leadersData };
+      const inscricoesRes = { data: inscricoesData };
 
 
       const nativos: UnifiedAsset[] = ((assetsRes.data ?? []) as DbPoliticalAsset[]).map(a => ({
