@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag } from 'lucide-react';
+import { Settings, User, Star, Plus, Pencil, Trash2, CheckCircle, ShieldCheck, Tag, Upload, Loader2, X } from 'lucide-react';
 import { useCandidate, type Candidate } from '@/contexts/CandidateContext';
 import { LeadershipProfilesManager } from '@/components/leadership/LeadershipProfilesManager';
 import { UsersManager } from '@/components/settings/UsersManager';
@@ -66,6 +66,35 @@ export default function Configuracoes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activating, setActivating] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande (máx. 5MB)');
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${editingId ?? 'new'}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('candidate-photos')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('candidate-photos').getPublicUrl(path);
+      form.setValue('photo_url', data.publicUrl, { shouldValidate: true, shouldDirty: true });
+      toast.success('Foto carregada');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Falha ao enviar foto');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const form = useForm<CandidateForm>({
     resolver: zodResolver(candidateSchema),
@@ -363,9 +392,48 @@ export default function Configuracoes() {
                 <Label>Ano da eleição</Label>
                 <Input type="number" {...form.register('election_year')} />
               </div>
-              <div className="col-span-2 space-y-1.5">
-                <Label>URL da foto</Label>
-                <Input placeholder="https://..." {...form.register('photo_url')} />
+              <div className="col-span-2 space-y-2">
+                <Label>Foto do candidato</Label>
+                <div className="flex items-start gap-3">
+                  <div className="w-20 h-20 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center flex-shrink-0 relative">
+                    {form.watch('photo_url') ? (
+                      <>
+                        <img src={form.watch('photo_url')} alt="Prévia" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => form.setValue('photo_url', '', { shouldDirty: true })}
+                          className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5 hover:opacity-90"
+                          aria-label="Remover foto"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <User className="w-7 h-7 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex gap-2">
+                      <label className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border border-border bg-background hover:bg-accent cursor-pointer transition-colors">
+                        {uploadingPhoto ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        {uploadingPhoto ? 'Enviando...' : 'Fazer upload'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingPhoto}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handlePhotoUpload(f);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <span className="text-[11px] text-muted-foreground self-center">ou cole uma URL abaixo</span>
+                    </div>
+                    <Input placeholder="https://..." {...form.register('photo_url')} />
+                  </div>
+                </div>
               </div>
               <div className="col-span-2 space-y-1.5">
                 <Label>Biografia / contexto</Label>
