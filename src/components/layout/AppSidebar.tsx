@@ -12,6 +12,8 @@ import {
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserParty } from '@/hooks/useUserParty';
+import { useMyCampaignMembership } from '@/hooks/useMyCampaignMembership';
+import { ROLE_AREA_LABELS } from '@/types/database';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 
