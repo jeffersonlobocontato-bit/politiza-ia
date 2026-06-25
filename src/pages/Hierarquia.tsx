@@ -804,7 +804,7 @@ export default function Hierarquia() {
                             {isCentral && leadCards.length === 1 && peerCards.length > 0 ? (
                               <>
                                 <div className="grid grid-cols-1 max-w-md mx-auto mb-4">
-                                  {renderCard(leadCards[0], { lead: true, subtitle: 'Coordenador Geral' })}
+                                  {renderCard(leadCards[0], { lead: true, subtitle: leadCards[0]?.member?.role?.trim() || 'Coordenador Geral' })}
                                 </div>
                                 <div className="flex items-center gap-2 mb-3">
                                   <div className="flex-1 h-px" style={{ background: `${group.color}30` }} />
