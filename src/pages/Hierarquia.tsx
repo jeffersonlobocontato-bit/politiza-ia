@@ -258,6 +258,7 @@ export default function Hierarquia() {
       completion_rate: 0,
       status: form.status,
       observations: form.observations || null,
+      photo_url: form.photo_url || null,
       user_id: null as string | null,
       created_by: null as string | null,
     };
