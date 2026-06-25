@@ -254,7 +254,39 @@ export function useUnifiedPoliticalAssets() {
         source_label: 'PÚBLICO EVENTOS',
       }));
 
-      return [...nativos, ...candidatos, ...proporcionais, ...coords, ...leaders, ...publicoEventos];
+      // Prefeitos cadastrados na aba Municípios
+      const nativosKey = new Set(
+        nativos
+          .filter(n => n.type === 'prefeito')
+          .map(n => `${normalizeCity(n.name)}|${normalizeCity(n.municipality)}`)
+      );
+      const prefeitos: UnifiedAsset[] = ((municipalitiesData ?? []) as any[])
+        .filter(m => m.mayor_name && String(m.mayor_name).trim().length > 0)
+        .filter(m => !nativosKey.has(`${normalizeCity(m.mayor_name)}|${normalizeCity(m.name)}`))
+        .map(m => ({
+          id: `prefeito-mun:${m.id}`,
+          origin: 'coordenador' as UnifiedAssetOrigin,
+          source_id: m.id,
+          name: m.mayor_name,
+          type: 'prefeito' as UnifiedAssetType,
+          position: `Prefeito(a) de ${m.name}`,
+          municipality: m.name ?? null,
+          macroregion_id: macroFromCity(m.name),
+          influence_level: 9,
+          alignment_status: 'indefinido' as DbAlignmentStatus,
+          support_status: 'Prefeito em exercício',
+          phone: m.phone ?? null,
+          email: null,
+          observations: null,
+          lat: null,
+          lng: null,
+          readonly: true,
+          source_route: '/municipios',
+          source_label: 'via Municípios',
+        }));
+
+      return [...nativos, ...candidatos, ...proporcionais, ...coords, ...leaders, ...publicoEventos, ...prefeitos];
+
     },
   });
 }
