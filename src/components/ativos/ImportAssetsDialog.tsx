@@ -9,7 +9,8 @@ import { macroRegions } from '@/data/mockData';
 import type { DbAssetType, DbAlignmentStatus } from '@/types/database';
 
 const VALID_TYPES: DbAssetType[] = [
-  'prefeito','ex_prefeito','pretenso_prefeito','vereador','ex_vereador','pretenso_vereador',
+  'prefeito','vice_prefeito','ex_prefeito','pretenso_prefeito','vereador','ex_vereador','pretenso_vereador',
+  'deputado_estadual','deputado_federal',
   'lideranca_comunitaria','lideranca_empresarial','lideranca_religiosa',
   'presidente_entidade','influenciador_regional','coordenador_partidario',
 ];
