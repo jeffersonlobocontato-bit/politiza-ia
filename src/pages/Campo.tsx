@@ -87,7 +87,10 @@ export default function Campo() {
 
   const displayName = profile?.full_name?.trim() || user?.email || 'Operador de Campo';
   const initials = displayName.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
-  const roleLabel = roles[0] ? ROLE_LABELS[roles[0]] : 'Operador de Campo';
+  const { data: membership } = useMyCampaignMembership();
+  const functionLabel = membership?.role?.trim() || 'Integrante';
+  const areaLabel = roles[0] ? ROLE_AREA_LABELS[roles[0]] : 'Equipe de Campo';
+  const levelTag = membership?.hierarchy_level ? `Nível ${membership.hierarchy_level}` : null;
 
   return (
     <div className="min-h-full mn-font" style={{ background: 'linear-gradient(180deg,#0F1B2E 0%,#1A2A45 60%,#0F1B2E 100%)' }}>
