@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { db } from '@/lib/db';
+import { db, fetchAllRows } from '@/lib/db';
 import { useAuth } from '@/contexts/AuthContext';
 import type { DbPoliticalAsset } from '@/types/database';
 import { toast } from 'sonner';
@@ -8,13 +8,11 @@ export function usePoliticalAssets() {
   return useQuery({
     queryKey: ['political-assets'],
     queryFn: async () => {
-      const { data, error } = await db
-        .from('political_assets')
-        .select('*')
-        .is('deleted_at', null)
-        .order('name');
-      if (error) throw error;
-      return (data ?? []) as DbPoliticalAsset[];
+      // Paginado: o PostgREST corta em 1000 linhas e a base já passou desse total.
+      const rows = await fetchAllRows<DbPoliticalAsset>(() =>
+        db.from('political_assets').select('*').is('deleted_at', null).order('name'),
+      );
+      return rows;
     },
   });
 }
