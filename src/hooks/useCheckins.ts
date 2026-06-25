@@ -17,19 +17,19 @@ export interface DailyCheckin {
 
 const TABLE = 'daily_checkins' as const;
 
-function resolveCandidateId(scope: TaskScope, activeId: string | null): string | null {
+function resolveCandidateIds(scope: TaskScope, selectedIds: string[], isViewingAll: boolean): string[] | null {
   if (scope === 'all') return null;
-  if (scope === 'active') return activeId;
-  return scope;
+  if (scope === 'active') return isViewingAll ? null : selectedIds;
+  return [scope];
 }
 
 export function useTodayCheckins(scope: TaskScope = 'active') {
-  const { activeCandidate } = useCandidate();
-  const candidateId = resolveCandidateId(scope, activeCandidate?.id ?? null);
+  const { selectedCandidateIds, isViewingAll } = useCandidate();
+  const candidateIds = resolveCandidateIds(scope, selectedCandidateIds, isViewingAll);
   const today = new Date().toISOString().split('T')[0];
 
   return useQuery({
-    queryKey: ['checkins-today', scope, candidateId, today],
+    queryKey: ['checkins-today', scope, candidateIds, today],
     queryFn: async () => {
       let q = (supabase as any)
         .from(TABLE)
@@ -37,7 +37,8 @@ export function useTodayCheckins(scope: TaskScope = 'active') {
         .is('deleted_at', null)
         .eq('checkin_date', today)
         .order('created_at', { ascending: false });
-      if (candidateId) q = q.eq('candidate_id', candidateId);
+      if (candidateIds?.length === 1) q = q.eq('candidate_id', candidateIds[0]);
+      else if (candidateIds && candidateIds.length > 1) q = q.in('candidate_id', candidateIds);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as DailyCheckin[];
@@ -47,14 +48,14 @@ export function useTodayCheckins(scope: TaskScope = 'active') {
 }
 
 export function useWeekCheckins(scope: TaskScope = 'active') {
-  const { activeCandidate } = useCandidate();
-  const candidateId = resolveCandidateId(scope, activeCandidate?.id ?? null);
+  const { selectedCandidateIds, isViewingAll } = useCandidate();
+  const candidateIds = resolveCandidateIds(scope, selectedCandidateIds, isViewingAll);
   const since = new Date();
   since.setDate(since.getDate() - 7);
   const sinceStr = since.toISOString().split('T')[0];
 
   return useQuery({
-    queryKey: ['checkins-week', scope, candidateId],
+    queryKey: ['checkins-week', scope, candidateIds],
     queryFn: async () => {
       let q = (supabase as any)
         .from(TABLE)
@@ -62,7 +63,8 @@ export function useWeekCheckins(scope: TaskScope = 'active') {
         .is('deleted_at', null)
         .gte('checkin_date', sinceStr)
         .order('checkin_date', { ascending: false });
-      if (candidateId) q = q.eq('candidate_id', candidateId);
+      if (candidateIds?.length === 1) q = q.eq('candidate_id', candidateIds[0]);
+      else if (candidateIds && candidateIds.length > 1) q = q.in('candidate_id', candidateIds);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as DailyCheckin[];

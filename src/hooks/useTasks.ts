@@ -36,28 +36,29 @@ export interface CreateTaskInput {
 
 const TABLE = 'tasks' as const;
 
-/** Escopo: 'active' = candidato em foco; 'all' = todos visíveis (admin master); uuid = candidato específico */
+/** Escopo: 'active' = candidatos selecionados; 'all' = todos visíveis; uuid = candidato específico */
 export type TaskScope = string | 'active' | 'all';
 
-function resolveCandidateId(scope: TaskScope, activeId: string | null): string | null {
+function resolveCandidateIds(scope: TaskScope, selectedIds: string[], isViewingAll: boolean): string[] | null {
   if (scope === 'all') return null;
-  if (scope === 'active') return activeId;
-  return scope;
+  if (scope === 'active') return isViewingAll ? null : selectedIds;
+  return [scope];
 }
 
 export function useTasks(scope: TaskScope = 'active') {
-  const { activeCandidate } = useCandidate();
-  const candidateId = resolveCandidateId(scope, activeCandidate?.id ?? null);
+  const { selectedCandidateIds, isViewingAll } = useCandidate();
+  const candidateIds = resolveCandidateIds(scope, selectedCandidateIds, isViewingAll);
 
   return useQuery({
-    queryKey: ['tasks', scope, candidateId],
+    queryKey: ['tasks', scope, candidateIds],
     queryFn: async () => {
       let q = (supabase as any)
         .from(TABLE)
         .select('*')
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
-      if (candidateId) q = q.eq('candidate_id', candidateId);
+      if (candidateIds?.length === 1) q = q.eq('candidate_id', candidateIds[0]);
+      else if (candidateIds && candidateIds.length > 1) q = q.in('candidate_id', candidateIds);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as Task[];
