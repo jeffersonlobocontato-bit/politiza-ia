@@ -10,7 +10,7 @@ export type DbActionStatus = 'prevista' | 'confirmada' | 'em_andamento' | 'reali
 export type DbActionType = 'reuniao_politica' | 'visita_institucional' | 'mobilizacao_comunitaria' | 'adesivacao' | 'panfletagem' | 'carreata' | 'evento_regional' | 'agenda_candidato' | 'reuniao_empresarios' | 'encontro_liderancas' | 'acao_digital';
 export type DbPriorityLevel = 'critica' | 'alta' | 'media' | 'baixa';
 export type DbAlignmentStatus = 'alinhado' | 'provavel' | 'neutro' | 'oposicao' | 'indefinido';
-export type DbAssetType = 'prefeito' | 'ex_prefeito' | 'pretenso_prefeito' | 'vereador' | 'ex_vereador' | 'pretenso_vereador' | 'lideranca_comunitaria' | 'lideranca_empresarial' | 'lideranca_religiosa' | 'presidente_entidade' | 'influenciador_regional' | 'coordenador_partidario';
+export type DbAssetType = 'prefeito' | 'vice_prefeito' | 'ex_prefeito' | 'pretenso_prefeito' | 'vereador' | 'ex_vereador' | 'pretenso_vereador' | 'lideranca_comunitaria' | 'lideranca_empresarial' | 'lideranca_religiosa' | 'presidente_entidade' | 'influenciador_regional' | 'coordenador_partidario' | 'deputado_estadual' | 'deputado_federal';
 export type DbAlertLevel = 'critico' | 'atencao' | 'oportunidade' | 'info';
 export type DbAlertStatus = 'novo' | 'em_analise' | 'resolvido';
 
