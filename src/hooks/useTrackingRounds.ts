@@ -80,7 +80,6 @@ export function useTrackingRounds() {
   const interviewCountsQuery = useQuery({
     queryKey: ['tracking-interview-counts', activeCandidateIds, roundsQuery.data?.length ?? 0],
     queryFn: async () => {
-      if (!activeCandidate?.id) return {};
       const roundIds = roundsQuery.data?.map(r => r.id) || [];
       if (!roundIds.length) return {};
       const { data, error } = await (supabase as any)
