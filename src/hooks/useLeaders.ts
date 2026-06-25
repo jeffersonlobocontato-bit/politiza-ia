@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/contexts/AuthContext';
+import { fetchAllRows } from '@/lib/db';
 
 export interface Leader {
   id: string;
