@@ -88,6 +88,7 @@ interface MemberForm {
   supervisor_id: string;
   status: string;
   observations: string;
+  photo_url: string;
 }
 
 const emptyForm = (): MemberForm => ({
@@ -101,6 +102,7 @@ const emptyForm = (): MemberForm => ({
   supervisor_id: '',
   status: 'ativo',
   observations: '',
+  photo_url: '',
 });
 
 export default function Hierarquia() {
