@@ -254,15 +254,17 @@ export function useUnifiedPoliticalAssets() {
         source_label: 'PÚBLICO EVENTOS',
       }));
 
-      // Prefeitos cadastrados na aba Municípios
-      const nativosKey = new Set(
+      // Prefeitos cadastrados na aba Municípios — dedupe por cidade
+      // (cada município só pode ter um prefeito; se já existe um em political_assets, pula)
+      const citiesWithPrefeito = new Set(
         nativos
-          .filter(n => n.type === 'prefeito')
-          .map(n => `${normalizeCity(n.name)}|${normalizeCity(n.municipality)}`)
+          .filter(n => n.type === 'prefeito' && n.municipality)
+          .map(n => normalizeCity(n.municipality))
       );
       const prefeitos: UnifiedAsset[] = ((municipalitiesData ?? []) as any[])
         .filter(m => m.mayor_name && String(m.mayor_name).trim().length > 0)
-        .filter(m => !nativosKey.has(`${normalizeCity(m.mayor_name)}|${normalizeCity(m.name)}`))
+        .filter(m => !citiesWithPrefeito.has(normalizeCity(m.name)))
+
         .map(m => ({
           id: `prefeito-mun:${m.id}`,
           origin: 'coordenador' as UnifiedAssetOrigin,
