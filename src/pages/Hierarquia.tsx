@@ -239,6 +239,31 @@ export default function Hierarquia() {
     setShowForm(true);
   };
 
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) { toast.error('Selecione um arquivo de imagem'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Imagem muito grande (máx. 5MB)'); return; }
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `members/${editingId ?? 'new'}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('candidate-photos')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('candidate-photos').getPublicUrl(path);
+      setForm(prev => ({ ...prev, photo_url: data.publicUrl }));
+      toast.success('Foto carregada');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Falha ao enviar foto');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!form.name || !geoForm.city) return;
     const lvl = parseInt(form.hierarchy_level) as 1|2|3|4|5|6;
