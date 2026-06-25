@@ -43,7 +43,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [time, setTime] = useState(new Date());
   
   const { theme, setTheme } = useTheme();
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, roles, signOut } = useAuth();
+  const { data: membership } = useMyCampaignMembership();
+  const functionLabel = membership?.role?.trim() || 'Integrante';
+  const areaLabel = roles[0] ? ROLE_AREA_LABELS[roles[0]] : null;
+  const levelTag = membership?.hierarchy_level ? `Nível ${membership.hierarchy_level}` : null;
   const navigate = useNavigate();
 
   const displayName = profile?.full_name?.trim() || user?.email || 'Usuário';
