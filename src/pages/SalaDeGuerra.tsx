@@ -140,7 +140,7 @@ function AlertCard({ alert, onRead, onResolve }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SalaDeGuerra() {
   const navigate = useNavigate();
-  const { activeCandidate } = useCandidate();
+  const { activeCandidate, activeCandidates } = useCandidate();
   const { data: kpis, isLoading: kpisLoading, refetch: refetchKPIs } = useDashboardKPIs();
   const { data: alerts = [], isLoading: alertsLoading } = useAlerts();
   const { data: macroStats = {} } = useMacroStats();
@@ -158,6 +158,7 @@ export default function SalaDeGuerra() {
   const { party: userParty, isPartyManager } = useUserParty();
   const { data: slates = [] } = useAllPartySlates();
   const canSeeChapas = isAdmin || isPartyManager;
+  const activeCandidateIds = activeCandidates.map(c => c.id);
   const chapasSummary = (() => {
     const filtered = isAdmin ? slates : slates.filter(r => r.party === userParty);
     return {
@@ -171,13 +172,20 @@ export default function SalaDeGuerra() {
 
   // ── Tracking evolution data ──
   const trackingEvolutionQuery = useQuery({
-    queryKey: ['tracking-evolution-war-room', activeCandidate?.id],
+    queryKey: ['tracking-evolution-war-room', activeCandidateIds],
     queryFn: async () => {
-      if (!activeCandidate?.id) return { chartData: [], candidateNames: [] };
-      const { data, error } = await (supabase as any).rpc('get_tracking_evolution', {
-        p_candidate_id: activeCandidate.id,
-      });
-      if (error || !data) return { chartData: [], candidateNames: [] };
+      if (activeCandidateIds.length === 0) return { chartData: [], candidateNames: [] };
+
+      const results = await Promise.all(activeCandidateIds.map(async (candidateId) => {
+        const { data, error } = await (supabase as any).rpc('get_tracking_evolution', {
+          p_candidate_id: candidateId,
+        });
+        if (error || !data) return [];
+        return data as any[];
+      }));
+
+      const data = results.flat();
+      if (!data.length) return { chartData: [], candidateNames: [] };
       // data is array of { round_id, round_title, candidate, pct }
       const roundOrder: string[] = [];
       const roundMap: Record<string, Record<string, number>> = {};
@@ -198,7 +206,7 @@ export default function SalaDeGuerra() {
       }));
       return { chartData, candidateNames: Array.from(allNames) };
     },
-    enabled: !!activeCandidate?.id,
+    enabled: activeCandidateIds.length > 0,
   });
 
   const trackingEvolution = trackingEvolutionQuery.data ?? { chartData: [], candidateNames: [] };
@@ -364,10 +372,12 @@ export default function SalaDeGuerra() {
             <p className="text-xs text-muted-foreground">
               {activeCandidate
                 ? `Campanha ${activeCandidate.cargo} — ${activeCandidate.name} · ${activeCandidate.party} · ${activeCandidate.state} ${activeCandidate.election_year}`
-                : 'Dashboard Executivo — Nenhum candidato ativo'}
+                : activeCandidates.length > 1
+                  ? `Dashboard Executivo — Visão consolidada (${activeCandidates.length} candidatos)`
+                  : 'Dashboard Executivo — Nenhum candidato ativo'}
             </p>
           </div>
-          {activeCandidate && (
+          {activeCandidate ? (
             <div className="flex items-center gap-2 ml-2 px-3 py-1.5 rounded-lg border border-primary/30" style={{ background: 'hsl(var(--primary) / 0.06)' }}>
               <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {activeCandidate.photo_url
@@ -376,7 +386,12 @@ export default function SalaDeGuerra() {
               </div>
               <span className="text-xs font-semibold text-primary">{activeCandidate.name}</span>
             </div>
-          )}
+          ) : activeCandidates.length > 1 ? (
+            <div className="flex items-center gap-2 ml-2 px-3 py-1.5 rounded-lg border border-primary/30" style={{ background: 'hsl(var(--primary) / 0.06)' }}>
+              <Users className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-semibold text-primary">{activeCandidates.map(c => c.name).join(' + ')}</span>
+            </div>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <button

@@ -74,11 +74,19 @@ function readStoredSelection(): string[] {
 }
 
 export function CandidateProvider({ children }: { children: ReactNode }) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [scopedCandidateIds, setScopedCandidateIds] = useState<string[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(() => readStoredSelection());
   const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  const persistSelection = useCallback((ids: string[]) => {
+    try {
+      if (ids.length === 0) localStorage.removeItem(STORAGE_KEY);
+      else localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    } catch { /* noop */ }
+  }, []);
 
   const fetchCandidates = useCallback(async () => {
     try {
@@ -93,7 +101,7 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchScope = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?.id || isAdmin) {
       setScopedCandidateIds([]);
       return;
     }
@@ -106,15 +114,19 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
     } catch {
       setScopedCandidateIds([]);
     }
-  }, [user?.id]);
+  }, [user?.id, isAdmin]);
 
   useEffect(() => {
+    if (authLoading) return;
+
+    let cancelled = false;
     (async () => {
-      setLoading(true);
+      setDataLoading(true);
       await Promise.all([fetchCandidates(), fetchScope()]);
-      setLoading(false);
+      if (!cancelled) setDataLoading(false);
     })();
-  }, [fetchCandidates, fetchScope]);
+    return () => { cancelled = true; };
+  }, [authLoading, fetchCandidates, fetchScope]);
 
   const hasFullAccess = isAdmin || scopedCandidateIds.length === 0;
 
@@ -125,26 +137,33 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
     return list.filter(c => c.is_active);
   }, [candidates, scopedCandidateIds, hasFullAccess]);
 
-  // Para usuário com escopo, força filtro a um dos vinculados
+  useEffect(() => {
+    setLoading(authLoading || dataLoading);
+  }, [authLoading, dataLoading]);
+
+  // Para usuário com escopo, mantém apenas IDs permitidos. Lista vazia = todos os vinculados.
   useEffect(() => {
     if (loading || candidates.length === 0) return;
     if (!hasFullAccess) {
       const allowedIds = new Set(allActiveCandidates.map(c => c.id));
       const filtered = selectedIds.filter(id => allowedIds.has(id));
-      if (filtered.length === 0 && allActiveCandidates.length > 0) {
-        setSelectedIds([allActiveCandidates[0].id]);
-      } else if (filtered.length !== selectedIds.length) {
+      if (filtered.length !== selectedIds.length) {
         setSelectedIds(filtered);
+        persistSelection(filtered);
       }
     }
-  }, [loading, candidates, allActiveCandidates, hasFullAccess, selectedIds]);
+  }, [loading, candidates, allActiveCandidates, hasFullAccess, selectedIds, persistSelection]);
 
-  const persistSelection = useCallback((ids: string[]) => {
-    try {
-      if (ids.length === 0) localStorage.removeItem(STORAGE_KEY);
-      else localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    } catch { /* noop */ }
-  }, []);
+  // Normaliza seleção "todos marcados" para o modo consolidado real.
+  useEffect(() => {
+    if (loading || !hasFullAccess || allActiveCandidates.length === 0) return;
+    if (selectedIds.length === allActiveCandidates.length) {
+      setSelectedIds([]);
+      persistSelection([]);
+    }
+    // Executa apenas quando o escopo inicial termina de carregar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, hasFullAccess, allActiveCandidates.length]);
 
   const setActive = useCallback((id: string | null) => {
     const next = id ? [id] : [];
@@ -153,9 +172,12 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
   }, [persistSelection]);
 
   const setSelectedCandidateIds = useCallback((ids: string[]) => {
-    setSelectedIds(ids);
-    persistSelection(ids);
-  }, [persistSelection]);
+    const allowed = new Set(allActiveCandidates.map(c => c.id));
+    const next = ids.filter((id, index) => allowed.has(id) && ids.indexOf(id) === index);
+    const normalized = next.length === allActiveCandidates.length ? [] : next;
+    setSelectedIds(normalized);
+    persistSelection(normalized);
+  }, [allActiveCandidates, persistSelection]);
 
   const toggleActive = useCallback(async (id: string, active: boolean) => {
     setCandidates(prev => prev.map(c => c.id === id ? { ...c, is_active: active } : c));

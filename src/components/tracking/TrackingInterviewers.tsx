@@ -13,9 +13,10 @@ import { UserPlus, Users, Mail, Phone, MapPin, Trash2, Shield } from 'lucide-rea
 import { useToast } from '@/hooks/use-toast';
 
 export function TrackingInterviewers() {
-  const { activeCandidate } = useCandidate();
+  const { activeCandidate, activeCandidates } = useCandidate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const activeCandidateIds = activeCandidates.map(c => c.id);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,22 +25,28 @@ export function TrackingInterviewers() {
   const [city, setCity] = useState('');
 
   const { data: interviewers = [], isLoading } = useQuery({
-    queryKey: ['tracking-interviewers', activeCandidate?.id],
+    queryKey: ['tracking-interviewers', activeCandidateIds],
     queryFn: async () => {
-      if (!activeCandidate?.id) return [];
-      const { data, error } = await (supabase as any)
+      if (!activeCandidateIds.length) return [];
+      let q = (supabase as any)
         .from('tracking_interviewers')
         .select('*')
-        .eq('candidate_id', activeCandidate.id)
         .order('created_at', { ascending: false });
+
+      q = activeCandidateIds.length === 1
+        ? q.eq('candidate_id', activeCandidateIds[0])
+        : q.in('candidate_id', activeCandidateIds);
+
+      const { data, error } = await q;
       if (error) throw error;
       return data || [];
     },
-    enabled: !!activeCandidate?.id,
+    enabled: activeCandidateIds.length > 0,
   });
 
   const createInterviewer = useMutation({
     mutationFn: async () => {
+      if (!activeCandidate?.id) throw new Error('Selecione apenas um candidato para cadastrar entrevistador.');
       const { data, error } = await supabase.functions.invoke('create-interviewer', {
         body: {
           email: email.trim(),

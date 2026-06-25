@@ -51,28 +51,34 @@ function generateShareCode(): string {
 
 export function useTrackingRounds() {
   const { user } = useAuth();
-  const { activeCandidate } = useCandidate();
+  const { activeCandidate, activeCandidates } = useCandidate();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const activeCandidateIds = activeCandidates.map(c => c.id);
 
   const roundsQuery = useQuery({
-    queryKey: ['tracking-rounds', activeCandidate?.id],
+    queryKey: ['tracking-rounds', activeCandidateIds],
     queryFn: async () => {
-      if (!activeCandidate?.id) return [];
-      const { data, error } = await (supabase as any)
+      if (!activeCandidateIds.length) return [];
+      let q = (supabase as any)
         .from('tracking_rounds')
         .select('*')
-        .eq('candidate_id', activeCandidate.id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
+
+      q = activeCandidateIds.length === 1
+        ? q.eq('candidate_id', activeCandidateIds[0])
+        : q.in('candidate_id', activeCandidateIds);
+
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as TrackingRound[];
     },
-    enabled: !!activeCandidate?.id,
+    enabled: activeCandidateIds.length > 0,
   });
 
   const interviewCountsQuery = useQuery({
-    queryKey: ['tracking-interview-counts', activeCandidate?.id],
+    queryKey: ['tracking-interview-counts', activeCandidateIds, roundsQuery.data?.length ?? 0],
     queryFn: async () => {
       if (!activeCandidate?.id) return {};
       const roundIds = roundsQuery.data?.map(r => r.id) || [];
