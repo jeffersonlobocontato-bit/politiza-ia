@@ -88,7 +88,7 @@ export function useUnifiedPoliticalAssets() {
     queryFn: async (): Promise<UnifiedAsset[]> => {
       // Paginação explícita: o PostgREST corta em 1000 linhas por padrão.
       // Sem isto, os contadores/etiquetas dos dashboards param de crescer ao bater 1000.
-      const [assetsData, candidatesData, membersData, slateData, leadersData, inscricoesData] = await Promise.all([
+      const [assetsData, candidatesData, membersData, slateData, leadersData, inscricoesData, municipalitiesData] = await Promise.all([
         fetchAllRows<DbPoliticalAsset>(() => db.from('political_assets').select('*').is('deleted_at', null).order('name')),
         fetchAllRows<any>(() => db.from('candidates').select('*').order('name')),
         fetchAllRows<DbCampaignMember>(() => db.from('campaign_members').select('*').eq('status', 'ativo')),
@@ -96,7 +96,9 @@ export function useUnifiedPoliticalAssets() {
         fetchAllRows<any>(() => (db as any).from('leaders').select('*').is('deleted_at', null).order('name')),
         // inscricoes: não bloqueia o restante se falhar (ex.: usuário sem permissão)
         fetchAllRows<any>(() => (db as any).from('inscricoes').select('id, nome, telefone, email, municipio, cargo_interesse, partido, observacoes, evento_id, created_at, status')).catch(() => [] as any[]),
+        fetchAllRows<any>(() => (db as any).from('municipalities').select('id, name, mayor_name, phone').not('mayor_name', 'is', null)),
       ]);
+
 
       const assetsRes = { data: assetsData };
       const candidatesRes = { data: candidatesData };
