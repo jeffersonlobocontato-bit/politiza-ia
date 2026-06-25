@@ -417,6 +417,58 @@ export default function Hierarquia() {
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
+                <label className="text-xs text-muted-foreground block mb-2">Foto do membro</label>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-16 h-16 rounded-full bg-muted overflow-hidden flex-shrink-0 border border-border">
+                    {form.photo_url ? (
+                      <>
+                        <img src={form.photo_url} alt="Prévia" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, photo_url: '' }))}
+                          className="absolute top-0 right-0 p-0.5 rounded-bl bg-background/80 hover:bg-destructive/20"
+                          aria-label="Remover foto"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground font-bold">
+                        {(form.name || '?').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => photoInputRef.current?.click()}
+                        disabled={uploadingPhoto}
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-input bg-background hover:bg-accent text-xs font-medium disabled:opacity-50"
+                      >
+                        {uploadingPhoto ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        {uploadingPhoto ? 'Enviando...' : 'Fazer upload'}
+                      </button>
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingPhoto}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ''; }}
+                      />
+                      <span className="text-[10px] text-muted-foreground">JPG/PNG até 5MB</span>
+                    </div>
+                    <input
+                      value={form.photo_url}
+                      onChange={e => setForm(prev => ({ ...prev, photo_url: e.target.value }))}
+                      placeholder="ou cole uma URL https://..."
+                      className="w-full h-8 rounded-lg border border-input bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground block mb-1">Nome Completo *</label>
                 <input value={form.name} onChange={e => updateForm('name', e.target.value)} placeholder="Nome do membro" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
