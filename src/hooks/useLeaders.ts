@@ -78,13 +78,14 @@ export function useLeaders(filters?: { macroregion_id?: string; municipality?: s
   return useQuery<Leader[]>({
     queryKey: [LEADERS_KEY, filters],
     queryFn: async () => {
-      let q = (supabase as any).from('leaders').select('*').order('name');
-      if (filters?.macroregion_id) q = q.eq('macroregion_id', filters.macroregion_id);
-      if (filters?.municipality) q = q.eq('municipality', filters.municipality);
-      if (filters?.status) q = q.eq('status', filters.status);
-      const { data, error } = await q;
-      if (error) throw error;
-      return data ?? [];
+      const rows = await fetchAllRows<Leader>(() => {
+        let q = (supabase as any).from('leaders').select('*').order('name');
+        if (filters?.macroregion_id) q = q.eq('macroregion_id', filters.macroregion_id);
+        if (filters?.municipality) q = q.eq('municipality', filters.municipality);
+        if (filters?.status) q = q.eq('status', filters.status);
+        return q;
+      });
+      return rows;
     },
   });
 }
