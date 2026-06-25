@@ -2,7 +2,7 @@
 // Cada item retorna pronto para plotagem.
 
 import { useQuery } from '@tanstack/react-query';
-import { db } from '@/lib/db';
+import { db, fetchAllRows } from '@/lib/db';
 import { resolveGeo, type GeoSource, type ResolvedPoint } from '@/lib/geo';
 
 export interface GeoLead {
@@ -15,10 +15,9 @@ export interface GeoLead {
   raw: any;
 }
 
+// Paginação real (o PostgREST corta em 1000 linhas; o antigo `.limit(2000)` ainda truncava).
 async function fetchAll<T>(table: string, columns: string): Promise<T[]> {
-  const { data, error } = await (db as any).from(table).select(columns).limit(2000);
-  if (error) throw error;
-  return (data ?? []) as T[];
+  return fetchAllRows<T>(() => (db as any).from(table).select(columns));
 }
 
 export function useGeoLeads(enabled: { [K in GeoSource]?: boolean } = {
