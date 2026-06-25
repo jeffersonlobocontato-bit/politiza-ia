@@ -6,6 +6,8 @@ import { Clock, Sun, Moon, LogOut, Menu } from 'lucide-react';
 
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMyCampaignMembership } from '@/hooks/useMyCampaignMembership';
+import { ROLE_AREA_LABELS } from '@/types/database';
 import {
   DropdownMenu,
   DropdownMenuContent,
