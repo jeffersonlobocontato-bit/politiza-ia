@@ -3145,6 +3145,9 @@ export type Database = {
         | "presidente_entidade"
         | "influenciador_regional"
         | "coordenador_partidario"
+        | "vice_prefeito"
+        | "deputado_estadual"
+        | "deputado_federal"
       emenda_faixa:
         | "f1_micro"
         | "f2_pequena"
@@ -3383,6 +3386,9 @@ export const Constants = {
         "presidente_entidade",
         "influenciador_regional",
         "coordenador_partidario",
+        "vice_prefeito",
+        "deputado_estadual",
+        "deputado_federal",
       ],
       emenda_faixa: [
         "f1_micro",
