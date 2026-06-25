@@ -36,7 +36,8 @@ for(const f of geo.features){
   rows.push({ name, lat, lng });
 }
 
-const values = rows.map(r => `(${JSON.stringify(norm(r.name))},${r.lat},${r.lng})`).join(',\n');
+const esc = s => s.replace(/'/g, "''");
+const values = rows.map(r => `('${esc(norm(r.name))}',${r.lat},${r.lng})`).join(',\n');
 const sql = `UPDATE public.political_assets pa
 SET lat = c.lat, lng = c.lng
 FROM (VALUES
