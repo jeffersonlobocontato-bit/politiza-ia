@@ -1,5 +1,7 @@
-import { useState, Fragment, useMemo, useEffect } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
+import { useState, Fragment, useMemo, useEffect, useRef } from 'react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { useCampaignMembers, useCreateMember, useUpdateMember, useDeleteMember } from '@/hooks/useCampaignMembers';
