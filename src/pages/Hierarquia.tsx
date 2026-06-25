@@ -777,8 +777,12 @@ export default function Hierarquia() {
                                     </button>
                                   </div>
                                   <div className={`flex items-center gap-3 mb-1 pr-12 ${hasSubs ? 'pl-5' : ''}`}>
-                                    <div className={`${opts?.lead ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm'} rounded-full flex items-center justify-center font-bold flex-shrink-0`} style={{ backgroundColor: `${group.color}20`, color: group.color }}>
-                                      {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                    <div className={`${opts?.lead ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm'} rounded-full flex items-center justify-center font-bold flex-shrink-0 overflow-hidden`} style={{ backgroundColor: `${group.color}20`, color: group.color }}>
+                                      {member.photo_url ? (
+                                        <img src={member.photo_url} alt={member.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+                                      )}
                                     </div>
                                     <div className="min-w-0">
                                       <div className={`${opts?.lead ? 'text-base' : 'text-sm'} font-semibold text-foreground truncate`}>{member.name}</div>
@@ -818,8 +822,12 @@ export default function Hierarquia() {
                                       <div className="space-y-1.5">
                                         {team.map(t => (
                                           <div key={t.id} className="flex items-center gap-2 group/team rounded-md hover:bg-accent/30 p-1 -ml-1" onClick={(e) => e.stopPropagation()}>
-                                            <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0" style={{ backgroundColor: `${group.color}20`, color: group.color }}>
-                                              {t.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                            <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0 overflow-hidden" style={{ backgroundColor: `${group.color}20`, color: group.color }}>
+                                              {t.photo_url ? (
+                                                <img src={t.photo_url} alt={t.name} className="w-full h-full object-cover" />
+                                              ) : (
+                                                t.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                                              )}
                                             </div>
                                             <div className="min-w-0 flex-1">
                                               <div className="text-xs font-semibold text-foreground truncate">{t.name}</div>
@@ -926,8 +934,12 @@ export default function Hierarquia() {
                                 </button>
                               </div>
                               <div className="flex items-center gap-3 mb-2 pr-12">
-                                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
-                                  {m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 overflow-hidden" style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
+                                  {m.photo_url ? (
+                                    <img src={m.photo_url} alt={m.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+                                  )}
                                 </div>
                                 <div className="min-w-0">
                                   <div className="text-sm font-semibold text-foreground truncate">{m.name}</div>
@@ -997,8 +1009,12 @@ export default function Hierarquia() {
                         </button>
                       </div>
                       <div className="flex items-center gap-3 mb-3 pr-16">
-                        <div className={`${opts?.highlight ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm'} rounded-full flex items-center justify-center font-bold flex-shrink-0`} style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
-                          {m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                        <div className={`${opts?.highlight ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm'} rounded-full flex items-center justify-center font-bold flex-shrink-0 overflow-hidden`} style={{ backgroundColor: `${LEVEL_COLORS[level]}20`, color: LEVEL_COLORS[level] }}>
+                          {m.photo_url ? (
+                            <img src={m.photo_url} alt={m.name} className="w-full h-full object-cover" />
+                          ) : (
+                            m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+                          )}
                         </div>
                         <div className="min-w-0">
                           <div className={`${opts?.highlight ? 'text-base' : 'text-sm'} font-semibold text-foreground truncate`}>{m.name}</div>
