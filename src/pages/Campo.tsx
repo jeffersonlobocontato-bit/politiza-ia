@@ -151,8 +151,21 @@ export default function Campo() {
           />
           <div className="min-w-0 flex-1">
             <div className="text-sm font-bold text-white truncate">{displayName}</div>
-            <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: '#5BE0A0' }}>
-              {roleLabel}
+            <div className="text-[12px] font-semibold text-white/85 truncate mt-0.5">
+              {functionLabel}
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+              <span
+                className="inline-flex items-center text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full"
+                style={{ borderColor: 'rgba(91,224,160,0.35)', border: '1px solid', color: '#5BE0A0', background: 'rgba(47,168,90,0.08)' }}
+              >
+                {areaLabel}
+              </span>
+              {levelTag && (
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-white/55">
+                  · {levelTag}
+                </span>
+              )}
             </div>
           </div>
           <button
