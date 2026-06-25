@@ -67,7 +67,11 @@ export function AppSidebar() {
   };
   const location = useLocation();
   const { activeCandidate, campaignType, activeCandidates, allActiveCandidates, hasFullAccess, isViewingAll, selectedCandidateIds, setActive, setSelectedCandidateIds } = useCandidate();
-  const { isAdmin, roles } = useAuth();
+  const { isAdmin, roles, profile } = useAuth();
+  const { data: membership } = useMyCampaignMembership();
+  const userFunctionLabel = membership?.role?.trim() || 'Integrante';
+  const userAreaLabel = roles[0] ? ROLE_AREA_LABELS[roles[0]] : null;
+  const userLevelTag = membership?.hierarchy_level ? `Nível ${membership.hierarchy_level}` : null;
   const { isPartyManager } = useUserParty();
 
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
