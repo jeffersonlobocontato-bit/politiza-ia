@@ -1,45 +1,46 @@
 ## Problema
 
-No card do usuário em `/campo`, abaixo do nome aparece **"COORDENADOR GERAL"**, que vem de `ROLE_LABELS[roles[0]]` — ou seja, é o **nível de acesso do sistema** (`coordenador_geral`). Isso passa a impressão de que o Zé Elias é *o* Coordenador Geral da campanha, quando na verdade ele **integra a Coordenação Geral** com uma função específica atribuída no cadastro dele (`campaign_members.role`, ex.: "Estratégia Digital", "Mobilização", etc.).
+Já corrigimos o card de identidade em `/campo` (linha 2 = função do `campaign_members.role`, chip = área/tier). Mas a identificação do usuário no resto da plataforma (header global e rodapé do sidebar) **não usa** essa função. Hoje:
 
-## Diagnóstico
+- **Header (AppLayout)** — dropdown do avatar mostra só nome + e-mail, sem indicar que o Zé Elias está na Coordenação Geral com função "Coordenação Operacional / Eventos".
+- **Sidebar (AppSidebar)** — o rodapé mostra apenas o candidato ativo, nada sobre o usuário logado.
 
-- Tabela `campaign_members` já tem a coluna `role` (função específica) + `hierarchy_level` (tier).
-- O componente `Campo.tsx` (linhas 89, 150-152) só lê `roles[0]` do `AuthContext` e exibe o rótulo do tier, sem buscar o `campaign_members` do usuário.
-- Mesmo padrão pode aparecer em outras telas (sidebar, header), mas a queixa é o card do `/campo`.
+Resultado: em qualquer tela que não seja `/campo`, não fica claro que o Zé Elias integra a Coordenação Geral com uma função específica — e onde aparece algo (Hierarquia, lead da Coordenação Central) o subtítulo "Coordenador Geral" é hardcoded e dá a entender que ele é *o* coordenador titular.
 
-## Formato sugerido (recomendado)
+Confirmado no banco:
+- `profiles`: Zé Elias, role de sistema `coordenador_geral`.
+- `campaign_members`: `role = "Coordenação Operacional / Eventos"`, `hierarchy_level = 2`, casado por email pelo RPC `get_my_campaign_member` (já testado, retorna o registro correto).
 
-Reorganizar o bloco de identidade em **3 linhas**, deixando claro o que é função e o que é área:
+## Solução
 
-```text
-┌─────────────────────────────────────────────┐
-│ [avatar]  Zé Elias                          │
-│           Estratégia Digital                │  ← função (campaign_members.role)
-│           [chip] Coordenação Geral · Nível 1│  ← área/tier do sistema
-└─────────────────────────────────────────────┘
+Reaproveitar o `useMyCampaignMembership()` e o mapa `ROLE_AREA_LABELS` já criados na correção anterior, propagando o mesmo padrão de 2 linhas em mais 2 pontos:
+
+### 1. `src/components/layout/AppLayout.tsx` — dropdown do avatar
+Atualizar o `DropdownMenuLabel` (linhas 107-111) para 3 linhas:
+
+```
+Zé Elias                                    ← profile.full_name (semibold)
+Coordenação Operacional / Eventos           ← membership.role  (xs, primary)
+[chip] Coordenação Geral · Nível 2          ← ROLE_AREA_LABELS + level
+zeelias@usa.net                             ← email (xs, muted)
 ```
 
-Regras:
-- **Linha 1** — `profile.full_name` (negrito, branco).
-- **Linha 2** — função específica do `campaign_members.role` do usuário logado (verde mint, peso médio). Se o usuário não tiver registro em `campaign_members`, oculta a linha.
-- **Linha 3** — chip discreto com a **área/tier** vinda de `ROLE_LABELS` mas reescrita como área ("Coordenação Geral", "Coordenação Estadual", "Coordenação Macrorregional" etc.), nunca mais como cargo individual. Inclui "Nível N" quando disponível.
-- Sem `campaign_members.role` cadastrado → linha 2 vira `"Integrante"` e o chip continua como "Coordenação Geral".
+- Sem `membership?.role` → linha 2 vira "Integrante".
+- Sem hit em `campaign_members` → omite o "Nível N".
 
-## Implementação técnica
+### 2. `src/components/layout/AppSidebar.tsx` — rodapé
+Adicionar acima do bloco do candidato ativo (linha 152) um mini-card de identidade do usuário com a mesma estrutura: nome + função + chip de área. Visível só quando o sidebar não está colapsado e quando há `profile`.
 
-1. **Hook novo** `useMyCampaignMembership()` em `src/hooks/useMyCampaignMembership.ts`:
-   - Query TanStack em `campaign_members` filtrando `user_id = auth.uid()`.
-   - Retorna `{ role, hierarchy_level, municipality, macroregion_id }`.
-2. **`src/types/database.ts`** — adicionar mapa `ROLE_AREA_LABELS` que traduz cada `app_role` para a forma "área" (ex.: `coordenador_geral` → `"Coordenação Geral"`).
-3. **`src/pages/Campo.tsx`** (bloco linhas 148-153):
-   - Substituir o `roleLabel` único por:
-     - `functionLabel` = `membership?.role ?? 'Integrante'`
-     - `areaLabel` = `ROLE_AREA_LABELS[roles[0]]`
-   - Renderizar conforme o layout acima (chip pequeno com borda mint suave para a área).
-4. Sem alteração de schema, sem alteração de RLS, sem mudar nenhum outro card além do `/campo`.
+### 3. `src/pages/Hierarquia.tsx` — subtítulo do lead da Coordenação Central
+Hoje (linha 807) renderiza `subtitle: 'Coordenador Geral'` fixo no card lead da Coordenação Central. Trocar por:
+
+- Se o `campaign_members.role` do próprio card existir → usar `role` dele.
+- Senão → manter "Coordenador Geral".
+
+Isso evita que qualquer membro lead da Coordenação Central apareça rotulado como "Coordenador Geral".
 
 ## Fora de escopo
 
-- Sidebar/header globais (mesmo problema pode existir, mas a queixa é o card do Campo).
-- Edição do `campaign_members.role` — gerenciado na tela de Hierarquia, sem mudança aqui.
+- Mudanças de schema, RLS ou no RPC `get_my_campaign_member` (já funcionam).
+- Outras telas além de AppLayout, AppSidebar e o card-lead da Hierarquia.
+- Edição da função do `campaign_members` (já feita na tela de Hierarquia).
