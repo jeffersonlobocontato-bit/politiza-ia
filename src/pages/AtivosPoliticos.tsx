@@ -29,11 +29,14 @@ const ALIGNMENT_LABELS: Record<DbAlignmentStatus, string> = {
 
 const ASSET_TYPES: { value: DbAssetType; label: string }[] = [
   { value: 'prefeito',               label: 'Prefeito' },
+  { value: 'vice_prefeito',          label: 'Vice-Prefeito' },
   { value: 'ex_prefeito',            label: 'Ex-Prefeito' },
   { value: 'pretenso_prefeito',      label: 'Pretenso Prefeito' },
   { value: 'vereador',               label: 'Vereador' },
   { value: 'ex_vereador',            label: 'Ex-Vereador' },
   { value: 'pretenso_vereador',      label: 'Pretenso Vereador' },
+  { value: 'deputado_estadual',      label: 'Deputado Estadual' },
+  { value: 'deputado_federal',       label: 'Deputado Federal' },
   { value: 'lideranca_comunitaria',  label: 'Liderança Comunitária' },
   { value: 'lideranca_empresarial',  label: 'Liderança Empresarial' },
   { value: 'lideranca_religiosa',    label: 'Liderança Religiosa' },
