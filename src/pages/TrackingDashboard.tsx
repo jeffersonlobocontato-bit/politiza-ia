@@ -532,7 +532,7 @@ function TrackingTabsSection({ activeTab, setActiveTab, rounds, isLoading, inter
 
   // Load all interviews — paginated to overcome 1000-row limit
   const { data: allInterviews = [] } = useQuery({
-    queryKey: ['tracking-all-interviews', activeCandidate?.id, rounds.length],
+    queryKey: ['tracking-all-interviews', rounds.map((r: any) => r.id)],
     queryFn: async () => {
       const roundIds = rounds.map((r: any) => r.id);
       if (!roundIds.length) return [];
