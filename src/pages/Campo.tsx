@@ -6,7 +6,8 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useCandidate } from '@/contexts/CandidateContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ROLE_LABELS } from '@/types/database';
+import { ROLE_AREA_LABELS } from '@/types/database';
+import { useMyCampaignMembership } from '@/hooks/useMyCampaignMembership';
 import { toast } from 'sonner';
 
 const tools = [
