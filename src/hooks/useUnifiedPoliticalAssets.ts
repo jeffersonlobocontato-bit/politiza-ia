@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { db, fetchAllRows } from '@/lib/db';
 import { municipalities as mockMunicipalities } from '@/data/mockData';
+import { PR_CITY_TO_MACRO } from '@/data/prCityMacro';
 
 import type { DbPoliticalAsset, DbAssetType, DbAlignmentStatus, DbCampaignMember } from '@/types/database';
 
@@ -12,6 +13,7 @@ const normalizeCity = (s: string | null | undefined) =>
     .replace(/[^a-z0-9]/g, '')
     .trim();
 
+// Mock-based fallback (cobre apenas ~22 cidades); o lookup principal usa PR_CITY_TO_MACRO (399 municípios IBGE).
 const CITY_TO_MACRO: Record<string, string> = mockMunicipalities.reduce((acc, m) => {
   acc[normalizeCity(m.name)] = m.macroregion;
   acc[normalizeCity(m.id)] = m.macroregion;
@@ -20,7 +22,8 @@ const CITY_TO_MACRO: Record<string, string> = mockMunicipalities.reduce((acc, m)
 
 function macroFromCity(city: string | null | undefined): string | null {
   if (!city) return null;
-  return CITY_TO_MACRO[normalizeCity(city)] ?? null;
+  const key = normalizeCity(city);
+  return PR_CITY_TO_MACRO[key] ?? CITY_TO_MACRO[key] ?? null;
 }
 
 export type UnifiedAssetOrigin = 'nativo' | 'candidato' | 'coordenador' | 'evento';
