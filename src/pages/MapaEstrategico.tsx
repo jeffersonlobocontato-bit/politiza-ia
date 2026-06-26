@@ -66,7 +66,7 @@ export default function MapaEstrategico() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <Map className="w-5 h-5 text-primary" />
+          <MapIcon className="w-5 h-5 text-primary" />
           <div>
             <h1 className="text-base font-bold text-foreground">Mapa Estratégico</h1>
             <p className="text-xs text-muted-foreground">
