@@ -17,7 +17,7 @@ interface Props {
   hiddenFamilies?: Set<AssetFamily>;
 }
 
-export function LeadsLayer({ leads, radius = 5 }: Props) {
+export function LeadsLayer({ leads, radius = 5, hiddenFamilies }: Props) {
   const { data: macros = [] } = useMacroRegionsDB();
   const macroMap = useMemo(() => {
     const m = new Map<string, string>();
