@@ -15,9 +15,10 @@ interface Props {
   leads: GeoLead[];
   radius?: number;
   hiddenFamilies?: Set<AssetFamily>;
+  hiddenTypes?: Set<string>;
 }
 
-export function LeadsLayer({ leads, radius = 5, hiddenFamilies }: Props) {
+export function LeadsLayer({ leads, radius = 5, hiddenFamilies, hiddenTypes }: Props) {
   const { data: macros = [] } = useMacroRegionsDB();
   const macroMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -57,8 +58,10 @@ export function LeadsLayer({ leads, radius = 5, hiddenFamilies }: Props) {
   return (
     <>
       {leads.map(l => {
-        const tMeta = typeMeta(geoLeadType(l.source, l.raw));
+        const t = geoLeadType(l.source, l.raw);
+        const tMeta = typeMeta(t);
         if (hiddenFamilies?.has(tMeta.family)) return null;
+        if (hiddenTypes?.has(t)) return null;
         const sourceMeta = SOURCE_META[l.source];
         const regions = resolveRegions(l);
         return (
