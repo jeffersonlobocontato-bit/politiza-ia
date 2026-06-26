@@ -305,13 +305,21 @@ export default function MapaEstrategico() {
                           {FAMILY_META[fam].label}
                         </button>
                         <div className={`mt-1 space-y-0.5 ${hidden ? 'opacity-30' : ''}`}>
-                          {items.map(({ t, n, meta }) => (
-                            <div key={t} className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: meta.color }} />
-                              <span className="text-[10px] text-foreground truncate">{meta.label}</span>
-                              <span className="text-[10px] text-muted-foreground tabular-nums ml-auto">{n}</span>
-                            </div>
-                          ))}
+                          {items.map(({ t, n, meta }) => {
+                            const typeHidden = hiddenTypes.has(t);
+                            return (
+                              <button
+                                key={t}
+                                onClick={() => toggleType(t)}
+                                className={`w-full flex items-center gap-2 text-left transition-opacity ${typeHidden ? 'opacity-40 line-through' : 'opacity-100'}`}
+                                title={typeHidden ? 'Mostrar tipo' : 'Ocultar tipo'}
+                              >
+                                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: meta.color }} />
+                                <span className="text-[10px] text-foreground truncate">{meta.label}</span>
+                                <span className="text-[10px] text-muted-foreground tabular-nums ml-auto">{n}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     );
