@@ -228,8 +228,11 @@ export default function SalaDeGuerra() {
   const trackingEvolution = trackingEvolutionQuery.data ?? { chartData: [], candidateNames: [] };
 
   const [mapView, setMapView] = useState<'operacional' | 'calor' | 'politico'>('operacional');
+  const [bgMode, setBgMode] = useState<BgMode>('hidden');
+  const [showAssetPins, setShowAssetPins] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+
 
   // Auto-generate alerts on mount (once)
   useEffect(() => {
