@@ -8,6 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+
+const ESTADUAL_ALLOWED_ROLES: AppRole[] = [
+  'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
+  'operador_campo', 'lideranca_local',
+];
 
 type AppRole =
   | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
