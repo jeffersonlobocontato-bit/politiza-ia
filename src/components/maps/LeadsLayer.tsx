@@ -1,5 +1,6 @@
 // Camada Leaflet reutilizável que plota uma lista de GeoLeads.
-// Usa CircleMarker (sem dependência de ícones externos) para consistência com os mapas existentes.
+// Pins coloridos por TIPO/FUNÇÃO (assetColors), permitindo distinguir prefeito, vereador,
+// liderança comunitária, coordenadores etc. no mesmo mapa.
 
 import { useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
@@ -8,13 +9,15 @@ import { db } from '@/lib/db';
 import { SOURCE_META } from '@/lib/geo';
 import { useMacroRegionsDB } from '@/hooks/useDashboard';
 import type { GeoLead } from '@/hooks/useGeoLeads';
+import { typeMeta, geoLeadType, FAMILY_META, type AssetFamily } from '@/lib/assetColors';
 
 interface Props {
   leads: GeoLead[];
   radius?: number;
+  hiddenFamilies?: Set<AssetFamily>;
 }
 
-export function LeadsLayer({ leads, radius = 5 }: Props) {
+export function LeadsLayer({ leads, radius = 5, hiddenFamilies }: Props) {
   const { data: macros = [] } = useMacroRegionsDB();
   const macroMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -54,14 +57,16 @@ export function LeadsLayer({ leads, radius = 5 }: Props) {
   return (
     <>
       {leads.map(l => {
-        const meta = SOURCE_META[l.source];
+        const tMeta = typeMeta(geoLeadType(l.source, l.raw));
+        if (hiddenFamilies?.has(tMeta.family)) return null;
+        const sourceMeta = SOURCE_META[l.source];
         const regions = resolveRegions(l);
         return (
           <CircleMarker
             key={`${l.source}-${l.id}`}
             center={[l.point.lat, l.point.lng]}
             radius={radius}
-            fillColor={meta.color}
+            fillColor={tMeta.color}
             color="#ffffff"
             weight={1.2}
             fillOpacity={l.point.approximate ? 0.55 : 0.92}
@@ -69,8 +74,8 @@ export function LeadsLayer({ leads, radius = 5 }: Props) {
           >
             <Popup className="leads-popup">
               <div style={{ color: '#ffffff', minWidth: 200 }}>
-                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: meta.color, fontWeight: 700 }}>
-                  {meta.label}
+                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: tMeta.color, fontWeight: 700 }}>
+                  {tMeta.label} <span style={{ color: '#94a3b8', fontWeight: 500 }}>· {sourceMeta.label}</span>
                 </div>
                 <div style={{ fontWeight: 700, marginTop: 2, color: '#ffffff' }}>{l.name}</div>
                 {l.subtitle && <div style={{ fontSize: 12, color: '#e2e8f0' }}>{l.subtitle}</div>}

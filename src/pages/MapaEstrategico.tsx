@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
-import { Map, Filter, X, Users, FileText, Printer } from 'lucide-react';
+import { Map as MapIcon, Filter, X, Users, FileText, Printer } from 'lucide-react';
 import { municipalities, getEngagementColor } from '@/data/mockData';
 import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
@@ -10,6 +10,7 @@ import { SOURCE_META, type GeoSource } from '@/lib/geo';
 import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
 import { useEmendas } from '@/hooks/useEmendas';
 import { FAIXAS, getFaixaByValor } from '@/lib/emendas';
+import { typeMeta, geoLeadType, FAMILY_META, type AssetFamily } from '@/lib/assetColors';
 
 type BgMode = 'colored' | 'outline' | 'hidden';
 
@@ -24,6 +25,13 @@ export default function MapaEstrategico() {
     leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
   });
   const [bgMode, setBgMode] = useState<BgMode>('hidden');
+  const [hiddenFamilies, setHiddenFamilies] = useState<Set<AssetFamily>>(new Set());
+  const toggleFamily = (f: AssetFamily) =>
+    setHiddenFamilies(prev => {
+      const n = new Set(prev);
+      n.has(f) ? n.delete(f) : n.add(f);
+      return n;
+    });
 
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
   const { data: emendas = [] } = useEmendas();
@@ -58,7 +66,7 @@ export default function MapaEstrategico() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <Map className="w-5 h-5 text-primary" />
+          <MapIcon className="w-5 h-5 text-primary" />
           <div>
             <h1 className="text-base font-bold text-foreground">Mapa Estratégico</h1>
             <p className="text-xs text-muted-foreground">
@@ -247,24 +255,62 @@ export default function MapaEstrategico() {
               );
             })}
 
-            <LeadsLayer leads={filteredLeads} />
+            <LeadsLayer leads={filteredLeads} hiddenFamilies={hiddenFamilies} />
             <MapZoomControl />
           </MapContainer>
 
-          {/* Mini-legenda fixa */}
-          <div className="absolute bottom-4 left-4 z-[1000] rounded-xl border border-border px-3 py-2" style={{ background: 'hsl(var(--card) / 0.95)', backdropFilter: 'blur(8px)' }}>
+          {/* Mini-legenda — agrupada por família, com cliques para filtrar */}
+          <div className="absolute bottom-4 left-4 z-[1000] rounded-xl border border-border px-3 py-2 max-w-[340px] max-h-[60vh] overflow-auto" style={{ background: 'hsl(var(--card) / 0.95)', backdropFilter: 'blur(8px)' }}>
             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tipos de Cadastro</div>
-            <div className="space-y-1">
-              {(Object.keys(SOURCE_META) as GeoSource[])
-                .filter(k => activeSources[k] && (counts[k] ?? 0) > 0)
-                .map(k => (
-                  <div key={k} className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: SOURCE_META[k].color }} />
-                    <span className="text-[10px] text-foreground">{SOURCE_META[k].label}</span>
-                    <span className="text-[10px] text-muted-foreground tabular-nums">{counts[k]}</span>
-                  </div>
-                ))}
-            </div>
+            {(() => {
+              // Conta por tipo a partir dos pins efetivamente exibidos
+              const tally = new Map<string, number>();
+              filteredLeads.forEach(l => {
+                const t = geoLeadType(l.source, l.raw);
+                tally.set(t, (tally.get(t) ?? 0) + 1);
+              });
+              const byFamily = new Map<AssetFamily, { t: string; n: number; meta: ReturnType<typeof typeMeta> }[]>();
+              Array.from(tally.entries()).forEach(([t, n]) => {
+                const meta = typeMeta(t);
+                const arr = byFamily.get(meta.family) ?? [];
+                arr.push({ t, n, meta });
+                byFamily.set(meta.family, arr);
+              });
+              const families = Array.from(byFamily.keys()).sort(
+                (a, b) => FAMILY_META[a].order - FAMILY_META[b].order
+              );
+              if (families.length === 0) {
+                return <div className="text-[10px] text-muted-foreground">Sem cadastros para exibir.</div>;
+              }
+              return (
+                <div className="space-y-2">
+                  {families.map(fam => {
+                    const hidden = hiddenFamilies.has(fam);
+                    const items = byFamily.get(fam)!.sort((a, b) => b.n - a.n);
+                    return (
+                      <div key={fam}>
+                        <button
+                          onClick={() => toggleFamily(fam)}
+                          className={`text-[10px] font-semibold uppercase tracking-wide transition-colors ${hidden ? 'text-muted-foreground/40 line-through' : 'text-foreground'}`}
+                          title={hidden ? 'Mostrar família' : 'Ocultar família'}
+                        >
+                          {FAMILY_META[fam].label}
+                        </button>
+                        <div className={`mt-1 space-y-0.5 ${hidden ? 'opacity-30' : ''}`}>
+                          {items.map(({ t, n, meta }) => (
+                            <div key={t} className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: meta.color }} />
+                              <span className="text-[10px] text-foreground truncate">{meta.label}</span>
+                              <span className="text-[10px] text-muted-foreground tabular-nums ml-auto">{n}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

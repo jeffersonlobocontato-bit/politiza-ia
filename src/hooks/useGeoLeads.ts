@@ -48,7 +48,7 @@ export function useGeoLeads(enabled: { [K in GeoSource]?: boolean } = {
 
       if (enabled.assets) {
         tasks.push(
-          fetchAll<any>('political_assets', 'id,name,position,municipality,microregion,macroregion_id,lat,lng,alignment_status,influence_level').then(rows => {
+          fetchAll<any>('political_assets', 'id,name,type,position,municipality,microregion,macroregion_id,lat,lng,alignment_status,influence_level').then(rows => {
             for (const r of rows) {
               const point = resolveGeo(r);
               if (!point) continue;
