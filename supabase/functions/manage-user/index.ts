@@ -119,6 +119,10 @@ Deno.serve(async (req) => {
     if (action === "update_role") {
       const { user_id, role, macroregion_id, microregion, municipality } = payload;
       if (!user_id || !role) return json({ error: "user_id e role obrigatórios" }, 400);
+      const newRoleErr = assertCanManageRole(role);
+      if (newRoleErr) return json({ error: newRoleErr }, 403);
+      const targetErr = await assertCanManageTargetUser(user_id);
+      if (targetErr) return json({ error: targetErr }, 403);
 
       await admin.from("user_roles").delete().eq("user_id", user_id);
       const { error } = await admin.from("user_roles").insert({
