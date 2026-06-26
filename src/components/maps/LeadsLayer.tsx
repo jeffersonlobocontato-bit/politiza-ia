@@ -1,5 +1,6 @@
 // Camada Leaflet reutilizável que plota uma lista de GeoLeads.
-// Usa CircleMarker (sem dependência de ícones externos) para consistência com os mapas existentes.
+// Pins coloridos por TIPO/FUNÇÃO (assetColors), permitindo distinguir prefeito, vereador,
+// liderança comunitária, coordenadores etc. no mesmo mapa.
 
 import { useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
@@ -8,10 +9,12 @@ import { db } from '@/lib/db';
 import { SOURCE_META } from '@/lib/geo';
 import { useMacroRegionsDB } from '@/hooks/useDashboard';
 import type { GeoLead } from '@/hooks/useGeoLeads';
+import { typeMeta, geoLeadType, FAMILY_META, type AssetFamily } from '@/lib/assetColors';
 
 interface Props {
   leads: GeoLead[];
   radius?: number;
+  hiddenFamilies?: Set<AssetFamily>;
 }
 
 export function LeadsLayer({ leads, radius = 5 }: Props) {
