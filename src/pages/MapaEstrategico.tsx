@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
-import { Map, Filter, X, Users, FileText, Printer } from 'lucide-react';
+import { Map as MapIcon, Filter, X, Users, FileText, Printer } from 'lucide-react';
 import { municipalities, getEngagementColor } from '@/data/mockData';
 import { useGeoLeads } from '@/hooks/useGeoLeads';
 import { LeadsLayer, LeadsLegend } from '@/components/maps/LeadsLayer';
