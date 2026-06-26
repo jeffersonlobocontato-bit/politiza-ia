@@ -32,7 +32,7 @@ export interface TypeMeta {
 
 export const TYPE_COLORS: Record<string, TypeMeta> = {
   // Executivo
-  prefeito:                { color: '#DC2626', label: 'Prefeito',                 family: 'executivo' },
+  prefeito:                { color: '#DAA520', label: 'Prefeito',                 family: 'executivo' },
   vice_prefeito:           { color: '#F97316', label: 'Vice-Prefeito',            family: 'executivo' },
   ex_prefeito:             { color: '#FCD34D', label: 'Ex-Prefeito',              family: 'executivo' },
   pretenso_prefeito:       { color: '#FB923C', label: 'Pretenso Prefeito',       family: 'executivo' },
