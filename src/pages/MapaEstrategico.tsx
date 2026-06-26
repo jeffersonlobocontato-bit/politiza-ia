@@ -25,6 +25,13 @@ export default function MapaEstrategico() {
     leaders: true, assets: true, members: true, actions: true, interviews: false, alerts: false, candidates: true,
   });
   const [bgMode, setBgMode] = useState<BgMode>('hidden');
+  const [hiddenFamilies, setHiddenFamilies] = useState<Set<AssetFamily>>(new Set());
+  const toggleFamily = (f: AssetFamily) =>
+    setHiddenFamilies(prev => {
+      const n = new Set(prev);
+      n.has(f) ? n.delete(f) : n.add(f);
+      return n;
+    });
 
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
   const { data: emendas = [] } = useEmendas();
