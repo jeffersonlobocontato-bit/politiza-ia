@@ -16,8 +16,9 @@ const tabs = [
 ];
 
 export function CampoLayout({ children }: CampoLayoutProps) {
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, roles, signOut } = useAuth();
   const navigate = useNavigate();
+  const isRegional = roles?.includes('coordenador_regional' as any);
 
   const displayName = profile?.full_name?.trim() || user?.email || 'Liderança';
 
@@ -25,6 +26,7 @@ export function CampoLayout({ children }: CampoLayoutProps) {
     await signOut();
     navigate('/login', { replace: true });
   };
+
 
   return (
     <div
