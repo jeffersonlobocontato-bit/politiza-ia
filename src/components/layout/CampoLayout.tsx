@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Users, BarChart3, LogOut, Home } from 'lucide-react';
+import { ClipboardCheck, Users, BarChart3, LogOut, Home, UserCog } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstallPrompt } from './InstallPrompt';
 
