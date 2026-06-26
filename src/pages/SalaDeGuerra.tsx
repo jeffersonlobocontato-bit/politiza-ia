@@ -681,9 +681,10 @@ export default function SalaDeGuerra() {
                     </Popup>
                   </CircleMarker>
                 ))}
-                {/* Unified political asset pins — colored by origin */}
+                {/* Unified political asset pins — colored by TYPE/FAMILY */}
                 {showAssetPins && geoAssets.map(a => {
-                  const meta = ORIGIN_COLORS[a.origin];
+                  const meta = typeMeta(a.type);
+                  if (hiddenFamilies.has(meta.family)) return null;
                   return (
                     <CircleMarker
                       key={`ua-${a.origin}-${a.id}`}
@@ -692,7 +693,7 @@ export default function SalaDeGuerra() {
                       fillColor={meta.color}
                       color={bgMode === 'outline' ? '#1a2a45' : '#ffffff'}
                       weight={1}
-                      fillOpacity={0.88}
+                      fillOpacity={0.9}
                     >
                       <Tooltip>
                         <div style={{ color: '#1e293b', minWidth: 160 }}>
