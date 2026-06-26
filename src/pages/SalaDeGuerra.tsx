@@ -29,15 +29,59 @@ import { useUserParty } from '@/hooks/useUserParty';
 import { useAllPartySlates } from '@/hooks/usePartySlate';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import { useLeaders } from '@/hooks/useLeaders';
-import { useUnifiedPoliticalAssets, type UnifiedAssetOrigin } from '@/hooks/useUnifiedPoliticalAssets';
+import { useUnifiedPoliticalAssets, type UnifiedAssetOrigin, type UnifiedAssetType } from '@/hooks/useUnifiedPoliticalAssets';
 import { PrAssociationChoropleth } from '@/components/maps/PrAssociationChoropleth';
 
-const ORIGIN_COLORS: Record<UnifiedAssetOrigin, { color: string; label: string }> = {
-  nativo:      { color: '#1F5AB4', label: 'Ativos Políticos' },
-  candidato:   { color: '#A855F7', label: 'Candidatos' },
-  coordenador: { color: '#2FA85A', label: 'Coordenadores' },
-  evento:      { color: '#F59E0B', label: 'Público Eventos' },
+// Famílias visuais para colorir pins por TIPO (não por origem), evitando que a base
+// nativa domine o mapa com uma única cor.
+type AssetFamily = 'executivo' | 'legislativo' | 'candidato' | 'coordenacao' | 'lideranca' | 'evento' | 'outros';
+
+const FAMILY_META: Record<AssetFamily, { label: string }> = {
+  executivo:   { label: 'Executivo' },
+  legislativo: { label: 'Legislativo' },
+  candidato:   { label: 'Candidatos' },
+  coordenacao: { label: 'Coordenação / Campanha' },
+  lideranca:   { label: 'Lideranças & Base' },
+  evento:      { label: 'Eventos & Captação' },
+  outros:      { label: 'Outros' },
 };
+
+const TYPE_COLORS: Record<string, { color: string; label: string; family: AssetFamily }> = {
+  // Executivo
+  prefeito:                { color: '#DC2626', label: 'Prefeito',                family: 'executivo' },
+  vice_prefeito:           { color: '#F97316', label: 'Vice-Prefeito',           family: 'executivo' },
+  ex_prefeito:             { color: '#FCD34D', label: 'Ex-Prefeito',             family: 'executivo' },
+  pretenso_prefeito:       { color: '#FB923C', label: 'Pretenso Prefeito',      family: 'executivo' },
+  // Legislativo
+  deputado_federal:        { color: '#6D28D9', label: 'Deputado Federal',        family: 'legislativo' },
+  deputado_estadual:       { color: '#A855F7', label: 'Deputado Estadual',       family: 'legislativo' },
+  vereador:                { color: '#C084FC', label: 'Vereador',                family: 'legislativo' },
+  ex_vereador:             { color: '#DDD6FE', label: 'Ex-Vereador',             family: 'legislativo' },
+  pretenso_vereador:       { color: '#D8B4FE', label: 'Pretenso Vereador',      family: 'legislativo' },
+  // Candidatos
+  candidato:               { color: '#EC4899', label: 'Candidato (Majoritária)', family: 'candidato' },
+  // Coordenação
+  coord_geral:             { color: '#14532D', label: 'Coord. Geral',            family: 'coordenacao' },
+  coord_estadual:          { color: '#15803D', label: 'Coord. Estadual',         family: 'coordenacao' },
+  coord_macro:             { color: '#22C55E', label: 'Coord. Macrorregional',  family: 'coordenacao' },
+  coord_micro:             { color: '#4ADE80', label: 'Coord. Microrregional',  family: 'coordenacao' },
+  coord_cidade:            { color: '#86EFAC', label: 'Coord. Municipal',        family: 'coordenacao' },
+  coordenador_partidario:  { color: '#10B981', label: 'Coord. Partidário',       family: 'coordenacao' },
+  // Lideranças
+  presidente_entidade:     { color: '#0891B2', label: 'Presidente de Entidade', family: 'lideranca' },
+  lideranca_comunitaria:   { color: '#06B6D4', label: 'Liderança Comunitária',  family: 'lideranca' },
+  lideranca_empresarial:   { color: '#0EA5E9', label: 'Liderança Empresarial',  family: 'lideranca' },
+  lideranca_religiosa:     { color: '#22D3EE', label: 'Liderança Religiosa',    family: 'lideranca' },
+  influenciador_regional:  { color: '#67E8F9', label: 'Influenciador Regional', family: 'lideranca' },
+  // Eventos
+  publico_eventos:         { color: '#F59E0B', label: 'Público Eventos',         family: 'evento' },
+};
+
+const DEFAULT_TYPE_META = { color: '#94A3B8', label: 'Outros', family: 'outros' as AssetFamily };
+
+function typeMeta(t: UnifiedAssetType | string) {
+  return TYPE_COLORS[t as string] ?? DEFAULT_TYPE_META;
+}
 
 type BgMode = 'colored' | 'outline' | 'hidden';
 
