@@ -33,6 +33,14 @@ export default function MapaEstrategico() {
       return n;
     });
 
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
+  const toggleType = (t: string) =>
+    setHiddenTypes(prev => {
+      const n = new Set(prev);
+      n.has(t) ? n.delete(t) : n.add(t);
+      return n;
+    });
+
   const { data: leads = [], isLoading } = useGeoLeads(activeSources);
   const { data: emendas = [] } = useEmendas();
   const geoEmendas = useMemo(
