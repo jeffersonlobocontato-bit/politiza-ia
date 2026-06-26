@@ -255,24 +255,62 @@ export default function MapaEstrategico() {
               );
             })}
 
-            <LeadsLayer leads={filteredLeads} />
+            <LeadsLayer leads={filteredLeads} hiddenFamilies={hiddenFamilies} />
             <MapZoomControl />
           </MapContainer>
 
-          {/* Mini-legenda fixa */}
-          <div className="absolute bottom-4 left-4 z-[1000] rounded-xl border border-border px-3 py-2" style={{ background: 'hsl(var(--card) / 0.95)', backdropFilter: 'blur(8px)' }}>
+          {/* Mini-legenda — agrupada por família, com cliques para filtrar */}
+          <div className="absolute bottom-4 left-4 z-[1000] rounded-xl border border-border px-3 py-2 max-w-[340px] max-h-[60vh] overflow-auto" style={{ background: 'hsl(var(--card) / 0.95)', backdropFilter: 'blur(8px)' }}>
             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tipos de Cadastro</div>
-            <div className="space-y-1">
-              {(Object.keys(SOURCE_META) as GeoSource[])
-                .filter(k => activeSources[k] && (counts[k] ?? 0) > 0)
-                .map(k => (
-                  <div key={k} className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: SOURCE_META[k].color }} />
-                    <span className="text-[10px] text-foreground">{SOURCE_META[k].label}</span>
-                    <span className="text-[10px] text-muted-foreground tabular-nums">{counts[k]}</span>
-                  </div>
-                ))}
-            </div>
+            {(() => {
+              // Conta por tipo a partir dos pins efetivamente exibidos
+              const tally = new Map<string, number>();
+              filteredLeads.forEach(l => {
+                const t = geoLeadType(l.source, l.raw);
+                tally.set(t, (tally.get(t) ?? 0) + 1);
+              });
+              const byFamily = new Map<AssetFamily, { t: string; n: number; meta: ReturnType<typeof typeMeta> }[]>();
+              Array.from(tally.entries()).forEach(([t, n]) => {
+                const meta = typeMeta(t);
+                const arr = byFamily.get(meta.family) ?? [];
+                arr.push({ t, n, meta });
+                byFamily.set(meta.family, arr);
+              });
+              const families = Array.from(byFamily.keys()).sort(
+                (a, b) => FAMILY_META[a].order - FAMILY_META[b].order
+              );
+              if (families.length === 0) {
+                return <div className="text-[10px] text-muted-foreground">Sem cadastros para exibir.</div>;
+              }
+              return (
+                <div className="space-y-2">
+                  {families.map(fam => {
+                    const hidden = hiddenFamilies.has(fam);
+                    const items = byFamily.get(fam)!.sort((a, b) => b.n - a.n);
+                    return (
+                      <div key={fam}>
+                        <button
+                          onClick={() => toggleFamily(fam)}
+                          className={`text-[10px] font-semibold uppercase tracking-wide transition-colors ${hidden ? 'text-muted-foreground/40 line-through' : 'text-foreground'}`}
+                          title={hidden ? 'Mostrar família' : 'Ocultar família'}
+                        >
+                          {FAMILY_META[fam].label}
+                        </button>
+                        <div className={`mt-1 space-y-0.5 ${hidden ? 'opacity-30' : ''}`}>
+                          {items.map(({ t, n, meta }) => (
+                            <div key={t} className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: meta.color }} />
+                              <span className="text-[10px] text-foreground truncate">{meta.label}</span>
+                              <span className="text-[10px] text-muted-foreground tabular-nums ml-auto">{n}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
