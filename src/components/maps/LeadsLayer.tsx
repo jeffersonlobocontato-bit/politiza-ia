@@ -15,6 +15,7 @@ interface Props {
   leads: GeoLead[];
   radius?: number;
   hiddenFamilies?: Set<AssetFamily>;
+  hiddenTypes?: Set<string>;
 }
 
 export function LeadsLayer({ leads, radius = 5, hiddenFamilies }: Props) {
