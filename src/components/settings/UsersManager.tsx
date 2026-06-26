@@ -56,6 +56,12 @@ type UserRow = {
 type CandidateOption = { id: string; name: string; cargo: string; party: string };
 
 export function UsersManager() {
+  const { roles: callerRoles } = useAuth();
+  const isFullAdmin = callerRoles.some(r => ['admin_master', 'coordenador_geral'].includes(r));
+  const isEstadualOnly = !isFullAdmin && callerRoles.includes('coordenador_estadual' as any);
+  const allowedRoles = isFullAdmin ? ROLES : ROLES.filter(r => ESTADUAL_ALLOWED_ROLES.includes(r.value));
+  const canManageRow = (r: AppRole | null) => isFullAdmin || (r != null && ESTADUAL_ALLOWED_ROLES.includes(r));
+
   const [users, setUsers] = useState<UserRow[]>([]);
   const [candidatesList, setCandidatesList] = useState<CandidateOption[]>([]);
   const [loading, setLoading] = useState(true);
