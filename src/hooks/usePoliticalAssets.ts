@@ -51,6 +51,7 @@ export function useUpdateAsset() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['political-assets'] });
+      qc.invalidateQueries({ queryKey: ['unified-political-assets'] });
       toast.success('Ativo atualizado!');
     },
     onError: (e: any) => toast.error(`Erro: ${e.message}`),
