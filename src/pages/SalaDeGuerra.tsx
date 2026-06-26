@@ -630,7 +630,31 @@ export default function SalaDeGuerra() {
                     </Popup>
                   </CircleMarker>
                 ))}
+                {/* Unified political asset pins — colored by origin */}
+                {showAssetPins && geoAssets.map(a => {
+                  const meta = ORIGIN_COLORS[a.origin];
+                  return (
+                    <CircleMarker
+                      key={`ua-${a.origin}-${a.id}`}
+                      center={[a.lat!, a.lng!]}
+                      radius={5}
+                      fillColor={meta.color}
+                      color={bgMode === 'outline' ? '#1a2a45' : '#ffffff'}
+                      weight={1}
+                      fillOpacity={0.88}
+                    >
+                      <Tooltip>
+                        <div style={{ color: '#1e293b', minWidth: 160 }}>
+                          <strong>{a.name}</strong><br />
+                          <span style={{ fontSize: 11 }}>{meta.label} · {a.source_label}</span><br />
+                          {a.municipality && <span style={{ fontSize: 11 }}>📍 {a.municipality}</span>}
+                        </div>
+                      </Tooltip>
+                    </CircleMarker>
+                  );
+                })}
                 <MapZoomControl />
+
               </MapContainer>
             </div>
             {/* Legend */}
