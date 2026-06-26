@@ -693,9 +693,16 @@ export default function SalaDeGuerra() {
                   <span className="text-[10px] text-muted-foreground">{l.label}</span>
                 </div>
               ))}
+              {showAssetPins && (Object.entries(ORIGIN_COLORS) as [UnifiedAssetOrigin, { color: string; label: string }][]).map(([k, v]) => (
+                <div key={`leg-${k}`} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full border border-white/40" style={{ backgroundColor: v.color }} />
+                  <span className="text-[10px] text-muted-foreground">{v.label}</span>
+                </div>
+              ))}
               <span className="ml-auto text-[10px] text-muted-foreground">
-                {totalActionsMapped} ações · {totalLeadership} lideranças · {teamMembers.length} equipe · {slates.length} pré-candidatos
+                {totalActionsMapped} ações · {totalLeadership} lideranças · {teamMembers.length} equipe · {slates.length} pré-candidatos · {geoAssets.length} ativos
               </span>
+
             </div>
           </div>
 
