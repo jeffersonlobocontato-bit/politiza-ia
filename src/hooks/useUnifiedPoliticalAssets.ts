@@ -116,7 +116,7 @@ export function useUnifiedPoliticalAssets() {
         type: a.type as UnifiedAssetType,
         position: a.position ?? null,
         municipality: a.municipality ?? null,
-        macroregion_id: a.macroregion_id ?? null,
+        macroregion_id: a.macroregion_id ?? macroFromCity(a.municipality),
         influence_level: a.influence_level ?? 5,
         alignment_status: a.alignment_status,
         support_status: a.support_status ?? null,
