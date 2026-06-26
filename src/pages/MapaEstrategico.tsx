@@ -263,7 +263,7 @@ export default function MapaEstrategico() {
               );
             })}
 
-            <LeadsLayer leads={filteredLeads} hiddenFamilies={hiddenFamilies} />
+            <LeadsLayer leads={filteredLeads} hiddenFamilies={hiddenFamilies} hiddenTypes={hiddenTypes} />
             <MapZoomControl />
           </MapContainer>
 
