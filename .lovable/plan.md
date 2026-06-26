@@ -1,30 +1,20 @@
 ## Problema
 
-O Supabase/PostgREST corta toda consulta em 1000 linhas por padrão. Hoje a base já tem mais de 1000 ativos políticos, então as etiquetas, contadores e dashboards mostram no máximo 1000 — não refletem o total real cadastrado.
+O card **"Ativos por Macrorregião"** mostra menos registros do que o total cadastrado porque **931 dos 1.167 ativos nativos** estão com `macroregion_id` em branco no banco (ex.: a importação da Equipe Senador preencheu cidade mas não a macrorregião). Como o agrupamento do card usa apenas `macroregion_id`, esses ~931 registros somem da distribuição — embora apareçam no total e nos KPIs.
 
-Locais afetados:
-- `src/hooks/useUnifiedPoliticalAssets.ts` — consulta `political_assets`, `party_slate_candidates` e `leaders` sem paginação. É a fonte dos KPIs de Ativos Políticos, Mapa Estratégico (camadas), Municípios e cards consolidados.
-- `src/hooks/useGeoLeads.ts` — usa `.limit(2000)` (frágil) para todas as fontes do mapa.
-- `src/hooks/usePoliticalAssets.ts`, `src/hooks/useLeaders.ts`, `src/hooks/useCampaignMembers.ts`, `src/hooks/useEventos.ts` (base de leads), `src/hooks/useEmendas.ts` — qualquer um que liste registros para contar/exibir cai no mesmo teto.
+Curiosamente, isso já foi resolvido para outras origens (Proporcional, Lideranças, Inscrições, Prefeitos): o hook `useUnifiedPoliticalAssets` aplica `macroFromCity(city)` quando a macrorregião não está no banco. **A única origem sem esse fallback é a `nativos`** (tabela `political_assets`).
 
 ## Correção
 
-1. **Helper único de paginação** em `src/lib/db.ts`:
-   ```ts
-   export async function fetchAllRows<T>(builderFactory: () => any, pageSize = 1000): Promise<T[]>
-   ```
-   Loop com `.range(from, to)` até a página retornar menos que `pageSize`. Aceita uma factory para preservar filtros (`is('deleted_at', null)`, `eq`, `order`).
+Em `src/hooks/useUnifiedPoliticalAssets.ts`, no mapeamento dos `nativos`, derivar a macrorregião pela cidade quando `macroregion_id` for nulo:
 
-2. **Atualizar os hooks de listagem para usar `fetchAllRows`**, sem mudar shape de retorno:
-   - `useUnifiedPoliticalAssets.ts` — `political_assets`, `party_slate_candidates`, `leaders`.
-   - `useGeoLeads.ts` — substituir `fetchAll` (com `.limit(2000)`) por `fetchAllRows`.
-   - `usePoliticalAssets.ts`, `useLeaders.ts`, `useCampaignMembers.ts`, `useEventos.ts` (leads), `useEmendas.ts`, `useActions.ts` (lista usada nos painéis).
+```ts
+macroregion_id: a.macroregion_id ?? macroFromCity(a.municipality),
+```
 
-3. **Conferir KPIs que somam linhas**: garantir que após a paginação os totais exibidos em Ativos Políticos, Municípios, Mapa Estratégico, Hierarquia, Emendas e Eventos batem com o `count(*)` do banco.
+Isso recupera ~848 ativos (931 sem macro − 83 sem cidade) e os distribui corretamente entre as 10 macrorregiões do PR no card e no filtro de macrorregião da página. Os 83 restantes (sem cidade) continuam não mapeáveis e seguem como "Sem macrorregião".
 
-4. **Verificação**
-   - `/ativos-politicos`: total ≥ 1167 e filtros por macrorregião/cidade somam o esperado.
-   - `/mapa`: pontos extras importados aparecem.
-   - `/municipios` e `/hierarquia`: cards refletem todos os registros.
+## Escopo
 
-Sem mudanças de UI, schema, RLS ou regras de negócio — apenas paginação no fetch para destravar o teto de 1000.
+- 1 arquivo, 1 linha. Sem migração de banco — é apenas derivação em tempo de leitura, igual já é feito para as outras origens.
+- Não altera dados existentes; se um operador depois preencher `macroregion_id` manualmente, esse valor prevalece (o `??` só age quando está nulo).
