@@ -8,6 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+
+const ESTADUAL_ALLOWED_ROLES: AppRole[] = [
+  'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
+  'operador_campo', 'lideranca_local',
+];
 
 type AppRole =
   | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
@@ -50,6 +56,12 @@ type UserRow = {
 type CandidateOption = { id: string; name: string; cargo: string; party: string };
 
 export function UsersManager() {
+  const { roles: callerRoles } = useAuth();
+  const isFullAdmin = callerRoles.some(r => ['admin_master', 'coordenador_geral'].includes(r));
+  const isEstadualOnly = !isFullAdmin && callerRoles.includes('coordenador_estadual' as any);
+  const allowedRoles = isFullAdmin ? ROLES : ROLES.filter(r => ESTADUAL_ALLOWED_ROLES.includes(r.value));
+  const canManageRow = (r: AppRole | null) => isFullAdmin || (r != null && ESTADUAL_ALLOWED_ROLES.includes(r));
+
   const [users, setUsers] = useState<UserRow[]>([]);
   const [candidatesList, setCandidatesList] = useState<CandidateOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,10 +214,12 @@ export function UsersManager() {
     const s = search.toLowerCase();
     const matchSearch = !s || u.full_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s);
     const matchRole = filterRole === 'all' || u.role === filterRole;
-    return matchSearch && matchRole;
+    const matchScope = isFullAdmin || canManageRow(u.role);
+    return matchSearch && matchRole && matchScope;
   });
 
-  const countsByRole = ROLES.map(r => ({ ...r, count: users.filter(u => u.role === r.value).length }));
+  const countsByRole = allowedRoles.map(r => ({ ...r, count: users.filter(u => u.role === r.value).length }));
+
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -246,7 +260,7 @@ export function UsersManager() {
           <SelectTrigger className="w-56 h-9 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os níveis</SelectItem>
-            {ROLES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+            {allowedRoles.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -346,7 +360,7 @@ export function UsersManager() {
               <Select value={form.role} onValueChange={v => setForm({ ...form, role: v as AppRole })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ROLES.map(r => (
+                  {allowedRoles.map(r => (
                     <SelectItem key={r.value} value={r.value}>
                       <div className="flex flex-col">
                         <span className="font-medium">{r.label}</span>
