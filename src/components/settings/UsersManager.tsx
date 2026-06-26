@@ -260,7 +260,7 @@ export function UsersManager() {
           <SelectTrigger className="w-56 h-9 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os níveis</SelectItem>
-            {ROLES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+            {allowedRoles.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
