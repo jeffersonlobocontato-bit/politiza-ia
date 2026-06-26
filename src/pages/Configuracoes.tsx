@@ -191,11 +191,16 @@ export default function Configuracoes() {
       {/* Tabs */}
       <div className="px-6 border-b border-border flex gap-1 flex-shrink-0">
         {([
-          { key: 'candidatos', label: 'Candidatos', adminOnly: false },
-          { key: 'usuarios', label: 'Usuários', adminOnly: true },
-          { key: 'perfis_lideranca', label: 'Perfis de Liderança', adminOnly: false },
+          { key: 'candidatos', label: 'Candidatos', adminOnly: false, hideForRegional: true },
+          { key: 'usuarios', label: 'Usuários', adminOnly: false, requiresUserMgmt: true },
+          { key: 'perfis_lideranca', label: 'Perfis de Liderança', adminOnly: false, hideForRegional: true },
           { key: 'conta', label: 'Minha Conta', adminOnly: false },
-        ] as const).filter(t => !t.adminOnly || isAdmin).map(t => (
+        ] as const).filter(t => {
+          if ((t as any).requiresUserMgmt) return canManageUsers;
+          if ((t as any).hideForRegional && !isAdmin) return false;
+          return !t.adminOnly || isAdmin;
+        }).map(t => (
+
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
