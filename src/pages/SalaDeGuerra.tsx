@@ -435,20 +435,22 @@ export default function SalaDeGuerra() {
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {/* KPIs Row */}
         {kpisLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            {Array.from({ length: 7 }).map((_, i) => (
               <div key={i} className="rounded-xl border border-border p-4 animate-pulse bg-muted/30 h-24" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
             <WarKPICard label="Ações Planejadas" value={totalActions} icon={Target} gradientIndex={0} onClick={() => navigate('/acoes')} />
             <WarKPICard label="Ações Realizadas" value={completedActions} sub={`${completionRate}% de execução`} icon={CheckCircle} gradientIndex={1} onClick={() => navigate('/acoes?status=realizada')} />
             <WarKPICard label="Ações Atrasadas" value={delayedActions} sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined} icon={Clock} gradientIndex={5} onClick={() => navigate('/acoes?status=atrasada')} />
             <WarKPICard label="Em Andamento" value={kpis?.in_progress_actions ?? 0} icon={Activity} gradientIndex={4} onClick={() => navigate('/acoes?status=em_andamento')} />
             <WarKPICard label="Pessoas Impactadas" value={totalImpacted >= 1_000_000 ? `${(totalImpacted / 1_000_000).toFixed(2)}M` : totalImpacted >= 1_000 ? `${(totalImpacted / 1_000).toFixed(1)}K` : totalImpacted} icon={Users} gradientIndex={3} onClick={() => navigate('/campo')} />
             <WarKPICard label="Pendentes Validação" value={kpis?.pending_validation ?? 0} icon={Bell} gradientIndex={2} onClick={() => navigate('/acoes?status=pendente_validacao')} />
+            <WarKPICard label="Ativos Políticos" value={unifiedAssets.length} sub={`${geoAssets.length} geolocalizados`} icon={Users} gradientIndex={6} onClick={() => navigate('/ativos-politicos')} />
           </div>
+
         )}
 
         {/* Chapas Proporcionais — resumo */}
