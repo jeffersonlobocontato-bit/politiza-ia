@@ -58,7 +58,9 @@ const PRESET_CANDIDATES = [
 
 export default function Configuracoes() {
   const { candidates, activeCandidates, toggleActive, refetch } = useCandidate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, roles } = useAuth();
+  const canManageUsers = isAdmin || roles?.includes('coordenador_regional' as any);
+
   const { party: userParty, isPartyManager } = useUserParty();
   const lockedParty = userParty === 'PL' ? 'PL' : userParty === 'Novo' ? 'Novo' : '';
   const [tab, setTab] = useState<'candidatos' | 'usuarios' | 'perfis_lideranca' | 'conta'>('candidatos');
