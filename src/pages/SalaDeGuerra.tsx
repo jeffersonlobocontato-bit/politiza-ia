@@ -486,9 +486,9 @@ export default function SalaDeGuerra() {
         <div className="grid lg:grid-cols-[1fr_300px] gap-4">
           {/* Map */}
           <div className="rounded-xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
-            <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card/50">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card/50 flex-wrap gap-2">
               <span className="text-sm font-semibold text-foreground">Mapa Interativo — Paraná</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex gap-1">
                   {(['calor', 'operacional', 'politico'] as const).map(view => (
                     <button
@@ -500,6 +500,25 @@ export default function SalaDeGuerra() {
                     </button>
                   ))}
                 </div>
+                <div className="flex gap-0.5 p-0.5 rounded-md bg-muted/40 border border-border">
+                  {([
+                    { id: 'colored' as BgMode, label: 'Cores' },
+                    { id: 'outline' as BgMode, label: 'Contornos' },
+                    { id: 'hidden' as BgMode, label: 'Oculto' },
+                  ]).map(o => (
+                    <button
+                      key={o.id}
+                      onClick={() => setBgMode(o.id)}
+                      className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${bgMode === o.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <label className="flex items-center gap-1 text-[10px] text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={showAssetPins} onChange={() => setShowAssetPins(v => !v)} className="accent-primary" />
+                  Pins ativos
+                </label>
                 <button
                   onClick={() => navigate('/mapa')}
                   className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-md font-medium bg-muted text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
@@ -509,12 +528,22 @@ export default function SalaDeGuerra() {
                 </button>
               </div>
             </div>
-            <div className="relative" style={{ height: 380 }}>
-              <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-                <TileLayer
-                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  attribution='&copy; <a href="https://carto.com">CARTO</a>'
-                />
+            <div className="relative" style={{ height: 380, background: bgMode === 'outline' ? '#ffffff' : undefined }}>
+              <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%', background: bgMode === 'outline' ? '#ffffff' : undefined }} zoomControl={false}>
+                {bgMode !== 'outline' && (
+                  <TileLayer
+                    url={bgMode === 'colored'
+                      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+                      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'}
+                    attribution='&copy; <a href="https://carto.com">CARTO</a>'
+                    opacity={bgMode === 'colored' ? 0.35 : 1}
+                  />
+                )}
+                {bgMode === 'colored' && <PrAssociationChoropleth />}
+                {bgMode === 'outline' && (
+                  <PrAssociationChoropleth fillOpacity={0} strokeColor="#94a3b8" strokeWeight={0.5} />
+                )}
+
                 {/* Municipality circles — colored by REAL platform data */}
                 {municipalities.map(muni => {
                   const m = muniMetrics.get(normCity(muni.name));
