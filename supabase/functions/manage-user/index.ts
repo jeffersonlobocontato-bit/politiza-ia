@@ -69,6 +69,9 @@ Deno.serve(async (req) => {
       const { email, password, full_name, phone, role, macroregion_id, microregion, municipality, candidate_ids } = payload;
       if (!email || !password || !full_name || !role)
         return json({ error: "Campos obrigatórios: email, senha, nome e nível de acesso" }, 400);
+      const roleErrMsg = assertCanManageRole(role);
+      if (roleErrMsg) return json({ error: roleErrMsg }, 403);
+
 
       const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email,
