@@ -172,6 +172,9 @@ export default function SalaDeGuerra() {
   const { data: slates = [] } = useAllPartySlates();
   const canSeeChapas = isAdmin || isPartyManager;
   const activeCandidateIds = activeCandidates.map(c => c.id);
+  const { data: unifiedAssets = [] } = useUnifiedPoliticalAssets();
+  const geoAssets = unifiedAssets.filter(a => a.lat != null && a.lng != null);
+
   const chapasSummary = (() => {
     const filtered = isAdmin ? slates : slates.filter(r => r.party === userParty);
     return {
