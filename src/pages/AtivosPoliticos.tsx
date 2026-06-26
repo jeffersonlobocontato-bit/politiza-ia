@@ -359,6 +359,10 @@ export default function AtivosPoliticos() {
           <option value="candidato">Candidatos</option>
           <option value="coordenador">Coordenadores</option>
         </select>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as any)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+          <option value="all">Todos os cargos</option>
+          {typeOptions.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
         <span className="text-xs text-muted-foreground self-center ml-auto">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
