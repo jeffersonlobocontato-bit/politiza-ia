@@ -32,8 +32,35 @@ Deno.serve(async (req) => {
     const user = { id: claimsData.claims.sub as string };
 
     const admin0 = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: isAdmin } = await admin0.rpc("is_admin", { _user_id: user.id });
-    if (!isAdmin) return json({ error: "Apenas administradores podem gerenciar usuários" }, 403);
+    const { data: callerRoles } = await admin0.from("user_roles").select("role").eq("user_id", user.id);
+    const callerRoleSet = new Set((callerRoles ?? []).map((r: any) => r.role));
+    const isAdminFull = ["admin_master", "coordenador_geral"].some(r => callerRoleSet.has(r));
+    const isEstadual = callerRoleSet.has("coordenador_estadual");
+    if (!isAdminFull && !isEstadual)
+      return json({ error: "Apenas administradores podem gerenciar usuários" }, 403);
+
+    const ESTADUAL_ALLOWED_ROLES = new Set([
+      "coordenador_regional",
+      "coordenador_microrregional",
+      "coordenador_municipal",
+      "operador_campo",
+      "lideranca_local",
+    ]);
+
+    const assertCanManageRole = (role: string | null | undefined): string | null => {
+      if (isAdminFull) return null;
+      if (!role || !ESTADUAL_ALLOWED_ROLES.has(role))
+        return "Coordenador Estadual só pode gerenciar usuários N3, N4, N5, Operador de Campo ou Liderança Local";
+      return null;
+    };
+
+    const assertCanManageTargetUser = async (target_user_id: string): Promise<string | null> => {
+      if (isAdminFull) return null;
+      const { data } = await admin0.from("user_roles").select("role").eq("user_id", target_user_id).maybeSingle();
+      const targetRole = (data as any)?.role as string | undefined;
+      return assertCanManageRole(targetRole);
+    };
+
 
     const admin = createClient(SUPABASE_URL, SERVICE);
     const { action, ...payload } = await req.json();
