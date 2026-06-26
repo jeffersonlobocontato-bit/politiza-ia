@@ -360,7 +360,7 @@ export function UsersManager() {
               <Select value={form.role} onValueChange={v => setForm({ ...form, role: v as AppRole })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ROLES.map(r => (
+                  {allowedRoles.map(r => (
                     <SelectItem key={r.value} value={r.value}>
                       <div className="flex flex-col">
                         <span className="font-medium">{r.label}</span>
