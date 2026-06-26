@@ -29,6 +29,19 @@ import { useUserParty } from '@/hooks/useUserParty';
 import { useAllPartySlates } from '@/hooks/usePartySlate';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import { useLeaders } from '@/hooks/useLeaders';
+import { useUnifiedPoliticalAssets, type UnifiedAssetOrigin } from '@/hooks/useUnifiedPoliticalAssets';
+import { PrAssociationChoropleth } from '@/components/maps/PrAssociationChoropleth';
+
+const ORIGIN_COLORS: Record<UnifiedAssetOrigin, { color: string; label: string }> = {
+  nativo:      { color: '#1F5AB4', label: 'Ativos Políticos' },
+  candidato:   { color: '#A855F7', label: 'Candidatos' },
+  coordenador: { color: '#2FA85A', label: 'Coordenadores' },
+  evento:      { color: '#F59E0B', label: 'Público Eventos' },
+};
+
+type BgMode = 'colored' | 'outline' | 'hidden';
+
+
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function engagementColor(score: number) {
