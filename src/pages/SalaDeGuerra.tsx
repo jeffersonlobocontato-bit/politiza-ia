@@ -29,6 +29,19 @@ import { useUserParty } from '@/hooks/useUserParty';
 import { useAllPartySlates } from '@/hooks/usePartySlate';
 import { useCampaignMembers } from '@/hooks/useCampaignMembers';
 import { useLeaders } from '@/hooks/useLeaders';
+import { useUnifiedPoliticalAssets, type UnifiedAssetOrigin } from '@/hooks/useUnifiedPoliticalAssets';
+import { PrAssociationChoropleth } from '@/components/maps/PrAssociationChoropleth';
+
+const ORIGIN_COLORS: Record<UnifiedAssetOrigin, { color: string; label: string }> = {
+  nativo:      { color: '#1F5AB4', label: 'Ativos Políticos' },
+  candidato:   { color: '#A855F7', label: 'Candidatos' },
+  coordenador: { color: '#2FA85A', label: 'Coordenadores' },
+  evento:      { color: '#F59E0B', label: 'Público Eventos' },
+};
+
+type BgMode = 'colored' | 'outline' | 'hidden';
+
+
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function engagementColor(score: number) {
@@ -159,6 +172,9 @@ export default function SalaDeGuerra() {
   const { data: slates = [] } = useAllPartySlates();
   const canSeeChapas = isAdmin || isPartyManager;
   const activeCandidateIds = activeCandidates.map(c => c.id);
+  const { data: unifiedAssets = [] } = useUnifiedPoliticalAssets();
+  const geoAssets = unifiedAssets.filter(a => a.lat != null && a.lng != null);
+
   const chapasSummary = (() => {
     const filtered = isAdmin ? slates : slates.filter(r => r.party === userParty);
     return {
@@ -212,8 +228,11 @@ export default function SalaDeGuerra() {
   const trackingEvolution = trackingEvolutionQuery.data ?? { chartData: [], candidateNames: [] };
 
   const [mapView, setMapView] = useState<'operacional' | 'calor' | 'politico'>('operacional');
+  const [bgMode, setBgMode] = useState<BgMode>('hidden');
+  const [showAssetPins, setShowAssetPins] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+
 
   // Auto-generate alerts on mount (once)
   useEffect(() => {
@@ -416,20 +435,22 @@ export default function SalaDeGuerra() {
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {/* KPIs Row */}
         {kpisLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            {Array.from({ length: 7 }).map((_, i) => (
               <div key={i} className="rounded-xl border border-border p-4 animate-pulse bg-muted/30 h-24" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
             <WarKPICard label="Ações Planejadas" value={totalActions} icon={Target} gradientIndex={0} onClick={() => navigate('/acoes')} />
             <WarKPICard label="Ações Realizadas" value={completedActions} sub={`${completionRate}% de execução`} icon={CheckCircle} gradientIndex={1} onClick={() => navigate('/acoes?status=realizada')} />
             <WarKPICard label="Ações Atrasadas" value={delayedActions} sub={totalActions > 0 ? `${Math.round((delayedActions / totalActions) * 100)}% do total` : undefined} icon={Clock} gradientIndex={5} onClick={() => navigate('/acoes?status=atrasada')} />
             <WarKPICard label="Em Andamento" value={kpis?.in_progress_actions ?? 0} icon={Activity} gradientIndex={4} onClick={() => navigate('/acoes?status=em_andamento')} />
             <WarKPICard label="Pessoas Impactadas" value={totalImpacted >= 1_000_000 ? `${(totalImpacted / 1_000_000).toFixed(2)}M` : totalImpacted >= 1_000 ? `${(totalImpacted / 1_000).toFixed(1)}K` : totalImpacted} icon={Users} gradientIndex={3} onClick={() => navigate('/campo')} />
             <WarKPICard label="Pendentes Validação" value={kpis?.pending_validation ?? 0} icon={Bell} gradientIndex={2} onClick={() => navigate('/acoes?status=pendente_validacao')} />
+            <WarKPICard label="Ativos Políticos" value={unifiedAssets.length} sub={`${geoAssets.length} geolocalizados`} icon={Users} gradientIndex={6} onClick={() => navigate('/ativos-politicos')} />
           </div>
+
         )}
 
         {/* Chapas Proporcionais — resumo */}
@@ -465,9 +486,9 @@ export default function SalaDeGuerra() {
         <div className="grid lg:grid-cols-[1fr_300px] gap-4">
           {/* Map */}
           <div className="rounded-xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
-            <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card/50">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card/50 flex-wrap gap-2">
               <span className="text-sm font-semibold text-foreground">Mapa Interativo — Paraná</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex gap-1">
                   {(['calor', 'operacional', 'politico'] as const).map(view => (
                     <button
@@ -479,6 +500,25 @@ export default function SalaDeGuerra() {
                     </button>
                   ))}
                 </div>
+                <div className="flex gap-0.5 p-0.5 rounded-md bg-muted/40 border border-border">
+                  {([
+                    { id: 'colored' as BgMode, label: 'Cores' },
+                    { id: 'outline' as BgMode, label: 'Contornos' },
+                    { id: 'hidden' as BgMode, label: 'Oculto' },
+                  ]).map(o => (
+                    <button
+                      key={o.id}
+                      onClick={() => setBgMode(o.id)}
+                      className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${bgMode === o.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <label className="flex items-center gap-1 text-[10px] text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={showAssetPins} onChange={() => setShowAssetPins(v => !v)} className="accent-primary" />
+                  Pins ativos
+                </label>
                 <button
                   onClick={() => navigate('/mapa')}
                   className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-md font-medium bg-muted text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
@@ -488,12 +528,22 @@ export default function SalaDeGuerra() {
                 </button>
               </div>
             </div>
-            <div className="relative" style={{ height: 380 }}>
-              <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-                <TileLayer
-                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  attribution='&copy; <a href="https://carto.com">CARTO</a>'
-                />
+            <div className="relative" style={{ height: 380, background: bgMode === 'outline' ? '#ffffff' : undefined }}>
+              <MapContainer center={[-24.7, -51.5]} zoom={7} style={{ height: '100%', width: '100%', background: bgMode === 'outline' ? '#ffffff' : undefined }} zoomControl={false}>
+                {bgMode !== 'outline' && (
+                  <TileLayer
+                    url={bgMode === 'colored'
+                      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+                      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'}
+                    attribution='&copy; <a href="https://carto.com">CARTO</a>'
+                    opacity={bgMode === 'colored' ? 0.35 : 1}
+                  />
+                )}
+                {bgMode === 'colored' && <PrAssociationChoropleth />}
+                {bgMode === 'outline' && (
+                  <PrAssociationChoropleth fillOpacity={0} strokeColor="#94a3b8" strokeWeight={0.5} />
+                )}
+
                 {/* Municipality circles — colored by REAL platform data */}
                 {municipalities.map(muni => {
                   const m = muniMetrics.get(normCity(muni.name));
@@ -580,7 +630,31 @@ export default function SalaDeGuerra() {
                     </Popup>
                   </CircleMarker>
                 ))}
+                {/* Unified political asset pins — colored by origin */}
+                {showAssetPins && geoAssets.map(a => {
+                  const meta = ORIGIN_COLORS[a.origin];
+                  return (
+                    <CircleMarker
+                      key={`ua-${a.origin}-${a.id}`}
+                      center={[a.lat!, a.lng!]}
+                      radius={5}
+                      fillColor={meta.color}
+                      color={bgMode === 'outline' ? '#1a2a45' : '#ffffff'}
+                      weight={1}
+                      fillOpacity={0.88}
+                    >
+                      <Tooltip>
+                        <div style={{ color: '#1e293b', minWidth: 160 }}>
+                          <strong>{a.name}</strong><br />
+                          <span style={{ fontSize: 11 }}>{meta.label} · {a.source_label}</span><br />
+                          {a.municipality && <span style={{ fontSize: 11 }}>📍 {a.municipality}</span>}
+                        </div>
+                      </Tooltip>
+                    </CircleMarker>
+                  );
+                })}
                 <MapZoomControl />
+
               </MapContainer>
             </div>
             {/* Legend */}
@@ -619,9 +693,16 @@ export default function SalaDeGuerra() {
                   <span className="text-[10px] text-muted-foreground">{l.label}</span>
                 </div>
               ))}
+              {showAssetPins && (Object.entries(ORIGIN_COLORS) as [UnifiedAssetOrigin, { color: string; label: string }][]).map(([k, v]) => (
+                <div key={`leg-${k}`} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full border border-white/40" style={{ backgroundColor: v.color }} />
+                  <span className="text-[10px] text-muted-foreground">{v.label}</span>
+                </div>
+              ))}
               <span className="ml-auto text-[10px] text-muted-foreground">
-                {totalActionsMapped} ações · {totalLeadership} lideranças · {teamMembers.length} equipe · {slates.length} pré-candidatos
+                {totalActionsMapped} ações · {totalLeadership} lideranças · {teamMembers.length} equipe · {slates.length} pré-candidatos · {geoAssets.length} ativos
               </span>
+
             </div>
           </div>
 
