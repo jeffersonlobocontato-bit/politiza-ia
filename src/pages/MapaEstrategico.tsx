@@ -10,6 +10,7 @@ import { SOURCE_META, type GeoSource } from '@/lib/geo';
 import { PrAssociationChoropleth, PrAssociationLegend } from '@/components/maps/PrAssociationChoropleth';
 import { useEmendas } from '@/hooks/useEmendas';
 import { FAIXAS, getFaixaByValor } from '@/lib/emendas';
+import { typeMeta, geoLeadType, FAMILY_META, type AssetFamily } from '@/lib/assetColors';
 
 type BgMode = 'colored' | 'outline' | 'hidden';
 
