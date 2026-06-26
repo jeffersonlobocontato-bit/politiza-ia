@@ -58,7 +58,9 @@ const PRESET_CANDIDATES = [
 
 export default function Configuracoes() {
   const { candidates, activeCandidates, toggleActive, refetch } = useCandidate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, roles } = useAuth();
+  const canManageUsers = isAdmin || roles?.includes('coordenador_regional' as any);
+
   const { party: userParty, isPartyManager } = useUserParty();
   const lockedParty = userParty === 'PL' ? 'PL' : userParty === 'Novo' ? 'Novo' : '';
   const [tab, setTab] = useState<'candidatos' | 'usuarios' | 'perfis_lideranca' | 'conta'>('candidatos');
@@ -189,11 +191,16 @@ export default function Configuracoes() {
       {/* Tabs */}
       <div className="px-6 border-b border-border flex gap-1 flex-shrink-0">
         {([
-          { key: 'candidatos', label: 'Candidatos', adminOnly: false },
-          { key: 'usuarios', label: 'Usuários', adminOnly: true },
-          { key: 'perfis_lideranca', label: 'Perfis de Liderança', adminOnly: false },
+          { key: 'candidatos', label: 'Candidatos', adminOnly: false, hideForRegional: true },
+          { key: 'usuarios', label: 'Usuários', adminOnly: false, requiresUserMgmt: true },
+          { key: 'perfis_lideranca', label: 'Perfis de Liderança', adminOnly: false, hideForRegional: true },
           { key: 'conta', label: 'Minha Conta', adminOnly: false },
-        ] as const).filter(t => !t.adminOnly || isAdmin).map(t => (
+        ] as const).filter(t => {
+          if ((t as any).requiresUserMgmt) return canManageUsers;
+          if ((t as any).hideForRegional && !isAdmin) return false;
+          return !t.adminOnly || isAdmin;
+        }).map(t => (
+
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
@@ -333,7 +340,7 @@ export default function Configuracoes() {
           </div>
         )}
 
-        {tab === 'usuarios' && isAdmin && <UsersManager />}
+        {tab === 'usuarios' && canManageUsers && <UsersManager />}
 
         {tab === 'perfis_lideranca' && <LeadershipProfilesManager />}
 

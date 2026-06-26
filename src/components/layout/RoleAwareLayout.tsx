@@ -19,13 +19,20 @@ export function RoleAwareLayout({ children }: { children: ReactNode }) {
   if (loading) return null;
 
   const onCampoRoute = location.pathname.startsWith('/campo');
+  const onConfigRoute = location.pathname.startsWith('/configuracoes');
+  const isRegional = roles?.includes('coordenador_regional' as any);
 
   if (isCampoOperator) {
+    // Coordenador Regional pode gerenciar usuários em /configuracoes
+    if (isRegional && onConfigRoute) {
+      return <AppLayout>{children}</AppLayout>;
+    }
     if (!onCampoRoute) {
       return <Navigate to="/campo" replace />;
     }
     return <CampoLayout>{children}</CampoLayout>;
   }
+
 
   const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
   if (isGestorOperacional) {

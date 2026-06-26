@@ -14,6 +14,11 @@ const ESTADUAL_ALLOWED_ROLES: AppRole[] = [
   'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
   'operador_campo', 'lideranca_local',
 ];
+const REGIONAL_ALLOWED_ROLES: AppRole[] = [
+  'coordenador_microrregional', 'coordenador_municipal',
+  'operador_campo', 'lideranca_local',
+];
+
 
 type AppRole =
   | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
@@ -59,8 +64,17 @@ export function UsersManager() {
   const { roles: callerRoles } = useAuth();
   const isFullAdmin = callerRoles.some(r => ['admin_master', 'coordenador_geral'].includes(r));
   const isEstadualOnly = !isFullAdmin && callerRoles.includes('coordenador_estadual' as any);
-  const allowedRoles = isFullAdmin ? ROLES : ROLES.filter(r => ESTADUAL_ALLOWED_ROLES.includes(r.value));
-  const canManageRow = (r: AppRole | null) => isFullAdmin || (r != null && ESTADUAL_ALLOWED_ROLES.includes(r));
+  const isRegionalOnly = !isFullAdmin && !isEstadualOnly && callerRoles.includes('coordenador_regional' as any);
+  const manageableRoleSet: AppRole[] = isFullAdmin
+    ? ROLES.map(r => r.value)
+    : isEstadualOnly
+      ? ESTADUAL_ALLOWED_ROLES
+      : isRegionalOnly
+        ? REGIONAL_ALLOWED_ROLES
+        : [];
+  const allowedRoles = ROLES.filter(r => manageableRoleSet.includes(r.value));
+  const canManageRow = (r: AppRole | null) => isFullAdmin || (r != null && manageableRoleSet.includes(r));
+
 
   const [users, setUsers] = useState<UserRow[]>([]);
   const [candidatesList, setCandidatesList] = useState<CandidateOption[]>([]);

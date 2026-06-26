@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Users, BarChart3, LogOut, Home } from 'lucide-react';
+import { ClipboardCheck, Users, BarChart3, LogOut, Home, UserCog } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstallPrompt } from './InstallPrompt';
 
@@ -16,8 +16,9 @@ const tabs = [
 ];
 
 export function CampoLayout({ children }: CampoLayoutProps) {
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, roles, signOut } = useAuth();
   const navigate = useNavigate();
+  const isRegional = roles?.includes('coordenador_regional' as any);
 
   const displayName = profile?.full_name?.trim() || user?.email || 'Liderança';
 
@@ -25,6 +26,7 @@ export function CampoLayout({ children }: CampoLayoutProps) {
     await signOut();
     navigate('/login', { replace: true });
   };
+
 
   return (
     <div
@@ -59,13 +61,26 @@ export function CampoLayout({ children }: CampoLayoutProps) {
             </div>
           </div>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
-          style={{ color: 'var(--campo-text-mute)' }}
-        >
-          <LogOut className="w-3.5 h-3.5" /> Sair
-        </button>
+        <div className="flex items-center gap-1">
+          {isRegional && (
+            <button
+              onClick={() => navigate('/configuracoes')}
+              className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
+              style={{ color: 'var(--campo-text-mute)' }}
+              title="Gerenciar usuários"
+            >
+              <UserCog className="w-3.5 h-3.5" /> Usuários
+            </button>
+          )}
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
+            style={{ color: 'var(--campo-text-mute)' }}
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sair
+          </button>
+        </div>
+
       </header>
 
       {/* Content */}
