@@ -133,6 +133,7 @@ export default function AtivosPoliticos() {
   const [macroFilter, setMacroFilter] = useState('all');
   const [alignFilter, setAlignFilter] = useState('all');
   const [originFilter, setOriginFilter] = useState<'all' | UnifiedAsset['origin']>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | UnifiedAssetType>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm());
@@ -155,6 +156,15 @@ export default function AtivosPoliticos() {
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   }, [assets, macroFilter]);
 
+  // Tipos presentes nos ativos para o dropdown dinâmico
+  const typeOptions = useMemo(() => {
+    const set = new Set<UnifiedAssetType>();
+    assets.forEach(a => { if (a.type) set.add(a.type); });
+    return Array.from(set)
+      .map(t => ({ value: t, label: UNIFIED_TYPE_LABELS[t] ?? t }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+  }, [assets]);
+
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
     const matchSearch = !search || a.name.toLowerCase().includes(q) || (a.municipality ?? '').toLowerCase().includes(q);
@@ -162,7 +172,8 @@ export default function AtivosPoliticos() {
     const matchMacro = macroFilter === 'all' || a.macroregion_id === macroFilter;
     const matchAlign = alignFilter === 'all' || a.alignment_status === alignFilter;
     const matchOrigin = originFilter === 'all' || a.origin === originFilter;
-    return matchSearch && matchCity && matchMacro && matchAlign && matchOrigin;
+    const matchType = typeFilter === 'all' || a.type === typeFilter;
+    return matchSearch && matchCity && matchMacro && matchAlign && matchOrigin && matchType;
   });
 
   const updateForm = (key: keyof AssetForm, value: string) =>
@@ -347,6 +358,10 @@ export default function AtivosPoliticos() {
           <option value="nativo">Nativos</option>
           <option value="candidato">Candidatos</option>
           <option value="coordenador">Coordenadores</option>
+        </select>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as any)} className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+          <option value="all">Todos os cargos</option>
+          {typeOptions.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
         <span className="text-xs text-muted-foreground self-center ml-auto">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
       </div>
