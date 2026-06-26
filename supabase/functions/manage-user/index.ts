@@ -36,7 +36,8 @@ Deno.serve(async (req) => {
     const callerRoleSet = new Set((callerRoles ?? []).map((r: any) => r.role));
     const isAdminFull = ["admin_master", "coordenador_geral"].some(r => callerRoleSet.has(r));
     const isEstadual = callerRoleSet.has("coordenador_estadual");
-    if (!isAdminFull && !isEstadual)
+    const isRegional = callerRoleSet.has("coordenador_regional");
+    if (!isAdminFull && !isEstadual && !isRegional)
       return json({ error: "Apenas administradores podem gerenciar usuários" }, 403);
 
     const ESTADUAL_ALLOWED_ROLES = new Set([
@@ -46,13 +47,28 @@ Deno.serve(async (req) => {
       "operador_campo",
       "lideranca_local",
     ]);
+    const REGIONAL_ALLOWED_ROLES = new Set([
+      "coordenador_microrregional",
+      "coordenador_municipal",
+      "operador_campo",
+      "lideranca_local",
+    ]);
+
+    const allowedSet = isAdminFull
+      ? null
+      : isEstadual
+        ? ESTADUAL_ALLOWED_ROLES
+        : REGIONAL_ALLOWED_ROLES;
 
     const assertCanManageRole = (role: string | null | undefined): string | null => {
       if (isAdminFull) return null;
-      if (!role || !ESTADUAL_ALLOWED_ROLES.has(role))
-        return "Coordenador Estadual só pode gerenciar usuários N3, N4, N5, Operador de Campo ou Liderança Local";
+      if (!role || !allowedSet!.has(role))
+        return isEstadual
+          ? "Coordenador Estadual só pode gerenciar usuários N3, N4, N5, Operador de Campo ou Liderança Local"
+          : "Coordenador Regional só pode gerenciar usuários N4, N5, Operador de Campo ou Liderança Local";
       return null;
     };
+
 
     const assertCanManageTargetUser = async (target_user_id: string): Promise<string | null> => {
       if (isAdminFull) return null;
