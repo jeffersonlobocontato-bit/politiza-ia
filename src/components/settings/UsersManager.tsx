@@ -214,10 +214,12 @@ export function UsersManager() {
     const s = search.toLowerCase();
     const matchSearch = !s || u.full_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s);
     const matchRole = filterRole === 'all' || u.role === filterRole;
-    return matchSearch && matchRole;
+    const matchScope = isFullAdmin || canManageRow(u.role);
+    return matchSearch && matchRole && matchScope;
   });
 
-  const countsByRole = ROLES.map(r => ({ ...r, count: users.filter(u => u.role === r.value).length }));
+  const countsByRole = allowedRoles.map(r => ({ ...r, count: users.filter(u => u.role === r.value).length }));
+
 
   return (
     <div className="space-y-6 max-w-5xl">
