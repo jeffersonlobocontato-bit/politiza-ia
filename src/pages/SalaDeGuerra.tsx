@@ -745,12 +745,46 @@ export default function SalaDeGuerra() {
                   <span className="text-[10px] text-muted-foreground">{l.label}</span>
                 </div>
               ))}
-              {showAssetPins && (Object.entries(ORIGIN_COLORS) as [UnifiedAssetOrigin, { color: string; label: string }][]).map(([k, v]) => (
-                <div key={`leg-${k}`} className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full border border-white/40" style={{ backgroundColor: v.color }} />
-                  <span className="text-[10px] text-muted-foreground">{v.label}</span>
-                </div>
-              ))}
+              {showAssetPins && (() => {
+                // Conta ativos por tipo e agrupa por família
+                const counts = new Map<string, number>();
+                geoAssets.forEach(a => counts.set(a.type as string, (counts.get(a.type as string) ?? 0) + 1));
+                const presentTypes = Array.from(counts.entries())
+                  .map(([t, n]) => ({ t, n, meta: typeMeta(t) }))
+                  .sort((a, b) => b.n - a.n);
+                const byFamily = new Map<AssetFamily, typeof presentTypes>();
+                presentTypes.forEach(item => {
+                  const arr = byFamily.get(item.meta.family) ?? [];
+                  arr.push(item);
+                  byFamily.set(item.meta.family, arr);
+                });
+                return (
+                  <div className="w-full flex flex-wrap gap-x-4 gap-y-2">
+                    {(Array.from(byFamily.entries())).map(([fam, items]) => {
+                      const hidden = hiddenFamilies.has(fam);
+                      return (
+                        <div key={fam} className="flex flex-col gap-1">
+                          <button
+                            onClick={() => toggleFamily(fam)}
+                            className={`text-[10px] font-semibold uppercase tracking-wide transition-colors ${hidden ? 'text-muted-foreground/40 line-through' : 'text-foreground'}`}
+                            title={hidden ? 'Mostrar' : 'Ocultar'}
+                          >
+                            {FAMILY_META[fam].label}
+                          </button>
+                          <div className={`flex flex-wrap gap-x-2 gap-y-1 ${hidden ? 'opacity-30' : ''}`}>
+                            {items.map(({ t, n, meta }) => (
+                              <div key={t} className="flex items-center gap-1">
+                                <div className="w-2.5 h-2.5 rounded-full border border-white/40" style={{ backgroundColor: meta.color }} />
+                                <span className="text-[10px] text-muted-foreground">{meta.label} · {n}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
               <span className="ml-auto text-[10px] text-muted-foreground">
                 {totalActionsMapped} ações · {totalLeadership} lideranças · {teamMembers.length} equipe · {slates.length} pré-candidatos · {geoAssets.length} ativos
               </span>
