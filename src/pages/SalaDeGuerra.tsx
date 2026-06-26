@@ -274,6 +274,13 @@ export default function SalaDeGuerra() {
   const [mapView, setMapView] = useState<'operacional' | 'calor' | 'politico'>('operacional');
   const [bgMode, setBgMode] = useState<BgMode>('hidden');
   const [showAssetPins, setShowAssetPins] = useState(true);
+  const [hiddenFamilies, setHiddenFamilies] = useState<Set<AssetFamily>>(new Set());
+  const toggleFamily = (f: AssetFamily) =>
+    setHiddenFamilies(prev => {
+      const n = new Set(prev);
+      n.has(f) ? n.delete(f) : n.add(f);
+      return n;
+    });
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
