@@ -1,32 +1,61 @@
-## Objetivo
+## Problema
 
-1. Coordenador Estadual passa a poder criar/gerenciar usuários, mas restrito aos níveis: Regional (N3), Microrregional (N4), Municipal (N5), Operador de Campo e Liderança Local.
-2. Esses 5 perfis (N3, N4, N5, Operador, Liderança) só têm acesso à área **Campo › Lideranças** (não veem Sala de Guerra, Mapa, Ativos, etc.).
-3. Dentro de Lideranças, cada um vê/edita **apenas as lideranças que ele próprio cadastrou** (`created_by = auth.uid()`). Admins continuam vendo tudo.
+Hoje os pins do mapa da Sala de Guerra são coloridos por **origem** (4 cores: Ativos / Candidatos / Coordenadores / Eventos). Como ~80% dos registros vêm da base "Ativos Políticos" (nativos), o mapa fica **dominado por azul**, perdendo a leitura intuitiva.
 
-## Mudanças
+## Proposta — colorir por TIPO/FUNÇÃO (não por origem)
 
-### 1. Backend — Edge function `manage-user`
-- Substituir a checagem `is_admin` por uma autorização escalonada:
-  - `admin_master`, `coordenador_geral` → pode criar qualquer role.
-  - `coordenador_estadual` → pode criar/editar/excluir/redefinir senha **apenas** para usuários cujo role esteja em `['coordenador_regional','coordenador_microrregional','coordenador_municipal','operador_campo','lideranca_local']`. Bloquear qualquer outra role no payload (`create` e `update_role`) e bloquear `delete`/`reset_password` quando o alvo for usuário fora desse conjunto.
-- Demais roles continuam recebendo 403.
+Trocar a paleta de 4 cores por uma matriz de **cores agrupadas em famílias**, com tons que indicam hierarquia dentro de cada família. Assim diferentes categorias ficam visualmente distintas, mesmo vindo da mesma origem.
 
-### 2. Frontend — `UsersManager` e `Configuracoes`
-- Expor a aba "Usuários" também para `coordenador_estadual` (hoje só `isAdmin` cobre, e ele já é admin — confirmar que o gating em Configuracoes mantém o acesso).
-- No formulário de criação/edição, quando o usuário logado for `coordenador_estadual` (e não admin master/geral), filtrar a lista `ROLES` para mostrar somente os 5 perfis permitidos e ocultar usuários de níveis superiores na listagem (filtrar `users` por role permitido).
-- Ocultar botões editar/excluir/reset para linhas fora do escopo do coordenador estadual.
+### Mapa de cores sugerido
 
-### 3. Roteamento — `RoleAwareLayout`
-- Expandir `isCampoOperator` (ou criar `isCampoOnly`) para incluir os 5 roles: `coordenador_regional`, `coordenador_microrregional`, `coordenador_municipal`, `operador_campo`, `lideranca_local`.
-- Esses usuários são redirecionados para `/campo` ao acessar qualquer outra rota (mesmo comportamento já existente para operador_campo).
-- Em `CampoLayout`/menu de campo, garantir que o único item disponível para N3/N4/N5 seja **Lideranças** (esconder Ação, Fiscalize, Dashboard se existirem para esses perfis). Verificar `CampoLayout.tsx` e ajustar o menu condicionalmente.
+**Família Executiva (tons de vermelho/laranja) — poder executivo**
+- `#DC2626` Prefeito
+- `#F97316` Vice-Prefeito
+- `#FCD34D` Secretário municipal
 
-### 4. RLS — tabela `leaders` (migração)
-- Reescrever políticas para que usuários N3/N4/N5/Operador/Liderança vejam e modifiquem somente os registros onde `created_by = auth.uid()`. Admins (`is_admin`) continuam com acesso total. Manter compatibilidade com a regra de partido já existente (`can_view_party_record`).
-- Aplicar o mesmo padrão a `leader_political_history`, `leader_party_history`, `leader_leadership_profiles` (escopo via `leader_id` pertencente ao usuário).
+**Família Legislativa (tons de roxo) — mandato parlamentar**
+- `#7C3AED` Deputado Federal
+- `#A855F7` Deputado Estadual
+- `#C084FC` Vereador
 
-### Notas técnicas
-- A função `is_admin` já cobre `coordenador_estadual`, então a checagem na edge function precisa ser específica: comparar o role do caller via `user_roles` em vez de só `is_admin`.
-- Criar helper SQL `public.can_manage_user_role(_caller uuid, _target_role app_role)` para centralizar a regra usada pela edge function (via RPC) e por futuras policies.
-- Restrição de "só ver os meus" em Lideranças assume que `leaders.created_by` é populado no insert (já é hoje pelo CampoLiderancaForm). Validar antes da migração.
+**Família Candidatos & Coligação (tons de rosa/magenta)**
+- `#EC4899` Candidato (majoritária)
+- `#F472B6` Pré-candidato proporcional
+
+**Família Coordenação / Campanha (tons de verde)**
+- `#15803D` Coord. Geral / Estadual
+- `#22C55E` Coord. Macrorregional
+- `#4ADE80` Coord. Microrregional
+- `#86EFAC` Coord. Municipal
+
+**Família Lideranças & Base (tons de ciano/azul)**
+- `#0891B2` Presidente de entidade
+- `#06B6D4` Liderança comunitária
+- `#22D3EE` Liderança partidária
+- `#67E8F9` Apoiador / Militante / Voluntário
+
+**Família Eventos & Captação (tons de âmbar)**
+- `#F59E0B` Público de eventos (leads)
+
+**Outros / Sem classificação**
+- `#94A3B8` cinza neutro
+
+### Legenda
+
+Substituir a legenda atual de 4 itens por um painel **agrupado por família**, expansível, mostrando contagem ao lado de cada tag (ex.: `Prefeito · 287`). Permite ao usuário entender de relance a composição do mapa.
+
+### Comportamento
+
+- Mantém o toggle "Cores / Contornos / Oculto" do fundo do mapa.
+- Mantém o toggle de exibição de pins de ativos (`showAssetPins`).
+- Adiciona toggles **por família** na legenda (clicar oculta/exibe aquela família) para facilitar análise focada.
+- Tooltip do pin continua mostrando nome, tipo, cidade e origem.
+
+## Arquivos a alterar
+
+- `src/pages/SalaDeGuerra.tsx` — substituir `ORIGIN_COLORS` por `TYPE_COLORS` mapeando `UnifiedAssetType` → cor + família; refatorar legenda; adicionar filtro por família.
+- Sem alterações em hooks ou no banco — apenas camada de visualização.
+
+## Validação
+
+Após implementar, abrir `/sala-de-guerra`, conferir distribuição visual no mapa do Paraná e verificar a contagem por tipo na nova legenda.
