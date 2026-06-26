@@ -14,6 +14,11 @@ const ESTADUAL_ALLOWED_ROLES: AppRole[] = [
   'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
   'operador_campo', 'lideranca_local',
 ];
+const REGIONAL_ALLOWED_ROLES: AppRole[] = [
+  'coordenador_microrregional', 'coordenador_municipal',
+  'operador_campo', 'lideranca_local',
+];
+
 
 type AppRole =
   | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
