@@ -57,14 +57,16 @@ export function LeadsLayer({ leads, radius = 5, hiddenFamilies }: Props) {
   return (
     <>
       {leads.map(l => {
-        const meta = SOURCE_META[l.source];
+        const tMeta = typeMeta(geoLeadType(l.source, l.raw));
+        if (hiddenFamilies?.has(tMeta.family)) return null;
+        const sourceMeta = SOURCE_META[l.source];
         const regions = resolveRegions(l);
         return (
           <CircleMarker
             key={`${l.source}-${l.id}`}
             center={[l.point.lat, l.point.lng]}
             radius={radius}
-            fillColor={meta.color}
+            fillColor={tMeta.color}
             color="#ffffff"
             weight={1.2}
             fillOpacity={l.point.approximate ? 0.55 : 0.92}
@@ -72,8 +74,8 @@ export function LeadsLayer({ leads, radius = 5, hiddenFamilies }: Props) {
           >
             <Popup className="leads-popup">
               <div style={{ color: '#ffffff', minWidth: 200 }}>
-                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: meta.color, fontWeight: 700 }}>
-                  {meta.label}
+                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: tMeta.color, fontWeight: 700 }}>
+                  {tMeta.label} <span style={{ color: '#94a3b8', fontWeight: 500 }}>· {sourceMeta.label}</span>
                 </div>
                 <div style={{ fontWeight: 700, marginTop: 2, color: '#ffffff' }}>{l.name}</div>
                 {l.subtitle && <div style={{ fontSize: 12, color: '#e2e8f0' }}>{l.subtitle}</div>}
