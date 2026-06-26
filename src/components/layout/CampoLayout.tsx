@@ -61,13 +61,26 @@ export function CampoLayout({ children }: CampoLayoutProps) {
             </div>
           </div>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
-          style={{ color: 'var(--campo-text-mute)' }}
-        >
-          <LogOut className="w-3.5 h-3.5" /> Sair
-        </button>
+        <div className="flex items-center gap-1">
+          {isRegional && (
+            <button
+              onClick={() => navigate('/configuracoes')}
+              className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
+              style={{ color: 'var(--campo-text-mute)' }}
+              title="Gerenciar usuários"
+            >
+              <UserCog className="w-3.5 h-3.5" /> Usuários
+            </button>
+          )}
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
+            style={{ color: 'var(--campo-text-mute)' }}
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sair
+          </button>
+        </div>
+
       </header>
 
       {/* Content */}
