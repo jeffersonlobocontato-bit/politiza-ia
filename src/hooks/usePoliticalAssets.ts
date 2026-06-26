@@ -71,6 +71,7 @@ export function useDeleteAsset() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['political-assets'] });
+      qc.invalidateQueries({ queryKey: ['unified-political-assets'] });
       toast.success('Ativo removido.');
     },
     onError: (e: any) => toast.error(`Erro: ${e.message}`),
