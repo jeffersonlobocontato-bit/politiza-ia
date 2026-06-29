@@ -487,6 +487,10 @@ export default function Inteligencia() {
             ))}
           </div>
         </TabsContent>
+        {/* ============= ABA CRUZAMENTO ============= */}
+        <TabsContent value="cruzamento" className="space-y-6 mt-6">
+          <CruzamentoPesquisas />
+        </TabsContent>
       </Tabs>
     </div>
   );
