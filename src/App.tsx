@@ -26,6 +26,7 @@ import CampoLiderancaForm from "./pages/CampoLiderancaForm";
 import CampoDashboard from "./pages/CampoDashboard";
 import AtivosPoliticos from "./pages/AtivosPoliticos";
 import Inteligencia from "./pages/Inteligencia";
+import Pesquisas from "./pages/Pesquisas";
 import Hierarquia from "./pages/Hierarquia";
 import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
