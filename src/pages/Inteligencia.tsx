@@ -160,7 +160,11 @@ export default function Inteligencia() {
             Análise estratégica · Sérgio Moro · Governo do Paraná 2026
           </p>
         </div>
-        <div className="flex items-center gap-3 p-3 rounded-md border bg-muted/30">
+        <div className="flex items-center gap-3">
+          <a href="/pesquisas/base" className="text-sm px-3 py-2 rounded-md border hover:bg-muted transition-colors">
+            Ver base completa de pesquisas →
+          </a>
+          <div className="flex items-center gap-3 p-3 rounded-md border bg-muted/30">
           <Switch id="igr" checked={incluirIGR} onCheckedChange={setIncluirIGR} />
           <Label htmlFor="igr" className="text-xs leading-tight">
             Incluir IGR no agregado
@@ -170,6 +174,7 @@ export default function Inteligencia() {
               </span>
             )}
           </Label>
+          </div>
         </div>
       </div>
 
