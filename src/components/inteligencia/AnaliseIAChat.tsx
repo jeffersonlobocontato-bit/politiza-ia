@@ -14,9 +14,9 @@ import { Message, MessageContent } from '@/components/ai-elements/message';
 import {
   PromptInput,
   PromptInputBody,
+  PromptInputFooter,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputToolbar,
 } from '@/components/ai-elements/prompt-input';
 import { cn } from '@/lib/utils';
 
@@ -86,11 +86,14 @@ export default function AnaliseIAChat({ context }: Props) {
         .order('created_at', { ascending: true });
       if (cancelled) return;
       setMessages(
-        (data ?? []).map((m: { id: string; role: string; parts: { text?: string }[] }) => ({
-          id: m.id,
-          role: (m.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
-          text: (m.parts ?? []).map((p) => p.text ?? '').join(''),
-        })),
+        (data ?? []).map((m) => {
+          const parts = (Array.isArray(m.parts) ? m.parts : []) as Array<{ text?: string }>;
+          return {
+            id: m.id,
+            role: (m.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
+            text: parts.map((p) => p?.text ?? '').join(''),
+          };
+        }),
       );
       setLoadingMsgs(false);
     })();
