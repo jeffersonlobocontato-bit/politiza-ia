@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, AlertTriangle, Target, Users, ClipboardList, GitCompare,
-  Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus, Heart,
+  Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus, Heart, Shield,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
