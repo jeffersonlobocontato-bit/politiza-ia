@@ -323,7 +323,7 @@ export default function AnaliseIAChat({ context }: Props) {
               placeholder="Pergunte ao analista — ex: compare Moro vs Requião por instituto…"
               disabled={streaming}
             />
-            <PromptInputToolbar>
+            <PromptInputFooter>
               <div className="text-[10px] text-muted-foreground">
                 Respostas baseadas exclusivamente nos dados do painel.
               </div>
@@ -331,7 +331,7 @@ export default function AnaliseIAChat({ context }: Props) {
                 status={streaming ? 'streaming' : undefined}
                 disabled={!input.trim() || streaming}
               />
-            </PromptInputToolbar>
+            </PromptInputFooter>
           </PromptInputBody>
         </PromptInput>
       </Card>
