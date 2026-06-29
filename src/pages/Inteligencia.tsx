@@ -181,8 +181,9 @@ export default function Inteligencia() {
       </div>
 
       <Tabs defaultValue="painel" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 h-auto">
           <TabsTrigger value="painel" className="gap-2"><LayoutDashboard className="w-4 h-4" />Painel Geral</TabsTrigger>
+          <TabsTrigger value="cruzamento" className="gap-2"><GitCompare className="w-4 h-4" />Cruzamento</TabsTrigger>
           <TabsTrigger value="ameacas" className="gap-2"><AlertTriangle className="w-4 h-4" />Ameaças</TabsTrigger>
           <TabsTrigger value="oport" className="gap-2"><Target className="w-4 h-4" />Oportunidades</TabsTrigger>
           <TabsTrigger value="rivais" className="gap-2"><Users className="w-4 h-4" />Raio-X</TabsTrigger>
