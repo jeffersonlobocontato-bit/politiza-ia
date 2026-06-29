@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  LayoutDashboard, AlertTriangle, Target, Users, ClipboardList,
+  LayoutDashboard, AlertTriangle, Target, Users, ClipboardList, GitCompare,
   Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
