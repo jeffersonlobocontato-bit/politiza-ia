@@ -495,3 +495,141 @@ export default function Inteligencia() {
     </div>
   );
 }
+
+// ============================================================
+// CRUZAMENTO DE PESQUISAS
+// ============================================================
+function CruzamentoPesquisas() {
+  const institutos = useMemo(() => [...new Set(PESQUISAS.map(p => p.inst))], []);
+  const candidatos = useMemo(() => [...new Set(PESQUISAS.map(p => p.cand))], []);
+
+  const [selInst, setSelInst] = useState<string[]>(institutos);
+  const [selCand, setSelCand] = useState<string[]>(candidatos);
+
+  const toggle = (arr: string[], v: string, set: (a: string[]) => void) =>
+    set(arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
+
+  // Comparativo lado a lado: candidato × instituto
+  const matriz = useMemo(() => {
+    return selCand.map(cand => {
+      const linha: any = { cand };
+      let valores: number[] = [];
+      selInst.forEach(inst => {
+        const r = PESQUISAS.find(p => p.cand === cand && p.inst === inst);
+        linha[inst] = r ? r.pct : null;
+        if (r) valores.push(r.pct);
+      });
+      if (valores.length >= 2) {
+        linha._min = Math.min(...valores);
+        linha._max = Math.max(...valores);
+        linha._delta = +(linha._max - linha._min).toFixed(1);
+        linha._media = +(valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(1);
+      }
+      return linha;
+    });
+  }, [selCand, selInst]);
+
+  // Evolução temporal: linha por candidato, X = data ordenada
+  const linhaData = useMemo(() => {
+    const ordenadas = [...selInst]
+      .map(inst => ({ inst, data: PESQUISAS.find(p => p.inst === inst)?.data ?? '' }))
+      .sort((a, b) => a.data.localeCompare(b.data));
+    return ordenadas.map(({ inst, data }) => {
+      const ponto: any = { inst, data: data.slice(5) };
+      selCand.forEach(cand => {
+        const r = PESQUISAS.find(p => p.cand === cand && p.inst === inst);
+        ponto[cand] = r ? r.pct : null;
+      });
+      return ponto;
+    });
+  }, [selCand, selInst]);
+
+  return (
+    <>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Selecione institutos e candidatos para cruzar</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <div className="text-xs font-semibold uppercase text-muted-foreground mb-2">Institutos</div>
+            <div className="flex flex-wrap gap-3">
+              {institutos.map(i => (
+                <label key={i} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox checked={selInst.includes(i)} onCheckedChange={() => toggle(selInst, i, setSelInst)} />
+                  {i}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs font-semibold uppercase text-muted-foreground mb-2">Candidatos</div>
+            <div className="flex flex-wrap gap-3">
+              {candidatos.map(c => (
+                <label key={c} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox checked={selCand.includes(c)} onCheckedChange={() => toggle(selCand, c, setSelCand)} />
+                  <span style={{ color: COR_CAND[c] ?? undefined }}>{c}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Comparativo lado a lado</CardTitle></CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left border-b text-muted-foreground">
+                <th className="py-2 pr-3">Candidato</th>
+                {selInst.map(i => <th key={i} className="py-2 pr-3 text-right">{i}</th>)}
+                <th className="py-2 pr-3 text-right">Média</th>
+                <th className="py-2 text-right">Δ (máx-mín)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matriz.map((r, i) => (
+                <tr key={i} className="border-b">
+                  <td className="py-2 pr-3 font-medium" style={{ color: COR_CAND[r.cand] ?? undefined }}>{r.cand}</td>
+                  {selInst.map(inst => (
+                    <td key={inst} className="py-2 pr-3 text-right tabular-nums">
+                      {r[inst] != null ? `${r[inst]}%` : '—'}
+                    </td>
+                  ))}
+                  <td className="py-2 pr-3 text-right font-semibold">{r._media != null ? `${r._media}%` : '—'}</td>
+                  <td className="py-2 text-right">
+                    {r._delta != null ? (
+                      <Badge className={r._delta >= 5 ? 'bg-red-500' : r._delta >= 2.5 ? 'bg-amber-500' : 'bg-emerald-600'}>
+                        {r._delta} p.p.
+                      </Badge>
+                    ) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="text-xs text-muted-foreground mt-3">
+            Δ alto = maior dispersão entre institutos (possível efeito metodológico).
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Evolução por instituto (ordem cronológica)</CardTitle></CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={340}>
+            <LineChart data={linhaData} margin={{ left: 10, right: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis dataKey="inst" />
+              <YAxis tickFormatter={v => `${v}%`} />
+              <Tooltip formatter={(v: any) => v != null ? `${v}%` : '—'} />
+              <Legend />
+              {selCand.map(c => (
+                <Line key={c} type="monotone" dataKey={c} stroke={COR_CAND[c] ?? '#9ca3af'} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
