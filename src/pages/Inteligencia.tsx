@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, AlertTriangle, Target, Users, ClipboardList, GitCompare,
-  Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus,
+  Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus, Heart,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -326,6 +326,8 @@ export default function Inteligencia() {
         {/* ============= ABA 3: OPORTUNIDADES ============= */}
         <TabsContent value="oport" className="space-y-4 mt-6">
           {[
+            { icon: Heart, titulo: 'Eleitorado feminino — MAIOR OPORTUNIDADE', dado: 'Mulheres 38,9% vs Homens 46,1% — gap de 7,2 p.p. | 52% do eleitorado do PR',
+              analise: 'Maior bolsão eleitoral disponível em volume absoluto. Mulheres são 52% do eleitorado paranaense — cada 1 p.p. ganhado nesse grupo equivale a ~0,52 p.p. no total. Concentrar em: (1) Mulheres 35–59 anos com pautas de segurança pública, família e custo de vida; (2) Mulheres jovens com agenda de oportunidades e empreendedorismo; (3) Mães e cuidadoras com educação, saúde e creches. Comunicação por mulheres-referência (lideranças, candidatas proporcionais, vereadoras aliadas) e presença em territórios femininos (igrejas, escolas, mercados, salões).' },
             { icon: Church, titulo: 'Eleitorado religioso', dado: 'Praticantes 48,6% vs não-praticantes 35,5% — gap de 13,1 p.p.',
               analise: 'Maior gap segmental. 68% do eleitorado paranaense tem prática religiosa. Espaço de crescimento ainda existente dentro desse grupo.' },
             { icon: GraduationCap, titulo: 'Ensino superior', dado: 'Superior 50,8% vs Fundamental 31,6% — gap de 19,2 p.p.',
