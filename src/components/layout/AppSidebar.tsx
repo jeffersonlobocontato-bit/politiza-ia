@@ -37,7 +37,7 @@ const navItems: NavItem[] = [
   { title: 'Gestão de Equipe', url: '/gestao', icon: LayoutGrid, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
-  { title: 'Pesquisas', url: '/pesquisas', icon: BarChart2, scope: 'shared' },
+  { title: 'Inteligência', url: '/pesquisas', icon: ShieldAlert, scope: 'shared' },
   { title: 'Emendas', url: '/emendas', icon: Banknote, scope: 'shared' },
   // Proporcional-only (inclui Chapas dentro do módulo unificado)
   { title: 'Proporcional', url: '/proporcional', icon: Vote, scope: 'proporcional' },
