@@ -657,3 +657,162 @@ function CruzamentoPesquisas() {
     </>
   );
 }
+
+// ============================================================
+// PLANOS DE AÇÃO — cards detalhados em diálogo
+// ============================================================
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
+const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes: { h: string; itens: string[] }[] }> = {
+  comunicacao: {
+    titulo: 'Plano de comunicação digital — 90 dias',
+    subtitulo: 'WhatsApp, Instagram, TikTok e YouTube · foco em conversão de indecisos e gap feminino',
+    secoes: [
+      { h: 'Mês 1 — Consolidação da marca (semanas 1-4)', itens: [
+        'Narrativa central: "Paraná seguro, justo e que cuida das pessoas".',
+        'Pílulas semanais (3/semana) com Moro falando de segurança, custo de vida e família.',
+        'Operação WhatsApp: 1 áudio + 1 card por dia para grupos das 19 Associações.',
+        'Ativação de 60 mulheres-referência (lideranças, candidatas proporcionais) como vozes amplificadoras.',
+      ] },
+      { h: 'Mês 2 — Diferenciação vs adversários (semanas 5-8)', itens: [
+        'Conteúdo comparativo Moro x Requião Filho em segurança e gestão pública.',
+        'Série "Cada voto conta no 1º turno" — vídeos de 30s com militantes de cada macrorregião.',
+        'Resposta rápida ao crescimento de Sandro Alex: monitoramento de menções + cards de contraste em 24h.',
+        'Lives quinzenais com pautas de proteção (mulheres, crianças, idosos).',
+      ] },
+      { h: 'Mês 3 — Conversão e voto útil (semanas 9-12)', itens: [
+        'Operação "1º turno": peças com simulação de cenário (Moro 47% vs 2º turno arriscado).',
+        'Push regional: vídeos territorializados por macrorregião com prefeitos e lideranças locais.',
+        'Onda final WhatsApp: 2 áudios/dia + corrente de prefeitos aliados.',
+        'Métrica-alvo: +3 p.p. entre mulheres 35-59 anos e +2 p.p. entre 16-24 anos.',
+      ] },
+    ],
+  },
+  calendario: {
+    titulo: 'Calendário de agenda pública',
+    subtitulo: 'Priorização por densidade eleitoral, gaps demográficos e janelas regionais',
+    secoes: [
+      { h: 'Regiões prioritárias (próximas 6 semanas)', itens: [
+        'RMC (28 cidades): 2 visitas/semana — foco em segurança e mobilidade.',
+        'Curitiba: 1 agenda territorial/semana em bairros com gap feminino (CIC, Tatuquara, Sítio Cercado).',
+        'Norte Pioneiro e Norte Central: caravana de 3 dias com candidatos proporcionais.',
+        'Oeste (Cascavel, Toledo, Foz): agenda agro + segurança de fronteira.',
+        'Sudoeste e Centro-Sul: presença em entidades comunitárias e igrejas.',
+      ] },
+      { h: 'Tipos de evento recomendados', itens: [
+        'Encontros com mulheres-referência (1/semana) — meta: zerar gap feminino até set/26.',
+        'Reuniões com lideranças religiosas (não-praticantes têm gap de 13,1 p.p. — equilibrar).',
+        'Visitas a escolas técnicas e universidades — alvo 16-24 anos.',
+        'Cafés com prefeitos aliados — reforço da rede de coordenação municipal.',
+      ] },
+      { h: 'Regra de ouro', itens: [
+        'Toda agenda pública vira: 1 vídeo nativo + 1 card + 1 áudio para WhatsApp em até 6h.',
+        'Registrar no módulo Ações de Campo com geolocalização e impacto estimado.',
+      ] },
+    ],
+  },
+  monitoramento: {
+    titulo: 'Sistema de monitoramento',
+    subtitulo: 'Indicadores semanais para Sala de Guerra e briefing executivo',
+    secoes: [
+      { h: 'Indicadores principais (semanais)', itens: [
+        'Intenção de voto Moro (média móvel 3 institutos).',
+        'Tendência Sandro Alex — alerta se ≥13%, crítico se ≥16%.',
+        'Gap feminino (atualmente -7,2 p.p.) — meta: reduzir 1 p.p./mês.',
+        'Rejeição Moro (monitorar movimento por instituto).',
+        'Cobertura territorial: % das 399 cidades com pelo menos 1 ação no mês.',
+      ] },
+      { h: 'Fontes de dados', itens: [
+        'Pesquisas (Neokemp, Veritá, PP, IGR, Atlas) — atualização imediata em /pesquisas/base.',
+        'Tracking eleitoral próprio (módulo Tracking) — coletas semanais por entrevistadores.',
+        'Ações de campo georreferenciadas (módulo Campo).',
+        'Alertas estratégicos gerados por IA na Sala de Crise.',
+      ] },
+      { h: 'Briefing semanal (toda segunda 8h)', itens: [
+        'Resumo de 1 página: variação dos 5 indicadores + 3 alertas + 3 ações sugeridas.',
+        'Distribuição: Coordenação Geral, Coordenação Estadual, Coordenadores Macrorregionais.',
+        'Reunião de 30min com a Sala de Guerra para definir prioridades da semana.',
+      ] },
+    ],
+  },
+  pautas: {
+    titulo: 'Pautas e posicionamento',
+    subtitulo: 'O que o eleitorado quer ouvir — calibrado pelos dados de segmento e rejeição',
+    secoes: [
+      { h: 'Pautas vencedoras (alto retorno)', itens: [
+        'Segurança pública: combate ao crime organizado, polícia valorizada, fronteiras.',
+        'Família e proteção: mulheres, crianças e idosos — pauta com maior identificação emocional.',
+        'Custo de vida: ICMS, energia, alimentos — fala direto às mulheres 35-59.',
+        'Honestidade e combate à corrupção — marca histórica de Moro, ativo único.',
+      ] },
+      { h: 'Pautas de equilíbrio (cuidar)', itens: [
+        'Saúde pública e SUS — terreno em que Requião Filho tenta avançar.',
+        'Educação técnica e empregabilidade jovem — para reduzir gap em 16-24 anos.',
+        'Agenda laica (cidadania, direitos) — para não-praticantes religiosos (gap de 13,1 p.p.).',
+      ] },
+      { h: 'Pautas a evitar / cuidado redobrado', itens: [
+        'Polarização nacional pura — desgasta o "voto útil" estadual.',
+        'Discussões ideológicas sem entrega prática — alimenta rejeição.',
+        'Confronto direto com Ratinho Jr. — risco de afastar eleitor governista neutro.',
+      ] },
+      { h: 'Tom recomendado', itens: [
+        'Firmeza com empatia. Dado + história real. Sempre fechar com proposta concreta.',
+        'Protagonismo feminino nas peças (cada 1 p.p. ganho em mulheres = 0,52 p.p. no total).',
+      ] },
+    ],
+  },
+};
+
+function PlanosAcaoCards() {
+  const [open, setOpen] = useState<string | null>(null);
+  const cards: { key: keyof typeof PLANOS_DETALHE; t: string; s: string }[] = [
+    { key: 'comunicacao', t: 'Plano de comunicação digital', s: '90 dias · WhatsApp e redes sociais' },
+    { key: 'calendario', t: 'Calendário de agenda pública', s: 'Regiões e eventos prioritários' },
+    { key: 'monitoramento', t: 'Sistema de monitoramento', s: 'Indicadores e briefing semanal' },
+    { key: 'pautas', t: 'Pautas e posicionamento', s: 'O que o eleitorado quer ouvir' },
+  ];
+  const detalhe = open ? PLANOS_DETALHE[open] : null;
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {cards.map((c) => (
+          <Card
+            key={c.key}
+            onClick={() => setOpen(c.key)}
+            className="hover:border-primary cursor-pointer transition-colors"
+          >
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <div className="font-semibold">{c.t}</div>
+                <div className="text-xs text-muted-foreground mt-1">{c.s}</div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {detalhe && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{detalhe.titulo}</DialogTitle>
+                <DialogDescription>{detalhe.subtitulo}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-5 mt-2">
+                {detalhe.secoes.map((s, i) => (
+                  <div key={i}>
+                    <div className="font-semibold text-sm mb-2">{s.h}</div>
+                    <ul className="space-y-1.5 text-sm text-muted-foreground list-disc pl-5">
+                      {s.itens.map((it, j) => <li key={j}>{it}</li>)}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
