@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, AlertTriangle, Target, Users, ClipboardList, GitCompare,
   Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus, Heart, Shield,
+  Sparkles, Upload,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +16,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList,
   LineChart, Line, CartesianGrid, Legend,
 } from 'recharts';
+import AnaliseIAChat from '@/components/inteligencia/AnaliseIAChat';
+import { Button } from '@/components/ui/button';
 
 // ============================================================
 // DADOS
@@ -162,7 +166,12 @@ export default function Inteligencia() {
             Análise estratégica · Sérgio Moro · Governo do Paraná 2026
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button asChild size="sm" className="gap-2">
+            <Link to="/pesquisas/base?upload=1">
+              <Upload className="w-4 h-4" /> Upload de pesquisa
+            </Link>
+          </Button>
           <a href="/pesquisas/base" className="text-sm px-3 py-2 rounded-md border hover:bg-muted transition-colors">
             Ver base completa de pesquisas →
           </a>
@@ -181,13 +190,14 @@ export default function Inteligencia() {
       </div>
 
       <Tabs defaultValue="painel" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 h-auto">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 h-auto">
           <TabsTrigger value="painel" className="gap-2"><LayoutDashboard className="w-4 h-4" />Painel Geral</TabsTrigger>
           <TabsTrigger value="cruzamento" className="gap-2"><GitCompare className="w-4 h-4" />Cruzamento</TabsTrigger>
           <TabsTrigger value="ameacas" className="gap-2"><AlertTriangle className="w-4 h-4" />Ameaças</TabsTrigger>
           <TabsTrigger value="oport" className="gap-2"><Target className="w-4 h-4" />Oportunidades</TabsTrigger>
           <TabsTrigger value="rivais" className="gap-2"><Users className="w-4 h-4" />Raio-X</TabsTrigger>
           <TabsTrigger value="acoes" className="gap-2"><ClipboardList className="w-4 h-4" />Ações</TabsTrigger>
+          <TabsTrigger value="ia" className="gap-2"><Sparkles className="w-4 h-4" />Análise IA</TabsTrigger>
         </TabsList>
 
         {/* ============= ABA 1: PAINEL GERAL ============= */}
@@ -494,6 +504,29 @@ export default function Inteligencia() {
         {/* ============= ABA CRUZAMENTO ============= */}
         <TabsContent value="cruzamento" className="space-y-6 mt-6">
           <CruzamentoPesquisas />
+        </TabsContent>
+
+        {/* ============= ABA ANÁLISE IA ============= */}
+        <TabsContent value="ia" className="mt-6">
+          <AnaliseIAChat
+            context={{
+              candidato: 'Sérgio Moro',
+              cargo: 'Governador do Paraná 2026',
+              institutosAtivos,
+              pesquisas: PESQUISAS,
+              segmentos: SEGMENTOS,
+              rejeicao: REJEICAO,
+              limiares: LIMIARES,
+              acoes: ACOES,
+              agregado_ponderado: agregado,
+              kpis: {
+                intencao_voto: '42,3% (PP jun/26)',
+                percepcao_vitoria: '47,9%',
+                rejeicao_moro: '23,6%',
+                votos_validos_estimados: '~47%',
+              },
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>

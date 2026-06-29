@@ -1,61 +1,127 @@
-## Problema
+# Análise IA + Upload de Pesquisas no Painel de Inteligência
 
-Hoje os pins do mapa da Sala de Guerra são coloridos por **origem** (4 cores: Ativos / Candidatos / Coordenadores / Eventos). Como ~80% dos registros vêm da base "Ativos Políticos" (nativos), o mapa fica **dominado por azul**, perdendo a leitura intuitiva.
+## Objetivo
+1. Adicionar nova aba **"Análise IA"** ao menu do painel `/pesquisas` (junto com Painel Geral, Cruzamento, Ameaças, Oportunidades, Raio-X, Ações).
+2. Permitir **upload de novas pesquisas** (PDF) que serão extraídas via IA e incorporadas ao contexto de análise.
 
-## Proposta — colorir por TIPO/FUNÇÃO (não por origem)
+---
 
-Trocar a paleta de 4 cores por uma matriz de **cores agrupadas em famílias**, com tons que indicam hierarquia dentro de cada família. Assim diferentes categorias ficam visualmente distintas, mesmo vindo da mesma origem.
+## 1. Nova aba "Análise IA"
 
-### Mapa de cores sugerido
+### UI
+- Adicionar `TabsTrigger` "Análise IA" com ícone `Sparkles` ou `Bot` em `src/pages/Inteligencia.tsx`.
+- Conteúdo: componente `<AnaliseIAChat />` em `src/components/inteligencia/AnaliseIAChat.tsx`.
 
-**Família Executiva (tons de vermelho/laranja) — poder executivo**
-- `#DC2626` Prefeito
-- `#F97316` Vice-Prefeito
-- `#FCD34D` Secretário municipal
+### Funcionalidade
+- Chat com threads persistentes (uma análise = uma thread).
+- Lista lateral de threads anteriores + botão "Nova análise".
+- Composer com sugestões rápidas: "Compare Moro vs Requião nas últimas 3 pesquisas", "Identifique tendências do Sandro Alex", "Gere relatório executivo".
+- Mensagens com streaming, renderização markdown, ações copiar/regenerar (AI Elements).
 
-**Família Legislativa (tons de roxo) — mandato parlamentar**
-- `#7C3AED` Deputado Federal
-- `#A855F7` Deputado Estadual
-- `#C084FC` Vereador
+### Acesso
+- Restrito a coordenadores: `admin_master`, `coordenador_geral`, `coordenador_estadual` (via função `is_admin` existente + role check).
 
-**Família Candidatos & Coligação (tons de rosa/magenta)**
-- `#EC4899` Candidato (majoritária)
-- `#F472B6` Pré-candidato proporcional
+---
 
-**Família Coordenação / Campanha (tons de verde)**
-- `#15803D` Coord. Geral / Estadual
-- `#22C55E` Coord. Macrorregional
-- `#4ADE80` Coord. Microrregional
-- `#86EFAC` Coord. Municipal
+## 2. Upload de novas pesquisas
 
-**Família Lideranças & Base (tons de ciano/azul)**
-- `#0891B2` Presidente de entidade
-- `#06B6D4` Liderança comunitária
-- `#22D3EE` Liderança partidária
-- `#67E8F9` Apoiador / Militante / Voluntário
+### UI
+- Botão "Upload de Pesquisa" no topo do painel de Inteligência (ou dentro da aba "Análise IA").
+- Modal com:
+  - Upload de PDF
+  - Campos opcionais: Instituto, Data, Cenário (auto-preenchidos pela IA após extração)
+  - Botão "Extrair e adicionar"
 
-**Família Eventos & Captação (tons de âmbar)**
-- `#F59E0B` Público de eventos (leads)
+### Backend
+- Reutilizar a Edge Function existente **`parse-survey-pdf`** (já presente em `supabase/functions/parse-survey-pdf/`).
+- Persistir a pesquisa extraída em `electoral_surveys` + `survey_results` (tabelas já existentes).
+- A nova pesquisa fica imediatamente disponível para análise IA e nas abas Cruzamento/Painel.
 
-**Outros / Sem classificação**
-- `#94A3B8` cinza neutro
+---
 
-### Legenda
+## 3. Banco de Dados
 
-Substituir a legenda atual de 4 itens por um painel **agrupado por família**, expansível, mostrando contagem ao lado de cada tag (ex.: `Prefeito · 287`). Permite ao usuário entender de relance a composição do mapa.
+### Novas tabelas
 
-### Comportamento
+```sql
+chat_threads
+  id uuid PK
+  user_id uuid (auth.uid)
+  title text
+  context_snapshot jsonb  -- snapshot do estado das pesquisas no momento da criação
+  created_at, updated_at timestamptz
 
-- Mantém o toggle "Cores / Contornos / Oculto" do fundo do mapa.
-- Mantém o toggle de exibição de pins de ativos (`showAssetPins`).
-- Adiciona toggles **por família** na legenda (clicar oculta/exibe aquela família) para facilitar análise focada.
-- Tooltip do pin continua mostrando nome, tipo, cidade e origem.
+chat_messages
+  id uuid PK
+  thread_id uuid FK -> chat_threads (cascade delete)
+  role text ('user' | 'assistant')
+  parts jsonb  -- AI SDK UIMessage parts
+  created_at timestamptz
+```
 
-## Arquivos a alterar
+### Segurança
+- `GRANT SELECT, INSERT, UPDATE, DELETE ON ... TO authenticated`
+- `GRANT ALL ON ... TO service_role`
+- RLS: usuário só vê suas próprias threads/mensagens (`user_id = auth.uid()`).
+- Restrição adicional via policy: somente coordenadores podem inserir (`public.is_admin(auth.uid())`).
 
-- `src/pages/SalaDeGuerra.tsx` — substituir `ORIGIN_COLORS` por `TYPE_COLORS` mapeando `UnifiedAssetType` → cor + família; refatorar legenda; adicionar filtro por família.
-- Sem alterações em hooks ou no banco — apenas camada de visualização.
+---
 
-## Validação
+## 4. Edge Function `chat-inteligencia`
 
-Após implementar, abrir `/sala-de-guerra`, conferir distribuição visual no mapa do Paraná e verificar a contagem por tipo na nova legenda.
+- **Modelo**: `google/gemini-3.5-flash` (rápido e bom para análises estruturadas).
+- **System prompt** dinâmico contendo:
+  - Dados consolidados das pesquisas (lidos de `electoral_surveys` + `survey_results` + dados hardcoded atuais como fallback).
+  - Segmentos, rejeição, limiares, ações estratégicas do painel.
+  - Instruções para citar fontes (instituto + data) e usar markdown.
+- **Streaming** via `streamText` + `toUIMessageStreamResponse`.
+- **Persistência**: salva mensagem do usuário antes do stream e a resposta no `onFinish`.
+- **Validação JWT** + check de role.
+
+---
+
+## 5. Arquitetura de Dados de Contexto
+
+Atualmente os dados de pesquisas em `Inteligencia.tsx` estão hardcoded. Para a IA ter contexto atualizado:
+
+1. Extrair os datasets (`PESQUISAS`, `SEGMENTOS`, `REJEICAO`, `LIMIARES`, `ACOES`) para `src/data/inteligenciaData.ts`.
+2. Criar helper `src/lib/buildInteligenciaContext.ts` que:
+   - Carrega dados estáticos do módulo acima.
+   - Faz merge com pesquisas dinâmicas da tabela `electoral_surveys`.
+   - Retorna texto markdown estruturado para injetar no system prompt.
+3. A Edge Function chama este builder no servidor (versão Deno do módulo, ou reconstrói a partir de queries SQL diretas).
+
+---
+
+## 6. Fluxo de Uso
+
+1. Coordenador acessa `/pesquisas` → aba **"Análise IA"**.
+2. Clica em "Nova análise", digita: *"Compare a evolução do Moro entre PP mai/26 e PP jun/26 e identifique riscos."*
+3. IA responde com análise baseada nos dados reais, citando institutos e percentuais.
+4. Coordenador faz upload de uma nova pesquisa via botão "Upload".
+5. PDF é processado, dados extraídos vão para `electoral_surveys`.
+6. Próximas perguntas na thread já consideram a nova pesquisa.
+
+---
+
+## 7. Entregáveis
+
+| Fase | Entrega |
+|------|---------|
+| 1 | Extrair dados hardcoded → `src/data/inteligenciaData.ts` + builder de contexto |
+| 2 | Migração: tabelas `chat_threads`, `chat_messages` + RLS/GRANTs |
+| 3 | Edge Function `chat-inteligencia` (streaming, contexto, persistência, role check) |
+| 4 | Instalar AI Elements (`conversation`, `message`, `prompt-input`, `shimmer`) |
+| 5 | Componente `<AnaliseIAChat />` com thread list + chat window |
+| 6 | Nova aba "Análise IA" em `Inteligencia.tsx` |
+| 7 | Modal de upload de pesquisa reutilizando `parse-survey-pdf` |
+| 8 | Teste E2E: criar thread, upload de PDF, pergunta que cite a pesquisa nova |
+
+---
+
+## Notas Técnicas
+- React Router clássico (não TanStack).
+- Persistência **database-backed** (Supabase / Lovable Cloud).
+- Threads com URL própria: `/pesquisas?thread=<id>` (query param, pois fica dentro do painel de Inteligência).
+- `LOVABLE_API_KEY` já configurado.
+- Edge Function `parse-survey-pdf` já existe — apenas conectar à UI da nova aba.

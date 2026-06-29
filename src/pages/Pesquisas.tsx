@@ -189,6 +189,19 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const parseFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-open import wizard when navigated with ?upload=1
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upload') === '1') {
+      fileInputRef.current?.click();
+      params.delete('upload');
+      const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
 
   const handleParsePdf = useCallback(async (file: File) => {
