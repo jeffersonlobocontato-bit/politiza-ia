@@ -485,21 +485,8 @@ export default function Inteligencia() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              { t: 'Plano de comunicação digital', s: '90 dias · WhatsApp e redes sociais' },
-              { t: 'Calendário de agenda pública', s: 'Regiões e eventos prioritários' },
-              { t: 'Sistema de monitoramento', s: 'Indicadores e briefing semanal' },
-              { t: 'Pautas e posicionamento', s: 'O que o eleitorado quer ouvir' },
-            ].map((c, i) => (
-              <Card key={i} className="hover:border-primary cursor-pointer transition-colors">
-                <CardContent className="p-4">
-                  <div className="font-semibold">{c.t}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{c.s}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <PlanosAcaoCards />
+
         </TabsContent>
         {/* ============= ABA CRUZAMENTO ============= */}
         <TabsContent value="cruzamento" className="space-y-6 mt-6">
