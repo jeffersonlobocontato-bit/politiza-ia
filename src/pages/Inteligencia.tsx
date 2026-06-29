@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, AlertTriangle, Target, Users, ClipboardList, GitCompare,
   Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus, Heart, Shield,
+  Sparkles, Upload,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +16,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList,
   LineChart, Line, CartesianGrid, Legend,
 } from 'recharts';
+import AnaliseIAChat from '@/components/inteligencia/AnaliseIAChat';
+import { Button } from '@/components/ui/button';
 
 // ============================================================
 // DADOS
