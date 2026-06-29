@@ -78,6 +78,7 @@ const AppRoutes = () => (
     <Route path="/campo/dashboard" element={<ProtectedRoute><RoleAwareLayout><CampoDashboard /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/ativos" element={<ProtectedRoute><RoleAwareLayout><AtivosPoliticos /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/pesquisas" element={<ProtectedRoute><RoleAwareLayout><Inteligencia /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/pesquisas/base" element={<ProtectedRoute><RoleAwareLayout><Pesquisas /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/hierarquia" element={<ProtectedRoute><RoleAwareLayout><Hierarquia /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/configuracoes" element={<ProtectedRoute><RoleAwareLayout><Configuracoes /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/sala-de-crise" element={<ProtectedRoute><RoleAwareLayout><SalaDeCrise /></RoleAwareLayout></ProtectedRoute>} />
