@@ -25,7 +25,7 @@ import Juridico from "./pages/Juridico";
 import CampoLiderancaForm from "./pages/CampoLiderancaForm";
 import CampoDashboard from "./pages/CampoDashboard";
 import AtivosPoliticos from "./pages/AtivosPoliticos";
-import Pesquisas from "./pages/Pesquisas";
+import Inteligencia from "./pages/Inteligencia";
 import Hierarquia from "./pages/Hierarquia";
 import Configuracoes from "./pages/Configuracoes";
 import SalaDeCrise from "./pages/SalaDeCrise";
