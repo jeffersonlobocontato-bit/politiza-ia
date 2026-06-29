@@ -174,6 +174,7 @@ export default function Inteligencia() {
               </span>
             )}
           </Label>
+          </div>
         </div>
       </div>
 
