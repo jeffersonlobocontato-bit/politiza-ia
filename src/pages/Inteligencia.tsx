@@ -166,7 +166,12 @@ export default function Inteligencia() {
             Análise estratégica · Sérgio Moro · Governo do Paraná 2026
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button asChild size="sm" className="gap-2">
+            <Link to="/pesquisas/base?upload=1">
+              <Upload className="w-4 h-4" /> Upload de pesquisa
+            </Link>
+          </Button>
           <a href="/pesquisas/base" className="text-sm px-3 py-2 rounded-md border hover:bg-muted transition-colors">
             Ver base completa de pesquisas →
           </a>
@@ -185,13 +190,14 @@ export default function Inteligencia() {
       </div>
 
       <Tabs defaultValue="painel" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 h-auto">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 h-auto">
           <TabsTrigger value="painel" className="gap-2"><LayoutDashboard className="w-4 h-4" />Painel Geral</TabsTrigger>
           <TabsTrigger value="cruzamento" className="gap-2"><GitCompare className="w-4 h-4" />Cruzamento</TabsTrigger>
           <TabsTrigger value="ameacas" className="gap-2"><AlertTriangle className="w-4 h-4" />Ameaças</TabsTrigger>
           <TabsTrigger value="oport" className="gap-2"><Target className="w-4 h-4" />Oportunidades</TabsTrigger>
           <TabsTrigger value="rivais" className="gap-2"><Users className="w-4 h-4" />Raio-X</TabsTrigger>
           <TabsTrigger value="acoes" className="gap-2"><ClipboardList className="w-4 h-4" />Ações</TabsTrigger>
+          <TabsTrigger value="ia" className="gap-2"><Sparkles className="w-4 h-4" />Análise IA</TabsTrigger>
         </TabsList>
 
         {/* ============= ABA 1: PAINEL GERAL ============= */}
