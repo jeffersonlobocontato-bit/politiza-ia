@@ -41,12 +41,42 @@ interface Props {
 export default function ChapaConsolidatedView({ parties, onOpenPreCandidate }: Props) {
   const [scenario, setScenario] = useState<Scenario>('medio');
   const [detail, setDetail] = useState<{ party: SlateParty; cargo: SlateCargo } | null>(null);
+  const [search, setSearch] = useState('');
+  const [partyFilter, setPartyFilter] = useState<'all' | SlateParty>('all');
+  const [cargoFilter, setCargoFilter] = useState<'all' | SlateCargo>('all');
+  const [filiacaoFilter, setFiliacaoFilter] = useState<'all' | 'ok' | 'pendente'>('all');
+  const [cityFilter, setCityFilter] = useState('');
   const { rows, byParty, isLoading } = useChapaCrossAnalytics();
 
-  const filteredRows = useMemo(
-    () => rows.filter((r) => parties.includes(r.slate.party)),
-    [rows, parties],
-  );
+  const normalize = (s: string) =>
+    (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  const filteredRows = useMemo(() => {
+    const q = normalize(search);
+    const qCity = normalize(cityFilter);
+    return rows.filter((r) => {
+      if (!parties.includes(r.slate.party)) return false;
+      if (partyFilter !== 'all' && r.slate.party !== partyFilter) return false;
+      if (cargoFilter !== 'all' && r.slate.cargo !== cargoFilter) return false;
+      if (filiacaoFilter !== 'all' && r.slate.filiacao_status !== filiacaoFilter) return false;
+      if (q) {
+        const hay = normalize(
+          `${r.slate.name} ${r.slate.city ?? ''} ${r.slate.association ?? ''} ${r.slate.party} ${r.slate.cargo}`,
+        );
+        if (!hay.includes(q)) return false;
+      }
+      if (qCity && !normalize(r.slate.city ?? '').includes(qCity)) return false;
+      return true;
+    });
+  }, [rows, parties, partyFilter, cargoFilter, filiacaoFilter, search, cityFilter]);
+
+  const hasActiveFilters =
+    !!search || !!cityFilter || partyFilter !== 'all' || cargoFilter !== 'all' || filiacaoFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearch(''); setCityFilter('');
+    setPartyFilter('all'); setCargoFilter('all'); setFiliacaoFilter('all');
+  };
 
   const totals = useMemo(() => {
     const t = {
