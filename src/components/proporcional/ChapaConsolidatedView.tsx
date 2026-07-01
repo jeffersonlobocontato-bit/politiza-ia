@@ -155,6 +155,59 @@ export default function ChapaConsolidatedView({ parties, onOpenPreCandidate }: P
         )}
       </div>
 
+      {/* Busca e filtros */}
+      <Card className="p-3 bg-card/80 border-border/60">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nome, cidade, associação…"
+              className="pl-8 h-9 text-xs"
+            />
+          </div>
+          <Input
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            placeholder="Cidade"
+            className="h-9 text-xs w-40"
+          />
+          {parties.length > 1 && (
+            <Select value={partyFilter} onValueChange={(v) => setPartyFilter(v as any)}>
+              <SelectTrigger className="h-9 text-xs w-32"><SelectValue placeholder="Partido" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos partidos</SelectItem>
+                {parties.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <Select value={cargoFilter} onValueChange={(v) => setCargoFilter(v as any)}>
+            <SelectTrigger className="h-9 text-xs w-44"><SelectValue placeholder="Cargo" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos cargos</SelectItem>
+              {CARGOS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filiacaoFilter} onValueChange={(v) => setFiliacaoFilter(v as any)}>
+            <SelectTrigger className="h-9 text-xs w-36"><SelectValue placeholder="Filiação" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toda filiação</SelectItem>
+              <SelectItem value="ok">OK</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-xs">
+              <X className="w-3 h-3 mr-1" /> Limpar
+            </Button>
+          )}
+          <Badge variant="outline" className="text-[10px] ml-auto">
+            {filteredRows.length} resultado{filteredRows.length === 1 ? '' : 's'}
+          </Badge>
+        </div>
+      </Card>
+
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <BigNumber label="Pré-candidatos" value={totals.total} icon={UsersRound} accent="hsl(var(--primary))" />
