@@ -208,6 +208,62 @@ export default function ChapaConsolidatedView({ parties, onOpenPreCandidate }: P
         </div>
       </Card>
 
+      {/* Lista de resultados da busca */}
+      {hasActiveFilters && (
+        <Card className="p-0 bg-card/80 border-border/60 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-border/60 flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Search className="w-3.5 h-3.5" /> Resultados da busca
+            </h3>
+            <span className="text-[10px] text-muted-foreground">{filteredRows.length} encontrado(s)</span>
+          </div>
+          {filteredRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">Nenhum pré-candidato encontrado.</p>
+          ) : (
+            <div className="max-h-80 overflow-y-auto divide-y divide-border/40">
+              {filteredRows.map((r) => {
+                const meta = PARTY_META[r.slate.party];
+                return (
+                  <button
+                    key={r.slate.id}
+                    type="button"
+                    onClick={() => onOpenPreCandidate?.(r.slate)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-primary/5 transition-colors flex items-center gap-3"
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full overflow-hidden border-2 flex items-center justify-center bg-background shrink-0"
+                      style={{ borderColor: meta.accent }}
+                    >
+                      {r.slate.photo_url
+                        ? <img src={r.slate.photo_url} alt={r.slate.name} className="w-full h-full object-cover" />
+                        : <span className="text-[11px] font-bold" style={{ color: meta.accent }}>{r.slate.name.charAt(0)}</span>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{r.slate.name}</div>
+                      <div className="text-[10px] text-muted-foreground truncate">
+                        {r.slate.cargo} · {r.slate.city || '—'}{r.slate.association ? ` · ${r.slate.association}` : ''}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-[9px]" style={{ borderColor: meta.accent, color: meta.accent }}>
+                      {r.slate.party}
+                    </Badge>
+                    <Badge variant={r.slate.filiacao_status === 'ok' ? 'default' : 'secondary'} className="text-[9px]">
+                      {r.slate.filiacao_status}
+                    </Badge>
+                    <div className="text-right hidden sm:block">
+                      <div className="text-[9px] text-muted-foreground uppercase">Decl.</div>
+                      <div className="text-xs font-bold">{fmt(slateVote(r.slate, scenario))}</div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      )}
+
+
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <BigNumber label="Pré-candidatos" value={totals.total} icon={UsersRound} accent="hsl(var(--primary))" />
