@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   UsersRound, ArrowRight, TrendingUp, CheckCircle2, AlertCircle, ExternalLink,
-  MapPin, Users, Sparkles, Target,
+  MapPin, Users, Sparkles, Target, Search, X,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
