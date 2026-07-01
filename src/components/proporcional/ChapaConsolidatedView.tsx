@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   UsersRound, ArrowRight, TrendingUp, CheckCircle2, AlertCircle, ExternalLink,
-  MapPin, Users, Sparkles, Target,
+  MapPin, Users, Sparkles, Target, Search, X,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
@@ -38,12 +41,42 @@ interface Props {
 export default function ChapaConsolidatedView({ parties, onOpenPreCandidate }: Props) {
   const [scenario, setScenario] = useState<Scenario>('medio');
   const [detail, setDetail] = useState<{ party: SlateParty; cargo: SlateCargo } | null>(null);
+  const [search, setSearch] = useState('');
+  const [partyFilter, setPartyFilter] = useState<'all' | SlateParty>('all');
+  const [cargoFilter, setCargoFilter] = useState<'all' | SlateCargo>('all');
+  const [filiacaoFilter, setFiliacaoFilter] = useState<'all' | 'ok' | 'pendente'>('all');
+  const [cityFilter, setCityFilter] = useState('');
   const { rows, byParty, isLoading } = useChapaCrossAnalytics();
 
-  const filteredRows = useMemo(
-    () => rows.filter((r) => parties.includes(r.slate.party)),
-    [rows, parties],
-  );
+  const normalize = (s: string) =>
+    (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  const filteredRows = useMemo(() => {
+    const q = normalize(search);
+    const qCity = normalize(cityFilter);
+    return rows.filter((r) => {
+      if (!parties.includes(r.slate.party)) return false;
+      if (partyFilter !== 'all' && r.slate.party !== partyFilter) return false;
+      if (cargoFilter !== 'all' && r.slate.cargo !== cargoFilter) return false;
+      if (filiacaoFilter !== 'all' && r.slate.filiacao_status !== filiacaoFilter) return false;
+      if (q) {
+        const hay = normalize(
+          `${r.slate.name} ${r.slate.city ?? ''} ${r.slate.association ?? ''} ${r.slate.party} ${r.slate.cargo}`,
+        );
+        if (!hay.includes(q)) return false;
+      }
+      if (qCity && !normalize(r.slate.city ?? '').includes(qCity)) return false;
+      return true;
+    });
+  }, [rows, parties, partyFilter, cargoFilter, filiacaoFilter, search, cityFilter]);
+
+  const hasActiveFilters =
+    !!search || !!cityFilter || partyFilter !== 'all' || cargoFilter !== 'all' || filiacaoFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearch(''); setCityFilter('');
+    setPartyFilter('all'); setCargoFilter('all'); setFiliacaoFilter('all');
+  };
 
   const totals = useMemo(() => {
     const t = {
@@ -121,6 +154,59 @@ export default function ChapaConsolidatedView({ parties, onOpenPreCandidate }: P
           </Badge>
         )}
       </div>
+
+      {/* Busca e filtros */}
+      <Card className="p-3 bg-card/80 border-border/60">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nome, cidade, associação…"
+              className="pl-8 h-9 text-xs"
+            />
+          </div>
+          <Input
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            placeholder="Cidade"
+            className="h-9 text-xs w-40"
+          />
+          {parties.length > 1 && (
+            <Select value={partyFilter} onValueChange={(v) => setPartyFilter(v as any)}>
+              <SelectTrigger className="h-9 text-xs w-32"><SelectValue placeholder="Partido" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos partidos</SelectItem>
+                {parties.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <Select value={cargoFilter} onValueChange={(v) => setCargoFilter(v as any)}>
+            <SelectTrigger className="h-9 text-xs w-44"><SelectValue placeholder="Cargo" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos cargos</SelectItem>
+              {CARGOS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filiacaoFilter} onValueChange={(v) => setFiliacaoFilter(v as any)}>
+            <SelectTrigger className="h-9 text-xs w-36"><SelectValue placeholder="Filiação" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toda filiação</SelectItem>
+              <SelectItem value="ok">OK</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-xs">
+              <X className="w-3 h-3 mr-1" /> Limpar
+            </Button>
+          )}
+          <Badge variant="outline" className="text-[10px] ml-auto">
+            {filteredRows.length} resultado{filteredRows.length === 1 ? '' : 's'}
+          </Badge>
+        </div>
+      </Card>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
