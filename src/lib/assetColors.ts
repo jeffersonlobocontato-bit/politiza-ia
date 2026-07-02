@@ -61,6 +61,7 @@ export const TYPE_COLORS: Record<string, TypeMeta> = {
   publico_eventos:         { color: '#F59E0B', label: 'Público Eventos',          family: 'evento' },
   // Operacional
   acao_campo:              { color: '#1F5AB4', label: 'Ação de Campo',            family: 'acao' },
+  ativacao_campo:          { color: '#C00000', label: 'Ativação / Panfletagem',   family: 'acao' },
   entrevista:              { color: '#0EA5E9', label: 'Entrevista',               family: 'pesquisa' },
 };
 
@@ -93,7 +94,7 @@ export function geoLeadType(source: string, raw: any): string {
     case 'leaders':    return 'lideranca_comunitaria';
     case 'members':    return roleToType(raw?.role);
     case 'candidates': return 'candidato';
-    case 'actions':    return 'acao_campo';
+    case 'actions':    return raw?.type === 'ativacao_campo' ? 'ativacao_campo' : 'acao_campo';
     case 'interviews': return 'entrevista';
     case 'alerts':     return 'outros';
     default:           return 'outros';

@@ -26,6 +26,7 @@ interface NavItem {
   highlight?: boolean;
   scope: ModuleScope;
   adminMasterOnly?: boolean;
+  malhaAdminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   { title: 'Mapa Estratégico', url: '/mapa', icon: Map, scope: 'shared' },
   { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'shared' },
   { title: 'Agenda', url: '/agenda', icon: Calendar, scope: 'shared' },
+  { title: 'Malha Logística', url: '/malha-logistica', icon: Map, scope: 'shared', malhaAdminOnly: true },
   { title: 'Gestão de Equipe', url: '/gestao', icon: LayoutGrid, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
@@ -78,6 +80,7 @@ export function AppSidebar() {
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
   const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
   const isAdminMaster = roles?.includes('admin_master' as any);
+  const isMalhaAdmin = roles?.includes('admin_master' as any) || roles?.includes('coordenador_estadual' as any);
 
   const allowedForGestorOperacional = new Set<string>([
     '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
@@ -88,7 +91,8 @@ export function AppSidebar() {
   const visibleItems = navItems
     .filter(item => isGestorOperacional ? allowedForGestorOperacional.has(item.url) : isItemVisible(item, campaignType))
     .filter(item => item.url !== '/juridico' || isJuridico)
-    .filter(item => !item.adminMasterOnly || isAdminMaster);
+    .filter(item => !item.adminMasterOnly || isAdminMaster)
+    .filter(item => !item.malhaAdminOnly || isMalhaAdmin);
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">

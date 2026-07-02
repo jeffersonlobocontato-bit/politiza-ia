@@ -26,7 +26,7 @@ export function useCreateAction() {
     mutationFn: async (payload: Omit<DbAction, 'id' | 'created_at' | 'updated_at' | 'deleted_at'>) => {
       const { data, error } = await db
         .from('actions')
-        .insert({ ...payload, created_by: user?.id })
+        .insert({ ...payload, created_by: user?.id } as any)
         .select()
         .single();
       if (error) throw error;
@@ -79,7 +79,7 @@ export function useUpdateAction() {
     mutationFn: async ({ id, ...patch }: Partial<DbAction> & { id: string }) => {
       const { error } = await db
         .from('actions')
-        .update({ ...patch, updated_by: user?.id })
+        .update({ ...patch, updated_by: user?.id } as any)
         .eq('id', id);
       if (error) throw error;
     },

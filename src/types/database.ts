@@ -7,7 +7,7 @@ export type AppRole =
   | 'analista_pesquisa' | 'executivo_leitura' | 'gestor_operacional';
 
 export type DbActionStatus = 'prevista' | 'confirmada' | 'em_andamento' | 'realizada' | 'atrasada' | 'cancelada' | 'pendente_validacao';
-export type DbActionType = 'reuniao_politica' | 'visita_institucional' | 'mobilizacao_comunitaria' | 'adesivacao' | 'panfletagem' | 'carreata' | 'evento_regional' | 'agenda_candidato' | 'reuniao_empresarios' | 'encontro_liderancas' | 'acao_digital';
+export type DbActionType = 'reuniao_politica' | 'visita_institucional' | 'mobilizacao_comunitaria' | 'adesivacao' | 'panfletagem' | 'carreata' | 'evento_regional' | 'agenda_candidato' | 'reuniao_empresarios' | 'encontro_liderancas' | 'acao_digital' | 'ativacao_campo';
 export type DbPriorityLevel = 'critica' | 'alta' | 'media' | 'baixa';
 export type DbAlignmentStatus = 'alinhado' | 'provavel' | 'neutro' | 'oposicao' | 'indefinido';
 export type DbAssetType = 'prefeito' | 'vice_prefeito' | 'ex_prefeito' | 'pretenso_prefeito' | 'vereador' | 'ex_vereador' | 'pretenso_vereador' | 'lideranca_comunitaria' | 'lideranca_empresarial' | 'lideranca_religiosa' | 'presidente_entidade' | 'influenciador_regional' | 'coordenador_partidario' | 'deputado_estadual' | 'deputado_federal';
