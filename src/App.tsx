@@ -44,6 +44,7 @@ import Emendas from "./pages/Emendas";
 import MapaEstrategicoImpressao from "./pages/MapaEstrategicoImpressao";
 import EventoPublico from "./pages/EventoPublico";
 import Eventos from "./pages/Eventos";
+import MalhaLogistica from "./pages/MalhaLogistica";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,6 +86,7 @@ const AppRoutes = () => (
     <Route path="/proporcional" element={<ProtectedRoute><RoleAwareLayout><Proporcional /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/tracking" element={<ProtectedRoute><RoleAwareLayout><TrackingDashboard /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/agenda" element={<ProtectedRoute><RoleAwareLayout><Agenda /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/malha-logistica" element={<ProtectedRoute><RoleAwareLayout><MalhaLogistica /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/chapas" element={<ProtectedRoute><RoleAwareLayout><Chapas /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/chapas/:party" element={<ProtectedRoute><RoleAwareLayout><ChapaPartido /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/produtividade" element={<ProtectedRoute><RoleAwareLayout><Produtividade /></RoleAwareLayout></ProtectedRoute>} />

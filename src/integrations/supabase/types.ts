@@ -1948,6 +1948,71 @@ export type Database = {
           },
         ]
       }
+      pr_municipios: {
+        Row: {
+          ativo: boolean
+          codigo_ibge: string | null
+          created_at: string
+          created_by: string | null
+          criado_manualmente: boolean
+          hub_id: string | null
+          id: string
+          is_hub: boolean
+          lat: number
+          lng: number
+          nome: string
+          pessoas_campo: number
+          pessoas_sede: number
+          posicao_ciclo: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          codigo_ibge?: string | null
+          created_at?: string
+          created_by?: string | null
+          criado_manualmente?: boolean
+          hub_id?: string | null
+          id?: string
+          is_hub?: boolean
+          lat: number
+          lng: number
+          nome: string
+          pessoas_campo?: number
+          pessoas_sede?: number
+          posicao_ciclo?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          codigo_ibge?: string | null
+          created_at?: string
+          created_by?: string | null
+          criado_manualmente?: boolean
+          hub_id?: string | null
+          id?: string
+          is_hub?: boolean
+          lat?: number
+          lng?: number
+          nome?: string
+          pessoas_campo?: number
+          pessoas_sede?: number
+          posicao_ciclo?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pr_municipios_hub_id_fkey"
+            columns: ["hub_id"]
+            isOneToOne: false
+            referencedRelation: "pr_municipios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3140,6 +3205,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_malha_admin: { Args: { _user_id: string }; Returns: boolean }
       unaccent: { Args: { "": string }; Returns: string }
       user_has_candidate_scope: { Args: { _user_id: string }; Returns: boolean }
     }
@@ -3164,6 +3230,7 @@ export type Database = {
         | "reuniao_empresarios"
         | "encontro_liderancas"
         | "acao_digital"
+        | "ativacao_campo"
       alert_level: "critico" | "atencao" | "oportunidade" | "info"
       alert_status: "novo" | "em_analise" | "resolvido"
       alignment_status:
@@ -3402,6 +3469,7 @@ export const Constants = {
         "reuniao_empresarios",
         "encontro_liderancas",
         "acao_digital",
+        "ativacao_campo",
       ],
       alert_level: ["critico", "atencao", "oportunidade", "info"],
       alert_status: ["novo", "em_analise", "resolvido"],
