@@ -1756,6 +1756,60 @@ function formatResponse(text){
     .replace(/\n/g, '<br>');
 }
 
+/* parser do bloco RAIOX_START/END emitido pela IA */
+function parseRaioXBlock(text){
+  var m = text.match(/---RAIOX_START---([\s\S]*?)---RAIOX_END---/);
+  if(!m) return null;
+  var body = m[1];
+  function grab(key){
+    var re = new RegExp('^\\s*'+key+'\\s*:\\s*(.+)$','im');
+    var mm = body.match(re); return mm ? mm[1].trim() : '';
+  }
+  function num(key, fb){
+    var v = grab(key); var n = parseInt((v.match(/\d+/)||[])[0]);
+    return isNaN(n) ? fb : Math.max(0, Math.min(100, n));
+  }
+  var name = grab('NOME') || (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  var meta = grab('META') || 'Gerado por IA · '+new Date().toLocaleDateString('pt-BR');
+  var score = num('SCORE', 50);
+  var jud = num('JUDICIAL', score);
+  var rep = num('REPUTACIONAL', Math.round(score*.8));
+  var reg = num('REGULATORIO', Math.round(score*.85)) || num('REGULATÓRIO', Math.round(score*.85));
+  var soc = num('SOCIETARIO', Math.round(score*.7)) || num('SOCIETÁRIO', Math.round(score*.7));
+  var riscoRaw = grab('RISCO').toLowerCase();
+  var risk = /alto/.test(riscoRaw) ? 'alto' : /mod/.test(riscoRaw) ? 'mod' : /baix/.test(riscoRaw) ? 'baixo'
+             : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
+  var alerts = [];
+  for(var i=1;i<=8;i++){
+    var line = grab('ALERTA'+i); if(!line) continue;
+    var parts = line.split('|').map(function(s){return s.trim();});
+    var lv = (parts[0]||'').toLowerCase();
+    if(!/^(red|amber|green)$/.test(lv)) lv = 'amber';
+    alerts.push({l: lv, txt: parts.slice(1).join(' | ') || line});
+  }
+  var timeline = [];
+  for(var j=1;j<=8;j++){
+    var tline = grab('TL'+j); if(!tline) continue;
+    var tp = tline.split('|').map(function(s){return s.trim();});
+    var lvT = (tp[1]||'amber').toLowerCase();
+    var color = lvT==='red'?'#ff3355':lvT==='green'?'#00e8a2':'#ffaa00';
+    timeline.push({date: tp[0]||'', color: color, title: tp[2]||'—', body: tp[3]||''});
+  }
+  return {
+    id: 'raiox_'+Date.now(),
+    name: name, meta: meta,
+    score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
+    alerts: alerts,
+    achados: [
+      {lbl:'Score Global',val:score,desc:'Ponderado 4 dimensões'},
+      {lbl:'Judicial',val:jud,desc:'Processos e ações'},
+      {lbl:'Reputacional',val:rep,desc:'Mídia e menções'},
+      {lbl:'Regulatório',val:reg,desc:'Órgãos de controle'}
+    ],
+    timeline: timeline
+  };
+}
+
 /* tentar extrair score da resposta e atualizar painel */
 function tryExtractAndUpdateScore(aiText, userText){
   var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
