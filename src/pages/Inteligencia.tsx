@@ -358,22 +358,42 @@ export default function Inteligencia() {
           )}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KpiCard titulo="Intenção de voto" valor="42,3%" sublabel="PP jun/26 · estável" cor="#2a78d6" />
-            <KpiCard titulo="Percepção de vitória" valor="47,9%" sublabel="eleitores acham que Moro ganha" cor="#1baf7a" />
+            <KpiCard
+              titulo="Intenção de voto (Moro)"
+              valor={moroAgg ? `${moroAgg.pct.toFixed(1)}%` : '—'}
+              sublabel={`Agregado ponderado · ${nInstitutosFiltrados} institutos`}
+              cor="#2a78d6"
+            />
+            <KpiCard
+              titulo="Vantagem sobre 2º"
+              valor={segundoAgg ? `+${vantagem.toFixed(1)} p.p.` : '—'}
+              sublabel={segundoAgg ? `2º: ${segundoAgg.cand} (${segundoAgg.pct.toFixed(1)}%)` : '—'}
+              cor="#1baf7a"
+            />
             <KpiCard titulo="Rejeição" valor="23,6%" sublabel="2º menor do campo" cor="#eda100" />
-            <KpiCard titulo="Votos válidos estim." valor="~47%" sublabel="excluindo brancos/nulos" cor="#2a78d6" />
+            <KpiCard
+              titulo="Soma válidos no agregado"
+              valor={`${somaValidos.toFixed(1)}%`}
+              sublabel="excluindo brancos/nulos/indecisos"
+              cor="#2a78d6"
+            />
           </div>
 
           <Card>
-            <CardHeader><CardTitle className="text-base">Posicionamento no campo — PP jun/26</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Posicionamento no campo — {chartData.inst || '—'}
+                {chartData.data && <span className="text-xs text-muted-foreground ml-2">({chartData.data})</span>}
+              </CardTitle>
+            </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={ppJun} layout="vertical" margin={{ left: 20, right: 50 }}>
+                <BarChart data={chartData.rows} layout="vertical" margin={{ left: 20, right: 50 }}>
                   <XAxis type="number" domain={[0, 50]} tickFormatter={v => `${v}%`} />
                   <YAxis type="category" dataKey="cand" width={120} />
                   <Tooltip formatter={(v: number) => `${v}%`} />
                   <Bar dataKey="pct" radius={[0, 4, 4, 0]}>
-                    {ppJun.map((d, i) => (
+                    {chartData.rows.map((d, i) => (
                       <Cell key={i} fill={COR_CAND[d.cand] ?? '#9ca3af'} />
                     ))}
                     <LabelList dataKey="pct" position="right" formatter={(v: number) => `${v}%`} />
@@ -382,6 +402,7 @@ export default function Inteligencia() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
 
           <Card>
             <CardHeader><CardTitle className="text-base">Agregado ponderado ({institutosAtivos.length} institutos)</CardTitle></CardHeader>
