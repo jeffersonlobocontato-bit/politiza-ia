@@ -321,6 +321,21 @@ export default function Inteligencia() {
                 <p className="text-[11px] text-muted-foreground mt-3">
                   O agregado ponderado e os gráficos usam o cenário escolhido para cada instituto. Institutos sem múltiplos cenários usam o cenário padrão.
                 </p>
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    size="sm"
+                    disabled={Object.entries(draftCenarioByInst).every(
+                      ([k, v]) => appliedCenarioByInst[k] === v,
+                    ) && Object.keys(draftCenarioByInst).length === Object.keys(appliedCenarioByInst).length}
+                    onClick={() => {
+                      setAppliedCenarioByInst({ ...draftCenarioByInst });
+                      toast.success('Cenários aplicados. Gráficos e KPIs atualizados.');
+                    }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                    Analisar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
