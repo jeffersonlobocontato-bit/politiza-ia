@@ -1849,6 +1849,7 @@ async function analyzeDigital(){
 
     // Registrar consulta para o dashboard
     registrarConsulta('ANALISE_DIGITAL', display);
+  } catch(err){
     removeTyping();
     addMessage('ai', '⚠ Erro ao analisar perfil: '+err.message);
   }
