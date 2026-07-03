@@ -1553,19 +1553,18 @@ async function analyzeDigital(){
   state.conversationHistory.push({role:'user', content: msgDigital});
 
   try {
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
+    var response = await fetch('https://sumdjlmjtqgfzkcfkceq.supabase.co/functions/v1/raio-x-chat', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
         system: buildSystemPrompt(),
         messages: state.conversationHistory
       })
     });
 
     var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || '';
+    if(!response.ok){ throw new Error(data.error || ('HTTP '+response.status)); }
+    var aiText = data.text || '';
     state.conversationHistory.push({role:'assistant', content: aiText});
     if(state.conversationHistory.length > 20)
       state.conversationHistory = state.conversationHistory.slice(-20);
