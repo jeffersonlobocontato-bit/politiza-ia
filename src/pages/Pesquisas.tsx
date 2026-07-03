@@ -204,6 +204,43 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
   const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
 
+  const applyParsed = useCallback((parsed: any) => {
+    const govScenarios = parsed.govScenarios?.length > 0
+      ? parsed.govScenarios.map((s: any, i: number) => ({
+          label: s.label || 'Cenário',
+          candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          isMultipleChoice: !!s.isMultipleChoice,
+          isMainScenario: i === 0,
+        }))
+      : form.govScenarios;
+
+    const senScenarios = parsed.senScenarios?.length > 0
+      ? parsed.senScenarios.map((s: any, i: number) => ({
+          label: s.label || 'Cenário',
+          candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          isMultipleChoice: !!s.isMultipleChoice,
+          isMainScenario: i === 0,
+        }))
+      : form.senScenarios;
+
+    updateForm({
+      institute: parsed.institute || form.institute,
+      territory: parsed.territory || form.territory,
+      collectionStart: parsed.collectionStart || form.collectionStart,
+      collectionEnd: parsed.collectionEnd || form.collectionEnd,
+      releaseDate: parsed.releaseDate || form.releaseDate,
+      sampleSize: parsed.sampleSize ? String(parsed.sampleSize) : form.sampleSize,
+      marginOfError: parsed.marginOfError ? String(parsed.marginOfError) : form.marginOfError,
+      methodology: parsed.methodology || form.methodology,
+      tseRegistration: parsed.tseRegistration || form.tseRegistration,
+      cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
+      govScenarios,
+      senScenarios,
+    });
+
+    return { govScenarios, senScenarios };
+  }, [form]);
+
   const handleParsePdf = useCallback(async (file: File) => {
     setIsParsing(true);
     try {
@@ -229,41 +266,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       }
 
       const { data: parsed } = await res.json();
-
-      // Auto-fill form with parsed data
-      const govScenarios = parsed.govScenarios?.length > 0
-        ? parsed.govScenarios.map((s: any, i: number) => ({
-            label: s.label || 'Cenário',
-            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
-            isMultipleChoice: !!s.isMultipleChoice,
-            isMainScenario: i === 0,
-          }))
-        : form.govScenarios;
-
-      const senScenarios = parsed.senScenarios?.length > 0
-        ? parsed.senScenarios.map((s: any, i: number) => ({
-            label: s.label || 'Cenário',
-            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
-            isMultipleChoice: !!s.isMultipleChoice,
-            isMainScenario: i === 0,
-          }))
-        : form.senScenarios;
-
-      updateForm({
-        institute: parsed.institute || form.institute,
-        territory: parsed.territory || form.territory,
-        collectionStart: parsed.collectionStart || form.collectionStart,
-        collectionEnd: parsed.collectionEnd || form.collectionEnd,
-        releaseDate: parsed.releaseDate || form.releaseDate,
-        sampleSize: parsed.sampleSize ? String(parsed.sampleSize) : form.sampleSize,
-        marginOfError: parsed.marginOfError ? String(parsed.marginOfError) : form.marginOfError,
-        methodology: parsed.methodology || form.methodology,
-        tseRegistration: parsed.tseRegistration || form.tseRegistration,
-        cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
-        govScenarios,
-        senScenarios,
-      });
-
+      const { govScenarios, senScenarios } = applyParsed(parsed);
       toast.success(`Dados extraídos! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
     } catch (err: any) {
       console.error('PDF parse error:', err);
@@ -271,7 +274,37 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
     } finally {
       setIsParsing(false);
     }
-  }, [form]);
+  }, [applyParsed]);
+
+  const handleParseJson = useCallback(async (file: File) => {
+    setIsParsing(true);
+    try {
+      const text = await file.text();
+      let parsed: any;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw new Error('Arquivo JSON inválido');
+      }
+      // Aceita { data: {...} } (mesma resposta da edge function) ou objeto direto
+      if (parsed && typeof parsed === 'object' && parsed.data && !parsed.govScenarios && !parsed.senScenarios) {
+        parsed = parsed.data;
+      }
+      const { govScenarios, senScenarios } = applyParsed(parsed);
+      toast.success(`Dados importados! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
+    } catch (err: any) {
+      console.error('JSON parse error:', err);
+      toast.error(`Erro ao processar JSON: ${err.message}`);
+    } finally {
+      setIsParsing(false);
+    }
+  }, [applyParsed]);
+
+  const handleParseFile = useCallback((file: File) => {
+    const isJson = file.type === 'application/json' || /\.json$/i.test(file.name);
+    if (isJson) return handleParseJson(file);
+    return handleParsePdf(file);
+  }, [handleParseJson, handleParsePdf]);
 
   const handleFileClick = () => fileInputRef.current?.click();
 
@@ -282,8 +315,11 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       setStep(1);
       setForm(emptyForm());
       setOpen(true);
+      const isJson = file.type === 'application/json' || /\.json$/i.test(file.name);
+      if (isJson) {
+        handleParseJson(file);
+      }
     }
-    // reset so same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -454,7 +490,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf"
+        accept=".pdf,.json,application/json"
         className="hidden"
         onChange={handleFileChange}
       />
@@ -468,15 +504,16 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           <Upload className="w-5 h-5 text-[#0FFCBE]" />
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold text-white">Importar PDF de Pesquisa</div>
+          <div className="text-sm font-semibold text-white">Importar Pesquisa (PDF ou JSON)</div>
           <div className="text-xs text-[#8899aa] mt-1">
-            Arraste o arquivo ou clique para selecionar — padrão Paraná Pesquisas / tabulação
+            Arraste o arquivo ou clique para selecionar — PDF (extração via IA) ou JSON estruturado
           </div>
         </div>
         <div className="text-[10px] text-[#8899aa] border border-[hsl(220,15%,25%)] rounded px-2 py-1">
-          Formatos suportados: Relatório completo · Tabulação cruzada
+          Formatos suportados: PDF · JSON (mesmo schema da extração automática)
         </div>
       </div>
+
 
       {/* Wave cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -520,7 +557,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
                 <FileText className="w-8 h-8 text-[#0FFCBE] shrink-0" />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{fileName}</div>
-                  <div className="text-xs text-muted-foreground">PDF · Pronto para importar</div>
+                  <div className="text-xs text-muted-foreground">{/\.json$/i.test(fileName) ? 'JSON' : 'PDF'} · Pronto para importar</div>
                 </div>
               </div>
               <div className="text-xs text-muted-foreground bg-[hsl(220,18%,16%)] rounded-lg p-3 space-y-1">
@@ -539,14 +576,15 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
               <input
                 ref={parseFileInputRef}
                 type="file"
-                accept=".pdf"
+                accept=".pdf,.json,application/json"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    setPdfFile(file);
+                    const isJson = file.type === 'application/json' || /\.json$/i.test(file.name);
+                    if (!isJson) setPdfFile(file);
                     if (!fileName) setFileName(file.name);
-                    handleParsePdf(file);
+                    handleParseFile(file);
                   }
                   if (parseFileInputRef.current) parseFileInputRef.current.value = '';
                 }}
@@ -566,21 +604,22 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-semibold text-foreground">
-                    {isParsing ? 'Extraindo dados do PDF com IA…' : 'Upload PDF para extração automática'}
+                    {isParsing ? 'Processando arquivo…' : 'Upload PDF ou JSON para preencher automaticamente'}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
                     {isParsing
                       ? 'Analisando documento — isso pode levar alguns segundos'
-                      : 'A IA lerá o PDF e preencherá os campos automaticamente'}
+                      : 'PDF: extração via IA · JSON: mesmo schema (institute, govScenarios, senScenarios…)'}
                   </div>
                 </div>
                 {!isParsing && (
                   <Button variant="outline" size="sm" className="shrink-0 text-xs h-7 gap-1" onClick={(e) => { e.stopPropagation(); parseFileInputRef.current?.click(); }}>
                     <Upload className="w-3 h-3" />
-                    Enviar PDF
+                    Enviar arquivo
                   </Button>
                 )}
               </div>
+
 
               <div className="text-sm font-semibold text-muted-foreground mb-2">Metadados da pesquisa</div>
 
