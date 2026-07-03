@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model: MODEL, messages, temperature: 0.3 }),
+      body: JSON.stringify({ model: MODEL, messages, temperature: 0.3, max_tokens: 4000 }),
     });
 
     if (!aiRes.ok) {
