@@ -614,6 +614,31 @@ export default function Inteligencia() {
           <CruzamentoPesquisas pesquisas={pesquisasFiltered} />
         </TabsContent>
 
+        {/* ============= ABA INSIGHTS DE COMUNICAÇÃO ============= */}
+        <TabsContent value="insights" className="mt-6">
+          <InsightsComunicacao
+            context={{
+              candidato: 'Sérgio Moro',
+              cargo: 'Governador do Paraná 2026',
+              institutosAtivos,
+              pesquisas: pesquisasFiltered,
+              pesquisas_todos_cenarios: pesquisasAll,
+              cenario_por_instituto: cenarioByInst,
+              segmentos: SEGMENTOS,
+              rejeicao: REJEICAO,
+              limiares: LIMIARES,
+              acoes: ACOES,
+              agregado_ponderado: agregado,
+              kpis: {
+                intencao_voto: '42,3% (PP jun/26)',
+                percepcao_vitoria: '47,9%',
+                rejeicao_moro: '23,6%',
+                votos_validos_estimados: '~47%',
+              },
+            }}
+          />
+        </TabsContent>
+
         {/* ============= ABA ANÁLISE IA ============= */}
         <TabsContent value="ia" className="mt-6">
           <AnaliseIAChat
