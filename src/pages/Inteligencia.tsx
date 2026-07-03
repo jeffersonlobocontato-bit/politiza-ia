@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import AnaliseIAChat from '@/components/inteligencia/AnaliseIAChat';
 import { Button } from '@/components/ui/button';
+import { useSurveys } from '@/hooks/useSurveys';
 
 // ============================================================
 // DADOS
