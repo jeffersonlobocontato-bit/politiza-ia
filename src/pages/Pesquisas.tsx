@@ -490,7 +490,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf"
+        accept=".pdf,.json,application/json"
         className="hidden"
         onChange={handleFileChange}
       />
@@ -504,15 +504,16 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
           <Upload className="w-5 h-5 text-[#0FFCBE]" />
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold text-white">Importar PDF de Pesquisa</div>
+          <div className="text-sm font-semibold text-white">Importar Pesquisa (PDF ou JSON)</div>
           <div className="text-xs text-[#8899aa] mt-1">
-            Arraste o arquivo ou clique para selecionar — padrão Paraná Pesquisas / tabulação
+            Arraste o arquivo ou clique para selecionar — PDF (extração via IA) ou JSON estruturado
           </div>
         </div>
         <div className="text-[10px] text-[#8899aa] border border-[hsl(220,15%,25%)] rounded px-2 py-1">
-          Formatos suportados: Relatório completo · Tabulação cruzada
+          Formatos suportados: PDF · JSON (mesmo schema da extração automática)
         </div>
       </div>
+
 
       {/* Wave cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
