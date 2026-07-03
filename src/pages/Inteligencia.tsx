@@ -634,12 +634,20 @@ function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[
   const toggle = (arr: string[], v: string, set: (a: string[]) => void) =>
     set(arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
 
+  // Ordena institutos por data da pesquisa (mais antiga → mais recente)
+  const selInstSorted = useMemo(() => {
+    return [...selInst]
+      .map(inst => ({ inst, data: PESQUISAS.find(p => p.inst === inst)?.data ?? '' }))
+      .sort((a, b) => a.data.localeCompare(b.data))
+      .map(({ inst }) => inst);
+  }, [selInst, PESQUISAS]);
+
   // Comparativo lado a lado: candidato × instituto
   const matriz = useMemo(() => {
     return selCand.map(cand => {
       const linha: any = { cand };
       let valores: number[] = [];
-      selInst.forEach(inst => {
+      selInstSorted.forEach(inst => {
         const r = PESQUISAS.find(p => p.cand === cand && p.inst === inst);
         linha[inst] = r ? r.pct : null;
         if (r) valores.push(r.pct);
@@ -652,7 +660,7 @@ function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[
       }
       return linha;
     });
-  }, [selCand, selInst]);
+  }, [selCand, selInstSorted, PESQUISAS]);
 
   // Evolução temporal: linha por candidato, X = data ordenada
   const linhaData = useMemo(() => {
