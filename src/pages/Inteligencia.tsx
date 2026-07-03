@@ -52,6 +52,26 @@ const PESQUISAS = [
   { inst: 'PP jun/26', data: '2026-06-08', cand: 'Luiz França', pct: 0.9, n: 1500, margem: 2.6, cargo: 'Governador', cenario: 'C1' },
 ];
 
+// Normaliza nomes vindos do banco para casar com os hardcoded (ex.: "Sergio Moro" → "Sérgio Moro")
+const NOME_CANON: Record<string, string> = {
+  'sergio moro': 'Sérgio Moro',
+  'sérgio moro': 'Sérgio Moro',
+  'sergio moro (apoiado por lula)': 'Sérgio Moro',
+  'requiao filho': 'Requião Filho',
+  'requião filho': 'Requião Filho',
+  'rafael greca': 'Rafael Greca',
+  'sandro alex': 'Sandro Alex',
+  'tony garcia': 'Tony Garcia',
+  'tony garcía': 'Tony Garcia',
+  'luiz frança': 'Luiz França',
+  'luiz franca': 'Luiz França',
+};
+function normalizarCandidato(nome: string): string {
+  if (!nome) return nome;
+  const key = nome.trim().toLowerCase();
+  return NOME_CANON[key] ?? nome.trim();
+}
+
 const SEGMENTOS = [
   { nome: 'Praticantes religiosos', pct: 48.6, status: 'forte', acao: 'Ampliar presença em eventos religiosos' },
   { nome: 'Ensino superior', pct: 50.8, status: 'forte', acao: 'Proteger com debates técnicos e propostas' },
@@ -178,7 +198,7 @@ export default function Inteligencia() {
           rows.push({
             inst: w.institute,
             data: w.releaseDate,
-            cand: r.candidate,
+            cand: normalizarCandidato(r.candidate),
             pct: r.percentage,
             n: w.sampleSize,
             margem: Number(w.marginOfError),
