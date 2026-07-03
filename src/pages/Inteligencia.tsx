@@ -299,13 +299,13 @@ export default function Inteligencia() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {institutosComMultiCenarios.map(([inst, cenarios]) => {
-                    const current = cenarioByInst[inst] ?? 'C1';
+                    const current = draftCenarioByInst[inst] ?? 'C1';
                     return (
                       <div key={inst} className="space-y-1.5">
                         <div className="text-xs font-semibold">{inst}</div>
                         <select
                           value={current}
-                          onChange={e => setCenarioByInst(prev => ({ ...prev, [inst]: e.target.value }))}
+                          onChange={e => setDraftCenarioByInst(prev => ({ ...prev, [inst]: e.target.value }))}
                           className="w-full h-9 rounded-md border bg-background px-2 text-sm"
                         >
                           {cenarios.map(c => (
