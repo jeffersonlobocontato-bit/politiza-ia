@@ -173,7 +173,8 @@ export default function Inteligencia() {
   const [incluirIGR, setIncluirIGR] = useState(false);
   const { data: surveysData } = useSurveys();
   // Cenário escolhido por instituto (default = primeiro cenário disponível "C1").
-  const [cenarioByInst, setCenarioByInst] = useState<Record<string, string>>({});
+  const [appliedCenarioByInst, setAppliedCenarioByInst] = useState<Record<string, string>>({});
+  const [draftCenarioByInst, setDraftCenarioByInst] = useState<Record<string, string>>({});
 
   // Rows das pesquisas cadastradas na aba "Pesquisas" convertidas para o formato do painel.
   // Agora inclui TODOS os cenários (não só o principal), com códigos estáveis C1, C2, C3…
