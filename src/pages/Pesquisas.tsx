@@ -204,6 +204,43 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
 
   const updateForm = (partial: Partial<ImportForm>) => setForm(f => ({ ...f, ...partial }));
 
+  const applyParsed = useCallback((parsed: any) => {
+    const govScenarios = parsed.govScenarios?.length > 0
+      ? parsed.govScenarios.map((s: any, i: number) => ({
+          label: s.label || 'Cenário',
+          candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          isMultipleChoice: !!s.isMultipleChoice,
+          isMainScenario: i === 0,
+        }))
+      : form.govScenarios;
+
+    const senScenarios = parsed.senScenarios?.length > 0
+      ? parsed.senScenarios.map((s: any, i: number) => ({
+          label: s.label || 'Cenário',
+          candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
+          isMultipleChoice: !!s.isMultipleChoice,
+          isMainScenario: i === 0,
+        }))
+      : form.senScenarios;
+
+    updateForm({
+      institute: parsed.institute || form.institute,
+      territory: parsed.territory || form.territory,
+      collectionStart: parsed.collectionStart || form.collectionStart,
+      collectionEnd: parsed.collectionEnd || form.collectionEnd,
+      releaseDate: parsed.releaseDate || form.releaseDate,
+      sampleSize: parsed.sampleSize ? String(parsed.sampleSize) : form.sampleSize,
+      marginOfError: parsed.marginOfError ? String(parsed.marginOfError) : form.marginOfError,
+      methodology: parsed.methodology || form.methodology,
+      tseRegistration: parsed.tseRegistration || form.tseRegistration,
+      cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
+      govScenarios,
+      senScenarios,
+    });
+
+    return { govScenarios, senScenarios };
+  }, [form]);
+
   const handleParsePdf = useCallback(async (file: File) => {
     setIsParsing(true);
     try {
@@ -229,41 +266,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       }
 
       const { data: parsed } = await res.json();
-
-      // Auto-fill form with parsed data
-      const govScenarios = parsed.govScenarios?.length > 0
-        ? parsed.govScenarios.map((s: any, i: number) => ({
-            label: s.label || 'Cenário',
-            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
-            isMultipleChoice: !!s.isMultipleChoice,
-            isMainScenario: i === 0,
-          }))
-        : form.govScenarios;
-
-      const senScenarios = parsed.senScenarios?.length > 0
-        ? parsed.senScenarios.map((s: any, i: number) => ({
-            label: s.label || 'Cenário',
-            candidates: s.candidates?.map((c: any) => ({ name: c.name, pct: String(c.pct) })) || [],
-            isMultipleChoice: !!s.isMultipleChoice,
-            isMainScenario: i === 0,
-          }))
-        : form.senScenarios;
-
-      updateForm({
-        institute: parsed.institute || form.institute,
-        territory: parsed.territory || form.territory,
-        collectionStart: parsed.collectionStart || form.collectionStart,
-        collectionEnd: parsed.collectionEnd || form.collectionEnd,
-        releaseDate: parsed.releaseDate || form.releaseDate,
-        sampleSize: parsed.sampleSize ? String(parsed.sampleSize) : form.sampleSize,
-        marginOfError: parsed.marginOfError ? String(parsed.marginOfError) : form.marginOfError,
-        methodology: parsed.methodology || form.methodology,
-        tseRegistration: parsed.tseRegistration || form.tseRegistration,
-        cargos: parsed.cargos?.length > 0 ? parsed.cargos : form.cargos,
-        govScenarios,
-        senScenarios,
-      });
-
+      const { govScenarios, senScenarios } = applyParsed(parsed);
       toast.success(`Dados extraídos! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
     } catch (err: any) {
       console.error('PDF parse error:', err);
@@ -271,7 +274,37 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
     } finally {
       setIsParsing(false);
     }
-  }, [form]);
+  }, [applyParsed]);
+
+  const handleParseJson = useCallback(async (file: File) => {
+    setIsParsing(true);
+    try {
+      const text = await file.text();
+      let parsed: any;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw new Error('Arquivo JSON inválido');
+      }
+      // Aceita { data: {...} } (mesma resposta da edge function) ou objeto direto
+      if (parsed && typeof parsed === 'object' && parsed.data && !parsed.govScenarios && !parsed.senScenarios) {
+        parsed = parsed.data;
+      }
+      const { govScenarios, senScenarios } = applyParsed(parsed);
+      toast.success(`Dados importados! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
+    } catch (err: any) {
+      console.error('JSON parse error:', err);
+      toast.error(`Erro ao processar JSON: ${err.message}`);
+    } finally {
+      setIsParsing(false);
+    }
+  }, [applyParsed]);
+
+  const handleParseFile = useCallback((file: File) => {
+    const isJson = file.type === 'application/json' || /\.json$/i.test(file.name);
+    if (isJson) return handleParseJson(file);
+    return handleParsePdf(file);
+  }, [handleParseJson, handleParsePdf]);
 
   const handleFileClick = () => fileInputRef.current?.click();
 
@@ -282,8 +315,11 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       setStep(1);
       setForm(emptyForm());
       setOpen(true);
+      const isJson = file.type === 'application/json' || /\.json$/i.test(file.name);
+      if (isJson) {
+        handleParseJson(file);
+      }
     }
-    // reset so same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
