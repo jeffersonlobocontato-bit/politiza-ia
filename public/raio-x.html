@@ -1621,8 +1621,31 @@ CONTEXTO DO LITORAL DO PARANÁ:
 - Principais figuras investigadas nesta sessão: Arnaldo Maranhão (PL/Paranaguá), Kátia Gomes Leite (advogada/Pontal), Edgar Rossi (NOVO/Pontal)
 - Plataforma: Politiza IA — restrita a admin_master e coordenador_estadual
 
-QUANDO GERAR RAIO-X COMPLETO:
-Estruture a resposta com:
+QUANDO GERAR RAIO-X COMPLETO (pesquise, investigue, raio-x, due diligence):
+Você DEVE começar SEMPRE a resposta com um bloco estruturado (obrigatório, sem exceção — o painel lateral depende dele):
+
+---RAIOX_START---
+NOME: nome completo do sujeito
+META: cargo · partido · município/UF
+SCORE: XX (0-100, score global ponderado)
+JUDICIAL: XX (0-100)
+REPUTACIONAL: XX (0-100)
+REGULATORIO: XX (0-100)
+SOCIETARIO: XX (0-100)
+RISCO: baixo|moderado|alto
+ALERTA1: red|amber|green | texto curto do alerta
+ALERTA2: red|amber|green | texto curto do alerta
+ALERTA3: red|amber|green | texto curto do alerta
+ALERTA4: red|amber|green | texto curto do alerta (opcional)
+ALERTA5: red|amber|green | texto curto do alerta (opcional)
+TL1: DD/MM/AAAA | red|amber|green | título curto | descrição
+TL2: DD/MM/AAAA | red|amber|green | título curto | descrição
+TL3: DD/MM/AAAA | red|amber|green | título curto | descrição
+TL4: DD/MM/AAAA | red|amber|green | título curto | descrição (opcional)
+TL5: DD/MM/AAAA | red|amber|green | título curto | descrição (opcional)
+---RAIOX_END---
+
+Após o bloco, escreva a análise completa em prosa estruturada:
 1. IDENTIDADE (nome, cargo, município, partido)
 2. SCORE GLOBAL (ponderado: judicial 40% + reputacional 30% + regulatório 20% + societário 10%)
 3. ALERTAS (🔴 crítico / ⚠ atenção / ✓ ok)
