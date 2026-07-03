@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Search, Plus, Pencil, Trash2, X, Upload, ExternalLink, Lock } from 'lucide-react';
+import { Users, Search, Plus, Pencil, Trash2, X, Upload, ExternalLink, Lock, Shield } from 'lucide-react';
+import { RaioXModal, openRaioX } from '@/components/ativos/RaioXModal';
+import { useAuth } from '@/contexts/AuthContext';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
