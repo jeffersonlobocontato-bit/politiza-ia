@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, AlertTriangle, Target, Users, ClipboardList, GitCompare,
   Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus, Heart, Shield,
-  Sparkles, Upload,
+  Sparkles, Upload, Megaphone,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
