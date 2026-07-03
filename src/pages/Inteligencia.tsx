@@ -106,7 +106,7 @@ const COR_CAND: Record<string, string> = {
 function calcularAgregado(pesquisas: typeof PESQUISAS, institutos: string[]) {
   const hoje = new Date();
   const filtradas = pesquisas.filter(p =>
-    institutos.includes(p.inst) && p.cargo === 'Governador' && p.cenario === 'C1'
+    institutos.includes(p.inst) && p.cargo === 'Governador'
   );
   const candidatos = [...new Set(filtradas.map(p => p.cand))];
   return candidatos.map(cand => {
