@@ -178,7 +178,7 @@ export default function Inteligencia() {
           rows.push({
             inst: w.institute,
             data: w.releaseDate,
-            cand: r.candidate,
+            cand: normalizarCandidato(r.candidate),
             pct: r.percentage,
             n: w.sampleSize,
             margem: Number(w.marginOfError),
