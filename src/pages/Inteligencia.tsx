@@ -634,12 +634,20 @@ function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[
   const toggle = (arr: string[], v: string, set: (a: string[]) => void) =>
     set(arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
 
+  // Ordena institutos por data da pesquisa (mais antiga → mais recente)
+  const selInstSorted = useMemo(() => {
+    return [...selInst]
+      .map(inst => ({ inst, data: PESQUISAS.find(p => p.inst === inst)?.data ?? '' }))
+      .sort((a, b) => a.data.localeCompare(b.data))
+      .map(({ inst }) => inst);
+  }, [selInst, PESQUISAS]);
+
   // Comparativo lado a lado: candidato × instituto
   const matriz = useMemo(() => {
     return selCand.map(cand => {
       const linha: any = { cand };
       let valores: number[] = [];
-      selInst.forEach(inst => {
+      selInstSorted.forEach(inst => {
         const r = PESQUISAS.find(p => p.cand === cand && p.inst === inst);
         linha[inst] = r ? r.pct : null;
         if (r) valores.push(r.pct);
@@ -652,7 +660,7 @@ function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[
       }
       return linha;
     });
-  }, [selCand, selInst]);
+  }, [selCand, selInstSorted, PESQUISAS]);
 
   // Evolução temporal: linha por candidato, X = data ordenada
   const linhaData = useMemo(() => {
@@ -706,7 +714,7 @@ function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[
             <thead>
               <tr className="text-left border-b text-muted-foreground">
                 <th className="py-2 pr-3">Candidato</th>
-                {selInst.map(i => <th key={i} className="py-2 pr-3 text-right">{i}</th>)}
+                {selInstSorted.map(i => <th key={i} className="py-2 pr-3 text-right">{i}</th>)}
                 <th className="py-2 pr-3 text-right">Média</th>
                 <th className="py-2 text-right">Δ (máx-mín)</th>
               </tr>
@@ -715,7 +723,7 @@ function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[
               {matriz.map((r, i) => (
                 <tr key={i} className="border-b">
                   <td className="py-2 pr-3 font-medium" style={{ color: COR_CAND[r.cand] ?? undefined }}>{r.cand}</td>
-                  {selInst.map(inst => (
+                  {selInstSorted.map(inst => (
                     <td key={inst} className="py-2 pr-3 text-right tabular-nums">
                       {r[inst] != null ? `${r[inst]}%` : '—'}
                     </td>
