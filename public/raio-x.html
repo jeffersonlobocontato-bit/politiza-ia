@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAIO-X Intelligence · Due Diligence · Politiza IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════ */
+:root {
+  --bg:       #05070f;
+  --surface:  #0c0f1e;
+  --card:     #131829;
+  --card2:    #1c2138;
+  --border:   rgba(255,255,255,.07);
+  --border2:  rgba(255,255,255,.04);
+
+  --red:      #ff3355;
+  --amber:    #ffaa00;
+  --green:    #00e8a2;
+  --blue:     #3d9fff;
+  --purple:   #9b6fff;
+
+  --hi:  #eef0ff;
+  --mid: #8892b8;
+  --lo:  #4a5278;
+
+  --font-d: 'Space Grotesk', sans-serif;
+  --font-m: 'Space Mono', monospace;
+  --font-b: 'Inter', sans-serif;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+}
+
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--hi);
+  font-family: var(--font-b);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* scanlines sutis */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,232,162,.007) 2px, rgba(0,232,162,.007) 4px
+  );
+}
+
+/* ══════════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════════ */
+.topbar {
+  position: relative; z-index: 10;
+  height: 52px;
+  background: rgba(5,7,15,.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 16px; flex-shrink: 0;
+}
+.topbar-logo {
+  font-family: var(--font-m); font-size: 11px; font-weight: 700;
+  color: var(--green); letter-spacing: 3px;
+  border-right: 1px solid var(--border); padding-right: 16px; white-space: nowrap;
+}
+.topbar-title {
+  font-family: var(--font-d); font-size: 14px; font-weight: 600;
+  color: var(--hi); flex: 1;
+}
+.topbar-badge {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: 1.5px;
+  background: rgba(255,51,85,.12); color: var(--red);
+  border: 1px solid rgba(255,51,85,.3); padding: 3px 10px; border-radius: 3px;
+}
+.topbar-hint {
+  font-family: var(--font-m); font-size: 9px; color: var(--lo);
+  letter-spacing: .5px; white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════
+   LAYOUT PRINCIPAL — 3 colunas
+══════════════════════════════════════════ */
+.workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  overflow: hidden;
+  position: relative; z-index: 1;
+}
+
+/* ══════════════════════════════════════════
+   COLUNA ESQUERDA — Perfis salvos
+══════════════════════════════════════════ */
+.col-left {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.col-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.col-header-title {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: 2.5px;
+  color: var(--lo); text-transform: uppercase; margin-bottom: 8px;
+}
+.search-input {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-sm); color: var(--hi); padding: 7px 10px;
+  font-family: var(--font-m); font-size: 10px; outline: none;
+  transition: border-color .15s;
+}
+.search-input:focus { border-color: rgba(0,232,162,.3); }
+.search-input::placeholder { color: var(--lo); }
+
+.profiles-list {
+  flex: 1; overflow-y: auto; padding: 8px;
+}
+.profiles-list::-webkit-scrollbar { width: 4px; }
+.profiles-list::-webkit-scrollbar-track { background: transparent; }
+.profiles-list::-webkit-scrollbar-thumb { background: var(--card2); border-radius: 2px; }
+
+.profile-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 11px 13px; margin-bottom: 6px;
+  cursor: pointer; transition: border-color .15s, background .15s, transform .15s;
+}
+.profile-card:hover { border-color: rgba(0,232,162,.2); background: var(--card2); transform: translateX(2px); }
+.profile-card.active { border-color: rgba(0,232,162,.4); background: var(--card2); }
+.pc-name { font-family: var(--font-d); font-size: 12px; font-weight: 600; color: var(--hi); margin-bottom: 4px; }
+.pc-meta { font-family: var(--font-m); font-size: 9px; color: var(--lo); margin-bottom: 6px; }
+.pc-score-row { display: flex; align-items: center; gap: 7px; }
+.pc-score-bar { flex: 1; height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+.pc-score-fill { height: 100%; border-radius: 2px; transition: width 1s ease-out; }
+.pc-score-val { font-family: var(--font-m); font-size: 9px; font-weight: 700; }
+
+.new-profile-btn {
+  margin: 8px; padding: 10px; border-radius: var(--r-md);
+  background: rgba(0,232,162,.06); border: 1px dashed rgba(0,232,162,.2);
+  color: var(--green); font-family: var(--font-m); font-size: 10px;
+  letter-spacing: 1px; cursor: pointer; transition: background .15s;
+  flex-shrink: 0;
+}
+.new-profile-btn:hover { background: rgba(0,232,162,.12); }
+
+/* ══════════════════════════════════════════
+   COLUNA CENTRAL — Chat com IA
+══════════════════════════════════════════ */
+.col-center {
+  display: flex; flex-direction: column; overflow: hidden;
+  border-right: 1px solid var(--border);
+}
+.chat-area {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--card2); border-radius: 2px; }
+
+/* mensagens */
+.msg { display: flex; gap: 10px; max-width: 100%; }
+.msg-avatar {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-m); font-size: 9px; font-weight: 700; letter-spacing: .5px;
+}
+.msg-avatar-ai { background: rgba(0,232,162,.15); color: var(--green); border: 1px solid rgba(0,232,162,.25); }
+.msg-avatar-user { background: rgba(61,159,255,.15); color: var(--blue); border: 1px solid rgba(61,159,255,.25); }
+.msg-bubble {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 0 var(--r-md) var(--r-md) var(--r-md);
+  padding: 11px 14px; flex: 1; line-height: 1.6; font-size: 12.5px;
+  color: var(--hi);
+}
+.msg.user { flex-direction: row-reverse; }
+.msg.user .msg-bubble {
+  background: rgba(61,159,255,.08); border-color: rgba(61,159,255,.15);
+  border-radius: var(--r-md) 0 var(--r-md) var(--r-md); color: var(--hi);
+}
+.msg-time { font-family: var(--font-m); font-size: 8px; color: var(--lo); margin-top: 4px; }
+
+/* fonte mono para dados estruturados */
+.msg-bubble code {
+  font-family: var(--font-m); font-size: 10px;
+  background: rgba(255,255,255,.06); border-radius: 3px;
+  padding: 1px 5px; color: var(--green);
+}
+.msg-bubble pre {
+  font-family: var(--font-m); font-size: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 10px 12px; margin-top: 8px;
+  overflow-x: auto; color: var(--hi); line-height: 1.7;
+  white-space: pre-wrap;
+}
+.msg-bubble strong { color: var(--green); font-weight: 600; }
+.msg-bubble em { color: var(--amber); font-style: normal; }
+
+/* badges dentro das mensagens */
+.risk-badge-inline {
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-family: var(--font-m); font-size: 9px; font-weight: 700; letter-spacing: 1px;
+  margin-left: 6px; vertical-align: middle;
+}
+.rb-alto { background: rgba(255,51,85,.15); color: var(--red); border: 1px solid rgba(255,51,85,.3); }
+.rb-mod { background: rgba(255,170,0,.12); color: var(--amber); border: 1px solid rgba(255,170,0,.25); }
+.rb-baixo { background: rgba(0,232,162,.1); color: var(--green); border: 1px solid rgba(0,232,162,.2); }
+
+/* typing indicator */
+.typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.typing span {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: bounce 1.2s infinite;
+}
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+/* barra de input */
+.chat-input-area {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+/* comandos rápidos */
+.quick-cmds {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.qcmd {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: .5px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 4px 10px; cursor: pointer;
+  color: var(--mid); transition: all .15s; white-space: nowrap;
+}
+.qcmd:hover { border-color: rgba(0,232,162,.3); color: var(--green); background: var(--card2); }
+
+.input-row { display: flex; gap: 8px; align-items: flex-end; }
+.chat-textarea {
+  flex: 1; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-md); color: var(--hi); padding: 10px 13px;
+  font-family: var(--font-b); font-size: 13px; resize: none;
+  min-height: 44px; max-height: 120px; outline: none;
+  transition: border-color .15s; line-height: 1.5;
+}
+.chat-textarea:focus { border-color: rgba(0,232,162,.3); }
+.chat-textarea::placeholder { color: var(--lo); }
+
+.send-btn {
+  width: 44px; height: 44px; border-radius: var(--r-md);
+  background: rgba(0,232,162,.12); border: 1px solid rgba(0,232,162,.3);
+  color: var(--green); cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: background .15s, transform .1s; flex-shrink: 0;
+}
+.send-btn:hover { background: rgba(0,232,162,.2); }
+.send-btn:active { transform: scale(.95); }
+.send-btn svg { width: 16px; height: 16px; }
+.send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════
+   COLUNA DIREITA — Raio-X ao vivo
+══════════════════════════════════════════ */
+.col-right {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface);
+}
+.raio-x-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.raio-x-title {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: 2px;
+  color: var(--lo); text-transform: uppercase;
+}
+.raio-x-actions { display: flex; gap: 6px; }
+.rx-btn {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: .5px;
+  padding: 4px 10px; border-radius: var(--r-sm); cursor: pointer;
+  border: 1px solid var(--border); color: var(--mid); background: var(--card);
+  transition: all .15s;
+}
+.rx-btn:hover { border-color: rgba(0,232,162,.3); color: var(--green); }
+.rx-btn.primary { background: rgba(0,232,162,.08); border-color: rgba(0,232,162,.25); color: var(--green); }
+.rx-btn.primary:hover { background: rgba(0,232,162,.16); }
+
+.raio-x-body { flex: 1; overflow-y: auto; padding: 14px 14px; }
+.raio-x-body::-webkit-scrollbar { width: 4px; }
+.raio-x-body::-webkit-scrollbar-thumb { background: var(--card2); border-radius: 2px; }
+
+/* EMPTY STATE */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 14px; padding: 24px; text-align: center;
+}
+.empty-icon { font-size: 40px; opacity: .25; }
+.empty-title { font-family: var(--font-d); font-size: 14px; font-weight: 600; color: var(--mid); }
+.empty-sub { font-family: var(--font-m); font-size: 10px; color: var(--lo); line-height: 1.7; }
+
+/* RAIO-X CARDS */
+.rx-section { margin-bottom: 14px; }
+.rx-section-label {
+  font-family: var(--font-m); font-size: 8px; letter-spacing: 2.5px;
+  color: var(--lo); text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.rx-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+
+/* SCORE WIDGET */
+.score-widget {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 14px;
+}
+.score-top { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.score-donut-sm { flex-shrink: 0; }
+.score-info { flex: 1; }
+.score-name { font-family: var(--font-d); font-size: 14px; font-weight: 700; color: var(--hi); margin-bottom: 3px; }
+.score-sub { font-family: var(--font-m); font-size: 9px; color: var(--lo); margin-bottom: 6px; }
+.score-verdict { font-family: var(--font-m); font-size: 10px; letter-spacing: 1px; }
+
+.dim-bars { display: flex; flex-direction: column; gap: 8px; }
+.dim-row { display: flex; align-items: center; gap: 8px; }
+.dim-lbl { font-family: var(--font-m); font-size: 9px; color: var(--lo); width: 80px; flex-shrink: 0; }
+.dim-track { flex: 1; height: 5px; background: var(--border2); border-radius: 3px; overflow: hidden; }
+.dim-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease-out; }
+.dim-num { font-family: var(--font-m); font-size: 9px; font-weight: 700; width: 22px; text-align: right; }
+
+/* ALERTAS WIDGET */
+.alert-widget {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+}
+.alert-row {
+  display: flex; gap: 8px; padding: 9px 12px; align-items: flex-start;
+  border-bottom: 1px solid var(--border2); transition: background .15s;
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-row:hover { background: var(--card2); }
+.a-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.a-dot-r { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.a-dot-a { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.a-dot-g { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.a-lv { font-family: var(--font-m); font-size: 8px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+.a-lv-r { color: var(--red); }
+.a-lv-a { color: var(--amber); }
+.a-lv-g { color: var(--green); }
+.a-txt { font-size: 11px; color: var(--mid); line-height: 1.5; }
+
+/* TIMELINE WIDGET */
+.tl-widget { display: flex; flex-direction: column; gap: 6px; }
+.tl-row {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 12px;
+  cursor: pointer; transition: border-color .15s, transform .15s;
+}
+.tl-row:hover { border-color: rgba(0,232,162,.2); transform: translateX(3px); }
+.tl-row.open { border-color: rgba(0,232,162,.3); }
+.tl-row-date { font-family: var(--font-m); font-size: 8px; letter-spacing: 1px; margin-bottom: 3px; }
+.tl-row-title { font-size: 11px; font-weight: 600; color: var(--hi); }
+.tl-row-body { font-size: 11px; color: var(--mid); line-height: 1.5; margin-top: 6px; display: none; }
+.tl-row.open .tl-row-body { display: block; }
+
+/* ACHADOS WIDGET */
+.achados-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.achado-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 10px 12px;
+}
+.achado-label { font-family: var(--font-m); font-size: 8px; letter-spacing: 1.5px; color: var(--lo); text-transform: uppercase; margin-bottom: 4px; }
+.achado-val { font-family: var(--font-d); font-size: 22px; font-weight: 700; margin-bottom: 3px; line-height: 1; }
+.achado-desc { font-size: 10px; color: var(--mid); line-height: 1.4; }
+
+/* NOTAS WIDGET */
+.nota-area {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-md); color: var(--hi); padding: 10px 12px;
+  font-family: var(--font-b); font-size: 12px; resize: none;
+  min-height: 80px; outline: none; transition: border-color .15s; line-height: 1.6;
+}
+.nota-area:focus { border-color: rgba(0,232,162,.3); }
+.nota-area::placeholder { color: var(--lo); }
+.nota-bar { display: flex; gap: 7px; margin-top: 6px; align-items: center; }
+.nota-save {
+  font-family: var(--font-m); font-size: 9px; padding: 5px 12px;
+  border-radius: var(--r-sm); background: rgba(0,232,162,.08);
+  border: 1px solid rgba(0,232,162,.2); color: var(--green); cursor: pointer;
+  transition: background .15s;
+}
+.nota-save:hover { background: rgba(0,232,162,.16); }
+.nota-status { font-family: var(--font-m); font-size: 9px; color: var(--lo); }
+
+/* ══════════════════════════════════════════
+   FOTO DO SUJEITO (sidebar)
+══════════════════════════════════════════ */
+.subject-photo {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 12px;
+}
+.photo-circle {
+  width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid rgba(0,232,162,.2); background: var(--card2);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; cursor: pointer; transition: border-color .2s;
+  position: relative;
+}
+.photo-circle:hover { border-color: var(--green); }
+.photo-circle img { width: 100%; height: 100%; object-fit: cover; display: none; }
+.photo-circle img.loaded { display: block; }
+.photo-circle .photo-ph { font-size: 22px; opacity: .25; pointer-events: none; }
+.photo-circle .photo-ov {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,232,162,.2); display: flex; align-items: center;
+  justify-content: center; font-family: var(--font-m); font-size: 7px;
+  color: var(--green); opacity: 0; transition: opacity .2s;
+}
+.photo-circle:hover .photo-ov { opacity: 1; }
+.photo-info { flex: 1; min-width: 0; }
+.photo-name { font-family: var(--font-d); font-size: 13px; font-weight: 700; color: var(--hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.photo-sub { font-family: var(--font-m); font-size: 9px; color: var(--lo); }
+.photo-actions { display: flex; flex-direction: column; gap: 4px; }
+.photo-btn {
+  font-family: var(--font-m); font-size: 8px; padding: 3px 8px;
+  border-radius: var(--r-sm); cursor: pointer; transition: all .15s; border: 1px solid var(--border);
+  background: var(--card2); color: var(--mid); white-space: nowrap;
+}
+.photo-btn:hover { border-color: rgba(0,232,162,.3); color: var(--green); }
+.photo-btn.danger { color: var(--red); border-color: rgba(255,51,85,.2); }
+.photo-btn.danger:hover { background: rgba(255,51,85,.08); }
+#photoInput { display: none; }
+
+/* ══════════════════════════════════════════
+   PRINT
+══════════════════════════════════════════ */
+@media print {
+  .topbar, .col-left, .col-center, .chat-input-area,
+  .raio-x-actions, .nota-bar { display: none !important; }
+  body { overflow: auto !important; }
+  html, body { height: auto !important; }
+  .workspace { display: block !important; }
+  .col-right { width: 100% !important; overflow: visible !important; height: auto !important; }
+  .raio-x-body { overflow: visible !important; height: auto !important; padding: 20px !important; }
+  .tl-row-body { display: block !important; }
+  *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  @page { margin: 1.5cm; size: A4 portrait; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .col-left { display: none; }
+  .col-right { max-height: 40vh; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <span class="topbar-logo">RAIO-X</span>
+  <span class="topbar-title">Due Diligence Intelligence</span>
+  <span class="topbar-hint">Digite o nome do sujeito e pressione Enter</span>
+  <span class="topbar-badge">RESTRITO · ADMIN</span>
+</div>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+  <!-- ═══════════════════════════════
+       COL ESQUERDA — Perfis
+  ═══════════════════════════════ -->
+  <div class="col-left">
+    <div class="col-header">
+      <div class="col-header-title">Perfis investigados</div>
+      <input class="search-input" type="text" placeholder="Buscar perfil..." id="searchProfiles" oninput="filterProfiles(this.value)">
+    </div>
+    <div class="profiles-list" id="profilesList">
+      <!-- preenchido pelo JS -->
+    </div>
+    <button class="new-profile-btn" onclick="newProfile()">+ Nova Investigação</button>
+  </div>
+
+  <!-- ═══════════════════════════════
+       COL CENTRAL — Chat IA
+  ═══════════════════════════════ -->
+  <div class="col-center">
+    <div class="chat-area" id="chatArea">
+      <!-- mensagem inicial -->
+      <div class="msg ai">
+        <div class="msg-avatar msg-avatar-ai">AI</div>
+        <div>
+          <div class="msg-bubble">
+            Olá! Sou o <strong>RAIO-X Intelligence</strong>, seu agente de due diligence integrado ao Politiza IA.<br><br>
+            Para iniciar uma investigação, informe:<br>
+            • <strong>Nome completo</strong> do sujeito<br>
+            • <strong>Cidade/contexto</strong> (ex: "vereador de Pontal do Paraná")<br>
+            • <strong>Partido ou cargo</strong>, se souber<br><br>
+            Posso também <em>aprofundar processos judiciais</em>, <em>verificar vínculos societários</em>, <em>mapear redes sociais</em> ou <em>gerar o Raio-X completo</em> em PDF.
+          </div>
+          <div class="msg-time">Agora</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INPUT AREA -->
+    <div class="chat-input-area">
+      <div class="quick-cmds">
+        <button class="qcmd" onclick="quickCmd('pesquise profundamente')">🔍 Pesquisa completa</button>
+        <button class="qcmd" onclick="quickCmd('verifique processos judiciais de')">⚖️ Processos judiciais</button>
+        <button class="qcmd" onclick="quickCmd('mapeie as redes sociais e empresas de')">🏢 Societário + Redes</button>
+        <button class="qcmd" onclick="quickCmd('gere o raio-x completo de')">📊 Gerar Raio-X</button>
+        <button class="qcmd" onclick="quickCmd('calcule o score de risco de')">🎯 Score de risco</button>
+        <button class="qcmd" onclick="quickCmd('compare os perfis já investigados')">📋 Comparar perfis</button>
+      </div>
+      <div class="input-row">
+        <textarea
+          class="chat-textarea"
+          id="chatInput"
+          placeholder="Ex: pesquise Edgar Rossi, ex-prefeito de Pontal do Paraná..."
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       COL DIREITA — Raio-X ao vivo
+  ═══════════════════════════════ -->
+  <div class="col-right">
+    <div class="raio-x-header">
+      <span class="raio-x-title">Raio-X ao vivo</span>
+      <div class="raio-x-actions">
+        <button class="rx-btn" onclick="saveCurrentProfile()" title="Salvar perfil">💾 Salvar</button>
+        <button class="rx-btn primary" onclick="printRaioX()" title="Exportar PDF">🖨 PDF</button>
+      </div>
+    </div>
+
+    <div class="raio-x-body" id="raioXBody">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🔎</div>
+        <div class="empty-title">Nenhum perfil ativo</div>
+        <div class="empty-sub">Inicie uma investigação no chat ao lado.<br>O Raio-X será construído aqui em tempo real.</div>
+      </div>
+
+      <!-- CONTEÚDO DO RAIO-X (oculto até ter dados) -->
+      <div id="raioXContent" style="display:none">
+
+        <!-- FOTO + IDENTIDADE -->
+        <div class="subject-photo" id="subjectPhoto">
+          <div class="photo-circle" onclick="document.getElementById('photoInput').click()" id="photoCircle">
+            <div class="photo-ph">👤</div>
+            <div class="photo-ov">FOTO</div>
+            <img id="photoImg" alt="">
+          </div>
+          <div class="photo-info">
+            <div class="photo-name" id="subjectName">—</div>
+            <div class="photo-sub" id="subjectSub">—</div>
+          </div>
+          <div class="photo-actions">
+            <button class="photo-btn" onclick="document.getElementById('photoInput').click()">📷 Foto</button>
+            <button class="photo-btn danger" id="removePhotoBtn" onclick="removePhoto()" style="display:none">✕ Remover</button>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" onchange="loadPhoto(this)">
+        </div>
+
+        <!-- SCORE -->
+        <div class="rx-section" id="rxScore">
+          <div class="rx-section-label">Score de risco</div>
+          <div class="score-widget">
+            <div class="score-top">
+              <div class="score-donut-sm">
+                <svg viewBox="0 0 80 80" width="72" height="72" id="scoreSvg">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="10"/>
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#00e8a2" stroke-width="10"
+                    stroke-dasharray="0 201" stroke-linecap="round" transform="rotate(-90 40 40)" id="scoreArc"/>
+                  <text x="40" y="45" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="18" font-weight="700" fill="#eef0ff" id="scoreVal">—</text>
+                </svg>
+              </div>
+              <div class="score-info">
+                <div class="score-name" id="scoreSubjectName">—</div>
+                <div class="score-sub" id="scoreSubjectMeta">Aguardando dados...</div>
+                <div class="score-verdict" id="scoreVerdict">—</div>
+              </div>
+            </div>
+            <div class="dim-bars">
+              <div class="dim-row">
+                <span class="dim-lbl">Judicial</span>
+                <div class="dim-track"><div class="dim-fill" id="dj" style="background:#ff3355;width:0%"></div></div>
+                <span class="dim-num" id="vj" style="color:#ff3355">—</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-lbl">Reputacional</span>
+                <div class="dim-track"><div class="dim-fill" id="dr" style="background:#ff6d00;width:0%"></div></div>
+                <span class="dim-num" id="vr" style="color:#ff6d00">—</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-lbl">Regulatório</span>
+                <div class="dim-track"><div class="dim-fill" id="dreg" style="background:#ffaa00;width:0%"></div></div>
+                <span class="dim-num" id="vreg" style="color:#ffaa00">—</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-lbl">Societário</span>
+                <div class="dim-track"><div class="dim-fill" id="ds" style="background:#9b6fff;width:0%"></div></div>
+                <span class="dim-num" id="vs" style="color:#9b6fff">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALERTAS -->
+        <div class="rx-section" id="rxAlertas">
+          <div class="rx-section-label">Alertas</div>
+          <div class="alert-widget" id="alertList">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+
+        <!-- ACHADOS -->
+        <div class="rx-section" id="rxAchados">
+          <div class="rx-section-label">Achados</div>
+          <div class="achados-grid" id="achadosGrid">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="rx-section" id="rxTimeline">
+          <div class="rx-section-label">Timeline</div>
+          <div class="tl-widget" id="tlWidget">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+
+        <!-- NOTAS -->
+        <div class="rx-section" id="rxNotas">
+          <div class="rx-section-label">Notas do analista</div>
+          <textarea class="nota-area" id="analystNotes" placeholder="Adicione observações, contextos, fontes a consultar..."></textarea>
+          <div class="nota-bar">
+            <button class="nota-save" onclick="saveNotes()">💾 Salvar notas</button>
+            <span class="nota-status" id="notesStatus"></span>
+          </div>
+        </div>
+
+      </div><!-- /raioXContent -->
+    </div><!-- /raioXBody -->
+  </div><!-- /col-right -->
+
+</div><!-- /workspace -->
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
+<script>
+/* ───────────────────────────────
+   ESTADO GLOBAL
+─────────────────────────────── */
+var state = {
+  profiles: [],          // perfis salvos
+  currentProfile: null,  // perfil ativo
+  isLoading: false,
+  conversationHistory: []
+};
+
+/* ───────────────────────────────
+   PERFIS DEMO (pré-carregados)
+─────────────────────────────── */
+var demoProfiles = [
+  { id:'1', name:'Arnaldo Maranhão', meta:'PL · Paranaguá/PR · Pré-candidato ALEP', score:40, jud:35, rep:25, reg:55, soc:20, risk:'mod',
+    alerts:[
+      {l:'amber',txt:'Volume de processos eleitorais (TRE-PR) compatível com 3 candidaturas.'},
+      {l:'amber',txt:'Migração PSB → PL · reunião com Bolsonaro em jun/2024.'},
+      {l:'green',txt:'Sem processos criminais identificados. Reputação positiva.'}
+    ],
+    achados:[
+      {lbl:'Judicial',val:'33-36',desc:'Processos TJPR/TRE-PR, majoritariamente eleitorais'},
+      {lbl:'Mandatos',val:'4x',desc:'Vereador Paranaguá 1997-2016'},
+      {lbl:'Tentativas',val:'3x',desc:'2018 Fed. / 2024 Prefeito / 2026 ALEP'},
+      {lbl:'Societário',val:'—',desc:'Servidor público efetivo · sem empresas'}
+    ],
+    timeline:[
+      {date:'FEV/2026', title:'Pré-candidatura ALEP anunciada', body:'Apoio de Filipe Barros (PL/PR). Argumento: litoral sem representação na ALEP.', color:'#9b6fff'},
+      {date:'JUN/2024', title:'Reunião com Bolsonaro em Brasília', body:'19 dias após lançar pré-candidatura à prefeitura. Buscou apoio e convidou Bolsonaro a Paranaguá.', color:'#ffaa00'},
+      {date:'2021-2024', title:'Coordenador Regional do Litoral (Ratinho Jr.)', body:'Cargo comissionado na Casa Civil do Paraná. Articulação entre governo estadual e 7 municípios.', color:'#00e8a2'}
+    ]
+  },
+  { id:'2', name:'Kátia Gomes Leite da Silva', meta:'Advogada OAB/PR · Pontal do Paraná', score:68, jud:85, rep:55, reg:60, soc:55, risk:'alto',
+    alerts:[
+      {l:'red',txt:'575 processos no Jusbrasil. MP-PR como parte mais recorrente — indicador de figurar como ré.'},
+      {l:'red',txt:'Representada como cliente em 55 processos pelo adv. Vitor Renzo Leite Milet Brandão.'},
+      {l:'amber',txt:'Empresa INAPTA (Academia Fitness Point) desde 04/10/2018 — omissão de declarações Receita Federal.'},
+      {l:'amber',txt:'Cargos públicos relatados pelo usuário — não confirmados em fontes abertas.'}
+    ],
+    achados:[
+      {lbl:'Judicial',val:'575',desc:'TJPR + TRT9 · MP-PR parte recorrente'},
+      {lbl:'Empresa',val:'INAPTA',desc:'CNPJ 02.580.333/0001-62 · desde 2018'},
+      {lbl:'Advogada',val:'Ativa',desc:'Cível e criminal · litoral PR e Curitiba'},
+      {lbl:'Filiação',val:'—',desc:'Não identificada em fontes abertas'}
+    ],
+    timeline:[
+      {date:'2024-2026', title:'Advogada correspondente ativa', body:'Rodovia Darci Eng. Gomes de Moraes, 2881, Pontal do Paraná. Tel. (41) 99978-1577.', color:'#00e8a2'},
+      {date:'OUT/2018', title:'Empresa declarada INAPTA', body:'Academia Ação & Reação Fitness Point. Motivo: omissão de declarações à Receita Federal.', color:'#ff3355'},
+      {date:'JUN/1998', title:'Abertura de empresa individual', body:'Academia Ação & Reação Fitness Point · Paranaguá/PR · Capital R$ 0.', color:'#ffaa00'}
+    ]
+  },
+  { id:'3', name:'Edgar Rossi', meta:'NOVO · Ex-prefeito · Pontal do Paraná', score:60, jud:65, rep:60, reg:55, soc:45, risk:'alto',
+    alerts:[
+      {l:'red',txt:'CPI da Regularização Fundiária na ALEP ("CPI do Grilo") — convocado e ouvido. Tentou barrar via liminar.'},
+      {l:'red',txt:'Denúncias de loteamentos irregulares e dois pesos em licenças durante mandato (2013-2016).'},
+      {l:'amber',txt:'MP investigou servidores da prefeitura por improbidade. Nome circulou no contexto.'},
+      {l:'green',txt:'Sem condenações definitivas identificadas. Derrotado nas eleições 2016, 2020 e 2024.'}
+    ],
+    achados:[
+      {lbl:'Judicial',val:'150',desc:'TJPR + TRE-PR · maioria cível/eleitoral'},
+      {lbl:'CPI',val:'ALEP',desc:'Fundiária — ouvido como convocado'},
+      {lbl:'Mandatos',val:'1x',desc:'Prefeito Pontal 2013-2016'},
+      {lbl:'Tentativas',val:'3x',desc:'2016/2020/2024 — derrotado nas 3'}
+    ],
+    timeline:[
+      {date:'OUT/2024', title:'Derrotado por Rudão Gimenes (MDB)', body:'27,75% dos votos. Terceira derrota consecutiva em eleições majoritárias.', color:'#ff3355'},
+      {date:'2013-2016', title:'Mandato como prefeito de Pontal', body:'CPI Fundiária, denúncias de loteamentos irregulares, investigação MP.', color:'#ffaa00'},
+      {date:'OUT/2012', title:'Eleito prefeito pela 1ª vez', body:'Apoio da comunidade evangélica. Posse em janeiro de 2013.', color:'#00e8a2'}
+    ]
+  }
+];
+
+/* ───────────────────────────────
+   INIT + RECEBER PARAMS DO POLITIZA
+─────────────────────────────── */
+window.addEventListener('load', function(){
+  state.profiles = JSON.parse(localStorage.getItem('aiox_profiles') || 'null') || demoProfiles;
+  renderProfileList();
+  loadNotes();
+
+  // Ler parâmetros passados pelo Politiza IA via URL
+  var params = new URLSearchParams(window.location.search);
+  var nome      = params.get('nome');
+  var municipio = params.get('municipio');
+  var partido   = params.get('partido');
+  var cargo     = params.get('cargo');
+  var contexto  = params.get('contexto');
+  var auto      = params.get('auto');
+
+  if (nome && municipio) {
+    // Montar mensagem de pesquisa estruturada
+    var partes = [];
+    partes.push(nome);
+    if (cargo)     partes.push(cargo);
+    if (partido)   partes.push(partido);
+    partes.push(municipio + '/PR');
+    if (contexto)  partes.push('Contexto: ' + contexto);
+
+    var msgPesquisa = 'pesquise profundamente: ' + partes.join(', ');
+
+    // Mostrar banner de origem
+    addMessage('ai',
+      '📡 <strong>Ativo recebido do Politiza IA</strong><br>' +
+      '• Nome: <strong>' + nome + '</strong><br>' +
+      (cargo    ? '• Cargo: <strong>' + cargo + '</strong><br>' : '') +
+      (partido  ? '• Partido: <strong>' + partido + '</strong><br>' : '') +
+      '• Município: <strong>' + municipio + '/PR</strong><br>' +
+      (contexto ? '• Contexto: <em>' + contexto + '</em><br>' : '') +
+      '<br>Iniciando investigação...'
+    );
+
+    // Preencher o input
+    var input = document.getElementById('chatInput');
+    if (input) {
+      input.value = msgPesquisa;
+      autoResize(input);
+    }
+
+    // Se auto=true, disparar automaticamente após 1s (tempo para o banner aparecer)
+    if (auto === 'true') {
+      setTimeout(function(){ sendMessage(); }, 1000);
+    }
+  }
+});
+
+/* ───────────────────────────────
+   LISTA DE PERFIS
+─────────────────────────────── */
+function renderProfileList(filter){
+  var list = document.getElementById('profilesList');
+  list.innerHTML = '';
+  var profiles = state.profiles.filter(function(p){
+    if(!filter) return true;
+    return p.name.toLowerCase().includes(filter.toLowerCase()) ||
+           p.meta.toLowerCase().includes(filter.toLowerCase());
+  });
+  profiles.forEach(function(p){
+    var card = document.createElement('div');
+    card.className = 'profile-card' + (state.currentProfile && state.currentProfile.id === p.id ? ' active' : '');
+    var color = p.risk === 'alto' ? '#ff3355' : p.risk === 'mod' ? '#ffaa00' : '#00e8a2';
+    var emoji = p.risk === 'alto' ? '🔴' : p.risk === 'mod' ? '🟡' : '🟢';
+    card.innerHTML =
+      '<div class="pc-name">'+p.name+'</div>'+
+      '<div class="pc-meta">'+p.meta+'</div>'+
+      '<div class="pc-score-row">'+
+        '<div class="pc-score-bar"><div class="pc-score-fill" style="width:'+p.score+'%;background:'+color+'"></div></div>'+
+        '<span class="pc-score-val" style="color:'+color+'">'+emoji+' '+p.score+'</span>'+
+      '</div>';
+    card.onclick = function(){ loadProfile(p); };
+    list.appendChild(card);
+  });
+  if(profiles.length === 0){
+    list.innerHTML = '<div style="text-align:center;padding:20px;font-family:var(--font-m);font-size:10px;color:var(--lo)">Nenhum perfil encontrado</div>';
+  }
+}
+
+function filterProfiles(v){ renderProfileList(v); }
+
+function loadProfile(p){
+  state.currentProfile = p;
+  renderProfileList(document.getElementById('searchProfiles').value);
+  updateRaioX(p);
+  document.getElementById('subjectName').textContent = p.name;
+  document.getElementById('subjectSub').textContent = p.meta;
+  document.getElementById('analystNotes').value = localStorage.getItem('aiox_notes_'+p.id) || '';
+  addMessage('ai', 'Perfil de <strong>'+p.name+'</strong> carregado. Score: <strong>'+p.score+'/100</strong> <span class="risk-badge-inline rb-'+p.risk+'">'+p.risk.toUpperCase()+'</span><br>O que deseja investigar mais a fundo?');
+}
+
+function newProfile(){
+  state.currentProfile = null;
+  showEmptyState();
+  document.getElementById('chatInput').focus();
+  addMessage('ai', 'Nova investigação iniciada. Informe o nome completo do sujeito e o contexto (cidade, cargo, partido).');
+}
+
+/* ───────────────────────────────
+   RAIO-X
+─────────────────────────────── */
+function showEmptyState(){
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('raioXContent').style.display = 'none';
+}
+
+function updateRaioX(p){
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('raioXContent').style.display = 'block';
+
+  // Score
+  var color = p.risk==='alto'?'#ff3355':p.risk==='mod'?'#ffaa00':'#00e8a2';
+  var arc = (p.score/100)*201;
+  document.getElementById('scoreArc').setAttribute('stroke-dasharray', arc+' 201');
+  document.getElementById('scoreArc').setAttribute('stroke', color);
+  document.getElementById('scoreVal').textContent = p.score;
+  document.getElementById('scoreSubjectName').textContent = p.name;
+  document.getElementById('scoreSubjectMeta').textContent = p.meta;
+  var verdict = p.risk==='alto'?'🔴 RISCO ALTO':p.risk==='mod'?'🟡 RISCO MODERADO':'🟢 RISCO BAIXO';
+  document.getElementById('scoreVerdict').textContent = verdict;
+  document.getElementById('scoreVerdict').style.color = color;
+
+  // Barras
+  setTimeout(function(){
+    setBar('dj','vj',p.jud);
+    setBar('dr','vr',p.rep);
+    setBar('dreg','vreg',p.reg);
+    setBar('ds','vs',p.soc);
+  }, 100);
+
+  // Alertas
+  var al = document.getElementById('alertList');
+  al.innerHTML = '';
+  (p.alerts||[]).forEach(function(a){
+    al.innerHTML += '<div class="alert-row">'+
+      '<div class="a-dot a-dot-'+a.l+'"></div>'+
+      '<div><div class="a-lv a-lv-'+a.l+'">'+{red:'🔴 CRÍTICO',amber:'⚠ ATENÇÃO',green:'✓ OK'}[a.l]+'</div>'+
+      '<div class="a-txt">'+a.txt+'</div></div>'+
+    '</div>';
+  });
+
+  // Achados
+  var ag = document.getElementById('achadosGrid');
+  ag.innerHTML = '';
+  (p.achados||[]).forEach(function(a){
+    ag.innerHTML += '<div class="achado-card">'+
+      '<div class="achado-label">'+a.lbl+'</div>'+
+      '<div class="achado-val" style="color:'+color+'">'+a.val+'</div>'+
+      '<div class="achado-desc">'+a.desc+'</div>'+
+    '</div>';
+  });
+
+  // Timeline
+  var tl = document.getElementById('tlWidget');
+  tl.innerHTML = '';
+  (p.timeline||[]).forEach(function(t){
+    var div = document.createElement('div');
+    div.className = 'tl-row';
+    div.style.borderLeft = '3px solid '+t.color;
+    div.innerHTML = '<div class="tl-row-date" style="color:'+t.color+'">'+t.date+'</div>'+
+      '<div class="tl-row-title">'+t.title+'</div>'+
+      '<div class="tl-row-body">'+t.body+'</div>';
+    div.onclick = function(){
+      var was = div.classList.contains('open');
+      document.querySelectorAll('.tl-row').forEach(function(r){r.classList.remove('open');});
+      if(!was) div.classList.add('open');
+    };
+    tl.appendChild(div);
+  });
+}
+
+function setBar(fillId, valId, v){
+  var f = document.getElementById(fillId);
+  var vEl = document.getElementById(valId);
+  if(f) f.style.width = v+'%';
+  if(vEl) vEl.textContent = v;
+}
+
+/* ───────────────────────────────
+   CHAT
+─────────────────────────────── */
+function handleKey(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120)+'px';
+}
+
+function quickCmd(prefix){
+  var input = document.getElementById('chatInput');
+  input.value = prefix + ' ';
+  input.focus();
+  autoResize(input);
+}
+
+function addMessage(role, html){
+  var area = document.getElementById('chatArea');
+  var div = document.createElement('div');
+  div.className = 'msg '+(role==='ai'?'ai':'user');
+  var now = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML =
+    '<div class="msg-avatar msg-avatar-'+(role==='ai'?'ai':'user')+'">'+(role==='ai'?'AI':'EU')+'</div>'+
+    '<div><div class="msg-bubble">'+html+'</div><div class="msg-time">'+now+'</div></div>';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+function showTyping(){
+  var area = document.getElementById('chatArea');
+  var div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'typingIndicator';
+  div.innerHTML = '<div class="msg-avatar msg-avatar-ai">AI</div>'+
+    '<div><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+function removeTyping(){ var t=document.getElementById('typingIndicator'); if(t) t.remove(); }
+
+async function sendMessage(){
+  var input = document.getElementById('chatInput');
+  var text = input.value.trim();
+  if(!text || state.isLoading) return;
+
+  input.value = ''; autoResize(input);
+  state.isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  addMessage('user', text);
+  showTyping();
+
+  // Adiciona ao histórico
+  state.conversationHistory.push({role:'user', content: text});
+
+  // System prompt especializado
+  var systemPrompt = `Você é o RAIO-X Intelligence, agente especializado em due diligence política e corporativa para o Politiza IA — plataforma de campanha do Paraná. 
+
+MISSÃO: Investigar pessoas físicas e jurídicas usando fontes públicas (Jusbrasil, Escavador, Receita Federal, TSE, mídia regional do litoral paranaense) e produzir análises estruturadas de risco.
+
+FORMATO DAS RESPOSTAS:
+- Use **negrito** para nomes, scores e achados críticos
+- Use *itálico/em* para alertas e pontos de atenção
+- Use blocos de código para dados estruturados (CNPJ, processos, etc.)
+- Seja direto e objetivo — o usuário é um estrategista político com tempo limitado
+- Sempre inclua ao final: SCORE ESTIMADO (0-100), RISCO (baixo/moderado/alto) e PRÓXIMOS PASSOS
+
+CONTEXTO DO LITORAL DO PARANÁ:
+- Municípios: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes, Guaraqueçaba
+- Principais figuras investigadas nesta sessão: Arnaldo Maranhão (PL/Paranaguá), Kátia Gomes Leite (advogada/Pontal), Edgar Rossi (NOVO/Pontal)
+- Plataforma: Politiza IA — restrita a admin_master e coordenador_estadual
+
+QUANDO GERAR RAIO-X COMPLETO:
+Estruture a resposta com:
+1. IDENTIDADE (nome, cargo, município, partido)
+2. SCORE GLOBAL (ponderado: judicial 40% + reputacional 30% + regulatório 20% + societário 10%)
+3. ALERTAS (🔴 crítico / ⚠ atenção / ✓ ok)
+4. ACHADOS POR DIMENSÃO
+5. TIMELINE dos eventos mais relevantes
+6. RECOMENDAÇÕES de aprofundamento`;
+
+  try {
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: state.conversationHistory
+      })
+    });
+
+    var data = await response.json();
+    var aiText = (data.content && data.content[0] && data.content[0].text) || 'Erro ao processar resposta.';
+
+    // Adiciona resposta ao histórico
+    state.conversationHistory.push({role:'assistant', content: aiText});
+
+    // Limitar histórico (últimas 20 mensagens)
+    if(state.conversationHistory.length > 20){
+      state.conversationHistory = state.conversationHistory.slice(-20);
+    }
+
+    removeTyping();
+
+    // Formatar texto para HTML
+    var html = formatResponse(aiText);
+    addMessage('ai', html);
+
+    // Tentar extrair score e atualizar Raio-X automaticamente
+    tryExtractAndUpdateScore(aiText, text);
+
+  } catch(err){
+    removeTyping();
+    addMessage('ai', '*Erro de conexão.* Verifique sua conexão com a internet e tente novamente.<br><small>Detalhe: '+err.message+'</small>');
+  }
+
+  state.isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+/* formatar markdown simples → HTML */
+function formatResponse(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
+    .replace(/🔴/g, '<span style="color:#ff3355">🔴</span>')
+    .replace(/⚠/g, '<span style="color:#ffaa00">⚠</span>')
+    .replace(/✓/g, '<span style="color:#00e8a2">✓</span>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+/* tentar extrair score da resposta e atualizar painel */
+function tryExtractAndUpdateScore(aiText, userText){
+  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
+  if(!scoreMatch) return;
+  var score = parseInt(scoreMatch[1]);
+  if(score < 0 || score > 100) return;
+
+  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
+
+  // Extrair nome do sujeito da mensagem do usuário
+  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
+  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+
+  // Extrair scores por dimensão
+  var jud = extractDim(aiText, 'judicial') || score;
+  var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
+  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
+  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
+
+  // Extrair alertas do texto
+  var alerts = extractAlerts(aiText);
+
+  var profile = {
+    id: 'auto_'+Date.now(),
+    name: subjectName,
+    meta: 'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR'),
+    score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
+    alerts: alerts,
+    achados: [
+      {lbl:'Score Global',val:score,desc:'Ponderado 4 dimensões'},
+      {lbl:'Judicial',val:jud,desc:'% de risco judicial'},
+      {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
+      {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
+    ],
+    timeline: []
+  };
+
+  state.currentProfile = profile;
+  document.getElementById('subjectName').textContent = subjectName;
+  document.getElementById('subjectSub').textContent = profile.meta;
+  updateRaioX(profile);
+}
+
+function extractDim(text, dim){
+  var re = new RegExp(dim+'[:\\s]+(\\d+)', 'i');
+  var m = text.match(re);
+  return m ? Math.min(100, parseInt(m[1])) : null;
+}
+
+function extractAlerts(text){
+  var alerts = [];
+  var lines = text.split('\n');
+  lines.forEach(function(line){
+    if(line.includes('🔴') || line.toLowerCase().includes('crítico')){
+      alerts.push({l:'red', txt: line.replace(/🔴|•|\*/g,'').trim().slice(0,120)});
+    } else if(line.includes('⚠') || line.toLowerCase().includes('atenção')){
+      alerts.push({l:'amber', txt: line.replace(/⚠|•|\*/g,'').trim().slice(0,120)});
+    } else if(line.includes('✓') || line.toLowerCase().includes('ok —')){
+      alerts.push({l:'green', txt: line.replace(/✓|•|\*/g,'').trim().slice(0,120)});
+    }
+  });
+  return alerts.slice(0,6);
+}
+
+/* ───────────────────────────────
+   SALVAR / PRINT
+─────────────────────────────── */
+function saveCurrentProfile(){
+  if(!state.currentProfile){
+    addMessage('ai','⚠ Nenhum perfil ativo para salvar. Inicie uma investigação primeiro.');
+    return;
+  }
+  var exists = state.profiles.findIndex(function(p){ return p.id === state.currentProfile.id; });
+  if(exists >= 0) state.profiles[exists] = state.currentProfile;
+  else state.profiles.unshift(state.currentProfile);
+  localStorage.setItem('aiox_profiles', JSON.stringify(state.profiles));
+  renderProfileList();
+  addMessage('ai','✓ Perfil de <strong>'+state.currentProfile.name+'</strong> salvo com sucesso.');
+}
+
+function printRaioX(){
+  document.querySelectorAll('.tl-row').forEach(function(r){r.classList.add('open');});
+  setTimeout(function(){
+    window.print();
+    setTimeout(function(){
+      document.querySelectorAll('.tl-row').forEach(function(r){r.classList.remove('open');});
+    },1500);
+  },200);
+}
+
+/* ───────────────────────────────
+   NOTAS
+─────────────────────────────── */
+function saveNotes(){
+  var key = state.currentProfile ? 'aiox_notes_'+state.currentProfile.id : 'aiox_notes_general';
+  localStorage.setItem(key, document.getElementById('analystNotes').value);
+  var s = document.getElementById('notesStatus');
+  s.textContent = '✓ Salvo '+new Date().toLocaleTimeString('pt-BR');
+  setTimeout(function(){s.textContent='';},3000);
+}
+function loadNotes(){
+  var key = state.currentProfile ? 'aiox_notes_'+state.currentProfile.id : 'aiox_notes_general';
+  var saved = localStorage.getItem(key);
+  if(saved) document.getElementById('analystNotes').value = saved;
+}
+
+/* ───────────────────────────────
+   FOTO
+─────────────────────────────── */
+function loadPhoto(input){
+  if(!input.files||!input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = document.getElementById('photoImg');
+    img.src = e.target.result;
+    img.onload = function(){
+      img.classList.add('loaded');
+      document.querySelector('.photo-ph').style.display='none';
+      document.getElementById('removePhotoBtn').style.display='block';
+      if(state.currentProfile)
+        localStorage.setItem('aiox_photo_'+state.currentProfile.id, e.target.result);
+    };
+  };
+  reader.readAsDataURL(input.files[0]);
+  input.value='';
+}
+function removePhoto(){
+  var img = document.getElementById('photoImg');
+  img.src=''; img.classList.remove('loaded');
+  document.querySelector('.photo-ph').style.display='';
+  document.getElementById('removePhotoBtn').style.display='none';
+  if(state.currentProfile) localStorage.removeItem('aiox_photo_'+state.currentProfile.id);
+}
+</script>
+</body>
+</html>

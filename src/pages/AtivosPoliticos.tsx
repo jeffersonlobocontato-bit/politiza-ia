@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Search, Plus, Pencil, Trash2, X, Upload, ExternalLink, Lock } from 'lucide-react';
+import { Users, Search, Plus, Pencil, Trash2, X, Upload, ExternalLink, Lock, Shield } from 'lucide-react';
+import { RaioXModal, openRaioX } from '@/components/ativos/RaioXModal';
+import { useAuth } from '@/contexts/AuthContext';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { macroRegions } from '@/data/mockData';
 import { usePoliticalAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/usePoliticalAssets';
@@ -141,6 +143,19 @@ export default function AtivosPoliticos() {
   const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
   const [showImport, setShowImport] = useState(false);
   const association = useAssociationForCity(geoForm.city);
+  const { roles } = useAuth();
+  const canRaioX = roles.some(r => ['admin_master', 'coordenador_estadual', 'coordenador_geral'].includes(r));
+  const [raioXAsset, setRaioXAsset] = useState<UnifiedAsset | null>(null);
+
+  const handleRaioX = (asset: UnifiedAsset) => {
+    const nome = (asset.name ?? '').trim();
+    const municipio = (asset.municipality ?? '').trim();
+    if (nome.length > 3 && municipio.length > 2) {
+      openRaioX({ nome, municipio, partido: '', cargo: asset.position ?? '', contexto: '' });
+    } else {
+      setRaioXAsset(asset);
+    }
+  };
 
   // Lista única de cidades presentes nos ativos (respeita filtro de macrorregião)
   const cityOptions = useMemo(() => {
@@ -492,6 +507,15 @@ export default function AtivosPoliticos() {
                 <div key={asset.id} className="rounded-xl border border-border p-4 hover:border-primary/30 transition-all group relative" style={{ background: 'var(--gradient-card)' }}>
                   {/* Actions */}
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {canRaioX && (
+                      <button
+                        onClick={() => handleRaioX(asset)}
+                        className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-destructive/70 hover:text-destructive"
+                        title="Fazer RAIO-X (Due Diligence)"
+                      >
+                        <Shield className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     {asset.origin === 'nativo' ? (
                       <>
                         <button onClick={() => openEdit(asset)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground" title="Editar">
@@ -569,6 +593,22 @@ export default function AtivosPoliticos() {
           </div>
         )}
       </div>
+      {raioXAsset && (
+        <RaioXModal
+          open={!!raioXAsset}
+          ativo={{
+            name: raioXAsset.name,
+            municipality: raioXAsset.municipality ?? '',
+            position: raioXAsset.position ?? '',
+            party: '',
+          }}
+          onClose={() => setRaioXAsset(null)}
+          onConfirm={(dados) => {
+            setRaioXAsset(null);
+            openRaioX(dados);
+          }}
+        />
+      )}
     </div>
   );
 }
