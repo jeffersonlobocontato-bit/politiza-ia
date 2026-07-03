@@ -742,24 +742,26 @@ function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[
               </tr>
             </thead>
             <tbody>
-              {matriz.map((r, i) => (
-                <tr key={i} className="border-b">
-                  <td className="py-2 pr-3 font-medium" style={{ color: COR_CAND[r.cand] ?? undefined }}>{r.cand}</td>
-                  {selInstSorted.map(inst => (
-                    <td key={inst} className="py-2 pr-3 text-right tabular-nums">
-                      {r[inst] != null ? `${r[inst]}%` : '—'}
+              {matriz
+                .filter(r => selInstSorted.some(inst => r[inst] != null))
+                .map((r, i) => (
+                  <tr key={i} className="border-b">
+                    <td className="py-2 pr-3 font-medium" style={{ color: COR_CAND[r.cand] ?? undefined }}>{r.cand}</td>
+                    {selInstSorted.map(inst => (
+                      <td key={inst} className="py-2 pr-3 text-right tabular-nums">
+                        {r[inst] != null ? `${r[inst]}%` : '—'}
+                      </td>
+                    ))}
+                    <td className="py-2 pr-3 text-right font-semibold">{r._media != null ? `${r._media}%` : '—'}</td>
+                    <td className="py-2 text-right">
+                      {r._delta != null ? (
+                        <Badge className={r._delta >= 5 ? 'bg-red-500' : r._delta >= 2.5 ? 'bg-amber-500' : 'bg-emerald-600'}>
+                          {r._delta} p.p.
+                        </Badge>
+                      ) : '—'}
                     </td>
-                  ))}
-                  <td className="py-2 pr-3 text-right font-semibold">{r._media != null ? `${r._media}%` : '—'}</td>
-                  <td className="py-2 text-right">
-                    {r._delta != null ? (
-                      <Badge className={r._delta >= 5 ? 'bg-red-500' : r._delta >= 2.5 ? 'bg-amber-500' : 'bg-emerald-600'}>
-                        {r._delta} p.p.
-                      </Badge>
-                    ) : '—'}
-                  </td>
-                </tr>
-              ))}
+                  </tr>
+                ))}
             </tbody>
           </table>
           <p className="text-xs text-muted-foreground mt-3">
