@@ -427,18 +427,18 @@ export default function Inteligencia() {
           </Card>
 
           {[
-            { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Formalização do apoio de Ratinho Jr. a Sandro Alex',
-              desc: 'Sem declaração formal, Sandro já cresceu 2,1 p.p. em um mês. Com apoio explícito, modelos sugerem salto de 4–6 p.p. adicionais, colocando-o próximo de 15–17%.',
-              acao: 'Consolidar alianças com lideranças regionais do campo governista antes da declaração formal. Criar percepção de que esse campo já está com Moro.' },
+            { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Crescimento de Sandro Alex por transferência de apoio',
+              desc: 'Sem declaração formal, Sandro já subiu 2,1 p.p. em um mês. Com apoio explícito do governador, modelos indicam salto adicional de 4–6 p.p., colocando-o próximo de 15–17%. O candidato ainda não tem narrativa própria — cresce por padrinho político.',
+              acao: 'Consolidar alianças com lideranças regionais do campo governista antes da formalização e ocupar o interior com a narrativa "guardião do dinheiro das famílias". Contraste factual sobre dependência de padrinho político, SEM acusação de uso de máquina sem prova.' },
             { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Gap feminino estrutural',
               desc: 'Diferença de 7,2 p.p. entre homens (46,1%) e mulheres (38,9%). Melhorar 5 p.p. entre mulheres equivale a +2,7 p.p. na média geral — suficiente para cruzar 45%.',
-              acao: 'Pautas de segurança, saúde e família. Presença em contextos comunitários e religiosos onde o gap já é menor.' },
+              acao: 'Pautas de proteção às famílias — segurança, saúde, custo de vida e cuidado com crianças e idosos. Protagonismo de mulheres-referência e presença em contextos comunitários e religiosos onde o gap já é menor.' },
             { sev: 'Latente', cor: 'bg-orange-500', titulo: 'Efeito de acomodação do voto',
               desc: '47,9% acham que Moro vai ganhar — maior que a própria intenção (42,3%). Quando o eleitor acha que o resultado está decidido, parte migra para candidatos menores ou fica em casa.',
-              acao: 'Comunicação "cada voto conta para garantir o primeiro turno". Ativar o eleitor já decidido.' },
+              acao: 'Comunicação "cada voto conta para garantir o 1º turno". Ativar o eleitor já decidido com peças de mobilização, não apenas persuasão.' },
             { sev: 'Controlada', cor: 'bg-emerald-600', titulo: 'Rejeição própria (23,6%)',
-              desc: 'Segundo menor do campo, estável entre mai e jun. Risco de elevação em caso de confrontos diretos em debates.',
-              acao: 'Postura presidencial, propositiva. Evitar ataques a rivais menores.' },
+              desc: 'Segundo menor do campo, estável entre mai e jun. Risco de elevação em caso de confrontos ríspidos em debates ou ataques desproporcionais a rivais menores.',
+              acao: 'Postura presidencial, propositiva e responsável — falar como quem já governa. Evitar ataques a rivais menores e usar sempre vocabulário responsável ao mencionar adversários ("indícios", "apontamentos", "precisa ser explicado").' },
           ].map((a, i) => (
             <Card key={i}>
               <CardContent className="p-4 flex gap-4">
