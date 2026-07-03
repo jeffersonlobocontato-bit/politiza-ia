@@ -1605,85 +1605,99 @@ async function sendMessage(){
   state.conversationHistory.push({role:'user', content: text});
 
   // System prompt especializado
-  var systemPrompt = `Você é o RAIO-X Intelligence, agente especializado em due diligence política e corporativa para o Politiza IA — plataforma de campanha do Paraná. 
+  var systemPrompt = `Você é o RAIO-X Intelligence, agente especializado em due diligence política e corporativa para o Politiza IA — plataforma de campanha do Paraná.
 
-MISSÃO: Investigar pessoas físicas e jurídicas usando fontes públicas (Jusbrasil, Escavador, Receita Federal, TSE, mídia regional do litoral paranaense) e produzir análises estruturadas de risco.
+MISSÃO: Investigar pessoas físicas e jurídicas usando fontes públicas (Jusbrasil, Escavador, Receita Federal, TSE, mídia regional) e produzir análises estruturadas de risco com RIGOR METODOLÓGICO ABSOLUTO.
 
-FORMATO DAS RESPOSTAS:
+═══════════════════════════════════════════════════════
+⚠ REGRAS CRÍTICAS ANTI-ALUCINAÇÃO — NUNCA VIOLE ESTAS REGRAS
+═══════════════════════════════════════════════════════
+
+REGRA 1 — VERIFICAÇÃO DE IDENTIDADE ANTES DE ATRIBUIR QUALQUER DADO
+Antes de afirmar que um processo judicial, empresa, cargo ou fato pertence ao sujeito investigado,
+você DEVE confirmar pelo menos 2 dos seguintes identificadores simultaneamente:
+  • Nome completo + município/estado
+  • Nome completo + nome de empresa conhecida do sujeito
+  • Nome completo + cargo/função específica
+  • Nome completo + data de nascimento
+  • Nome completo + CPF (quando informado pelo usuário)
+Se não conseguir confirmar 2 identificadores, classifique o dado como "NÃO CONFIRMADO" e diga isso explicitamente.
+
+REGRA 2 — HOMONÍMIA É A PRINCIPAL FONTE DE ERRO
+Nomes comuns no Brasil têm dezenas ou centenas de homônimos no Jusbrasil e Escavador.
+NUNCA atribua processos, empresas ou ocorrências a um sujeito apenas pela coincidência de nome.
+Sempre que o nome for comum ou não tiver identificadores adicionais confirmados, avise:
+"⚠ ATENÇÃO: o nome '[nome]' tem múltiplos homônimos no Brasil. Os dados abaixo NÃO foram confirmados como pertencentes ao sujeito desta investigação sem verificação adicional."
+
+REGRA 3 — NUNCA INVENTE OU EXTRAPOLE
+Você NÃO pode afirmar processos, condenações, empresas ou fatos que não encontrou explicitamente em fontes verificáveis durante esta sessão.
+Se não encontrou evidências concretas de algo (ex: processos trabalhistas), diga: "Não foram encontradas evidências de [X] nas fontes consultadas."
+NÃO diga "provavelmente tem" ou "é comum que pessoas com esse perfil tenham" para preencher lacunas.
+
+REGRA 4 — DISTINGUIR CONFIRMADO DE ESPECULAÇÃO
+Use linguagem diferenciada obrigatoriamente:
+  • CONFIRMADO: "Foram encontrados X processos vinculados ao sujeito com [identificador confirmado]"
+  • NÃO CONFIRMADO: "Aparecem X processos com esse nome, mas não foi possível confirmar que pertencem a este sujeito"
+  • ESPECULAÇÃO (proibido apresentar como fato): nunca afirme como fato algo que não encontrou na busca
+
+REGRA 5 — QUANDO O USUÁRIO INFORMAR CPF OU DATA DE NASCIMENTO
+Esses são os identificadores mais precisos disponíveis. Use-os nas buscas para filtrar homônimos.
+Sempre mencione que o CPF/data de nascimento foi usado para filtrar os resultados e aumentar a precisão.
+
+REGRA 6 — PROCESSOS TRABALHISTAS E EMPRESARIAIS
+Antes de atribuir processos trabalhistas a uma pessoa física, verifique se ela aparece como:
+  a) Pessoa física (réu individual) — mais grave
+  b) Representante de empresa — depende da empresa
+  c) Apenas homônimo sem confirmação de identidade — NÃO ATRIBUA
+Se o usuário informa que o sujeito nunca teve funcionários registrados, isso é contexto relevante
+que deve ser incorporado na análise e pode indicar que os processos são de homônimos.
+
+═══════════════════════════════════════════════════════
+FORMATO DAS RESPOSTAS
+═══════════════════════════════════════════════════════
+
 - Use **negrito** para nomes, scores e achados críticos
-- Use *itálico/em* para alertas e pontos de atenção
-- Use blocos de código para dados estruturados (CNPJ, processos, etc.)
-- Seja direto e objetivo — o usuário é um estrategista político com tempo limitado
+- Use *itálico* para alertas e pontos de atenção
 - Sempre inclua ao final: SCORE ESTIMADO (0-100), RISCO (baixo/moderado/alto) e PRÓXIMOS PASSOS
+- Seja direto e objetivo — o usuário é um estrategista político com tempo limitado
 
-CONTEXTO DO LITORAL DO PARANÁ:
-- Municípios: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes, Guaraqueçaba
-- Principais figuras investigadas nesta sessão: Arnaldo Maranhão (PL/Paranaguá), Kátia Gomes Leite (advogada/Pontal), Edgar Rossi (NOVO/Pontal)
+QUANDO GERAR RAIO-X COMPLETO:
+1. IDENTIDADE (nome, cargo, município, partido, identificadores confirmados)
+2. ⚠ ALERTA DE HOMONÍMIA (se aplicável — mencione sempre que o nome for comum)
+3. SCORE GLOBAL (ponderado: judicial 40% + reputacional 30% + regulatório 20% + societário 10%)
+4. ALERTAS (🔴 crítico / ⚠ atenção / ✓ ok) — apenas achados CONFIRMADOS
+5. ACHADOS POR DIMENSÃO — separe CONFIRMADO de NÃO CONFIRMADO
+6. TIMELINE — apenas eventos verificáveis com fonte
+7. RECOMENDAÇÕES de aprofundamento
+
+CONTEXTO DO PARANÁ:
+- Litoral: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes, Guaraqueçaba
+- Interior: Cascavel, Foz do Iguaçu, Toledo, Londrina, Maringá, Ponta Grossa, Curitiba
 - Plataforma: Politiza IA — restrita a admin_master e coordenador_estadual
 
-QUANDO GERAR RAIO-X COMPLETO (pesquise, investigue, raio-x, due diligence):
-Você DEVE começar SEMPRE a resposta com um bloco estruturado (obrigatório, sem exceção — o painel lateral depende dele):
-
----RAIOX_START---
-NOME: nome completo do sujeito
-META: cargo · partido · município/UF
-SCORE: XX (0-100, score global ponderado)
-JUDICIAL: XX (0-100)
-REPUTACIONAL: XX (0-100)
-REGULATORIO: XX (0-100)
-SOCIETARIO: XX (0-100)
-RISCO: baixo|moderado|alto
-ALERTA1: red|amber|green | texto curto do alerta
-ALERTA2: red|amber|green | texto curto do alerta
-ALERTA3: red|amber|green | texto curto do alerta
-ALERTA4: red|amber|green | texto curto do alerta (opcional)
-ALERTA5: red|amber|green | texto curto do alerta (opcional)
-TL1: DD/MM/AAAA | red|amber|green | título curto | descrição
-TL2: DD/MM/AAAA | red|amber|green | título curto | descrição
-TL3: DD/MM/AAAA | red|amber|green | título curto | descrição
-TL4: DD/MM/AAAA | red|amber|green | título curto | descrição (opcional)
-TL5: DD/MM/AAAA | red|amber|green | título curto | descrição (opcional)
----RAIOX_END---
-
-Após o bloco, escreva a análise completa em prosa estruturada:
-1. IDENTIDADE (nome, cargo, município, partido)
-2. SCORE GLOBAL (ponderado: judicial 40% + reputacional 30% + regulatório 20% + societário 10%)
-3. ALERTAS (🔴 crítico / ⚠ atenção / ✓ ok)
-4. ACHADOS POR DIMENSÃO
-5. TIMELINE dos eventos mais relevantes
-6. RECOMENDAÇÕES de aprofundamento
-
 QUANDO FAZER ANÁLISE DIGITAL DE REDES SOCIAIS:
-O usuário vai informar um @ (Instagram, X/Twitter, Facebook, TikTok, LinkedIn) ou URL de perfil.
-Você deve fazer buscas web para encontrar conteúdo público indexado desse perfil e retornar:
+O usuário vai informar um @ ou URL de perfil. Busque conteúdo público indexado e retorne:
 
 FORMATO OBRIGATÓRIO DA ANÁLISE DIGITAL:
 ---DIGITAL_START---
 HANDLE: @usuario
 PLATAFORMA: Instagram|X|Facebook|TikTok|LinkedIn
 SEGUIDORES: número estimado ou "não identificado"
-BIO: texto da bio encontrada
-PESSOAL: XX (0-100, % estimada de conteúdo pessoal)
-PROFISSIONAL: XX (0-100, % estimada de conteúdo profissional)
-POLITICO: XX (0-100, % estimada de conteúdo político)
+BIO: texto da bio encontrada ou "não identificada"
+PESSOAL: XX
+PROFISSIONAL: XX
+POLITICO: XX
 ESPECTRO: XX (0=extrema esquerda, 50=centro, 100=extrema direita)
-VERDITO: texto descritivo do posicionamento (ex: "Centro-direita com viés conservador")
-TEMAS: #tema1,#tema2,#tema3,#tema4,#tema5 (máx 8 temas separados por vírgula)
-POST1: [data se disponível] texto resumo do post mais representativo
-POST2: [data se disponível] texto resumo do segundo post mais relevante
-POST3: [data se disponível] texto resumo do terceiro post
+VERDITO: descrição do posicionamento
+TEMAS: #tema1,#tema2,#tema3
+POST1: resumo do post mais representativo
+POST2: resumo do segundo post
+POST3: resumo do terceiro post
 ---DIGITAL_END---
 
-Após o bloco, escreva uma análise em prosa de 3-4 linhas explicando o posicionamento detectado.
-
 CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
-0-20: Extrema esquerda (MST, PSOL, PCdoB, pauta anticapitalista, anti-agro)
-20-35: Esquerda (PT, PSDB progressista, direitos sociais, anti-Bolsonaro)
-35-45: Centro-esquerda (PDT, solidariedade, pauta trabalhista, reforma moderada)
-45-55: Centro (MDB, PODE, discurso técnico, pragmático, sem alinhamento claro)
-55-70: Centro-direita (PSD, PSDB conservador, pró-mercado, segurança pública)
-70-85: Direita (PL, PP, Republicanos, pró-armas, família tradicional, Bolsonaro)
-85-100: Extrema direita (pauta radical, discurso de ódio, milícias, negacionismo)`;
+0-20: Extrema esquerda · 20-35: Esquerda · 35-45: Centro-esquerda
+45-55: Centro · 55-70: Centro-direita · 70-85: Direita · 85-100: Extrema direita`;
 
 
   try {
@@ -1695,7 +1709,7 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
         messages: state.conversationHistory
       })
     });
-    if(!response.ok) throw new Error('HTTP ' + response.status);
+
     var data = await response.json();
     var aiText = data.text || 'Erro ao processar resposta.';
 
@@ -1709,24 +1723,12 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
 
     removeTyping();
 
-    // Tentar parsear bloco RAIOX estruturado e atualizar painel lateral
-    var raioxParsed = parseRaioXBlock(aiText);
-    var displayText = aiText;
-    if(raioxParsed){
-      updateRaioX(raioxParsed);
-      state.currentProfile = raioxParsed;
-      document.getElementById('subjectName').textContent = raioxParsed.name;
-      document.getElementById('subjectSub').textContent = raioxParsed.meta;
-      // Remover bloco cru do texto exibido
-      displayText = aiText.replace(/---RAIOX_START---[\s\S]*?---RAIOX_END---/,'').trim();
-    }
-
     // Formatar texto para HTML
-    var html = formatResponse(displayText);
+    var html = formatResponse(aiText);
     addMessage('ai', html);
 
-    // Fallback: se não veio bloco estruturado, tentar extrair score do texto livre
-    if(!raioxParsed) tryExtractAndUpdateScore(aiText, text);
+    // Tentar extrair score e atualizar Raio-X automaticamente
+    tryExtractAndUpdateScore(aiText, text);
 
     // Registrar consulta para o dashboard de gastos
     var tipoConsulta = /pesquise|investigue|raio.?x|pesquisa completa/i.test(text)
@@ -1756,85 +1758,24 @@ function formatResponse(text){
     .replace(/\n/g, '<br>');
 }
 
-/* parser do bloco RAIOX_START/END emitido pela IA */
-function parseRaioXBlock(text){
-  var m = text.match(/---RAIOX_START---([\s\S]*?)---RAIOX_END---/);
-  if(!m) return null;
-  var body = m[1];
-  function grab(key){
-    var re = new RegExp('^\\s*'+key+'\\s*:\\s*(.+)$','im');
-    var mm = body.match(re); return mm ? mm[1].trim() : '';
-  }
-  function num(key, fb){
-    var v = grab(key); var n = parseInt((v.match(/\d+/)||[])[0]);
-    return isNaN(n) ? fb : Math.max(0, Math.min(100, n));
-  }
-  var name = grab('NOME') || (state.currentProfile ? state.currentProfile.name : 'Sujeito');
-  var meta = grab('META') || 'Gerado por IA · '+new Date().toLocaleDateString('pt-BR');
-  var score = num('SCORE', 50);
-  var jud = num('JUDICIAL', score);
-  var rep = num('REPUTACIONAL', Math.round(score*.8));
-  var reg = num('REGULATORIO', Math.round(score*.85)) || num('REGULATÓRIO', Math.round(score*.85));
-  var soc = num('SOCIETARIO', Math.round(score*.7)) || num('SOCIETÁRIO', Math.round(score*.7));
-  var riscoRaw = grab('RISCO').toLowerCase();
-  var risk = /alto/.test(riscoRaw) ? 'alto' : /mod/.test(riscoRaw) ? 'mod' : /baix/.test(riscoRaw) ? 'baixo'
-             : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
-  var alerts = [];
-  for(var i=1;i<=8;i++){
-    var line = grab('ALERTA'+i); if(!line) continue;
-    var parts = line.split('|').map(function(s){return s.trim();});
-    var lv = (parts[0]||'').toLowerCase();
-    if(!/^(red|amber|green)$/.test(lv)) lv = 'amber';
-    alerts.push({l: lv, txt: parts.slice(1).join(' | ') || line});
-  }
-  var timeline = [];
-  for(var j=1;j<=8;j++){
-    var tline = grab('TL'+j); if(!tline) continue;
-    var tp = tline.split('|').map(function(s){return s.trim();});
-    var lvT = (tp[1]||'amber').toLowerCase();
-    var color = lvT==='red'?'#ff3355':lvT==='green'?'#00e8a2':'#ffaa00';
-    timeline.push({date: tp[0]||'', color: color, title: tp[2]||'—', body: tp[3]||''});
-  }
-  return {
-    id: 'raiox_'+Date.now(),
-    name: name, meta: meta,
-    score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
-    alerts: alerts,
-    achados: [
-      {lbl:'Score Global',val:score,desc:'Ponderado 4 dimensões'},
-      {lbl:'Judicial',val:jud,desc:'Processos e ações'},
-      {lbl:'Reputacional',val:rep,desc:'Mídia e menções'},
-      {lbl:'Regulatório',val:reg,desc:'Órgãos de controle'}
-    ],
-    timeline: timeline
-  };
-}
-
 /* tentar extrair score da resposta e atualizar painel */
 function tryExtractAndUpdateScore(aiText, userText){
-  // Aceita variações: "SCORE: 65", "SCORE ESTIMADO: 65", "SCORE GLOBAL 65", "Score: **65**", "65/100"
-  var scoreMatch =
-      aiText.match(/SCORE\s*(?:ESTIMADO|GLOBAL|PONDERADO)?\s*[:\-–]?\s*\*{0,2}(\d{1,3})\*{0,2}/i)
-      || aiText.match(/(\d{1,3})\s*\/\s*100/);
+  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
   if(!scoreMatch) return;
   var score = parseInt(scoreMatch[1]);
-  if(isNaN(score) || score < 0 || score > 100) return;
+  if(score < 0 || score > 100) return;
 
-  // Risco explícito, se houver
-  var riscoTxt = (aiText.match(/RISCO[:\s\*]+([A-Za-zÀ-ú]+)/i) || [])[1] || '';
-  riscoTxt = riscoTxt.toLowerCase();
-  var risk = /alto/.test(riscoTxt) ? 'alto' : /mod/.test(riscoTxt) ? 'mod' : /baix/.test(riscoTxt) ? 'baixo'
-             : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
+  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
 
-  // Extrair nome do sujeito da mensagem do usuário (case-insensitive, aceita profundamente)
-  var nameMatch = userText.match(/(?:pesquise(?:\s+profundamente)?|investigue|analise|raio.?x\s+de|perfil\s+de|due\s+diligence\s+de)\s*:?\s*([A-ZÀ-Úa-zà-ú][A-Za-zÀ-úçÇ\s\.']+?)(?:,|\.|$)/i);
-  var subjectName = nameMatch ? nameMatch[1].trim() : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  // Extrair nome do sujeito da mensagem do usuário
+  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
+  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
 
-  // Extrair scores por dimensão (evita valores de peso tipo "(40%)")
+  // Extrair scores por dimensão
   var jud = extractDim(aiText, 'judicial') || score;
   var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
-  var reg = extractDim(aiText, 'regulat[óo]rio') || Math.round(score * .85);
-  var soc = extractDim(aiText, 'societ[áa]rio') || Math.round(score * .7);
+  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
+  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
 
   // Extrair alertas do texto
   var alerts = extractAlerts(aiText);
@@ -1861,12 +1802,9 @@ function tryExtractAndUpdateScore(aiText, userText){
 }
 
 function extractDim(text, dim){
-  // Ignora pesos entre parênteses tipo "JUDICIAL (40%)" e captura só o valor real (0-100)
-  var re = new RegExp(dim + '\\s*(?:\\([^)]*\\))?\\s*[:\\-–]\\s*\\*{0,2}(\\d{1,3})\\*{0,2}(?!\\s*%\\s*\\))', 'i');
+  var re = new RegExp(dim+'[:\\s]+(\\d+)', 'i');
   var m = text.match(re);
-  if(!m) return null;
-  var v = parseInt(m[1]);
-  return (isNaN(v) || v < 0 || v > 100) ? null : v;
+  return m ? Math.min(100, parseInt(m[1])) : null;
 }
 
 function extractAlerts(text){
@@ -1927,7 +1865,7 @@ async function analyzeDigital(){
         messages: state.conversationHistory
       })
     });
-    if(!response.ok) throw new Error('HTTP ' + response.status);
+
     var data = await response.json();
     var aiText = data.text || '';
     state.conversationHistory.push({role:'assistant', content: aiText});
@@ -1964,21 +1902,21 @@ function buildSystemPrompt(){
 }
 
 function getSystemPromptText(){
-  // O system prompt já está inline no sendMessage — replicamos aqui para reutilização
-  return `Você é o RAIO-X Intelligence, agente de due diligence político. ` +
-  `Quando solicitado a analisar um perfil de rede social, faça buscas web para encontrar ` +
-  `conteúdo público indexado e retorne OBRIGATORIAMENTE no formato:\n` +
+  return `Você é o RAIO-X Intelligence, agente de due diligence político com RIGOR METODOLÓGICO ABSOLUTO.\n\n` +
+  `REGRA CRÍTICA: NUNCA atribua processos, empresas ou fatos a um sujeito apenas pela coincidência de nome.\n` +
+  `Sempre confirme pelo menos 2 identificadores (nome + município, nome + empresa, nome + cargo).\n` +
+  `Nomes comuns têm centenas de homônimos no Jusbrasil — sinalize isso obrigatoriamente.\n` +
+  `Se o usuário informar que o sujeito nunca teve funcionários, não atribua processos trabalhistas sem confirmação.\n\n` +
+  `Quando solicitado a analisar perfil de rede social, retorne OBRIGATORIAMENTE no formato:\n` +
   `---DIGITAL_START---\n` +
   `HANDLE: @usuario\nPLATAFORMA: plataforma\nSEGUIDORES: número\nBIO: bio\n` +
   `PESSOAL: XX\nPROFISSIONAL: XX\nPOLITICO: XX\n` +
   `ESPECTRO: XX (0=extrema esquerda, 50=centro, 100=extrema direita)\n` +
-  `VERDITO: descrição do posicionamento\n` +
-  `TEMAS: #t1,#t2,#t3\n` +
+  `VERDITO: descrição\nTEMAS: #t1,#t2,#t3\n` +
   `POST1: resumo\nPOST2: resumo\nPOST3: resumo\n` +
   `---DIGITAL_END---\n\n` +
-  `Critérios de espectro: 0-20 extrema esquerda, 20-35 esquerda, 35-45 centro-esquerda, ` +
-  `45-55 centro, 55-70 centro-direita, 70-85 direita, 85-100 extrema direita.\n` +
-  `Contexto: litoral do Paraná, campanha Juntos Paraná 399 / Sérgio Moro.`;
+  `Espectro: 0-20 extrema esq · 20-35 esq · 35-45 centro-esq · 45-55 centro · 55-70 centro-dir · 70-85 dir · 85-100 extrema dir.\n` +
+  `Contexto: Paraná, campanha Juntos Paraná 399 / Sérgio Moro.`;
 }
 
 function parseDigitalBlock(text){
