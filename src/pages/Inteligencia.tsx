@@ -104,7 +104,7 @@ const LIMIARES = [
 ];
 
 const ACOES = [
-  { prioridade: 'urgente', acao: 'Consolidar alianças regionais PSD/PP', objetivo: 'Antecipar apoio de Ratinho a Sandro', segmento: 'Lideranças do interior' },
+  { prioridade: 'urgente', acao: 'Consolidar alianças regionais', objetivo: 'Antecipar apoio de Ratinho a Sandro', segmento: 'Lideranças do interior' },
   { prioridade: 'urgente', acao: "Comunicação 'voto útil no 1º turno'", objetivo: 'Converter percepção em voto ativo', segmento: 'Indecisos e jovens' },
   { prioridade: 'alta', acao: 'Agenda em eventos religiosos', objetivo: 'Ampliar gap no eleitorado praticante', segmento: 'Evangélicos e católicos' },
   { prioridade: 'alta', acao: 'Presença no interior (Cascavel, Maringá, Londrina)', objetivo: 'Capturar votos de Greca em queda', segmento: 'Classe média conservadora' },
@@ -428,7 +428,7 @@ export default function Inteligencia() {
           {[
             { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Formalização do apoio de Ratinho Jr. a Sandro Alex',
               desc: 'Sem declaração formal, Sandro já cresceu 2,1 p.p. em um mês. Com apoio explícito, modelos sugerem salto de 4–6 p.p. adicionais, colocando-o próximo de 15–17%.',
-              acao: 'Consolidar aliança com lideranças regionais do PSD e PP antes da declaração formal. Criar percepção de que o campo governista já está com Moro.' },
+              acao: 'Consolidar alianças com lideranças regionais do campo governista antes da declaração formal. Criar percepção de que esse campo já está com Moro.' },
             { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Gap feminino estrutural',
               desc: 'Diferença de 7,2 p.p. entre homens (46,1%) e mulheres (38,9%). Melhorar 5 p.p. entre mulheres equivale a +2,7 p.p. na média geral — suficiente para cruzar 45%.',
               acao: 'Pautas de segurança, saúde e família. Presença em contextos comunitários e religiosos onde o gap já é menor.' },
