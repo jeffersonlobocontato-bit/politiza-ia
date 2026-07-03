@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, AlertTriangle, Target, Users, ClipboardList, GitCompare,
   Church, GraduationCap, MapPin, ArrowRight, TrendingUp, TrendingDown, Minus, Heart, Shield,
-  Sparkles, Upload,
+  Sparkles, Upload, Megaphone,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,6 +17,7 @@ import {
   LineChart, Line, CartesianGrid, Legend,
 } from 'recharts';
 import AnaliseIAChat from '@/components/inteligencia/AnaliseIAChat';
+import InsightsComunicacao from '@/components/inteligencia/InsightsComunicacao';
 import { Button } from '@/components/ui/button';
 import { useSurveys } from '@/hooks/useSurveys';
 
@@ -272,13 +273,14 @@ export default function Inteligencia() {
       </div>
 
       <Tabs defaultValue="painel" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 h-auto">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-8 h-auto">
           <TabsTrigger value="painel" className="gap-2"><LayoutDashboard className="w-4 h-4" />Painel Geral</TabsTrigger>
           <TabsTrigger value="cruzamento" className="gap-2"><GitCompare className="w-4 h-4" />Cruzamento</TabsTrigger>
           <TabsTrigger value="ameacas" className="gap-2"><AlertTriangle className="w-4 h-4" />Ameaças</TabsTrigger>
           <TabsTrigger value="oport" className="gap-2"><Target className="w-4 h-4" />Oportunidades</TabsTrigger>
           <TabsTrigger value="rivais" className="gap-2"><Users className="w-4 h-4" />Raio-X</TabsTrigger>
           <TabsTrigger value="acoes" className="gap-2"><ClipboardList className="w-4 h-4" />Ações</TabsTrigger>
+          <TabsTrigger value="insights" className="gap-2"><Megaphone className="w-4 h-4" />Insights</TabsTrigger>
           <TabsTrigger value="ia" className="gap-2"><Sparkles className="w-4 h-4" />Análise IA</TabsTrigger>
         </TabsList>
 
@@ -610,6 +612,31 @@ export default function Inteligencia() {
         {/* ============= ABA CRUZAMENTO ============= */}
         <TabsContent value="cruzamento" className="space-y-6 mt-6">
           <CruzamentoPesquisas pesquisas={pesquisasFiltered} />
+        </TabsContent>
+
+        {/* ============= ABA INSIGHTS DE COMUNICAÇÃO ============= */}
+        <TabsContent value="insights" className="mt-6">
+          <InsightsComunicacao
+            context={{
+              candidato: 'Sérgio Moro',
+              cargo: 'Governador do Paraná 2026',
+              institutosAtivos,
+              pesquisas: pesquisasFiltered,
+              pesquisas_todos_cenarios: pesquisasAll,
+              cenario_por_instituto: cenarioByInst,
+              segmentos: SEGMENTOS,
+              rejeicao: REJEICAO,
+              limiares: LIMIARES,
+              acoes: ACOES,
+              agregado_ponderado: agregado,
+              kpis: {
+                intencao_voto: '42,3% (PP jun/26)',
+                percepcao_vitoria: '47,9%',
+                rejeicao_moro: '23,6%',
+                votos_validos_estimados: '~47%',
+              },
+            }}
+          />
         </TabsContent>
 
         {/* ============= ABA ANÁLISE IA ============= */}
