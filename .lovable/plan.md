@@ -1,127 +1,72 @@
-# Análise IA + Upload de Pesquisas no Painel de Inteligência
+# Plano: Insights de Comunicação Eleitoral
 
-## Objetivo
-1. Adicionar nova aba **"Análise IA"** ao menu do painel `/pesquisas` (junto com Painel Geral, Cruzamento, Ameaças, Oportunidades, Raio-X, Ações).
-2. Permitir **upload de novas pesquisas** (PDF) que serão extraídas via IA e incorporadas ao contexto de análise.
+Evoluir a camada de Inteligência de Campanha sem quebrar dados, importações ou abas existentes. Foco em prompt, UX do chat e nova aba de cards visuais.
 
----
+## 1. Edge Function `chat-inteligencia`
 
-## 1. Nova aba "Análise IA"
+Reescrever `SYSTEM_PROMPT` em `supabase/functions/chat-inteligencia/index.ts` com:
 
-### UI
-- Adicionar `TabsTrigger` "Análise IA" com ícone `Sparkles` ou `Bot` em `src/pages/Inteligencia.tsx`.
-- Conteúdo: componente `<AnaliseIAChat />` em `src/components/inteligencia/AnaliseIAChat.tsx`.
+- **Papel**: estrategista sênior + analista de pesquisa + planejador de comunicação + redator + sala de guerra pró-Moro.
+- **Tese central** (guardião do dinheiro das famílias paranaenses) e traduções obrigatórias (corrupção, segurança, gestão, integridade, obra, futuro).
+- **Regras de dados**: apenas dados do contexto, citar percentuais/institutos/datas, nunca inventar.
+- **Regras de contraste** por adversário (Sandro Alex, Requião Filho, Greca) conforme briefing.
+- **Regras jurídicas/factuais**: vocabulário permitido ("indícios", "apontamentos", "segundo reportagem") e proibido ("roubo", "fraude comprovada", "esquema", etc.).
+- **Regra de alianças/oportunidades**: nunca citar nomes de partidos (regra já acordada).
+- **Formato de resposta padrão** para insights/planos/análises, com as 14 seções: Leitura estratégica, Diagnóstico, Decisão da semana, Maior risco, Maior oportunidade, Públicos prioritários, Narrativa recomendada, Peças recomendadas, Contraste com adversários, Agenda recomendada, Métricas de validação, Frases para o candidato, Alertas jurídicos e factuais, "O marketing deve fazer agora" (5–8 ações).
+- **Peças concretas obrigatórias** quando pedir comunicação (3 Reels, 3 cards, 2 áudios WhatsApp, 1 fala pública, 1 corte de contraste, 1 resposta rápida, 1 manchete, 1 roteiro curto), cada uma com objetivo, público, gancho, mensagem, texto sugerido, CTA e métrica.
 
-### Funcionalidade
-- Chat com threads persistentes (uma análise = uma thread).
-- Lista lateral de threads anteriores + botão "Nova análise".
-- Composer com sugestões rápidas: "Compare Moro vs Requião nas últimas 3 pesquisas", "Identifique tendências do Sandro Alex", "Gere relatório executivo".
-- Mensagens com streaming, renderização markdown, ações copiar/regenerar (AI Elements).
+Preservar: streaming SSE, persistência de threads/mensagens, verificação `is_admin`, envio do `context` JSON, modelo `google/gemini-2.5-flash`.
 
-### Acesso
-- Restrito a coordenadores: `admin_master`, `coordenador_geral`, `coordenador_estadual` (via função `is_admin` existente + role check).
+Aplicar as mesmas regras (tese, vocabulário responsável, sem partidos) ao prompt de `supabase/functions/strategic-analysis/index.ts` para alinhar alertas curtos com o novo tom.
 
----
+## 2. Chat `AnaliseIAChat.tsx`
 
-## 2. Upload de novas pesquisas
+- Substituir `SUGESTOES` pelos 6 prompts orientados a marketing listados no briefing.
+- Adicionar barra de **Ações rápidas** logo acima do `PromptInput` (grid de chips/botões `variant="outline" size="sm"`), com 8 ações:
+  - Plano semanal, Briefing criação, Peças WhatsApp, Roteiro de vídeo, Frases do candidato, Plano mulheres, Contraste adversário, Resposta rápida.
+- Cada botão dispara `send(promptCompleto)` com um prompt pré-formado (definidos em constante `ACOES_RAPIDAS`) que instrui o agente a usar a estrutura padrão + entregar peças concretas.
+- Manter streaming, threads, sugestões iniciais e comportamento atual.
 
-### UI
-- Botão "Upload de Pesquisa" no topo do painel de Inteligência (ou dentro da aba "Análise IA").
-- Modal com:
-  - Upload de PDF
-  - Campos opcionais: Instituto, Data, Cenário (auto-preenchidos pela IA após extração)
-  - Botão "Extrair e adicionar"
+## 3. Nova aba "Insights de Comunicação" em `Inteligencia.tsx`
 
-### Backend
-- Reutilizar a Edge Function existente **`parse-survey-pdf`** (já presente em `supabase/functions/parse-survey-pdf/`).
-- Persistir a pesquisa extraída em `electoral_surveys` + `survey_results` (tabelas já existentes).
-- A nova pesquisa fica imediatamente disponível para análise IA e nas abas Cruzamento/Painel.
+Adicionar aba nova (`Tabs`) sem remover as existentes. Conteúdo:
 
----
+- Botão **"Gerar insights"** que chama `chat-inteligencia` (fora do fluxo de thread — request única, não-streaming ou consumindo o stream até o fim) com um prompt fixo pedindo JSON estruturado:
 
-## 3. Banco de Dados
-
-### Novas tabelas
-
-```sql
-chat_threads
-  id uuid PK
-  user_id uuid (auth.uid)
-  title text
-  context_snapshot jsonb  -- snapshot do estado das pesquisas no momento da criação
-  created_at, updated_at timestamptz
-
-chat_messages
-  id uuid PK
-  thread_id uuid FK -> chat_threads (cascade delete)
-  role text ('user' | 'assistant')
-  parts jsonb  -- AI SDK UIMessage parts
-  created_at timestamptz
+```text
+{
+  decisao_semana, risco_urgente, oportunidade_prioritaria,
+  publico_decisivo, narrativa_recomendada,
+  pecas_sugeridas[], metricas_validacao[]
+}
 ```
 
-### Segurança
-- `GRANT SELECT, INSERT, UPDATE, DELETE ON ... TO authenticated`
-- `GRANT ALL ON ... TO service_role`
-- RLS: usuário só vê suas próprias threads/mensagens (`user_id = auth.uid()`).
-- Restrição adicional via policy: somente coordenadores podem inserir (`public.is_admin(auth.uid())`).
+Cada item com: `dado_origem`, `leitura`, `acao`, `peca`, `canal`, `metrica`, `risco`.
 
----
+- Renderizar como grid de cards (reutilizando `Card`, tokens MobNex) — 7 cards principais + lista de peças.
+- Estado local: `insights`, `loading`, `geradoEm`. Botão de regenerar.
+- Sem persistência nova no banco nesta fase (evita mudanças de schema); se o usuário quiser histórico depois, avaliamos.
 
-## 4. Edge Function `chat-inteligencia`
+## 4. Detalhes técnicos
 
-- **Modelo**: `google/gemini-3.5-flash` (rápido e bom para análises estruturadas).
-- **System prompt** dinâmico contendo:
-  - Dados consolidados das pesquisas (lidos de `electoral_surveys` + `survey_results` + dados hardcoded atuais como fallback).
-  - Segmentos, rejeição, limiares, ações estratégicas do painel.
-  - Instruções para citar fontes (instituto + data) e usar markdown.
-- **Streaming** via `streamText` + `toUIMessageStreamResponse`.
-- **Persistência**: salva mensagem do usuário antes do stream e a resposta no `onFinish`.
-- **Validação JWT** + check de role.
+- **Prompts pré-formados** vivem em `src/components/inteligencia/prompts.ts` (novo arquivo) para reutilização entre chat e aba de insights.
+- **Parsing JSON** dos insights: pedir ao modelo bloco `json` cercado por fences, extrair via regex, fallback para exibir texto bruto num card se parse falhar.
+- Layout mantém DM Sans, dark Navy/Verde, sem hardcode de cores.
+- Nenhuma alteração em Supabase schema, RLS, importação de pesquisas, ou nas abas atuais (Overview, Cruzamento, Cenários, Análise IA).
 
----
+## Arquivos afetados
 
-## 5. Arquitetura de Dados de Contexto
+```text
+supabase/functions/chat-inteligencia/index.ts   (prompt + tese + estrutura)
+supabase/functions/strategic-analysis/index.ts  (alinhamento de tom)
+src/components/inteligencia/AnaliseIAChat.tsx   (sugestões + ações rápidas)
+src/components/inteligencia/prompts.ts          (novo — biblioteca de prompts)
+src/components/inteligencia/InsightsComunicacao.tsx (novo — aba de cards)
+src/pages/Inteligencia.tsx                      (nova aba + integração)
+```
 
-Atualmente os dados de pesquisas em `Inteligencia.tsx` estão hardcoded. Para a IA ter contexto atualizado:
+## Fora de escopo
 
-1. Extrair os datasets (`PESQUISAS`, `SEGMENTOS`, `REJEICAO`, `LIMIARES`, `ACOES`) para `src/data/inteligenciaData.ts`.
-2. Criar helper `src/lib/buildInteligenciaContext.ts` que:
-   - Carrega dados estáticos do módulo acima.
-   - Faz merge com pesquisas dinâmicas da tabela `electoral_surveys`.
-   - Retorna texto markdown estruturado para injetar no system prompt.
-3. A Edge Function chama este builder no servidor (versão Deno do módulo, ou reconstrói a partir de queries SQL diretas).
-
----
-
-## 6. Fluxo de Uso
-
-1. Coordenador acessa `/pesquisas` → aba **"Análise IA"**.
-2. Clica em "Nova análise", digita: *"Compare a evolução do Moro entre PP mai/26 e PP jun/26 e identifique riscos."*
-3. IA responde com análise baseada nos dados reais, citando institutos e percentuais.
-4. Coordenador faz upload de uma nova pesquisa via botão "Upload".
-5. PDF é processado, dados extraídos vão para `electoral_surveys`.
-6. Próximas perguntas na thread já consideram a nova pesquisa.
-
----
-
-## 7. Entregáveis
-
-| Fase | Entrega |
-|------|---------|
-| 1 | Extrair dados hardcoded → `src/data/inteligenciaData.ts` + builder de contexto |
-| 2 | Migração: tabelas `chat_threads`, `chat_messages` + RLS/GRANTs |
-| 3 | Edge Function `chat-inteligencia` (streaming, contexto, persistência, role check) |
-| 4 | Instalar AI Elements (`conversation`, `message`, `prompt-input`, `shimmer`) |
-| 5 | Componente `<AnaliseIAChat />` com thread list + chat window |
-| 6 | Nova aba "Análise IA" em `Inteligencia.tsx` |
-| 7 | Modal de upload de pesquisa reutilizando `parse-survey-pdf` |
-| 8 | Teste E2E: criar thread, upload de PDF, pergunta que cite a pesquisa nova |
-
----
-
-## Notas Técnicas
-- React Router clássico (não TanStack).
-- Persistência **database-backed** (Supabase / Lovable Cloud).
-- Threads com URL própria: `/pesquisas?thread=<id>` (query param, pois fica dentro do painel de Inteligência).
-- `LOVABLE_API_KEY` já configurado.
-- Edge Function `parse-survey-pdf` já existe — apenas conectar à UI da nova aba.
+- Persistir insights gerados no banco.
+- Alterar importação de pesquisas ou dados existentes.
+- Mudar modelo/gateway ou fluxo de streaming.
