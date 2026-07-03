@@ -449,20 +449,121 @@ body::before {
 #photoInput { display: none; }
 
 /* ══════════════════════════════════════════
-   PRINT
+   ANÁLISE DIGITAL — TERMÔMETRO POLÍTICO
 ══════════════════════════════════════════ */
-@media print {
-  .topbar, .col-left, .col-center, .chat-input-area,
-  .raio-x-actions, .nota-bar { display: none !important; }
-  body { overflow: auto !important; }
-  html, body { height: auto !important; }
-  .workspace { display: block !important; }
-  .col-right { width: 100% !important; overflow: visible !important; height: auto !important; }
-  .raio-x-body { overflow: visible !important; height: auto !important; padding: 20px !important; }
-  .tl-row-body { display: block !important; }
-  *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  @page { margin: 1.5cm; size: A4 portrait; }
+.digital-widget {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
 }
+.digital-header {
+  padding: 10px 14px;
+  background: rgba(155,111,255,.06);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.digital-header-icon { font-size: 14px; }
+.digital-header-title {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: 2px;
+  color: var(--purple); text-transform: uppercase; flex: 1;
+}
+.digital-header-handle {
+  font-family: var(--font-m); font-size: 10px; color: var(--mid);
+}
+.digital-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+
+/* Classificação de conteúdo */
+.content-type-bars { display: flex; flex-direction: column; gap: 6px; }
+.ct-row { display: flex; align-items: center; gap: 8px; }
+.ct-label { font-family: var(--font-m); font-size: 9px; color: var(--lo); width: 80px; flex-shrink: 0; }
+.ct-track { flex: 1; height: 8px; background: var(--border2); border-radius: 4px; overflow: hidden; position: relative; }
+.ct-fill { height: 100%; border-radius: 4px; transition: width 1.2s ease-out; }
+.ct-pct { font-family: var(--font-m); font-size: 9px; color: var(--mid); width: 28px; text-align: right; }
+
+/* Termômetro político */
+.thermo-wrap { display: flex; flex-direction: column; gap: 6px; }
+.thermo-label {
+  font-family: var(--font-m); font-size: 8px; letter-spacing: 2px;
+  color: var(--lo); text-transform: uppercase;
+}
+.thermo-bar-wrap { position: relative; }
+.thermo-track {
+  height: 12px; border-radius: 6px;
+  background: linear-gradient(90deg,
+    #ff3355 0%,        /* esquerda */
+    #ff6d00 25%,       /* centro-esquerda */
+    #ffc107 50%,       /* centro */
+    #3d9fff 75%,       /* centro-direita */
+    #9b6fff 100%       /* direita */
+  );
+  position: relative;
+}
+.thermo-needle {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 4px; height: 20px; background: white;
+  border-radius: 2px; box-shadow: 0 0 8px rgba(255,255,255,.6);
+  transition: left 1.5s cubic-bezier(.16,1,.3,1);
+}
+.thermo-labels {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-m); font-size: 8px; color: var(--lo); margin-top: 4px;
+}
+.thermo-verdict {
+  font-family: var(--font-m); font-size: 10px; font-weight: 700;
+  text-align: center; margin-top: 6px;
+  padding: 5px; border-radius: var(--r-sm);
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+}
+
+/* Tags de temas detectados */
+.topics-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+.topic-tag {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: .5px;
+  background: rgba(155,111,255,.1); border: 1px solid rgba(155,111,255,.2);
+  color: var(--purple); padding: 2px 8px; border-radius: 3px;
+}
+.topic-tag.political { background: rgba(255,51,85,.08); border-color: rgba(255,51,85,.2); color: var(--red); }
+.topic-tag.personal { background: rgba(0,232,162,.08); border-color: rgba(0,232,162,.2); color: var(--green); }
+
+/* Posts sample */
+.posts-list { display: flex; flex-direction: column; gap: 6px; }
+.post-item {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--r-sm); padding: 8px 10px;
+  font-size: 11px; color: var(--mid); line-height: 1.5;
+}
+.post-item-date { font-family: var(--font-m); font-size: 8px; color: var(--lo); margin-bottom: 3px; }
+
+/* Empty digital */
+.digital-empty {
+  padding: 16px; text-align: center;
+  font-family: var(--font-m); font-size: 10px; color: var(--lo); line-height: 1.7;
+}
+.digital-scan-btn {
+  margin-top: 8px; padding: 7px 16px; border-radius: var(--r-sm);
+  background: rgba(155,111,255,.1); border: 1px solid rgba(155,111,255,.25);
+  color: var(--purple); font-family: var(--font-m); font-size: 10px;
+  letter-spacing: 1px; cursor: pointer; transition: background .15s;
+}
+.digital-scan-btn:hover { background: rgba(155,111,255,.2); }
+
+/* Input de @ */
+.at-input-row { display: flex; gap: 7px; }
+.at-input {
+  flex: 1; background: var(--card2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); color: var(--hi); padding: 7px 10px;
+  font-family: var(--font-m); font-size: 10px; outline: none;
+  transition: border-color .15s;
+}
+.at-input:focus { border-color: rgba(155,111,255,.4); }
+.at-input::placeholder { color: var(--lo); }
+.at-scan-btn {
+  padding: 7px 12px; border-radius: var(--r-sm);
+  background: rgba(155,111,255,.12); border: 1px solid rgba(155,111,255,.3);
+  color: var(--purple); font-family: var(--font-m); font-size: 10px;
+  cursor: pointer; transition: background .15s; white-space: nowrap;
+}
+.at-scan-btn:hover { background: rgba(155,111,255,.22); }
+.at-scan-btn:disabled { opacity: .4; cursor: not-allowed; }
 
 /* ══════════════════════════════════════════
    RESPONSIVE
@@ -472,7 +573,168 @@ body::before {
   .col-left { display: none; }
   .col-right { max-height: 40vh; }
 }
-</style>
+
+/* ══════════════════════════════════════════
+   PRINT — PDF CORRIGIDO
+   Problema: layout 3 colunas colapsava em 1 pág.
+   Solução: ocultar tudo exceto col-right,
+   deixar col-right fluir em altura total,
+   expandir todos os elementos ocultos.
+══════════════════════════════════════════ */
+@media print {
+  /* Reset crítico de altura — era o bug principal */
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: 11px !important;
+  }
+  body::before { display: none !important; }
+
+  /* Ocultar estrutura que não vai para o PDF */
+  .topbar,
+  .col-left,
+  .col-center,
+  .raio-x-header,
+  .raio-x-actions,
+  .nota-bar,
+  .at-input-row,
+  .photo-actions,
+  .photo-remove-btn,
+  #photoInput,
+  .photo-ov,
+  .digital-scan-btn { display: none !important; }
+
+  /* Workspace: uma única coluna ocupando tudo */
+  .workspace {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Coluna direita: fluir naturalmente em A4 */
+  .col-right {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    border: none !important;
+  }
+
+  /* Body do raio-x: fluir sem scroll */
+  .raio-x-body {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 16px !important;
+  }
+
+  /* Conteúdo principal sempre visível */
+  #raioXContent { display: block !important; }
+  #emptyState   { display: none !important; }
+
+  /* Seções: não quebrar no meio */
+  .rx-section { break-inside: avoid; margin-bottom: 14px !important; }
+
+  /* Cards */
+  .score-widget,
+  .alert-widget,
+  .tl-widget,
+  .achados-grid,
+  .digital-widget,
+  .subject-photo,
+  .nota-area {
+    break-inside: avoid;
+    background: #ffffff !important;
+    border: 1px solid #dddddd !important;
+    box-shadow: none !important;
+  }
+
+  /* Cores para papel branco */
+  .rx-section-label { color: #555555 !important; }
+  .rx-section-label::after { background: #cccccc !important; }
+  .dim-lbl, .score-note, .dim-margin { color: #555555 !important; }
+  .dim-track { background: #e8e8e8 !important; }
+  .score-name, .score-sub, .score-verdict { color: #111111 !important; }
+  .achado-label { color: #666666 !important; }
+  .achado-desc { color: #444444 !important; }
+  .achado-val { color: #111111 !important; }
+  .a-txt { color: #333333 !important; }
+  .a-lv-r { color: #cc2244 !important; }
+  .a-lv-a { color: #cc8800 !important; }
+  .a-lv-g { color: #006644 !important; }
+
+  /* Alertas */
+  .alert-row { background: #f9f9f9 !important; border-bottom: 1px solid #eeeeee !important; }
+  .a-dot-r { background: #cc2244 !important; box-shadow: none !important; }
+  .a-dot-a { background: #cc8800 !important; box-shadow: none !important; }
+  .a-dot-g { background: #006644 !important; box-shadow: none !important; }
+
+  /* Timeline — expandir TODOS os itens */
+  .tl-row { background: #f9f9f9 !important; border: 1px solid #dddddd !important; break-inside: avoid; }
+  .tl-row-body { display: block !important; color: #333333 !important; }
+  .tl-row-date { color: #555555 !important; }
+  .tl-row-title { color: #111111 !important; }
+
+  /* Achados grid: 2 colunas no A4 */
+  .achados-grid { grid-template-columns: 1fr 1fr !important; }
+  .achado-card { background: #f9f9f9 !important; border: 1px solid #dddddd !important; }
+
+  /* Score barras */
+  .dim-fill, .ct-fill, .pc-score-fill {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Foto do sujeito */
+  .subject-photo { background: #f5f5f5 !important; border: 1px solid #dddddd !important; }
+  .photo-name, .photo-sub { color: #111111 !important; }
+  .photo-circle { border-color: #444444 !important; box-shadow: none !important; }
+  .photo-circle img { display: block !important; }
+  .photo-circle .photo-ph { display: none !important; }
+
+  /* Análise digital */
+  .digital-widget { background: #f9f9f9 !important; border: 1px solid #dddddd !important; }
+  .digital-header { background: #f0f0f0 !important; border-bottom: 1px solid #dddddd !important; }
+  .digital-header-title { color: #555555 !important; }
+  .digital-header-handle { color: #333333 !important; }
+  #digitalResult { display: flex !important; }
+  .ct-label { color: #555555 !important; }
+  .ct-track { background: #e0e0e0 !important; }
+  .ct-pct { color: #333333 !important; }
+  .thermo-track { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .thermo-needle { background: #333333 !important; box-shadow: none !important; }
+  .thermo-labels { color: #666666 !important; }
+  .thermo-verdict { background: #f0f0f0 !important; border: 1px solid #dddddd !important; }
+  .topic-tag { border: 1px solid #bbbbbb !important; color: #333333 !important; background: #f0f0f0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .post-item { background: #f9f9f9 !important; border: 1px solid #e0e0e0 !important; color: #333333 !important; }
+
+  /* Notas */
+  .nota-area {
+    display: block !important;
+    background: #fafafa !important;
+    border: 1px solid #cccccc !important;
+    color: #111111 !important;
+    min-height: 40px !important;
+    overflow: visible !important;
+  }
+
+  /* Garantir que cores sejam impressas */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Página A4 com margens adequadas */
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
+}
 </head>
 <body>
 
@@ -532,6 +794,7 @@ body::before {
         <button class="qcmd" onclick="quickCmd('gere o raio-x completo de')">📊 Gerar Raio-X</button>
         <button class="qcmd" onclick="quickCmd('calcule o score de risco de')">🎯 Score de risco</button>
         <button class="qcmd" onclick="quickCmd('compare os perfis já investigados')">📋 Comparar perfis</button>
+        <button class="qcmd" onclick="focusAtInput()">📡 Análise de redes sociais</button>
       </div>
       <div class="input-row">
         <textarea
@@ -659,6 +922,85 @@ body::before {
           </div>
         </div>
 
+        <!-- ANÁLISE DIGITAL -->
+        <div class="rx-section" id="rxDigital">
+          <div class="rx-section-label">Análise Digital</div>
+          <div class="digital-widget" id="digitalWidget">
+            <div class="digital-header">
+              <span class="digital-header-icon">📡</span>
+              <span class="digital-header-title">Presença nas Redes</span>
+              <span class="digital-header-handle" id="digitalHandle"></span>
+            </div>
+            <div class="digital-body">
+              <!-- Input de @ -->
+              <div class="at-input-row">
+                <input class="at-input" id="atInput" type="text" placeholder="@usuario ou URL do perfil" />
+                <button class="at-scan-btn" id="atScanBtn" onclick="analyzeDigital()">🔍 Analisar</button>
+              </div>
+              <!-- Resultado (oculto até ter dados) -->
+              <div id="digitalResult" style="display:none; display:flex; flex-direction:column; gap:12px;">
+
+                <!-- Tipo de conteúdo -->
+                <div>
+                  <div style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:var(--lo);text-transform:uppercase;margin-bottom:7px">Classificação do Conteúdo</div>
+                  <div class="content-type-bars">
+                    <div class="ct-row">
+                      <span class="ct-label">🧑 Pessoal</span>
+                      <div class="ct-track"><div class="ct-fill" id="ctPessoal" style="background:#00e8a2;width:0%"></div></div>
+                      <span class="ct-pct" id="pctPessoal">—</span>
+                    </div>
+                    <div class="ct-row">
+                      <span class="ct-label">💼 Profissional</span>
+                      <div class="ct-track"><div class="ct-fill" id="ctProfissional" style="background:#3d9fff;width:0%"></div></div>
+                      <span class="ct-pct" id="pctProfissional">—</span>
+                    </div>
+                    <div class="ct-row">
+                      <span class="ct-label">🏛 Político</span>
+                      <div class="ct-track"><div class="ct-fill" id="ctPolitico" style="background:#ff3355;width:0%"></div></div>
+                      <span class="ct-pct" id="pctPolitico">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Termômetro político (oculto se % político < 15%) -->
+                <div id="thermoSection" style="display:none">
+                  <div class="thermo-wrap">
+                    <div class="thermo-label">Espectro Político</div>
+                    <div class="thermo-bar-wrap">
+                      <div class="thermo-track">
+                        <div class="thermo-needle" id="thermoNeedle" style="left:50%"></div>
+                      </div>
+                      <div class="thermo-labels">
+                        <span>Esquerda</span>
+                        <span>Centro</span>
+                        <span>Direita</span>
+                      </div>
+                    </div>
+                    <div class="thermo-verdict" id="thermoVerdict">—</div>
+                  </div>
+                </div>
+
+                <!-- Temas detectados -->
+                <div id="topicsSection" style="display:none">
+                  <div style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:var(--lo);text-transform:uppercase;margin-bottom:6px">Temas Detectados</div>
+                  <div class="topics-wrap" id="topicsWrap"></div>
+                </div>
+
+                <!-- Posts representativos -->
+                <div id="postsSection" style="display:none">
+                  <div style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:var(--lo);text-transform:uppercase;margin-bottom:6px">Conteúdo Recente</div>
+                  <div class="posts-list" id="postsWrap"></div>
+                </div>
+
+                <!-- Aviso de limitação -->
+                <div style="font-family:var(--font-m);font-size:9px;color:var(--lo);line-height:1.6;padding:7px 9px;background:rgba(255,255,255,.02);border-radius:var(--r-sm);border:1px solid var(--border2)">
+                  ⚠ Análise baseada em conteúdo indexado publicamente. Perfis privados ou com baixo indexamento podem ter cobertura parcial.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- NOTAS -->
         <div class="rx-section" id="rxNotas">
           <div class="rx-section-label">Notas do analista</div>
@@ -767,6 +1109,13 @@ window.addEventListener('load', function(){
   var cargo     = params.get('cargo');
   var contexto  = params.get('contexto');
   var auto      = params.get('auto');
+  var redeSocial = params.get('rede_social');
+
+  // Se vier rede social, preencher o campo de análise digital
+  if(redeSocial){
+    var atInput = document.getElementById('atInput');
+    if(atInput) atInput.value = redeSocial;
+  }
 
   if (nome && municipio) {
     // Montar mensagem de pesquisa estruturada
@@ -993,52 +1342,63 @@ async function sendMessage(){
   state.conversationHistory.push({role:'user', content: text});
 
   // System prompt especializado
-  var systemPrompt = `Você é o RAIO-X Intelligence, agente especializado em due diligence política e corporativa para o Politiza IA.
+  var systemPrompt = `Você é o RAIO-X Intelligence, agente especializado em due diligence política e corporativa para o Politiza IA — plataforma de campanha do Paraná. 
 
-MISSÃO: Investigar QUALQUER pessoa física ou jurídica solicitada, em QUALQUER município do Brasil, usando fontes públicas (Jusbrasil, Escavador, Receita Federal, TSE, JusBrasil, Diários Oficiais, mídia regional e nacional) e produzir análises estruturadas de risco.
+MISSÃO: Investigar pessoas físicas e jurídicas usando fontes públicas (Jusbrasil, Escavador, Receita Federal, TSE, mídia regional do litoral paranaense) e produzir análises estruturadas de risco.
 
-REGRA CRÍTICA DE ESCOPO:
-- NUNCA responda "fora da área de abrangência", "não coberto", "não faço pesquisa nessa região" ou variações. Não existe restrição geográfica.
-- Se faltar dado, investigue com o que há e sinalize as lacunas — nunca recuse por localização.
+FORMATO DAS RESPOSTAS:
+- Use **negrito** para nomes, scores e achados críticos
+- Use *itálico/em* para alertas e pontos de atenção
+- Use blocos de código para dados estruturados (CNPJ, processos, etc.)
+- Seja direto e objetivo — o usuário é um estrategista político com tempo limitado
+- Sempre inclua ao final: SCORE ESTIMADO (0-100), RISCO (baixo/moderado/alto) e PRÓXIMOS PASSOS
 
-REGRAS DE ESTILO:
-- Use **negrito** para nomes, cargos e achados críticos
-- Use *itálico* para alertas e pontos de atenção
-- Use blocos de código para dados estruturados (CNPJ, processos, endereços)
-- Direto e objetivo — o usuário é estrategista político com tempo limitado
+CONTEXTO DO LITORAL DO PARANÁ:
+- Municípios: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes, Guaraqueçaba
+- Principais figuras investigadas nesta sessão: Arnaldo Maranhão (PL/Paranaguá), Kátia Gomes Leite (advogada/Pontal), Edgar Rossi (NOVO/Pontal)
+- Plataforma: Politiza IA — restrita a admin_master e coordenador_estadual
 
-FORMATO OBRIGATÓRIO DO RAIO-X COMPLETO (sempre que o usuário pedir "pesquise", "raio-x", "investigue", "perfil de"):
-Estruture EXATAMENTE nesta ordem, usando os títulos em MAIÚSCULAS como cabeçalhos:
-
-1. IDENTIDADE
-   Nome completo, cargo/função, município/UF, partido (se houver), idade, formação.
-
-2. SCORE GLOBAL
-   Escreva LITERALMENTE assim, uma linha cada, com número inteiro 0-100:
-   SCORE GLOBAL: NN
-   JUDICIAL: NN
-   REPUTACIONAL: NN
-   REGULATÓRIO: NN
-   SOCIETÁRIO: NN
-   RISCO: baixo | moderado | alto
-
-3. ALERTAS (3 a 6 itens, um por linha, começando com o ícone)
-   🔴 texto do alerta crítico
-   ⚠ texto do ponto de atenção
-   ✓ texto do achado positivo
-
+QUANDO GERAR RAIO-X COMPLETO:
+Estruture a resposta com:
+1. IDENTIDADE (nome, cargo, município, partido)
+2. SCORE GLOBAL (ponderado: judicial 40% + reputacional 30% + regulatório 20% + societário 10%)
+3. ALERTAS (🔴 crítico / ⚠ atenção / ✓ ok)
 4. ACHADOS POR DIMENSÃO
-   Parágrafos curtos: Judicial, Reputacional, Regulatório, Societário.
+5. TIMELINE dos eventos mais relevantes
+6. RECOMENDAÇÕES de aprofundamento
 
-5. TIMELINE
-   Liste 4 a 8 eventos, um por linha, usando EXATAMENTE o formato:
-   TIMELINE: AAAA | Título curto | Descrição em uma frase
-   (repita a linha para cada evento; use intervalo tipo 2019-2022 quando fizer sentido)
+QUANDO FAZER ANÁLISE DIGITAL DE REDES SOCIAIS:
+O usuário vai informar um @ (Instagram, X/Twitter, Facebook, TikTok, LinkedIn) ou URL de perfil.
+Você deve fazer buscas web para encontrar conteúdo público indexado desse perfil e retornar:
 
-6. RECOMENDAÇÕES
-   Bullet list de próximos passos de aprofundamento.
+FORMATO OBRIGATÓRIO DA ANÁLISE DIGITAL:
+---DIGITAL_START---
+HANDLE: @usuario
+PLATAFORMA: Instagram|X|Facebook|TikTok|LinkedIn
+SEGUIDORES: número estimado ou "não identificado"
+BIO: texto da bio encontrada
+PESSOAL: XX (0-100, % estimada de conteúdo pessoal)
+PROFISSIONAL: XX (0-100, % estimada de conteúdo profissional)
+POLITICO: XX (0-100, % estimada de conteúdo político)
+ESPECTRO: XX (0=extrema esquerda, 50=centro, 100=extrema direita)
+VERDITO: texto descritivo do posicionamento (ex: "Centro-direita com viés conservador")
+TEMAS: #tema1,#tema2,#tema3,#tema4,#tema5 (máx 8 temas separados por vírgula)
+POST1: [data se disponível] texto resumo do post mais representativo
+POST2: [data se disponível] texto resumo do segundo post mais relevante
+POST3: [data se disponível] texto resumo do terceiro post
+---DIGITAL_END---
 
-Se o usuário fizer perguntas de follow-up (não um novo raio-x), responda naturalmente sem repetir a estrutura completa.`;
+Após o bloco, escreva uma análise em prosa de 3-4 linhas explicando o posicionamento detectado.
+
+CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
+0-20: Extrema esquerda (MST, PSOL, PCdoB, pauta anticapitalista, anti-agro)
+20-35: Esquerda (PT, PSDB progressista, direitos sociais, anti-Bolsonaro)
+35-45: Centro-esquerda (PDT, solidariedade, pauta trabalhista, reforma moderada)
+45-55: Centro (MDB, PODE, discurso técnico, pragmático, sem alinhamento claro)
+55-70: Centro-direita (PSD, PSDB conservador, pró-mercado, segurança pública)
+70-85: Direita (PL, PP, Republicanos, pró-armas, família tradicional, Bolsonaro)
+85-100: Extrema direita (pauta radical, discurso de ódio, milícias, negacionismo)`;
+
 
   try {
     var response = await fetch('https://sumdjlmjtqgfzkcfkceq.supabase.co/functions/v1/raio-x-chat', {
@@ -1051,10 +1411,8 @@ Se o usuário fizer perguntas de follow-up (não um novo raio-x), responda natur
     });
 
     var data = await response.json();
-    if (!response.ok) throw new Error(data.error || ('HTTP '+response.status));
+    if(!response.ok){ throw new Error(data.error || ('HTTP '+response.status)); }
     var aiText = data.text || 'Erro ao processar resposta.';
-
-
 
     // Adiciona resposta ao histórico
     state.conversationHistory.push({role:'assistant', content: aiText});
@@ -1098,45 +1456,28 @@ function formatResponse(text){
 
 /* tentar extrair score da resposta e atualizar painel */
 function tryExtractAndUpdateScore(aiText, userText){
-  // Score global: aceita "SCORE GLOBAL: 72", "SCORE: 72", "72/100"
-  var scoreMatch = aiText.match(/SCORE\s*GLOBAL[:\s]+(\d{1,3})/i)
-                || aiText.match(/SCORE[:\s]+(\d{1,3})/i)
-                || aiText.match(/(\d{1,3})\s*\/\s*100/);
-  var score = scoreMatch ? Math.min(100, Math.max(0, parseInt(scoreMatch[1]))) : null;
+  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
+  if(!scoreMatch) return;
+  var score = parseInt(scoreMatch[1]);
+  if(score < 0 || score > 100) return;
 
-  // Se não achou score, ainda tenta gerar relatório com fallback
-  if(score === null) score = 50;
+  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
 
-  // Risco: prefere o rótulo explícito
-  var riskMatch = aiText.match(/RISCO[:\s]+(baixo|moderado|alto)/i);
-  var risk;
-  if(riskMatch){
-    var r = riskMatch[1].toLowerCase();
-    risk = r === 'moderado' ? 'mod' : r;
-  } else {
-    risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
-  }
+  // Extrair nome do sujeito da mensagem do usuário
+  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
+  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
 
-  // Nome do sujeito: 1) mensagem do usuário ("pesquise ... X, cargo, ...") 2) perfil corrente
-  var subjectName = '';
-  var pesquiseMatch = userText.match(/(?:pesquise(?:\s+profundamente)?[:\s]+|investigue[:\s]+|analise[:\s]+|raio.?x de[:\s]+|perfil de[:\s]+)([^,\n]+)/i);
-  if(pesquiseMatch) subjectName = pesquiseMatch[1].trim();
-  else if(state.currentProfile) subjectName = state.currentProfile.name;
-  else {
-    var nm = userText.match(/[A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+){1,4}/);
-    subjectName = nm ? nm[0] : 'Sujeito investigado';
-  }
+  // Extrair scores por dimensão
+  var jud = extractDim(aiText, 'judicial') || score;
+  var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
+  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
+  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
 
-  var jud = extractDim(aiText, 'judicial')     != null ? extractDim(aiText,'judicial')     : score;
-  var rep = extractDim(aiText, 'reputacional') != null ? extractDim(aiText,'reputacional') : Math.round(score * .8);
-  var reg = extractDim(aiText, 'regulat[óo]rio')!= null ? extractDim(aiText,'regulat[óo]rio'): Math.round(score * .85);
-  var soc = extractDim(aiText, 'societ[áa]rio')!= null ? extractDim(aiText,'societ[áa]rio'): Math.round(score * .7);
-
+  // Extrair alertas do texto
   var alerts = extractAlerts(aiText);
-  var timeline = extractTimeline(aiText);
 
   var profile = {
-    id: state.currentProfile && state.currentProfile.id.indexOf('auto_')===0 ? state.currentProfile.id : 'auto_'+Date.now(),
+    id: 'auto_'+Date.now(),
     name: subjectName,
     meta: 'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR'),
     score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
@@ -1147,7 +1488,7 @@ function tryExtractAndUpdateScore(aiText, userText){
       {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
       {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
     ],
-    timeline: timeline
+    timeline: []
   };
 
   state.currentProfile = profile;
@@ -1157,7 +1498,7 @@ function tryExtractAndUpdateScore(aiText, userText){
 }
 
 function extractDim(text, dim){
-  var re = new RegExp(dim+'[:\\s]+(\\d{1,3})', 'i');
+  var re = new RegExp(dim+'[:\\s]+(\\d+)', 'i');
   var m = text.match(re);
   return m ? Math.min(100, parseInt(m[1])) : null;
 }
@@ -1166,35 +1507,218 @@ function extractAlerts(text){
   var alerts = [];
   var lines = text.split('\n');
   lines.forEach(function(line){
-    var clean = line.replace(/^[\s\-\*•]+/,'').trim();
-    if(!clean) return;
-    if(clean.indexOf('🔴')>-1 || /^cr[íi]tico/i.test(clean)){
-      alerts.push({l:'red', txt: clean.replace(/🔴|\*\*/g,'').trim().slice(0,160)});
-    } else if(clean.indexOf('⚠')>-1 || /^aten[çc][ãa]o/i.test(clean)){
-      alerts.push({l:'amber', txt: clean.replace(/⚠|\*\*/g,'').trim().slice(0,160)});
-    } else if(clean.indexOf('✓')>-1){
-      alerts.push({l:'green', txt: clean.replace(/✓|\*\*/g,'').trim().slice(0,160)});
+    if(line.includes('🔴') || line.toLowerCase().includes('crítico')){
+      alerts.push({l:'red', txt: line.replace(/🔴|•|\*/g,'').trim().slice(0,120)});
+    } else if(line.includes('⚠') || line.toLowerCase().includes('atenção')){
+      alerts.push({l:'amber', txt: line.replace(/⚠|•|\*/g,'').trim().slice(0,120)});
+    } else if(line.includes('✓') || line.toLowerCase().includes('ok —')){
+      alerts.push({l:'green', txt: line.replace(/✓|•|\*/g,'').trim().slice(0,120)});
     }
   });
-  return alerts.slice(0,8);
+  return alerts.slice(0,6);
 }
 
-function extractTimeline(text){
-  var events = [];
-  var lines = text.split('\n');
-  lines.forEach(function(line){
-    // Formato preferido: "TIMELINE: 2019 | Título | Descrição" ou "2019 | Título | Descrição"
-    var m = line.match(/(?:TIMELINE[:\s]+)?(\d{4}(?:\s*[-–]\s*\d{4})?)\s*[|·—-]\s*([^|·—]+?)\s*[|·—-]\s*(.+)/);
-    if(m){
-      events.push({
-        date: m[1].trim(),
-        title: m[2].replace(/\*\*/g,'').trim().slice(0,120),
-        body: m[3].replace(/\*\*/g,'').trim().slice(0,300),
-        color: '#00e5ff'
-      });
+/* ───────────────────────────────
+   ANÁLISE DIGITAL DE REDES SOCIAIS
+─────────────────────────────── */
+function focusAtInput(){
+  var el = document.getElementById('atInput');
+  if(el){
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    setTimeout(function(){ el.focus(); }, 400);
+  }
+}
+
+async function analyzeDigital(){
+  var handle = document.getElementById('atInput').value.trim();
+  if(!handle){ alert('Informe um @ ou URL de perfil.'); return; }
+
+  // Normalizar handle
+  var display = handle.startsWith('@') ? handle : '@'+handle.replace(/.*\/([^/]+)\/?$/, '$1');
+
+  document.getElementById('atScanBtn').disabled = true;
+  document.getElementById('atScanBtn').textContent = '⏳ Analisando...';
+  document.getElementById('digitalHandle').textContent = display;
+  document.getElementById('digitalResult').style.display = 'none';
+
+  // Montar nome do sujeito atual para contextualizar a busca
+  var subjectCtx = state.currentProfile ? state.currentProfile.name : '';
+  var msgDigital = 'Faça uma análise digital completa do perfil ' + display +
+    (subjectCtx ? ' pertencente a ' + subjectCtx : '') +
+    '. Busque o conteúdo público indexado desta conta, classifique o tipo de conteúdo (pessoal/profissional/político) e, se houver conteúdo político, determine o espectro ideológico. Use o formato DIGITAL_START/DIGITAL_END obrigatoriamente.';
+
+  addMessage('user', '📡 Analisar perfil: <strong>' + display + '</strong>');
+  showTyping();
+
+  state.conversationHistory.push({role:'user', content: msgDigital});
+
+  try {
+    var response = await fetch('https://sumdjlmjtqgfzkcfkceq.supabase.co/functions/v1/raio-x-chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system: buildSystemPrompt(),
+        messages: state.conversationHistory
+      })
+    });
+
+    var data = await response.json();
+    if(!response.ok){ throw new Error(data.error || ('HTTP '+response.status)); }
+    var aiText = data.text || '';
+    state.conversationHistory.push({role:'assistant', content: aiText});
+    if(state.conversationHistory.length > 20)
+      state.conversationHistory = state.conversationHistory.slice(-20);
+
+    removeTyping();
+
+    // Extrair bloco estruturado
+    var parsed = parseDigitalBlock(aiText);
+    if(parsed){
+      renderDigitalResult(parsed);
+      // Mostrar análise em prosa no chat
+      var prose = aiText.replace(/---DIGITAL_START---[\s\S]*?---DIGITAL_END---/,'').trim();
+      if(prose) addMessage('ai', formatResponse(prose));
+    } else {
+      addMessage('ai', formatResponse(aiText));
     }
-  });
-  return events.slice(0,10);
+
+  } catch(err){
+    removeTyping();
+    addMessage('ai', '⚠ Erro ao analisar perfil: '+err.message);
+  }
+
+  document.getElementById('atScanBtn').disabled = false;
+  document.getElementById('atScanBtn').textContent = '🔍 Analisar';
+}
+
+function buildSystemPrompt(){
+  // retorna o mesmo system prompt do sendMessage
+  return document.querySelector('script') ? getSystemPromptText() : '';
+}
+
+function getSystemPromptText(){
+  // O system prompt já está inline no sendMessage — replicamos aqui para reutilização
+  return `Você é o RAIO-X Intelligence, agente de due diligence político. ` +
+  `Quando solicitado a analisar um perfil de rede social, faça buscas web para encontrar ` +
+  `conteúdo público indexado e retorne OBRIGATORIAMENTE no formato:\n` +
+  `---DIGITAL_START---\n` +
+  `HANDLE: @usuario\nPLATAFORMA: plataforma\nSEGUIDORES: número\nBIO: bio\n` +
+  `PESSOAL: XX\nPROFISSIONAL: XX\nPOLITICO: XX\n` +
+  `ESPECTRO: XX (0=extrema esquerda, 50=centro, 100=extrema direita)\n` +
+  `VERDITO: descrição do posicionamento\n` +
+  `TEMAS: #t1,#t2,#t3\n` +
+  `POST1: resumo\nPOST2: resumo\nPOST3: resumo\n` +
+  `---DIGITAL_END---\n\n` +
+  `Critérios de espectro: 0-20 extrema esquerda, 20-35 esquerda, 35-45 centro-esquerda, ` +
+  `45-55 centro, 55-70 centro-direita, 70-85 direita, 85-100 extrema direita.\n` +
+  `Contexto: litoral do Paraná, campanha Juntos Paraná 399 / Sérgio Moro.`;
+}
+
+function parseDigitalBlock(text){
+  var match = text.match(/---DIGITAL_START---([\s\S]*?)---DIGITAL_END---/);
+  if(!match) return null;
+  var block = match[1];
+  function field(key){ var m = block.match(new RegExp(key+':\\s*(.+)')); return m ? m[1].trim() : ''; }
+  return {
+    handle:        field('HANDLE'),
+    plataforma:    field('PLATAFORMA'),
+    seguidores:    field('SEGUIDORES'),
+    bio:           field('BIO'),
+    pessoal:       parseInt(field('PESSOAL')) || 0,
+    profissional:  parseInt(field('PROFISSIONAL')) || 0,
+    politico:      parseInt(field('POLITICO')) || 0,
+    espectro:      parseInt(field('ESPECTRO')) || 50,
+    verdito:       field('VERDITO'),
+    temas:         field('TEMAS').split(',').map(function(t){ return t.trim(); }).filter(Boolean),
+    posts:         [field('POST1'), field('POST2'), field('POST3')].filter(Boolean)
+  };
+}
+
+function renderDigitalResult(d){
+  // Mostrar resultado
+  var resultEl = document.getElementById('digitalResult');
+  resultEl.style.display = 'flex';
+
+  // Barras de tipo de conteúdo
+  setTimeout(function(){
+    setDigitalBar('ctPessoal',     'pctPessoal',     d.pessoal);
+    setDigitalBar('ctProfissional','pctProfissional', d.profissional);
+    setDigitalBar('ctPolitico',    'pctPolitico',     d.politico);
+  }, 100);
+
+  // Termômetro político (só mostra se % político >= 15)
+  var thermoSection = document.getElementById('thermoSection');
+  if(d.politico >= 15){
+    thermoSection.style.display = 'block';
+    setTimeout(function(){
+      document.getElementById('thermoNeedle').style.left = d.espectro + '%';
+    }, 200);
+    var verdito = document.getElementById('thermoVerdict');
+    verdito.textContent = d.verdito || espectroLabel(d.espectro);
+    verdito.style.color = espectroColor(d.espectro);
+  } else {
+    thermoSection.style.display = 'none';
+  }
+
+  // Temas
+  var topicsSection = document.getElementById('topicsSection');
+  if(d.temas && d.temas.length){
+    topicsSection.style.display = 'block';
+    var wrap = document.getElementById('topicsWrap');
+    wrap.innerHTML = '';
+    d.temas.forEach(function(t){
+      var isPolitical = /partido|eleição|voto|governo|político|direita|esquerda|bolsonaro|lula|moro/i.test(t);
+      var isPersonal = /familia|viagem|filhos|aniver|amor|amigos/i.test(t);
+      var cls = isPolitical ? 'political' : isPersonal ? 'personal' : '';
+      wrap.innerHTML += '<span class="topic-tag '+cls+'">'+t+'</span>';
+    });
+  }
+
+  // Posts
+  var postsSection = document.getElementById('postsSection');
+  if(d.posts && d.posts.length){
+    postsSection.style.display = 'block';
+    var postsWrap = document.getElementById('postsWrap');
+    postsWrap.innerHTML = '';
+    d.posts.forEach(function(p){
+      if(!p) return;
+      postsWrap.innerHTML += '<div class="post-item">'+formatResponse(p)+'</div>';
+    });
+  }
+
+  // Handle no header
+  if(d.handle) document.getElementById('digitalHandle').textContent = d.handle;
+
+  // Salvar no perfil atual
+  if(state.currentProfile){
+    state.currentProfile.digital = d;
+  }
+}
+
+function setDigitalBar(fillId, pctId, val){
+  var f = document.getElementById(fillId);
+  var p = document.getElementById(pctId);
+  if(f) f.style.width = val + '%';
+  if(p) p.textContent = val + '%';
+}
+
+function espectroLabel(v){
+  if(v <= 20) return '🔴 Extrema Esquerda';
+  if(v <= 35) return '🟠 Esquerda';
+  if(v <= 45) return '🟡 Centro-Esquerda';
+  if(v <= 55) return '⚪ Centro';
+  if(v <= 70) return '🔵 Centro-Direita';
+  if(v <= 85) return '🟣 Direita';
+  return '⚫ Extrema Direita';
+}
+function espectroColor(v){
+  if(v <= 20) return '#ff3355';
+  if(v <= 35) return '#ff6d00';
+  if(v <= 45) return '#ffc107';
+  if(v <= 55) return '#8892b8';
+  if(v <= 70) return '#3d9fff';
+  if(v <= 85) return '#9b6fff';
+  return '#4a5278';
 }
 
 /* ───────────────────────────────
@@ -1214,13 +1738,54 @@ function saveCurrentProfile(){
 }
 
 function printRaioX(){
-  document.querySelectorAll('.tl-row').forEach(function(r){r.classList.add('open');});
+  // 1. Garantir que o conteúdo do Raio-X está visível
+  var emptyState = document.getElementById('emptyState');
+  var raioXContent = document.getElementById('raioXContent');
+  if(emptyState)   emptyState.style.display   = 'none';
+  if(raioXContent) raioXContent.style.display = 'block';
+
+  // 2. Expandir todos os itens da timeline
+  document.querySelectorAll('.tl-row').forEach(function(el){
+    el.classList.add('open');
+  });
+
+  // 3. Mostrar resultado digital se existir
+  var digitalResult = document.getElementById('digitalResult');
+  if(digitalResult && state.currentProfile && state.currentProfile.digital){
+    digitalResult.style.display = 'flex';
+  }
+
+  // 4. Remover overflow/height limitantes da col-right e raio-x-body
+  var colRight = document.querySelector('.col-right');
+  var raioBody = document.getElementById('raioXBody');
+  var prevColStyle  = colRight ? colRight.getAttribute('style') || '' : '';
+  var prevBodyStyle = raioBody ? raioBody.getAttribute('style') || '' : '';
+
+  if(colRight){
+    colRight.style.overflow  = 'visible';
+    colRight.style.height    = 'auto';
+    colRight.style.maxHeight = 'none';
+    colRight.style.position  = 'static';
+  }
+  if(raioBody){
+    raioBody.style.overflow  = 'visible';
+    raioBody.style.height    = 'auto';
+    raioBody.style.maxHeight = 'none';
+  }
+
+  // 5. Aguardar DOM estabilizar → imprimir
   setTimeout(function(){
     window.print();
+
+    // 6. Restaurar estado original após o diálogo fechar
     setTimeout(function(){
-      document.querySelectorAll('.tl-row').forEach(function(r){r.classList.remove('open');});
-    },1500);
-  },200);
+      document.querySelectorAll('.tl-row').forEach(function(el){
+        el.classList.remove('open');
+      });
+      if(colRight)  colRight.setAttribute('style', prevColStyle);
+      if(raioBody)  raioBody.setAttribute('style', prevBodyStyle);
+    }, 1500);
+  }, 400);
 }
 
 /* ───────────────────────────────
