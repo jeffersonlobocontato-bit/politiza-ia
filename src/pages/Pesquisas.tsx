@@ -290,6 +290,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       if (parsed && typeof parsed === 'object' && parsed.data && !parsed.govScenarios && !parsed.senScenarios) {
         parsed = parsed.data;
       }
+      // Normaliza schema "TSE-style" (metadata + governador.cenario_X + senador.cenario_X)
+      parsed = normalizeTseSchema(parsed);
       const { govScenarios, senScenarios } = applyParsed(parsed);
       toast.success(`Dados importados! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
     } catch (err: any) {
