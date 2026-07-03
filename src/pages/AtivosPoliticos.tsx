@@ -507,15 +507,6 @@ export default function AtivosPoliticos() {
                 <div key={asset.id} className="rounded-xl border border-border p-4 hover:border-primary/30 transition-all group relative" style={{ background: 'var(--gradient-card)' }}>
                   {/* Actions */}
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {canRaioX && (
-                      <button
-                        onClick={() => handleRaioX(asset)}
-                        className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-destructive/70 hover:text-destructive"
-                        title="Fazer RAIO-X (Due Diligence)"
-                      >
-                        <Shield className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                     {asset.origin === 'nativo' ? (
                       <>
                         <button onClick={() => openEdit(asset)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground" title="Editar">
@@ -586,6 +577,16 @@ export default function AtivosPoliticos() {
                   </div>
                   {asset.observations && (
                     <div className="mt-2 text-[11px] text-muted-foreground italic border-t border-border pt-2 line-clamp-2">{asset.observations}</div>
+                  )}
+                  {canRaioX && (
+                    <button
+                      onClick={() => handleRaioX(asset)}
+                      className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:border-destructive/60 transition-all"
+                      title="Iniciar investigação de due diligence"
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      Fazer RAIO-X
+                    </button>
                   )}
                 </div>
               );
