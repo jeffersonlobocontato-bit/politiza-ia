@@ -17,6 +17,7 @@ import {
   LineChart, Line, CartesianGrid, Legend,
 } from 'recharts';
 import AnaliseIAChat from '@/components/inteligencia/AnaliseIAChat';
+import InsightsComunicacao from '@/components/inteligencia/InsightsComunicacao';
 import { Button } from '@/components/ui/button';
 import { useSurveys } from '@/hooks/useSurveys';
 
