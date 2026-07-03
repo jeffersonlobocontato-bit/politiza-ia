@@ -1712,7 +1712,7 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
     });
 
     var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || 'Erro ao processar resposta.';
+    var aiText = data.text || 'Erro ao processar resposta.';
 
     // Adiciona resposta ao histórico
     state.conversationHistory.push({role:'assistant', content: aiText});
@@ -1870,7 +1870,7 @@ async function analyzeDigital(){
     });
 
     var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || '';
+    var aiText = data.text || '';
     state.conversationHistory.push({role:'assistant', content: aiText});
     if(state.conversationHistory.length > 20)
       state.conversationHistory = state.conversationHistory.slice(-20);
