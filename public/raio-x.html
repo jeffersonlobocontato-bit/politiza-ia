@@ -1709,12 +1709,24 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
 
     removeTyping();
 
+    // Tentar parsear bloco RAIOX estruturado e atualizar painel lateral
+    var raioxParsed = parseRaioXBlock(aiText);
+    var displayText = aiText;
+    if(raioxParsed){
+      updateRaioX(raioxParsed);
+      state.currentProfile = raioxParsed;
+      document.getElementById('subjectName').textContent = raioxParsed.name;
+      document.getElementById('subjectSub').textContent = raioxParsed.meta;
+      // Remover bloco cru do texto exibido
+      displayText = aiText.replace(/---RAIOX_START---[\s\S]*?---RAIOX_END---/,'').trim();
+    }
+
     // Formatar texto para HTML
-    var html = formatResponse(aiText);
+    var html = formatResponse(displayText);
     addMessage('ai', html);
 
-    // Tentar extrair score e atualizar Raio-X automaticamente
-    tryExtractAndUpdateScore(aiText, text);
+    // Fallback: se não veio bloco estruturado, tentar extrair score do texto livre
+    if(!raioxParsed) tryExtractAndUpdateScore(aiText, text);
 
     // Registrar consulta para o dashboard de gastos
     var tipoConsulta = /pesquise|investigue|raio.?x|pesquisa completa/i.test(text)
