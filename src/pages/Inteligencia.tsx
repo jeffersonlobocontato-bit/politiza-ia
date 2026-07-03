@@ -148,43 +148,73 @@ const TendenciaIcon = ({ t }: { t: string }) => {
 export default function Inteligencia() {
   const [incluirIGR, setIncluirIGR] = useState(false);
   const { data: surveysData } = useSurveys();
+  // Cenário escolhido por instituto (default = primeiro cenário disponível "C1").
+  const [cenarioByInst, setCenarioByInst] = useState<Record<string, string>>({});
 
   // Rows das pesquisas cadastradas na aba "Pesquisas" convertidas para o formato do painel.
-  const dbRows = useMemo(() => {
+  // Agora inclui TODOS os cenários (não só o principal), com códigos estáveis C1, C2, C3…
+  const { dbRows, dbCenariosByInst } = useMemo(() => {
     const waves = surveysData?.waves ?? [];
     const questions = surveysData?.questions ?? [];
     const rows: typeof PESQUISAS = [];
+    const cenariosByInst: Record<string, Array<{ code: string; label: string }>> = {};
+
     waves.forEach(w => {
       const govQs = questions.filter(q => q.waveId === w.id && q.cargo === 'governador');
-      const main = govQs.find(q => q.isMainScenario) ?? govQs.find(q => /cen[aá]rio\s*1/i.test(q.scenarioLabel)) ?? govQs[0];
-      if (!main) return;
-      main.results.forEach(r => {
-        rows.push({
-          inst: w.institute,
-          data: w.releaseDate,
-          cand: r.candidate,
-          pct: r.percentage,
-          n: w.sampleSize,
-          margem: Number(w.marginOfError),
-          cargo: 'Governador',
-          cenario: 'C1',
+      if (govQs.length === 0) return;
+      // Ordena colocando o cenário principal primeiro
+      const ordered = [...govQs].sort((a, b) => {
+        if (a.isMainScenario && !b.isMainScenario) return -1;
+        if (!a.isMainScenario && b.isMainScenario) return 1;
+        return 0;
+      });
+      const list = (cenariosByInst[w.institute] ??= []);
+      ordered.forEach((q, idx) => {
+        const code = `C${idx + 1}`;
+        if (!list.some(c => c.code === code)) {
+          list.push({ code, label: q.scenarioLabel || `Cenário ${idx + 1}` });
+        }
+        q.results.forEach(r => {
+          rows.push({
+            inst: w.institute,
+            data: w.releaseDate,
+            cand: r.candidate,
+            pct: r.percentage,
+            n: w.sampleSize,
+            margem: Number(w.marginOfError),
+            cargo: 'Governador',
+            cenario: code,
+          });
         });
       });
     });
-    return rows;
+
+    return { dbRows: rows, dbCenariosByInst: cenariosByInst };
   }, [surveysData]);
 
   const pesquisasAll = useMemo(() => [...PESQUISAS, ...dbRows], [dbRows]);
-  const dbInstitutos = useMemo(() => [...new Set(dbRows.map(r => r.inst))], [dbRows]);
+  const dbInstitutos = useMemo(() => Object.keys(dbCenariosByInst), [dbCenariosByInst]);
 
   const institutosAtivos = useMemo(() => {
     const base = ['Neokemp', 'PP mai/26', 'Veritá', 'PP jun/26', ...dbInstitutos];
     return incluirIGR ? [...base, 'IGR'] : base;
   }, [incluirIGR, dbInstitutos]);
 
-  const agregado = useMemo(() => calcularAgregado(pesquisasAll, institutosAtivos), [pesquisasAll, institutosAtivos]);
+  // Filtra pesquisas usando o cenário escolhido para cada instituto (default C1).
+  const pesquisasFiltered = useMemo(() => {
+    return pesquisasAll.filter(p => (cenarioByInst[p.inst] ?? 'C1') === p.cenario);
+  }, [pesquisasAll, cenarioByInst]);
 
-  const ppJun = pesquisasAll.filter(p => p.inst === 'PP jun/26').sort((a, b) => b.pct - a.pct);
+  const agregado = useMemo(() => calcularAgregado(pesquisasFiltered, institutosAtivos), [pesquisasFiltered, institutosAtivos]);
+
+  const ppJun = pesquisasFiltered.filter(p => p.inst === 'PP jun/26').sort((a, b) => b.pct - a.pct);
+
+  // Institutos do banco que têm mais de um cenário — só esses aparecem no seletor.
+  const institutosComMultiCenarios = useMemo(
+    () => Object.entries(dbCenariosByInst).filter(([, cs]) => cs.length > 1),
+    [dbCenariosByInst],
+  );
+
 
   return (
     <div className="p-4 md:p-6 space-y-6">
