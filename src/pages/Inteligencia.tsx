@@ -104,7 +104,7 @@ const LIMIARES = [
 ];
 
 const ACOES = [
-  { prioridade: 'urgente', acao: 'Consolidar alianças regionais PSD/PP', objetivo: 'Antecipar apoio de Ratinho a Sandro', segmento: 'Lideranças do interior' },
+  { prioridade: 'urgente', acao: 'Consolidar alianças regionais', objetivo: 'Antecipar apoio de Ratinho a Sandro', segmento: 'Lideranças do interior' },
   { prioridade: 'urgente', acao: "Comunicação 'voto útil no 1º turno'", objetivo: 'Converter percepção em voto ativo', segmento: 'Indecisos e jovens' },
   { prioridade: 'alta', acao: 'Agenda em eventos religiosos', objetivo: 'Ampliar gap no eleitorado praticante', segmento: 'Evangélicos e católicos' },
   { prioridade: 'alta', acao: 'Presença no interior (Cascavel, Maringá, Londrina)', objetivo: 'Capturar votos de Greca em queda', segmento: 'Classe média conservadora' },
