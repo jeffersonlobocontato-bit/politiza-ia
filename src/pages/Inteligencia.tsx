@@ -625,7 +625,7 @@ export default function Inteligencia() {
               institutosAtivos,
               pesquisas: pesquisasFiltered,
               pesquisas_todos_cenarios: pesquisasAll,
-              cenario_por_instituto: cenarioByInst,
+              cenario_por_instituto: appliedCenarioByInst,
               segmentos: SEGMENTOS,
               rejeicao: REJEICAO,
               limiares: LIMIARES,
