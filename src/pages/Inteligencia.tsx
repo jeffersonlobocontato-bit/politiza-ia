@@ -553,9 +553,9 @@ export default function Inteligencia() {
 // ============================================================
 // CRUZAMENTO DE PESQUISAS
 // ============================================================
-function CruzamentoPesquisas() {
-  const institutos = useMemo(() => [...new Set(PESQUISAS.map(p => p.inst))], []);
-  const candidatos = useMemo(() => [...new Set(PESQUISAS.map(p => p.cand))], []);
+function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: typeof PESQUISAS }) {
+  const institutos = useMemo(() => [...new Set(PESQUISAS.map(p => p.inst))], [PESQUISAS]);
+  const candidatos = useMemo(() => [...new Set(PESQUISAS.map(p => p.cand))], [PESQUISAS]);
 
   const [selInst, setSelInst] = useState<string[]>(institutos);
   const [selCand, setSelCand] = useState<string[]>(candidatos);
