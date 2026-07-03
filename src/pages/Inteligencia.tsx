@@ -505,9 +505,9 @@ export default function Inteligencia() {
                 </thead>
                 <tbody>
                   {[
-                    { c: 'Requião Filho', i: '19,9%', t: '→ estável', r: '35,0%', rc: 'text-red-500', teto: '~22%', v: 'Alta rejeição estrutural — teto atingido' },
-                    { c: 'Sandro Alex', i: '10,7% ▲', t: '↑ subindo', r: '9,1%', rc: '', teto: '~18–20%', v: 'Crescimento dependente de Ratinho Jr., sem narrativa própria' },
-                    { c: 'Rafael Greca', i: '13,9% ▼', t: '↓ caindo', r: '13,2%', rc: '', teto: '~15%', v: 'Queda de narrativa — eleitor migra ao perceber tendência' },
+                    { c: 'Requião Filho', i: '19,9%', t: '→ estável', r: '35,0%', rc: 'text-red-500', teto: '~22%', v: 'Alta rejeição estrutural — teto praticamente atingido. Contraste de futuro, segurança e gestão.' },
+                    { c: 'Sandro Alex', i: '10,7% ▲', t: '↑ subindo', r: '9,1%', rc: '', teto: '~18–20%', v: 'Crescimento derivado de padrinho político. Sem narrativa própria. Contenção agora.' },
+                    { c: 'Rafael Greca', i: '13,9% ▼', t: '↓ caindo', r: '13,2%', rc: '', teto: '~15%', v: 'Voto em trânsito. Moro é destino natural — abordagem respeitosa.' },
                   ].map((r, i) => (
                     <tr key={i} className="border-b">
                       <td className="py-2 pr-3 font-medium">{r.c}</td>
@@ -529,8 +529,8 @@ export default function Inteligencia() {
               <Badge className="bg-emerald-600">Contido — teto atingido</Badge>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Rejeição como barreira natural. 35% não votam nele de forma alguma. Não atacar diretamente para não gerar empatia.</div>
-              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Explorar rejeição nos segmentos: masculino rejeita em 42,4%; evangélicos em 39,8%. Nesses grupos, basta lembrar quem é Requião.</div>
+              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Rejeição estrutural de 35% funciona como barreira natural. NÃO atacar diretamente — gera empatia. Contraste deve ser de FUTURO, SEGURANÇA e GESTÃO.</div>
+              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Explorar rejeição nos segmentos: masculino rejeita em 42,4%; evangélicos em 39,8%. Nesses grupos, basta lembrar quem é Requião — sem ofender.</div>
             </CardContent>
           </Card>
 
@@ -540,9 +540,9 @@ export default function Inteligencia() {
               <Badge className="bg-amber-500">Monitorar — crescendo</Badge>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Janela de contenção é agora. Ainda sem narrativa consolidada além do apoio de Ratinho Jr.</div>
-              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Vulnerabilidade central — dependência do governador. Crescimento derivado, não por mérito próprio.</div>
-              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Disputa o mesmo eleitor que Moro (conservador, religioso, interior). Ocupar com intensidade antes que Sandro chegue.</div>
+              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Janela de contenção é AGORA. Sem narrativa própria consolidada — cresce por transferência de apoio de padrinho político.</div>
+              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Vulnerabilidade central: dependência de padrinho político. Crescimento derivado, não por mérito próprio. NÃO acusar uso de máquina sem prova — usar contraste factual e vocabulário responsável.</div>
+              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Disputa o mesmo eleitor que Moro (conservador, religioso, interior). Ocupar com intensidade — Moro é o guardião do dinheiro das famílias.</div>
             </CardContent>
           </Card>
 
@@ -552,7 +552,7 @@ export default function Inteligencia() {
               <Badge className="bg-emerald-600">Favorável — em queda</Badge>
             </CardHeader>
             <CardContent className="text-sm">
-              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Queda por dinâmica própria — voto de prefeito não migra para governador. Ser o destino natural sem precisar empurrar a queda.</div>
+              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Queda por dinâmica própria — voto de prefeito não migra automaticamente para governador. Ser destino natural desse voto SEM desrespeitar a trajetória de Greca. Abordagem respeitosa, foco em continuidade de cuidado com a cidade + Estado.</div>
             </CardContent>
           </Card>
 
