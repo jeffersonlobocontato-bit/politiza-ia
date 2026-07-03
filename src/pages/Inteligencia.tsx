@@ -520,7 +520,7 @@ export default function Inteligencia() {
         </TabsContent>
         {/* ============= ABA CRUZAMENTO ============= */}
         <TabsContent value="cruzamento" className="space-y-6 mt-6">
-          <CruzamentoPesquisas />
+          <CruzamentoPesquisas pesquisas={pesquisasAll} />
         </TabsContent>
 
         {/* ============= ABA ANÁLISE IA ============= */}
