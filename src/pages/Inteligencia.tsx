@@ -827,21 +827,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes: { h: string; itens: string[] }[] }> = {
   comunicacao: {
     titulo: 'Plano de comunicação digital — 90 dias',
-    subtitulo: 'WhatsApp, Instagram, TikTok e YouTube · foco em conversão de indecisos e gap feminino',
+    subtitulo: 'WhatsApp, Instagram, TikTok e YouTube · foco em conversão de indecisos, gap feminino e tese "guardião do dinheiro das famílias paranaenses"',
     secoes: [
-      { h: 'Mês 1 — Consolidação da marca (semanas 1-4)', itens: [
-        'Narrativa central: "Paraná seguro, justo e que cuida das pessoas".',
-        'Pílulas semanais (3/semana) com Moro falando de segurança, custo de vida e família.',
-        'Operação WhatsApp: 1 áudio + 1 card por dia para grupos das 19 Associações.',
+      { h: 'Mês 1 — Consolidação da tese (semanas 1-4)', itens: [
+        'Frase-mãe: "Moro é o guardião do dinheiro das famílias paranaenses — quem protegeu o dinheiro público jamais governará como se fosse seu."',
+        'Pílulas semanais (3/semana) com Moro falando de proteção às famílias, custo de vida, segurança e cuidado com o dinheiro público.',
+        'Operação WhatsApp: 1 áudio + 1 card por dia para grupos das 19 Associações, sempre reposicionando pautas dentro da tese.',
         'Ativação de 60 mulheres-referência (lideranças, candidatas proporcionais) como vozes amplificadoras.',
       ] },
-      { h: 'Mês 2 — Diferenciação vs adversários (semanas 5-8)', itens: [
-        'Conteúdo comparativo Moro x Requião Filho em segurança e gestão pública.',
+      { h: 'Mês 2 — Contraste com adversários (semanas 5-8)', itens: [
+        'Conteúdo comparativo Moro x Requião Filho em SEGURANÇA, GESTÃO e FUTURO — sem ataques que gerem empatia.',
         'Série "Cada voto conta no 1º turno" — vídeos de 30s com militantes de cada macrorregião.',
-        'Resposta rápida ao crescimento de Sandro Alex: monitoramento de menções + cards de contraste em 24h.',
-        'Lives quinzenais com pautas de proteção (mulheres, crianças, idosos).',
+        'Resposta rápida ao crescimento de Sandro Alex: contraste factual sobre dependência de padrinho político, SEM acusar uso de máquina sem prova. Vocabulário responsável ("indícios", "apontamentos", "precisa ser explicado").',
+        'Lives quinzenais com pautas de proteção (mulheres, crianças, idosos) e cuidado com o dinheiro público chegando onde precisa.',
       ] },
-      { h: 'Mês 3 — Conversão e voto útil (semanas 9-12)', itens: [
+      { h: 'Mês 3 — Conversão e mobilização (semanas 9-12)', itens: [
         'Operação "1º turno": peças com simulação de cenário (Moro 47% vs 2º turno arriscado).',
         'Push regional: vídeos territorializados por macrorregião com prefeitos e lideranças locais.',
         'Onda final WhatsApp: 2 áudios/dia + corrente de prefeitos aliados.',
@@ -863,11 +863,11 @@ const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes
       { h: 'Tipos de evento recomendados', itens: [
         'Encontros com mulheres-referência (1/semana) — meta: zerar gap feminino até set/26.',
         'Reuniões com lideranças religiosas (não-praticantes têm gap de 13,1 p.p. — equilibrar).',
-        'Visitas a escolas técnicas e universidades — alvo 16-24 anos.',
+        'Visitas a escolas técnicas e universidades — alvo 16-24 anos, pauta de futuro no PR.',
         'Cafés com prefeitos aliados — reforço da rede de coordenação municipal.',
       ] },
       { h: 'Regra de ouro', itens: [
-        'Toda agenda pública vira: 1 vídeo nativo + 1 card + 1 áudio para WhatsApp em até 6h.',
+        'Toda agenda pública vira: 1 vídeo nativo + 1 card + 1 áudio para WhatsApp em até 6h — sempre reposicionando a fala dentro da tese "guardião das famílias".',
         'Registrar no módulo Ações de Campo com geolocalização e impacto estimado.',
       ] },
     ],
@@ -884,13 +884,13 @@ const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes
         'Cobertura territorial: % das 399 cidades com pelo menos 1 ação no mês.',
       ] },
       { h: 'Fontes de dados', itens: [
-        'Pesquisas (Neokemp, Veritá, PP, IGR, Atlas) — atualização imediata em /pesquisas/base.',
+        'Pesquisas (Neokemp, Veritá, PP, IGR, Atlas, Vox) — atualização imediata em /pesquisas/base.',
         'Tracking eleitoral próprio (módulo Tracking) — coletas semanais por entrevistadores.',
         'Ações de campo georreferenciadas (módulo Campo).',
         'Alertas estratégicos gerados por IA na Sala de Crise.',
       ] },
       { h: 'Briefing semanal (toda segunda 8h)', itens: [
-        'Resumo de 1 página: variação dos 5 indicadores + 3 alertas + 3 ações sugeridas.',
+        'Resumo de 1 página: variação dos 5 indicadores + 3 alertas + 3 ações sugeridas pró-Moro.',
         'Distribuição: Coordenação Geral, Coordenação Estadual, Coordenadores Macrorregionais.',
         'Reunião de 30min com a Sala de Guerra para definir prioridades da semana.',
       ] },
@@ -898,26 +898,29 @@ const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes
   },
   pautas: {
     titulo: 'Pautas e posicionamento',
-    subtitulo: 'O que o eleitorado quer ouvir — calibrado pelos dados de segmento e rejeição',
+    subtitulo: 'O que o eleitorado quer ouvir — calibrado pelos dados de segmento, tese "guardião do dinheiro das famílias" e vocabulário responsável',
     secoes: [
       { h: 'Pautas vencedoras (alto retorno)', itens: [
-        'Segurança pública: combate ao crime organizado, polícia valorizada, fronteiras.',
-        'Família e proteção: mulheres, crianças e idosos — pauta com maior identificação emocional.',
-        'Custo de vida: ICMS, energia, alimentos — fala direto às mulheres 35-59.',
-        'Honestidade e combate à corrupção — marca histórica de Moro, ativo único.',
+        'Proteção às famílias: segurança pública, combate ao crime organizado, polícia valorizada, fronteiras — traduzido como "proteger o pai, a mãe, o filho e o idoso".',
+        'Cuidado com o dinheiro público: obra com preço justo, fiscalização e entrega humana — dinheiro chegando onde precisa (saúde, educação, segurança).',
+        'Custo de vida: ICMS, energia, alimentos — fala direto às mulheres 35-59 e às famílias trabalhadoras.',
+        'Integridade e confiança: Moro é preparado para governar E cuidar do dinheiro do povo — reposicionar além do rótulo de "ex-juiz".',
+        'Futuro no PR: oportunidade para jovens ficarem, estudarem e vencerem no próprio Estado.',
       ] },
       { h: 'Pautas de equilíbrio (cuidar)', itens: [
-        'Saúde pública e SUS — terreno em que Requião Filho tenta avançar.',
+        'Saúde pública e SUS — terreno em que Requião Filho tenta avançar; enquadrar como cuidado com as famílias e dinheiro chegando ao posto.',
         'Educação técnica e empregabilidade jovem — para reduzir gap em 16-24 anos.',
-        'Agenda laica (cidadania, direitos) — para não-praticantes religiosos (gap de 13,1 p.p.).',
+        'Agenda de cidadania e direitos — para não-praticantes religiosos (gap de 13,1 p.p.).',
       ] },
       { h: 'Pautas a evitar / cuidado redobrado', itens: [
-        'Polarização nacional pura — desgasta o "voto útil" estadual.',
+        'Polarização nacional pura — desgasta o voto útil estadual.',
         'Discussões ideológicas sem entrega prática — alimenta rejeição.',
-        'Confronto direto com Ratinho Jr. — risco de afastar eleitor governista neutro.',
+        'Confronto direto e áspero com o governador — risco de afastar eleitor governista neutro; contraste deve ser sobre dependência de padrinho político de Sandro, não sobre a figura do governo.',
+        'Vocabulário de acusação sem prova: NUNCA usar "roubo", "fraude", "esquema", "crime", "quadrilha" ou "governo superfaturou". Usar "indícios", "apontamentos", "segundo reportagem", "precisa ser explicado".',
       ] },
       { h: 'Tom recomendado', itens: [
-        'Firmeza com empatia. Dado + história real. Sempre fechar com proposta concreta.',
+        'Firmeza com empatia. Postura presidencial. Dado + história real. Sempre fechar com proposta concreta.',
+        'Reposicionar Moro como GUARDIÃO DAS FAMÍLIAS — não apenas ex-juiz e não apenas combate à corrupção.',
         'Protagonismo feminino nas peças (cada 1 p.p. ganho em mulheres = 0,52 p.p. no total).',
       ] },
     ],
