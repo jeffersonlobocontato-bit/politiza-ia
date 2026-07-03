@@ -153,6 +153,88 @@ const emptyScenario = (label = 'Cenário 1'): ScenarioEntry => ({
   candidates: [{ name: '', pct: '' }],
 });
 
+// Chaves que representam "não-candidatos" e devem ser ignoradas ao converter resultados
+const NON_CANDIDATE_KEYS = /^(nenhum|branco|nulo|não\s*sabe|nao\s*sabe|ns\/no|não\s*opinou|nao\s*opinou|não\s*rejeita|nao\s*rejeita|não\s*se\s*aplica|nao\s*se\s*aplica|outros?)/i;
+
+function isCandidateKey(k: string): boolean {
+  const norm = k.trim();
+  if (!norm) return false;
+  if (NON_CANDIDATE_KEYS.test(norm)) return false;
+  if (/nenhum|branco|nulo/i.test(norm)) return false;
+  return true;
+}
+
+function extractScenariosFromCargoBlock(block: any): Array<{ label: string; candidates: Array<{ name: string; pct: number }> }> {
+  if (!block || typeof block !== 'object') return [];
+  const scenarios: Array<{ label: string; candidates: Array<{ name: string; pct: number }> }> = [];
+  Object.entries(block).forEach(([key, val]: [string, any]) => {
+    if (!key.toLowerCase().startsWith('cenario') && !key.toLowerCase().startsWith('cenário')) return;
+    if (!val || typeof val !== 'object') return;
+    const resultado = val.resultado_geral || val.resultadoGeral || val.resultado || val.geral;
+    if (!resultado || typeof resultado !== 'object') return;
+    const candidates = Object.entries(resultado)
+      .filter(([k]) => isCandidateKey(k))
+      .map(([name, pct]: [string, any]) => ({ name, pct: Number(pct) || 0 }));
+    if (candidates.length === 0) return;
+    // Label mais amigável: "Cenário 1 · Disco 1"
+    const pretty = key
+      .replace(/_/g, ' ')
+      .replace(/\bdisco\b/i, 'Disco')
+      .replace(/\bcenario\b/i, 'Cenário')
+      .replace(/\bcenário\b/i, 'Cenário')
+      .replace(/\b(\w)/g, (m) => m.toUpperCase());
+    scenarios.push({ label: pretty.trim(), candidates });
+  });
+  return scenarios;
+}
+
+/**
+ * Aceita o formato "TSE-style" (com { metadata, governador, senador, ... }) e
+ * converte para o formato interno usado por applyParsed (govScenarios/senScenarios/...).
+ * Se o objeto já estiver no formato interno, retorna sem alteração.
+ */
+function normalizeTseSchema(input: any): any {
+  if (!input || typeof input !== 'object') return input;
+  const hasInternal = Array.isArray(input.govScenarios) || Array.isArray(input.senScenarios);
+  const hasTse = input.metadata || input.governador || input.senador;
+  if (hasInternal || !hasTse) return input;
+
+  const md = input.metadata || {};
+  const cargosRaw: string[] = Array.isArray(md.cargos) ? md.cargos : [];
+  const cargos = cargosRaw
+    .map(c => String(c).toLowerCase())
+    .filter(c => c === 'governador' || c === 'senador') as Cargo[];
+
+  const govScenarios = extractScenariosFromCargoBlock(input.governador).map((s, i) => ({
+    label: s.label,
+    candidates: s.candidates.map(c => ({ name: c.name, pct: String(c.pct) })),
+    isMainScenario: i === 0,
+  }));
+  const senScenarios = extractScenariosFromCargoBlock(input.senador).map((s, i) => ({
+    label: s.label,
+    candidates: s.candidates.map(c => ({ name: c.name, pct: String(c.pct) })),
+    isMainScenario: i === 0,
+  }));
+
+  return {
+    institute: md.instituto || md.institute || input.institute,
+    territory: md.abrangencia || md.territory || input.territory,
+    cargos: cargos.length > 0 ? cargos : undefined,
+    collectionStart: md.data_inicio_pesquisa || md.collectionStart,
+    collectionEnd: md.data_termino_pesquisa || md.collectionEnd,
+    releaseDate: md.data_divulgacao || md.releaseDate,
+    sampleSize: md.entrevistados || md.sampleSize,
+    marginOfError: md.margem_erro_percentual || md.marginOfError,
+    methodology:
+      typeof md.metodologia === 'string'
+        ? md.metodologia
+        : md.metodologia?.tipo || input.methodology,
+    tseRegistration: md.registro_tse || md.tseRegistration,
+    govScenarios,
+    senScenarios,
+  };
+}
+
 const emptyForm = (): ImportForm => ({
   institute: '',
   territory: 'Estado do Paraná',
@@ -290,6 +372,8 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
       if (parsed && typeof parsed === 'object' && parsed.data && !parsed.govScenarios && !parsed.senScenarios) {
         parsed = parsed.data;
       }
+      // Normaliza schema "TSE-style" (metadata + governador.cenario_X + senador.cenario_X)
+      parsed = normalizeTseSchema(parsed);
       const { govScenarios, senScenarios } = applyParsed(parsed);
       toast.success(`Dados importados! ${govScenarios.length} cenário(s) gov + ${senScenarios.length} cenário(s) sen.`);
     } catch (err: any) {
