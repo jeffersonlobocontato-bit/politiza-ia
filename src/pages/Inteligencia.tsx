@@ -147,15 +147,44 @@ const TendenciaIcon = ({ t }: { t: string }) => {
 // ============================================================
 export default function Inteligencia() {
   const [incluirIGR, setIncluirIGR] = useState(false);
+  const { data: surveysData } = useSurveys();
+
+  // Rows das pesquisas cadastradas na aba "Pesquisas" convertidas para o formato do painel.
+  const dbRows = useMemo(() => {
+    const waves = surveysData?.waves ?? [];
+    const questions = surveysData?.questions ?? [];
+    const rows: typeof PESQUISAS = [];
+    waves.forEach(w => {
+      const govQs = questions.filter(q => q.waveId === w.id && q.cargo === 'governador');
+      const main = govQs.find(q => q.isMainScenario) ?? govQs.find(q => /cen[aá]rio\s*1/i.test(q.scenarioLabel)) ?? govQs[0];
+      if (!main) return;
+      main.results.forEach(r => {
+        rows.push({
+          inst: w.institute,
+          data: w.releaseDate,
+          cand: r.candidate,
+          pct: r.percentage,
+          n: w.sampleSize,
+          margem: Number(w.marginOfError),
+          cargo: 'Governador',
+          cenario: 'C1',
+        });
+      });
+    });
+    return rows;
+  }, [surveysData]);
+
+  const pesquisasAll = useMemo(() => [...PESQUISAS, ...dbRows], [dbRows]);
+  const dbInstitutos = useMemo(() => [...new Set(dbRows.map(r => r.inst))], [dbRows]);
 
   const institutosAtivos = useMemo(() => {
-    const base = ['Neokemp', 'PP mai/26', 'Veritá', 'PP jun/26'];
+    const base = ['Neokemp', 'PP mai/26', 'Veritá', 'PP jun/26', ...dbInstitutos];
     return incluirIGR ? [...base, 'IGR'] : base;
-  }, [incluirIGR]);
+  }, [incluirIGR, dbInstitutos]);
 
-  const agregado = useMemo(() => calcularAgregado(PESQUISAS, institutosAtivos), [institutosAtivos]);
+  const agregado = useMemo(() => calcularAgregado(pesquisasAll, institutosAtivos), [pesquisasAll, institutosAtivos]);
 
-  const ppJun = PESQUISAS.filter(p => p.inst === 'PP jun/26').sort((a, b) => b.pct - a.pct);
+  const ppJun = pesquisasAll.filter(p => p.inst === 'PP jun/26').sort((a, b) => b.pct - a.pct);
 
   return (
     <div className="p-4 md:p-6 space-y-6">
