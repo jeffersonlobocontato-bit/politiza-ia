@@ -593,6 +593,22 @@ export default function AtivosPoliticos() {
           </div>
         )}
       </div>
+      {raioXAsset && (
+        <RaioXModal
+          open={!!raioXAsset}
+          ativo={{
+            name: raioXAsset.name,
+            municipality: raioXAsset.municipality ?? '',
+            position: raioXAsset.position ?? '',
+            party: '',
+          }}
+          onClose={() => setRaioXAsset(null)}
+          onConfirm={(dados) => {
+            setRaioXAsset(null);
+            openRaioX(dados);
+          }}
+        />
+      )}
     </div>
   );
 }
