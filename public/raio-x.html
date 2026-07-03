@@ -1661,6 +1661,30 @@ FORMATO DAS RESPOSTAS
 - Sempre inclua ao final: SCORE ESTIMADO (0-100), RISCO (baixo/moderado/alto) e PRÓXIMOS PASSOS
 - Seja direto e objetivo — o usuário é um estrategista político com tempo limitado
 
+FORMATO TÉCNICO OBRIGATÓRIO PARA DIAGRAMAR A BARRA DIREITA:
+Ao final de toda pesquisa completa, due diligence ou Raio-X completo, inclua também este bloco exato, preenchido com os dados do relatório. Se algum campo não tiver evidência, use "não identificado" ou nota de cautela; não invente fatos.
+
+---RAIOX_START---
+NOME: nome completo do sujeito
+META: cargo · partido · município/UF ou contexto conhecido
+SCORE: número de 0 a 100
+RISCO: baixo|moderado|alto
+JUDICIAL: número de 0 a 100
+REPUTACIONAL: número de 0 a 100
+REGULATORIO: número de 0 a 100
+SOCIETARIO: número de 0 a 100
+ALERTA1: red|amber|green|texto curto do alerta
+ALERTA2: red|amber|green|texto curto do alerta
+ALERTA3: red|amber|green|texto curto do alerta
+ACHADO1: rótulo curto|valor curto|descrição curta
+ACHADO2: rótulo curto|valor curto|descrição curta
+ACHADO3: rótulo curto|valor curto|descrição curta
+ACHADO4: rótulo curto|valor curto|descrição curta
+TIMELINE1: data/período|título|descrição curta|red|amber|green|blue|purple
+TIMELINE2: data/período|título|descrição curta|red|amber|green|blue|purple
+TIMELINE3: data/período|título|descrição curta|red|amber|green|blue|purple
+---RAIOX_END---
+
 QUANDO GERAR RAIO-X COMPLETO:
 1. IDENTIDADE (nome, cargo, município, partido, identificadores confirmados)
 2. ⚠ ALERTA DE HOMONÍMIA (se aplicável — mencione sempre que o nome for comum)
@@ -1711,7 +1735,7 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
     });
 
     var data = await response.json();
-    var aiText = data.text || 'Erro ao processar resposta.';
+    var aiText = data.text || data.error || 'Erro ao processar resposta.';
 
     // Adiciona resposta ao histórico
     state.conversationHistory.push({role:'assistant', content: aiText});
@@ -1723,8 +1747,8 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
 
     removeTyping();
 
-    // Formatar texto para HTML
-    var html = formatResponse(aiText);
+    // Formatar texto para HTML, ocultando o bloco técnico usado pela barra direita
+    var html = formatResponse(stripRaioXBlock(aiText));
     addMessage('ai', html);
 
     // Tentar extrair score e atualizar Raio-X automaticamente
@@ -1758,53 +1782,196 @@ function formatResponse(text){
     .replace(/\n/g, '<br>');
 }
 
-/* tentar extrair score da resposta e atualizar painel */
+function stripRaioXBlock(text){
+  return String(text || '').replace(/---RAIOX_START---[\s\S]*?---RAIOX_END---/gi, '').trim();
+}
+
+/* tentar extrair relatório da resposta e atualizar painel */
 function tryExtractAndUpdateScore(aiText, userText){
-  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
-  if(!scoreMatch) return;
-  var score = parseInt(scoreMatch[1]);
-  if(score < 0 || score > 100) return;
+  var parsed = parseRaioXBlock(aiText);
+  var score = parsed && parsed.score !== null ? parsed.score : extractScore(aiText);
+  if(score === null) return;
+  score = clampScore(score);
 
-  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
+  var risk = normalizeRisk(parsed && parsed.risk ? parsed.risk : extractRisk(aiText, score));
+  var subjectName = extractSubjectName(userText, parsed) || 'Sujeito';
+  var meta = extractSubjectMeta(parsed) || 'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR');
 
-  // Extrair nome do sujeito da mensagem do usuário
-  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
-  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  var jud = clampScore((parsed && parsed.judicial !== null ? parsed.judicial : extractDim(aiText, 'judicial')) ?? score);
+  var rep = clampScore((parsed && parsed.reputacional !== null ? parsed.reputacional : extractDim(aiText, 'reputacional')) ?? Math.round(score * .8));
+  var reg = clampScore((parsed && parsed.regulatorio !== null ? parsed.regulatorio : (extractDim(aiText, 'regulatorio') || extractDim(aiText, 'regulatório'))) ?? Math.round(score * .85));
+  var soc = clampScore((parsed && parsed.societario !== null ? parsed.societario : (extractDim(aiText, 'societario') || extractDim(aiText, 'societário'))) ?? Math.round(score * .7));
 
-  // Extrair scores por dimensão
-  var jud = extractDim(aiText, 'judicial') || score;
-  var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
-  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
-  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
+  var alerts = (parsed && parsed.alerts.length ? parsed.alerts : extractAlerts(aiText));
+  if(!alerts.length){
+    alerts = [{l: risk === 'alto' ? 'red' : risk === 'mod' ? 'amber' : 'green', txt:'Relatório gerado no chat. Revise fontes e evidências antes de decisão estratégica.'}];
+  }
 
-  // Extrair alertas do texto
-  var alerts = extractAlerts(aiText);
+  var achados = parsed && parsed.achados.length ? parsed.achados : extractAchados(aiText, score, jud, rep, reg);
+  var timeline = parsed && parsed.timeline.length ? parsed.timeline : extractTimeline(aiText);
 
+  var existingId = state.currentProfile && state.currentProfile.name === subjectName ? state.currentProfile.id : 'auto_'+Date.now();
   var profile = {
-    id: 'auto_'+Date.now(),
+    id: existingId,
     name: subjectName,
-    meta: 'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR'),
+    meta: meta,
     score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
-    alerts: alerts,
-    achados: [
-      {lbl:'Score Global',val:score,desc:'Ponderado 4 dimensões'},
-      {lbl:'Judicial',val:jud,desc:'% de risco judicial'},
-      {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
-      {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
-    ],
-    timeline: []
+    alerts: alerts.slice(0, 6),
+    achados: achados.slice(0, 4),
+    timeline: timeline.slice(0, 6),
+    digital: state.currentProfile && state.currentProfile.digital ? state.currentProfile.digital : undefined
   };
 
   state.currentProfile = profile;
   document.getElementById('subjectName').textContent = subjectName;
   document.getElementById('subjectSub').textContent = profile.meta;
+  switchTab('raiox');
   updateRaioX(profile);
 }
 
+function parseRaioXBlock(text){
+  var match = String(text || '').match(/---RAIOX_START---([\s\S]*?)---RAIOX_END---/i);
+  if(!match) return null;
+  var block = match[1];
+  function field(key){
+    var m = block.match(new RegExp('^\\s*'+key+'\\s*:\\s*(.+)$', 'im'));
+    return m ? m[1].trim() : '';
+  }
+  function num(key){
+    var raw = field(key).match(/\d+/);
+    return raw ? clampScore(parseInt(raw[0], 10)) : null;
+  }
+  function lines(prefix){
+    return block.split('\n').map(function(line){ return line.trim(); }).filter(function(line){ return new RegExp('^'+prefix+'\\d+\\s*:', 'i').test(line); });
+  }
+  var colorMap = { red:'#ff3355', amber:'#ffaa00', green:'#00e8a2', blue:'#3d9fff', purple:'#9b6fff' };
+  return {
+    nome: field('NOME'),
+    meta: field('META'),
+    score: num('SCORE'),
+    risk: field('RISCO'),
+    judicial: num('JUDICIAL'),
+    reputacional: num('REPUTACIONAL'),
+    regulatorio: num('REGULATORIO'),
+    societario: num('SOCIETARIO'),
+    alerts: lines('ALERTA').map(function(line){
+      var value = line.replace(/^ALERTA\d+\s*:\s*/i, '');
+      var parts = value.split('|').map(function(p){ return p.trim(); });
+      var level = normalizeAlertLevel(parts[0]);
+      return {l: level, txt: (parts.slice(1).join(' · ') || value).slice(0, 150)};
+    }).filter(function(a){ return a.txt; }),
+    achados: lines('ACHADO').map(function(line){
+      var parts = line.replace(/^ACHADO\d+\s*:\s*/i, '').split('|').map(function(p){ return p.trim(); });
+      return {lbl: parts[0] || 'Achado', val: parts[1] || '—', desc: parts.slice(2).join(' · ') || 'Detalhe no relatório'};
+    }).filter(function(a){ return a.lbl; }),
+    timeline: lines('TIMELINE').map(function(line){
+      var parts = line.replace(/^TIMELINE\d+\s*:\s*/i, '').split('|').map(function(p){ return p.trim(); });
+      var key = (parts[3] || 'amber').toLowerCase();
+      return {date: parts[0] || '—', title: parts[1] || 'Evento', body: parts[2] || 'Detalhe no relatório', color: colorMap[key] || colorMap.amber};
+    }).filter(function(t){ return t.title; })
+  };
+}
+
+function extractScore(text){
+  var patterns = [
+    /SCORE(?:\s+(?:ESTIMADO|GLOBAL|FINAL|DE\s+RISCO))?\s*[:\-–]?\s*(\d{1,3})(?:\s*\/\s*100)?/i,
+    /RISCO\s+GLOBAL\s*[:\-–]?\s*(\d{1,3})(?:\s*\/\s*100)?/i,
+    /(\d{1,3})\s*\/\s*100/i
+  ];
+  for(var i=0;i<patterns.length;i++){
+    var m = String(text || '').match(patterns[i]);
+    if(m) return parseInt(m[1], 10);
+  }
+  return null;
+}
+
 function extractDim(text, dim){
-  var re = new RegExp(dim+'[:\\s]+(\\d+)', 'i');
-  var m = text.match(re);
-  return m ? Math.min(100, parseInt(m[1])) : null;
+  var escaped = dim.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  var re = new RegExp(escaped+'(?:\\s+(?:estimado|global|de risco))?\\s*[:\\-–]?\\s*(\\d{1,3})(?:\\s*\\/\\s*100)?', 'i');
+  var m = String(text || '').match(re);
+  return m ? clampScore(parseInt(m[1], 10)) : null;
+}
+
+function clampScore(v){ return Math.max(0, Math.min(100, parseInt(v, 10) || 0)); }
+
+function normalizeRisk(risk){
+  var r = String(risk || '').toLowerCase();
+  if(/alto|alta|crítico|critico|severo/.test(r)) return 'alto';
+  if(/mod|médio|medio|atenção|atencao/.test(r)) return 'mod';
+  return 'baixo';
+}
+
+function extractRisk(text, score){
+  var m = String(text || '').match(/RISCO\s*[:\-–]?\s*(baixo|moderado|m[oé]dio|alto|cr[ií]tico)/i);
+  return m ? m[1] : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
+}
+
+function extractSubjectName(userText, parsed){
+  if(parsed && parsed.nome && !/não identificado/i.test(parsed.nome)) return parsed.nome;
+  var params = new URLSearchParams(window.location.search);
+  var nomeParam = params.get('nome');
+  if(nomeParam) return nomeParam;
+  var clean = String(userText || '').replace(/\s+/g, ' ').trim();
+  var patterns = [
+    /(?:pesquise\s+profundamente|pesquisa\s+completa|gere\s+o\s+raio.?x\s+completo\s+de|raio.?x\s+(?:completo\s+)?de|calcule\s+o\s+score\s+de|verifique\s+processos\s+judiciais\s+de|investigue|analise|perfil\s+de|pesquise)\s*:?\s*([^,;\n]+)/i,
+    /^([^,;\n]+?)(?:,|$)/
+  ];
+  for(var i=0;i<patterns.length;i++){
+    var m = clean.match(patterns[i]);
+    if(m){
+      var name = m[1].replace(/^(de|do|da)\s+/i,'').trim();
+      if(name && !/^(profundamente|completa)$/i.test(name)) return name;
+    }
+  }
+  return state.currentProfile ? state.currentProfile.name : '';
+}
+
+function extractSubjectMeta(parsed){
+  if(parsed && parsed.meta && !/não identificado/i.test(parsed.meta)) return parsed.meta;
+  var params = new URLSearchParams(window.location.search);
+  var pieces = [];
+  if(params.get('cargo')) pieces.push(params.get('cargo'));
+  if(params.get('partido')) pieces.push(params.get('partido'));
+  if(params.get('municipio')) pieces.push(params.get('municipio') + '/PR');
+  if(pieces.length) return pieces.join(' · ');
+  return '';
+}
+
+function normalizeAlertLevel(level){
+  var l = String(level || '').toLowerCase();
+  if(/red|vermelho|cr[ií]tico|alto|🔴/.test(l)) return 'red';
+  if(/green|verde|ok|baixo|✓/.test(l)) return 'green';
+  return 'amber';
+}
+
+function extractAchados(text, score, jud, rep, reg){
+  var cleaned = stripRaioXBlock(text);
+  var bullets = cleaned.split('\n').map(function(line){ return line.replace(/^[\s•\-*–—]+/, '').trim(); })
+    .filter(function(line){ return line.length > 12 && /(confirmado|não confirmado|process|empresa|cargo|mandato|filia|judicial|reputa|regulat|societ|mídia|midia|fonte|tse|tj|tre|mp)/i.test(line); })
+    .slice(0,4);
+  if(bullets.length){
+    return bullets.map(function(line, idx){
+      var label = ['Judicial','Reputacional','Regulatório','Societário'][idx] || 'Achado';
+      var valMatch = line.match(/(\d+\s*(?:processos?|ações?|ocorrências?|%|\/100)?|INAPTA|ATIVA|CONFIRMADO|NÃO CONFIRMADO)/i);
+      return {lbl: label, val: valMatch ? valMatch[1] : '—', desc: line.slice(0,110)};
+    });
+  }
+  return [
+    {lbl:'Score Global',val:score,desc:'Ponderado pelas dimensões do relatório'},
+    {lbl:'Judicial',val:jud,desc:'% de risco judicial'},
+    {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
+    {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
+  ];
+}
+
+function extractTimeline(text){
+  var colorMap = ['#ffaa00','#ff3355','#00e8a2','#3d9fff','#9b6fff'];
+  return stripRaioXBlock(text).split('\n').map(function(line){ return line.trim(); })
+    .filter(function(line){ return /^(\d{4}|\d{2}\/\d{2}|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|timeline|período|periodo)/i.test(line); })
+    .slice(0,5).map(function(line, idx){
+      var parts = line.replace(/^[\s•\-*–—]+/, '').split(/[:–—-]/);
+      return {date: (parts[0] || 'Evento').trim().slice(0,18), title: (parts[1] || 'Registro identificado').trim().slice(0,60), body: parts.slice(2).join(' - ').trim() || line.slice(0,130), color: colorMap[idx % colorMap.length]};
+    });
 }
 
 function extractAlerts(text){
