@@ -19,6 +19,7 @@ import {
   PromptInputTextarea,
 } from '@/components/ai-elements/prompt-input';
 import { cn } from '@/lib/utils';
+import { SUGESTOES_MARKETING, ACOES_RAPIDAS } from './prompts';
 
 interface Thread {
   id: string;
@@ -36,12 +37,7 @@ interface Props {
   context: unknown;
 }
 
-const SUGESTOES = [
-  'Compare a evolução de Moro entre Neokemp, Veritá e PP jun/26.',
-  'Quais cenários levam o Sandro Alex a cruzar o limiar de 13%?',
-  'Como atacar o gap feminino de 7,2 p.p. nas próximas 6 semanas?',
-  'Monte um cenário de 2º turno Moro x Requião Filho.',
-];
+const SUGESTOES = SUGESTOES_MARKETING;
 
 export default function AnaliseIAChat({ context }: Props) {
   const [threads, setThreads] = useState<Thread[]>([]);
