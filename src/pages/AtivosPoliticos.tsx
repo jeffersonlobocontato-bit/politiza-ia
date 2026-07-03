@@ -143,6 +143,19 @@ export default function AtivosPoliticos() {
   const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
   const [showImport, setShowImport] = useState(false);
   const association = useAssociationForCity(geoForm.city);
+  const { roles } = useAuth();
+  const canRaioX = roles.some(r => ['admin_master', 'coordenador_estadual', 'coordenador_geral'].includes(r));
+  const [raioXAsset, setRaioXAsset] = useState<UnifiedAsset | null>(null);
+
+  const handleRaioX = (asset: UnifiedAsset) => {
+    const nome = (asset.name ?? '').trim();
+    const municipio = (asset.municipality ?? '').trim();
+    if (nome.length > 3 && municipio.length > 2) {
+      openRaioX({ nome, municipio, partido: '', cargo: asset.position ?? '', contexto: '' });
+    } else {
+      setRaioXAsset(asset);
+    }
+  };
 
   // Lista única de cidades presentes nos ativos (respeita filtro de macrorregião)
   const cityOptions = useMemo(() => {
