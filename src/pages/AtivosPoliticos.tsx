@@ -507,15 +507,6 @@ export default function AtivosPoliticos() {
                 <div key={asset.id} className="rounded-xl border border-border p-4 hover:border-primary/30 transition-all group relative" style={{ background: 'var(--gradient-card)' }}>
                   {/* Actions */}
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {canRaioX && (
-                      <button
-                        onClick={() => handleRaioX(asset)}
-                        className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-destructive/70 hover:text-destructive"
-                        title="Fazer RAIO-X (Due Diligence)"
-                      >
-                        <Shield className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                     {asset.origin === 'nativo' ? (
                       <>
                         <button onClick={() => openEdit(asset)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground" title="Editar">
