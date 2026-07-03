@@ -233,7 +233,23 @@ export default function Inteligencia() {
 
   const agregado = useMemo(() => calcularAgregado(pesquisasFiltered, institutosAtivos), [pesquisasFiltered, institutosAtivos]);
 
-  const ppJun = pesquisasFiltered.filter(p => p.inst === 'PP jun/26').sort((a, b) => b.pct - a.pct);
+  // KPIs dinâmicos derivados do agregado filtrado
+  const moroAgg = agregado.find(a => a.cand === 'Sérgio Moro');
+  const segundoAgg = agregado.filter(a => a.cand !== 'Sérgio Moro')[0];
+  const vantagem = moroAgg && segundoAgg ? moroAgg.pct - segundoAgg.pct : 0;
+  const somaValidos = agregado.reduce((s, a) => s + a.pct, 0);
+  const nInstitutosFiltrados = new Set(pesquisasFiltered.map(p => p.inst).filter(i => institutosAtivos.includes(i))).size;
+
+  // Mais recente instituto disponível no recorte atual (para o chart de posicionamento)
+  const chartData = useMemo(() => {
+    const inCena = pesquisasFiltered.filter(p => institutosAtivos.includes(p.inst));
+    if (inCena.length === 0) return { rows: [] as typeof PESQUISAS, inst: '', data: '' };
+    const latest = [...inCena].sort((a, b) => b.data.localeCompare(a.data))[0];
+    const rows = inCena
+      .filter(p => p.inst === latest.inst && p.data === latest.data)
+      .sort((a, b) => b.pct - a.pct);
+    return { rows, inst: latest.inst, data: latest.data };
+  }, [pesquisasFiltered, institutosAtivos]);
 
   // Institutos do banco que têm mais de um cenário — só esses aparecem no seletor.
   const institutosComMultiCenarios = useMemo(
