@@ -1812,22 +1812,29 @@ function parseRaioXBlock(text){
 
 /* tentar extrair score da resposta e atualizar painel */
 function tryExtractAndUpdateScore(aiText, userText){
-  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
+  // Aceita variações: "SCORE: 65", "SCORE ESTIMADO: 65", "SCORE GLOBAL 65", "Score: **65**", "65/100"
+  var scoreMatch =
+      aiText.match(/SCORE\s*(?:ESTIMADO|GLOBAL|PONDERADO)?\s*[:\-–]?\s*\*{0,2}(\d{1,3})\*{0,2}/i)
+      || aiText.match(/(\d{1,3})\s*\/\s*100/);
   if(!scoreMatch) return;
   var score = parseInt(scoreMatch[1]);
-  if(score < 0 || score > 100) return;
+  if(isNaN(score) || score < 0 || score > 100) return;
 
-  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
+  // Risco explícito, se houver
+  var riscoTxt = (aiText.match(/RISCO[:\s\*]+([A-Za-zÀ-ú]+)/i) || [])[1] || '';
+  riscoTxt = riscoTxt.toLowerCase();
+  var risk = /alto/.test(riscoTxt) ? 'alto' : /mod/.test(riscoTxt) ? 'mod' : /baix/.test(riscoTxt) ? 'baixo'
+             : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
 
-  // Extrair nome do sujeito da mensagem do usuário
-  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
-  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  // Extrair nome do sujeito da mensagem do usuário (case-insensitive, aceita profundamente)
+  var nameMatch = userText.match(/(?:pesquise(?:\s+profundamente)?|investigue|analise|raio.?x\s+de|perfil\s+de|due\s+diligence\s+de)\s*:?\s*([A-ZÀ-Úa-zà-ú][A-Za-zÀ-úçÇ\s\.']+?)(?:,|\.|$)/i);
+  var subjectName = nameMatch ? nameMatch[1].trim() : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
 
-  // Extrair scores por dimensão
+  // Extrair scores por dimensão (evita valores de peso tipo "(40%)")
   var jud = extractDim(aiText, 'judicial') || score;
   var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
-  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
-  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
+  var reg = extractDim(aiText, 'regulat[óo]rio') || Math.round(score * .85);
+  var soc = extractDim(aiText, 'societ[áa]rio') || Math.round(score * .7);
 
   // Extrair alertas do texto
   var alerts = extractAlerts(aiText);
