@@ -578,6 +578,16 @@ export default function AtivosPoliticos() {
                   {asset.observations && (
                     <div className="mt-2 text-[11px] text-muted-foreground italic border-t border-border pt-2 line-clamp-2">{asset.observations}</div>
                   )}
+                  {canRaioX && (
+                    <button
+                      onClick={() => handleRaioX(asset)}
+                      className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:border-destructive/60 transition-all"
+                      title="Iniciar investigação de due diligence"
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      Fazer RAIO-X
+                    </button>
+                  )}
                 </div>
               );
             })}
