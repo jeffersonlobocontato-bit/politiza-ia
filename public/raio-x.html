@@ -1621,8 +1621,31 @@ CONTEXTO DO LITORAL DO PARANÁ:
 - Principais figuras investigadas nesta sessão: Arnaldo Maranhão (PL/Paranaguá), Kátia Gomes Leite (advogada/Pontal), Edgar Rossi (NOVO/Pontal)
 - Plataforma: Politiza IA — restrita a admin_master e coordenador_estadual
 
-QUANDO GERAR RAIO-X COMPLETO:
-Estruture a resposta com:
+QUANDO GERAR RAIO-X COMPLETO (pesquise, investigue, raio-x, due diligence):
+Você DEVE começar SEMPRE a resposta com um bloco estruturado (obrigatório, sem exceção — o painel lateral depende dele):
+
+---RAIOX_START---
+NOME: nome completo do sujeito
+META: cargo · partido · município/UF
+SCORE: XX (0-100, score global ponderado)
+JUDICIAL: XX (0-100)
+REPUTACIONAL: XX (0-100)
+REGULATORIO: XX (0-100)
+SOCIETARIO: XX (0-100)
+RISCO: baixo|moderado|alto
+ALERTA1: red|amber|green | texto curto do alerta
+ALERTA2: red|amber|green | texto curto do alerta
+ALERTA3: red|amber|green | texto curto do alerta
+ALERTA4: red|amber|green | texto curto do alerta (opcional)
+ALERTA5: red|amber|green | texto curto do alerta (opcional)
+TL1: DD/MM/AAAA | red|amber|green | título curto | descrição
+TL2: DD/MM/AAAA | red|amber|green | título curto | descrição
+TL3: DD/MM/AAAA | red|amber|green | título curto | descrição
+TL4: DD/MM/AAAA | red|amber|green | título curto | descrição (opcional)
+TL5: DD/MM/AAAA | red|amber|green | título curto | descrição (opcional)
+---RAIOX_END---
+
+Após o bloco, escreva a análise completa em prosa estruturada:
 1. IDENTIDADE (nome, cargo, município, partido)
 2. SCORE GLOBAL (ponderado: judicial 40% + reputacional 30% + regulatório 20% + societário 10%)
 3. ALERTAS (🔴 crítico / ⚠ atenção / ✓ ok)
@@ -1686,12 +1709,24 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
 
     removeTyping();
 
+    // Tentar parsear bloco RAIOX estruturado e atualizar painel lateral
+    var raioxParsed = parseRaioXBlock(aiText);
+    var displayText = aiText;
+    if(raioxParsed){
+      updateRaioX(raioxParsed);
+      state.currentProfile = raioxParsed;
+      document.getElementById('subjectName').textContent = raioxParsed.name;
+      document.getElementById('subjectSub').textContent = raioxParsed.meta;
+      // Remover bloco cru do texto exibido
+      displayText = aiText.replace(/---RAIOX_START---[\s\S]*?---RAIOX_END---/,'').trim();
+    }
+
     // Formatar texto para HTML
-    var html = formatResponse(aiText);
+    var html = formatResponse(displayText);
     addMessage('ai', html);
 
-    // Tentar extrair score e atualizar Raio-X automaticamente
-    tryExtractAndUpdateScore(aiText, text);
+    // Fallback: se não veio bloco estruturado, tentar extrair score do texto livre
+    if(!raioxParsed) tryExtractAndUpdateScore(aiText, text);
 
     // Registrar consulta para o dashboard de gastos
     var tipoConsulta = /pesquise|investigue|raio.?x|pesquisa completa/i.test(text)
@@ -1719,6 +1754,60 @@ function formatResponse(text){
     .replace(/✓/g, '<span style="color:#00e8a2">✓</span>')
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>');
+}
+
+/* parser do bloco RAIOX_START/END emitido pela IA */
+function parseRaioXBlock(text){
+  var m = text.match(/---RAIOX_START---([\s\S]*?)---RAIOX_END---/);
+  if(!m) return null;
+  var body = m[1];
+  function grab(key){
+    var re = new RegExp('^\\s*'+key+'\\s*:\\s*(.+)$','im');
+    var mm = body.match(re); return mm ? mm[1].trim() : '';
+  }
+  function num(key, fb){
+    var v = grab(key); var n = parseInt((v.match(/\d+/)||[])[0]);
+    return isNaN(n) ? fb : Math.max(0, Math.min(100, n));
+  }
+  var name = grab('NOME') || (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  var meta = grab('META') || 'Gerado por IA · '+new Date().toLocaleDateString('pt-BR');
+  var score = num('SCORE', 50);
+  var jud = num('JUDICIAL', score);
+  var rep = num('REPUTACIONAL', Math.round(score*.8));
+  var reg = num('REGULATORIO', Math.round(score*.85)) || num('REGULATÓRIO', Math.round(score*.85));
+  var soc = num('SOCIETARIO', Math.round(score*.7)) || num('SOCIETÁRIO', Math.round(score*.7));
+  var riscoRaw = grab('RISCO').toLowerCase();
+  var risk = /alto/.test(riscoRaw) ? 'alto' : /mod/.test(riscoRaw) ? 'mod' : /baix/.test(riscoRaw) ? 'baixo'
+             : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
+  var alerts = [];
+  for(var i=1;i<=8;i++){
+    var line = grab('ALERTA'+i); if(!line) continue;
+    var parts = line.split('|').map(function(s){return s.trim();});
+    var lv = (parts[0]||'').toLowerCase();
+    if(!/^(red|amber|green)$/.test(lv)) lv = 'amber';
+    alerts.push({l: lv, txt: parts.slice(1).join(' | ') || line});
+  }
+  var timeline = [];
+  for(var j=1;j<=8;j++){
+    var tline = grab('TL'+j); if(!tline) continue;
+    var tp = tline.split('|').map(function(s){return s.trim();});
+    var lvT = (tp[1]||'amber').toLowerCase();
+    var color = lvT==='red'?'#ff3355':lvT==='green'?'#00e8a2':'#ffaa00';
+    timeline.push({date: tp[0]||'', color: color, title: tp[2]||'—', body: tp[3]||''});
+  }
+  return {
+    id: 'raiox_'+Date.now(),
+    name: name, meta: meta,
+    score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
+    alerts: alerts,
+    achados: [
+      {lbl:'Score Global',val:score,desc:'Ponderado 4 dimensões'},
+      {lbl:'Judicial',val:jud,desc:'Processos e ações'},
+      {lbl:'Reputacional',val:rep,desc:'Mídia e menções'},
+      {lbl:'Regulatório',val:reg,desc:'Órgãos de controle'}
+    ],
+    timeline: timeline
+  };
 }
 
 /* tentar extrair score da resposta e atualizar painel */
