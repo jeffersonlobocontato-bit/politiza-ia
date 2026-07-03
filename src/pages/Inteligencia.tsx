@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import AnaliseIAChat from '@/components/inteligencia/AnaliseIAChat';
 import { Button } from '@/components/ui/button';
+import { useSurveys } from '@/hooks/useSurveys';
 
 // ============================================================
 // DADOS
@@ -146,15 +147,44 @@ const TendenciaIcon = ({ t }: { t: string }) => {
 // ============================================================
 export default function Inteligencia() {
   const [incluirIGR, setIncluirIGR] = useState(false);
+  const { data: surveysData } = useSurveys();
+
+  // Rows das pesquisas cadastradas na aba "Pesquisas" convertidas para o formato do painel.
+  const dbRows = useMemo(() => {
+    const waves = surveysData?.waves ?? [];
+    const questions = surveysData?.questions ?? [];
+    const rows: typeof PESQUISAS = [];
+    waves.forEach(w => {
+      const govQs = questions.filter(q => q.waveId === w.id && q.cargo === 'governador');
+      const main = govQs.find(q => q.isMainScenario) ?? govQs.find(q => /cen[aá]rio\s*1/i.test(q.scenarioLabel)) ?? govQs[0];
+      if (!main) return;
+      main.results.forEach(r => {
+        rows.push({
+          inst: w.institute,
+          data: w.releaseDate,
+          cand: r.candidate,
+          pct: r.percentage,
+          n: w.sampleSize,
+          margem: Number(w.marginOfError),
+          cargo: 'Governador',
+          cenario: 'C1',
+        });
+      });
+    });
+    return rows;
+  }, [surveysData]);
+
+  const pesquisasAll = useMemo(() => [...PESQUISAS, ...dbRows], [dbRows]);
+  const dbInstitutos = useMemo(() => [...new Set(dbRows.map(r => r.inst))], [dbRows]);
 
   const institutosAtivos = useMemo(() => {
-    const base = ['Neokemp', 'PP mai/26', 'Veritá', 'PP jun/26'];
+    const base = ['Neokemp', 'PP mai/26', 'Veritá', 'PP jun/26', ...dbInstitutos];
     return incluirIGR ? [...base, 'IGR'] : base;
-  }, [incluirIGR]);
+  }, [incluirIGR, dbInstitutos]);
 
-  const agregado = useMemo(() => calcularAgregado(PESQUISAS, institutosAtivos), [institutosAtivos]);
+  const agregado = useMemo(() => calcularAgregado(pesquisasAll, institutosAtivos), [pesquisasAll, institutosAtivos]);
 
-  const ppJun = PESQUISAS.filter(p => p.inst === 'PP jun/26').sort((a, b) => b.pct - a.pct);
+  const ppJun = pesquisasAll.filter(p => p.inst === 'PP jun/26').sort((a, b) => b.pct - a.pct);
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -490,7 +520,7 @@ export default function Inteligencia() {
         </TabsContent>
         {/* ============= ABA CRUZAMENTO ============= */}
         <TabsContent value="cruzamento" className="space-y-6 mt-6">
-          <CruzamentoPesquisas />
+          <CruzamentoPesquisas pesquisas={pesquisasAll} />
         </TabsContent>
 
         {/* ============= ABA ANÁLISE IA ============= */}
@@ -500,7 +530,7 @@ export default function Inteligencia() {
               candidato: 'Sérgio Moro',
               cargo: 'Governador do Paraná 2026',
               institutosAtivos,
-              pesquisas: PESQUISAS,
+              pesquisas: pesquisasAll,
               segmentos: SEGMENTOS,
               rejeicao: REJEICAO,
               limiares: LIMIARES,
@@ -523,9 +553,10 @@ export default function Inteligencia() {
 // ============================================================
 // CRUZAMENTO DE PESQUISAS
 // ============================================================
-function CruzamentoPesquisas() {
-  const institutos = useMemo(() => [...new Set(PESQUISAS.map(p => p.inst))], []);
-  const candidatos = useMemo(() => [...new Set(PESQUISAS.map(p => p.cand))], []);
+type PesquisaRow = (typeof PESQUISAS)[number];
+function CruzamentoPesquisas({ pesquisas: PESQUISAS }: { pesquisas: PesquisaRow[] }) {
+  const institutos = useMemo(() => [...new Set(PESQUISAS.map(p => p.inst))], [PESQUISAS]);
+  const candidatos = useMemo(() => [...new Set(PESQUISAS.map(p => p.cand))], [PESQUISAS]);
 
   const [selInst, setSelInst] = useState<string[]>(institutos);
   const [selCand, setSelCand] = useState<string[]>(candidatos);
