@@ -530,7 +530,7 @@ export default function Inteligencia() {
               candidato: 'Sérgio Moro',
               cargo: 'Governador do Paraná 2026',
               institutosAtivos,
-              pesquisas: PESQUISAS,
+              pesquisas: pesquisasAll,
               segmentos: SEGMENTOS,
               rejeicao: REJEICAO,
               limiares: LIMIARES,
