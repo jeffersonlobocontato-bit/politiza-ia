@@ -262,6 +262,43 @@ export default function Inteligencia() {
 
         {/* ============= ABA 1: PAINEL GERAL ============= */}
         <TabsContent value="painel" className="space-y-6 mt-6">
+          {institutosComMultiCenarios.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <GitCompare className="w-4 h-4 text-primary" />
+                  Cenários analisados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {institutosComMultiCenarios.map(([inst, cenarios]) => {
+                    const current = cenarioByInst[inst] ?? 'C1';
+                    return (
+                      <div key={inst} className="space-y-1.5">
+                        <div className="text-xs font-semibold">{inst}</div>
+                        <select
+                          value={current}
+                          onChange={e => setCenarioByInst(prev => ({ ...prev, [inst]: e.target.value }))}
+                          className="w-full h-9 rounded-md border bg-background px-2 text-sm"
+                        >
+                          {cenarios.map(c => (
+                            <option key={c.code} value={c.code}>
+                              {c.code} · {c.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-3">
+                  O agregado ponderado e os gráficos usam o cenário escolhido para cada instituto. Institutos sem múltiplos cenários usam o cenário padrão.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard titulo="Intenção de voto" valor="42,3%" sublabel="PP jun/26 · estável" cor="#2a78d6" />
             <KpiCard titulo="Percepção de vitória" valor="47,9%" sublabel="eleitores acham que Moro ganha" cor="#1baf7a" />
