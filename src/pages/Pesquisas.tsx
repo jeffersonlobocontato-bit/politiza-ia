@@ -557,7 +557,7 @@ function TabBiblioteca({ waves, questions: allQuestions, onAdd, onUpdate, onDele
                 <FileText className="w-8 h-8 text-[#0FFCBE] shrink-0" />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{fileName}</div>
-                  <div className="text-xs text-muted-foreground">PDF · Pronto para importar</div>
+                  <div className="text-xs text-muted-foreground">{/\.json$/i.test(fileName) ? 'JSON' : 'PDF'} · Pronto para importar</div>
                 </div>
               </div>
               <div className="text-xs text-muted-foreground bg-[hsl(220,18%,16%)] rounded-lg p-3 space-y-1">
