@@ -45,6 +45,7 @@ import MapaEstrategicoImpressao from "./pages/MapaEstrategicoImpressao";
 import EventoPublico from "./pages/EventoPublico";
 import Eventos from "./pages/Eventos";
 import MalhaLogistica from "./pages/MalhaLogistica";
+import DueDiligence from "./pages/DueDiligence";
 
 const queryClient = new QueryClient({
   defaultOptions: {
