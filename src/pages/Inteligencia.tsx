@@ -20,6 +20,7 @@ import AnaliseIAChat from '@/components/inteligencia/AnaliseIAChat';
 import InsightsComunicacao from '@/components/inteligencia/InsightsComunicacao';
 import { Button } from '@/components/ui/button';
 import { useSurveys } from '@/hooks/useSurveys';
+import { toast } from 'sonner';
 
 // ============================================================
 // DADOS
@@ -173,7 +174,8 @@ export default function Inteligencia() {
   const [incluirIGR, setIncluirIGR] = useState(false);
   const { data: surveysData } = useSurveys();
   // Cenário escolhido por instituto (default = primeiro cenário disponível "C1").
-  const [cenarioByInst, setCenarioByInst] = useState<Record<string, string>>({});
+  const [appliedCenarioByInst, setAppliedCenarioByInst] = useState<Record<string, string>>({});
+  const [draftCenarioByInst, setDraftCenarioByInst] = useState<Record<string, string>>({});
 
   // Rows das pesquisas cadastradas na aba "Pesquisas" convertidas para o formato do painel.
   // Agora inclui TODOS os cenários (não só o principal), com códigos estáveis C1, C2, C3…
@@ -226,8 +228,8 @@ export default function Inteligencia() {
 
   // Filtra pesquisas usando o cenário escolhido para cada instituto (default C1).
   const pesquisasFiltered = useMemo(() => {
-    return pesquisasAll.filter(p => (cenarioByInst[p.inst] ?? 'C1') === p.cenario);
-  }, [pesquisasAll, cenarioByInst]);
+    return pesquisasAll.filter(p => (appliedCenarioByInst[p.inst] ?? 'C1') === p.cenario);
+  }, [pesquisasAll, appliedCenarioByInst]);
 
   const agregado = useMemo(() => calcularAgregado(pesquisasFiltered, institutosAtivos), [pesquisasFiltered, institutosAtivos]);
 
@@ -298,13 +300,13 @@ export default function Inteligencia() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {institutosComMultiCenarios.map(([inst, cenarios]) => {
-                    const current = cenarioByInst[inst] ?? 'C1';
+                    const current = draftCenarioByInst[inst] ?? 'C1';
                     return (
                       <div key={inst} className="space-y-1.5">
                         <div className="text-xs font-semibold">{inst}</div>
                         <select
                           value={current}
-                          onChange={e => setCenarioByInst(prev => ({ ...prev, [inst]: e.target.value }))}
+                          onChange={e => setDraftCenarioByInst(prev => ({ ...prev, [inst]: e.target.value }))}
                           className="w-full h-9 rounded-md border bg-background px-2 text-sm"
                         >
                           {cenarios.map(c => (
@@ -320,6 +322,21 @@ export default function Inteligencia() {
                 <p className="text-[11px] text-muted-foreground mt-3">
                   O agregado ponderado e os gráficos usam o cenário escolhido para cada instituto. Institutos sem múltiplos cenários usam o cenário padrão.
                 </p>
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    size="sm"
+                    disabled={Object.entries(draftCenarioByInst).every(
+                      ([k, v]) => appliedCenarioByInst[k] === v,
+                    ) && Object.keys(draftCenarioByInst).length === Object.keys(appliedCenarioByInst).length}
+                    onClick={() => {
+                      setAppliedCenarioByInst({ ...draftCenarioByInst });
+                      toast.success('Cenários aplicados. Gráficos e KPIs atualizados.');
+                    }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                    Analisar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -624,7 +641,7 @@ export default function Inteligencia() {
               institutosAtivos,
               pesquisas: pesquisasFiltered,
               pesquisas_todos_cenarios: pesquisasAll,
-              cenario_por_instituto: cenarioByInst,
+              cenario_por_instituto: appliedCenarioByInst,
               segmentos: SEGMENTOS,
               rejeicao: REJEICAO,
               limiares: LIMIARES,
@@ -649,7 +666,7 @@ export default function Inteligencia() {
               institutosAtivos,
               pesquisas: pesquisasFiltered,
               pesquisas_todos_cenarios: pesquisasAll,
-              cenario_por_instituto: cenarioByInst,
+              cenario_por_instituto: appliedCenarioByInst,
 
               segmentos: SEGMENTOS,
               rejeicao: REJEICAO,
