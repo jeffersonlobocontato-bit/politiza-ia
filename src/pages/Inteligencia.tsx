@@ -104,14 +104,15 @@ const LIMIARES = [
 ];
 
 const ACOES = [
-  { prioridade: 'urgente', acao: 'Consolidar alianças regionais', objetivo: 'Antecipar apoio de Ratinho a Sandro', segmento: 'Lideranças do interior' },
-  { prioridade: 'urgente', acao: "Comunicação 'voto útil no 1º turno'", objetivo: 'Converter percepção em voto ativo', segmento: 'Indecisos e jovens' },
-  { prioridade: 'alta', acao: 'Agenda em eventos religiosos', objetivo: 'Ampliar gap no eleitorado praticante', segmento: 'Evangélicos e católicos' },
-  { prioridade: 'alta', acao: 'Presença no interior (Cascavel, Maringá, Londrina)', objetivo: 'Capturar votos de Greca em queda', segmento: 'Classe média conservadora' },
-  { prioridade: 'alta', acao: 'Pautas de segurança e família', objetivo: 'Fechar gap feminino 35–59 anos', segmento: 'Mulheres +35' },
-  { prioridade: 'media', acao: 'Debates com postura presidencial', objetivo: 'Proteger voto de ensino superior', segmento: 'Alta escolaridade' },
-  { prioridade: 'media', acao: 'Comunicação digital para jovens', objetivo: 'Crescer em 16–24 anos (hoje 36,5%)', segmento: 'Jovens eleitores' },
-  { prioridade: 'continuo', acao: 'Monitoramento semanal de Sandro Alex', objetivo: 'Detectar cruzamento do limiar de 13%', segmento: '—' },
+  { prioridade: 'urgente', acao: 'Consolidar alianças regionais', objetivo: 'Antecipar movimento de apoio governista a Sandro Alex', segmento: 'Lideranças do interior' },
+  { prioridade: 'urgente', acao: "Reforçar narrativa 'guardião do dinheiro das famílias'", objetivo: 'Reposicionar Moro além do rótulo de ex-juiz — cuidar do dinheiro do povo e proteger famílias', segmento: 'Base ampliada e indecisos' },
+  { prioridade: 'urgente', acao: "Comunicação 'cada voto conta para garantir o 1º turno'", objetivo: 'Converter percepção de vitória em voto ativo e evitar acomodação', segmento: 'Indecisos e jovens' },
+  { prioridade: 'alta', acao: 'Agenda em eventos religiosos', objetivo: 'Ampliar gap no eleitorado praticante com pauta de família e proteção', segmento: 'Evangélicos e católicos' },
+  { prioridade: 'alta', acao: 'Presença no interior (Cascavel, Maringá, Londrina)', objetivo: 'Ser o destino natural do eleitor de Greca em queda — sem desrespeitar trajetória', segmento: 'Classe média conservadora' },
+  { prioridade: 'alta', acao: 'Pautas de segurança e proteção às famílias', objetivo: 'Fechar gap feminino 35–59 anos com cuidado, segurança e custo de vida', segmento: 'Mulheres +35' },
+  { prioridade: 'media', acao: 'Debates com postura presidencial e propositiva', objetivo: 'Proteger voto de alta escolaridade e evitar elevação de rejeição', segmento: 'Alta escolaridade' },
+  { prioridade: 'media', acao: 'Comunicação digital para jovens', objetivo: 'Crescer em 16–24 anos (hoje 36,5%) com pauta de futuro e oportunidade no PR', segmento: 'Jovens eleitores' },
+  { prioridade: 'continuo', acao: 'Monitoramento semanal de Sandro Alex', objetivo: 'Detectar cruzamento do limiar de 13% e ativar plano de contenção', segmento: '—' },
 ];
 
 const COR_CAND: Record<string, string> = {
@@ -426,18 +427,18 @@ export default function Inteligencia() {
           </Card>
 
           {[
-            { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Formalização do apoio de Ratinho Jr. a Sandro Alex',
-              desc: 'Sem declaração formal, Sandro já cresceu 2,1 p.p. em um mês. Com apoio explícito, modelos sugerem salto de 4–6 p.p. adicionais, colocando-o próximo de 15–17%.',
-              acao: 'Consolidar alianças com lideranças regionais do campo governista antes da declaração formal. Criar percepção de que esse campo já está com Moro.' },
+            { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Crescimento de Sandro Alex por transferência de apoio',
+              desc: 'Sem declaração formal, Sandro já subiu 2,1 p.p. em um mês. Com apoio explícito do governador, modelos indicam salto adicional de 4–6 p.p., colocando-o próximo de 15–17%. O candidato ainda não tem narrativa própria — cresce por padrinho político.',
+              acao: 'Consolidar alianças com lideranças regionais do campo governista antes da formalização e ocupar o interior com a narrativa "guardião do dinheiro das famílias". Contraste factual sobre dependência de padrinho político, SEM acusação de uso de máquina sem prova.' },
             { sev: 'Moderada', cor: 'bg-amber-500', titulo: 'Gap feminino estrutural',
               desc: 'Diferença de 7,2 p.p. entre homens (46,1%) e mulheres (38,9%). Melhorar 5 p.p. entre mulheres equivale a +2,7 p.p. na média geral — suficiente para cruzar 45%.',
-              acao: 'Pautas de segurança, saúde e família. Presença em contextos comunitários e religiosos onde o gap já é menor.' },
+              acao: 'Pautas de proteção às famílias — segurança, saúde, custo de vida e cuidado com crianças e idosos. Protagonismo de mulheres-referência e presença em contextos comunitários e religiosos onde o gap já é menor.' },
             { sev: 'Latente', cor: 'bg-orange-500', titulo: 'Efeito de acomodação do voto',
               desc: '47,9% acham que Moro vai ganhar — maior que a própria intenção (42,3%). Quando o eleitor acha que o resultado está decidido, parte migra para candidatos menores ou fica em casa.',
-              acao: 'Comunicação "cada voto conta para garantir o primeiro turno". Ativar o eleitor já decidido.' },
+              acao: 'Comunicação "cada voto conta para garantir o 1º turno". Ativar o eleitor já decidido com peças de mobilização, não apenas persuasão.' },
             { sev: 'Controlada', cor: 'bg-emerald-600', titulo: 'Rejeição própria (23,6%)',
-              desc: 'Segundo menor do campo, estável entre mai e jun. Risco de elevação em caso de confrontos diretos em debates.',
-              acao: 'Postura presidencial, propositiva. Evitar ataques a rivais menores.' },
+              desc: 'Segundo menor do campo, estável entre mai e jun. Risco de elevação em caso de confrontos ríspidos em debates ou ataques desproporcionais a rivais menores.',
+              acao: 'Postura presidencial, propositiva e responsável — falar como quem já governa. Evitar ataques a rivais menores e usar sempre vocabulário responsável ao mencionar adversários ("indícios", "apontamentos", "precisa ser explicado").' },
           ].map((a, i) => (
             <Card key={i}>
               <CardContent className="p-4 flex gap-4">
@@ -458,17 +459,17 @@ export default function Inteligencia() {
         <TabsContent value="oport" className="space-y-4 mt-6">
           {[
             { icon: Heart, titulo: 'Eleitorado feminino — MAIOR OPORTUNIDADE', dado: 'Mulheres 38,9% vs Homens 46,1% — gap de 7,2 p.p. | 52% do eleitorado do PR',
-              analise: 'Maior bolsão eleitoral disponível em volume absoluto. Mulheres são 52% do eleitorado paranaense — cada 1 p.p. ganhado nesse grupo equivale a ~0,52 p.p. no total. Concentrar em: (1) Mulheres 35–59 anos com pautas de segurança pública, família e custo de vida; (2) Mulheres jovens com agenda de oportunidades e empreendedorismo; (3) Mães e cuidadoras com educação, saúde e creches. Comunicação por mulheres-referência (lideranças, candidatas proporcionais, vereadoras aliadas) e presença em territórios femininos (igrejas, escolas, mercados, salões).' },
+              analise: 'Maior bolsão eleitoral disponível em volume absoluto. Mulheres são 52% do eleitorado paranaense — cada 1 p.p. ganhado nesse grupo equivale a ~0,52 p.p. no total. Enquadrar Moro como quem PROTEGE FAMÍLIAS e CUIDA DO DINHEIRO DO POVO. Concentrar em: (1) Mulheres 35–59 anos com pautas de segurança pública, cuidado com crianças/idosos e custo de vida; (2) Mulheres jovens com agenda de oportunidade e futuro no PR; (3) Mães e cuidadoras com educação, saúde e creches. Comunicação por mulheres-referência (lideranças, candidatas proporcionais, vereadoras aliadas) e presença em territórios femininos (igrejas, escolas, mercados, salões).' },
             { icon: Shield, titulo: 'Pautas de Proteção Especial', dado: 'Proteção às crianças, mulheres e idosos',
-              analise: 'Um dos principais vetores de aproximação com o eleitorado feminino e familiar. Pautas como combate à violência doméstica, segurança nas escolas, apoio à pessoa idosa e políticas de cuidado geram alta identificação emocional e diferenciação positiva. Devem aparecer de forma recorrente na comunicação, com protagonismo de mulheres da base e alinhamento com lideranças comunitárias, entidades de proteção e conselhos tutelares.' },
+              analise: 'Vetor central da tese "guardião das famílias paranaenses". Combate à violência doméstica, segurança nas escolas, apoio à pessoa idosa e políticas de cuidado geram alta identificação emocional e diferenciação positiva pró-Moro. Devem aparecer de forma recorrente, com protagonismo de mulheres da base e alinhamento com lideranças comunitárias, entidades de proteção e conselhos tutelares.' },
             { icon: Church, titulo: 'Eleitorado religioso', dado: 'Praticantes 48,6% vs não-praticantes 35,5% — gap de 13,1 p.p.',
-              analise: 'Maior gap segmental. 68% do eleitorado paranaense tem prática religiosa. Espaço de crescimento ainda existente dentro desse grupo.' },
+              analise: 'Maior gap segmental. 68% do eleitorado paranaense tem prática religiosa. Espaço de crescimento ainda existente dentro desse grupo, com narrativa de cuidado com o dinheiro público, família e proteção comunitária.' },
             { icon: GraduationCap, titulo: 'Ensino superior', dado: 'Superior 50,8% vs Fundamental 31,6% — gap de 19,2 p.p.',
-              analise: 'Maior penetração atual. Ação é defensiva — proteger esse grupo de narrativas adversárias em debates. 59,6% deles acham que Moro vai ganhar.' },
+              analise: 'Maior penetração atual. Ação é defensiva — proteger esse grupo de narrativas adversárias em debates, sustentando postura presidencial e propositiva. 59,6% deles acham que Moro vai ganhar — risco de acomodação.' },
             { icon: MapPin, titulo: 'Votos de Greca disponíveis', dado: 'Greca caiu 2,4 p.p. — votos em trânsito compatíveis com o perfil de Moro',
-              analise: 'Queda concentrada fora de Curitiba. Perfil de eleitor de Greca (conservador moderado, classe média, escolaridade média-alta) é compatível com Moro. Interior prioritário: Cascavel (55,9%), Londrina (47,7%), Maringá (50,3%).' },
+              analise: 'Queda concentrada fora de Curitiba. Perfil de eleitor de Greca (conservador moderado, classe média, escolaridade média-alta) é compatível com Moro. Abordagem RESPEITOSA — Moro é destino natural desse voto, sem desrespeitar a trajetória de Greca. Interior prioritário: Cascavel (55,9%), Londrina (47,7%), Maringá (50,3%).' },
             { icon: ArrowRight, titulo: 'Garantir o primeiro turno', dado: '~47% dos votos válidos — faltam ~3 p.p. para 50%+1',
-              analise: 'Objetivo mais estratégico. Vencer no primeiro turno elimina qualquer risco de coaligação adversária no segundo. Comunicação de "voto útil" é a ferramenta mais eficiente.' },
+              analise: 'Objetivo mais estratégico. Vencer no 1º turno elimina qualquer risco de coalizão adversária no 2º. Comunicação de "cada voto conta" — mobilização + persuasão, com frase-mãe da tese.' },
           ].map((o, i) => {
             const Icon = o.icon;
             return (
@@ -504,9 +505,9 @@ export default function Inteligencia() {
                 </thead>
                 <tbody>
                   {[
-                    { c: 'Requião Filho', i: '19,9%', t: '→ estável', r: '35,0%', rc: 'text-red-500', teto: '~22%', v: 'Alta rejeição estrutural — teto atingido' },
-                    { c: 'Sandro Alex', i: '10,7% ▲', t: '↑ subindo', r: '9,1%', rc: '', teto: '~18–20%', v: 'Crescimento dependente de Ratinho Jr., sem narrativa própria' },
-                    { c: 'Rafael Greca', i: '13,9% ▼', t: '↓ caindo', r: '13,2%', rc: '', teto: '~15%', v: 'Queda de narrativa — eleitor migra ao perceber tendência' },
+                    { c: 'Requião Filho', i: '19,9%', t: '→ estável', r: '35,0%', rc: 'text-red-500', teto: '~22%', v: 'Alta rejeição estrutural — teto praticamente atingido. Contraste de futuro, segurança e gestão.' },
+                    { c: 'Sandro Alex', i: '10,7% ▲', t: '↑ subindo', r: '9,1%', rc: '', teto: '~18–20%', v: 'Crescimento derivado de padrinho político. Sem narrativa própria. Contenção agora.' },
+                    { c: 'Rafael Greca', i: '13,9% ▼', t: '↓ caindo', r: '13,2%', rc: '', teto: '~15%', v: 'Voto em trânsito. Moro é destino natural — abordagem respeitosa.' },
                   ].map((r, i) => (
                     <tr key={i} className="border-b">
                       <td className="py-2 pr-3 font-medium">{r.c}</td>
@@ -528,8 +529,8 @@ export default function Inteligencia() {
               <Badge className="bg-emerald-600">Contido — teto atingido</Badge>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Rejeição como barreira natural. 35% não votam nele de forma alguma. Não atacar diretamente para não gerar empatia.</div>
-              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Explorar rejeição nos segmentos: masculino rejeita em 42,4%; evangélicos em 39,8%. Nesses grupos, basta lembrar quem é Requião.</div>
+              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Rejeição estrutural de 35% funciona como barreira natural. NÃO atacar diretamente — gera empatia. Contraste deve ser de FUTURO, SEGURANÇA e GESTÃO.</div>
+              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Explorar rejeição nos segmentos: masculino rejeita em 42,4%; evangélicos em 39,8%. Nesses grupos, basta lembrar quem é Requião — sem ofender.</div>
             </CardContent>
           </Card>
 
@@ -539,9 +540,9 @@ export default function Inteligencia() {
               <Badge className="bg-amber-500">Monitorar — crescendo</Badge>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Janela de contenção é agora. Ainda sem narrativa consolidada além do apoio de Ratinho Jr.</div>
-              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Vulnerabilidade central — dependência do governador. Crescimento derivado, não por mérito próprio.</div>
-              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Disputa o mesmo eleitor que Moro (conservador, religioso, interior). Ocupar com intensidade antes que Sandro chegue.</div>
+              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Janela de contenção é AGORA. Sem narrativa própria consolidada — cresce por transferência de apoio de padrinho político.</div>
+              <div className="p-3 rounded border-l-4 border-l-amber-500 bg-amber-500/5">Vulnerabilidade central: dependência de padrinho político. Crescimento derivado, não por mérito próprio. NÃO acusar uso de máquina sem prova — usar contraste factual e vocabulário responsável.</div>
+              <div className="p-3 rounded border-l-4 border-l-blue-500 bg-blue-500/5">Disputa o mesmo eleitor que Moro (conservador, religioso, interior). Ocupar com intensidade — Moro é o guardião do dinheiro das famílias.</div>
             </CardContent>
           </Card>
 
@@ -551,7 +552,7 @@ export default function Inteligencia() {
               <Badge className="bg-emerald-600">Favorável — em queda</Badge>
             </CardHeader>
             <CardContent className="text-sm">
-              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Queda por dinâmica própria — voto de prefeito não migra para governador. Ser o destino natural sem precisar empurrar a queda.</div>
+              <div className="p-3 rounded border-l-4 border-l-emerald-500 bg-emerald-500/5">Queda por dinâmica própria — voto de prefeito não migra automaticamente para governador. Ser destino natural desse voto SEM desrespeitar a trajetória de Greca. Abordagem respeitosa, foco em continuidade de cuidado com a cidade + Estado.</div>
             </CardContent>
           </Card>
 
@@ -826,21 +827,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes: { h: string; itens: string[] }[] }> = {
   comunicacao: {
     titulo: 'Plano de comunicação digital — 90 dias',
-    subtitulo: 'WhatsApp, Instagram, TikTok e YouTube · foco em conversão de indecisos e gap feminino',
+    subtitulo: 'WhatsApp, Instagram, TikTok e YouTube · foco em conversão de indecisos, gap feminino e tese "guardião do dinheiro das famílias paranaenses"',
     secoes: [
-      { h: 'Mês 1 — Consolidação da marca (semanas 1-4)', itens: [
-        'Narrativa central: "Paraná seguro, justo e que cuida das pessoas".',
-        'Pílulas semanais (3/semana) com Moro falando de segurança, custo de vida e família.',
-        'Operação WhatsApp: 1 áudio + 1 card por dia para grupos das 19 Associações.',
+      { h: 'Mês 1 — Consolidação da tese (semanas 1-4)', itens: [
+        'Frase-mãe: "Moro é o guardião do dinheiro das famílias paranaenses — quem protegeu o dinheiro público jamais governará como se fosse seu."',
+        'Pílulas semanais (3/semana) com Moro falando de proteção às famílias, custo de vida, segurança e cuidado com o dinheiro público.',
+        'Operação WhatsApp: 1 áudio + 1 card por dia para grupos das 19 Associações, sempre reposicionando pautas dentro da tese.',
         'Ativação de 60 mulheres-referência (lideranças, candidatas proporcionais) como vozes amplificadoras.',
       ] },
-      { h: 'Mês 2 — Diferenciação vs adversários (semanas 5-8)', itens: [
-        'Conteúdo comparativo Moro x Requião Filho em segurança e gestão pública.',
+      { h: 'Mês 2 — Contraste com adversários (semanas 5-8)', itens: [
+        'Conteúdo comparativo Moro x Requião Filho em SEGURANÇA, GESTÃO e FUTURO — sem ataques que gerem empatia.',
         'Série "Cada voto conta no 1º turno" — vídeos de 30s com militantes de cada macrorregião.',
-        'Resposta rápida ao crescimento de Sandro Alex: monitoramento de menções + cards de contraste em 24h.',
-        'Lives quinzenais com pautas de proteção (mulheres, crianças, idosos).',
+        'Resposta rápida ao crescimento de Sandro Alex: contraste factual sobre dependência de padrinho político, SEM acusar uso de máquina sem prova. Vocabulário responsável ("indícios", "apontamentos", "precisa ser explicado").',
+        'Lives quinzenais com pautas de proteção (mulheres, crianças, idosos) e cuidado com o dinheiro público chegando onde precisa.',
       ] },
-      { h: 'Mês 3 — Conversão e voto útil (semanas 9-12)', itens: [
+      { h: 'Mês 3 — Conversão e mobilização (semanas 9-12)', itens: [
         'Operação "1º turno": peças com simulação de cenário (Moro 47% vs 2º turno arriscado).',
         'Push regional: vídeos territorializados por macrorregião com prefeitos e lideranças locais.',
         'Onda final WhatsApp: 2 áudios/dia + corrente de prefeitos aliados.',
@@ -862,11 +863,11 @@ const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes
       { h: 'Tipos de evento recomendados', itens: [
         'Encontros com mulheres-referência (1/semana) — meta: zerar gap feminino até set/26.',
         'Reuniões com lideranças religiosas (não-praticantes têm gap de 13,1 p.p. — equilibrar).',
-        'Visitas a escolas técnicas e universidades — alvo 16-24 anos.',
+        'Visitas a escolas técnicas e universidades — alvo 16-24 anos, pauta de futuro no PR.',
         'Cafés com prefeitos aliados — reforço da rede de coordenação municipal.',
       ] },
       { h: 'Regra de ouro', itens: [
-        'Toda agenda pública vira: 1 vídeo nativo + 1 card + 1 áudio para WhatsApp em até 6h.',
+        'Toda agenda pública vira: 1 vídeo nativo + 1 card + 1 áudio para WhatsApp em até 6h — sempre reposicionando a fala dentro da tese "guardião das famílias".',
         'Registrar no módulo Ações de Campo com geolocalização e impacto estimado.',
       ] },
     ],
@@ -883,13 +884,13 @@ const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes
         'Cobertura territorial: % das 399 cidades com pelo menos 1 ação no mês.',
       ] },
       { h: 'Fontes de dados', itens: [
-        'Pesquisas (Neokemp, Veritá, PP, IGR, Atlas) — atualização imediata em /pesquisas/base.',
+        'Pesquisas (Neokemp, Veritá, PP, IGR, Atlas, Vox) — atualização imediata em /pesquisas/base.',
         'Tracking eleitoral próprio (módulo Tracking) — coletas semanais por entrevistadores.',
         'Ações de campo georreferenciadas (módulo Campo).',
         'Alertas estratégicos gerados por IA na Sala de Crise.',
       ] },
       { h: 'Briefing semanal (toda segunda 8h)', itens: [
-        'Resumo de 1 página: variação dos 5 indicadores + 3 alertas + 3 ações sugeridas.',
+        'Resumo de 1 página: variação dos 5 indicadores + 3 alertas + 3 ações sugeridas pró-Moro.',
         'Distribuição: Coordenação Geral, Coordenação Estadual, Coordenadores Macrorregionais.',
         'Reunião de 30min com a Sala de Guerra para definir prioridades da semana.',
       ] },
@@ -897,26 +898,29 @@ const PLANOS_DETALHE: Record<string, { titulo: string; subtitulo: string; secoes
   },
   pautas: {
     titulo: 'Pautas e posicionamento',
-    subtitulo: 'O que o eleitorado quer ouvir — calibrado pelos dados de segmento e rejeição',
+    subtitulo: 'O que o eleitorado quer ouvir — calibrado pelos dados de segmento, tese "guardião do dinheiro das famílias" e vocabulário responsável',
     secoes: [
       { h: 'Pautas vencedoras (alto retorno)', itens: [
-        'Segurança pública: combate ao crime organizado, polícia valorizada, fronteiras.',
-        'Família e proteção: mulheres, crianças e idosos — pauta com maior identificação emocional.',
-        'Custo de vida: ICMS, energia, alimentos — fala direto às mulheres 35-59.',
-        'Honestidade e combate à corrupção — marca histórica de Moro, ativo único.',
+        'Proteção às famílias: segurança pública, combate ao crime organizado, polícia valorizada, fronteiras — traduzido como "proteger o pai, a mãe, o filho e o idoso".',
+        'Cuidado com o dinheiro público: obra com preço justo, fiscalização e entrega humana — dinheiro chegando onde precisa (saúde, educação, segurança).',
+        'Custo de vida: ICMS, energia, alimentos — fala direto às mulheres 35-59 e às famílias trabalhadoras.',
+        'Integridade e confiança: Moro é preparado para governar E cuidar do dinheiro do povo — reposicionar além do rótulo de "ex-juiz".',
+        'Futuro no PR: oportunidade para jovens ficarem, estudarem e vencerem no próprio Estado.',
       ] },
       { h: 'Pautas de equilíbrio (cuidar)', itens: [
-        'Saúde pública e SUS — terreno em que Requião Filho tenta avançar.',
+        'Saúde pública e SUS — terreno em que Requião Filho tenta avançar; enquadrar como cuidado com as famílias e dinheiro chegando ao posto.',
         'Educação técnica e empregabilidade jovem — para reduzir gap em 16-24 anos.',
-        'Agenda laica (cidadania, direitos) — para não-praticantes religiosos (gap de 13,1 p.p.).',
+        'Agenda de cidadania e direitos — para não-praticantes religiosos (gap de 13,1 p.p.).',
       ] },
       { h: 'Pautas a evitar / cuidado redobrado', itens: [
-        'Polarização nacional pura — desgasta o "voto útil" estadual.',
+        'Polarização nacional pura — desgasta o voto útil estadual.',
         'Discussões ideológicas sem entrega prática — alimenta rejeição.',
-        'Confronto direto com Ratinho Jr. — risco de afastar eleitor governista neutro.',
+        'Confronto direto e áspero com o governador — risco de afastar eleitor governista neutro; contraste deve ser sobre dependência de padrinho político de Sandro, não sobre a figura do governo.',
+        'Vocabulário de acusação sem prova: NUNCA usar "roubo", "fraude", "esquema", "crime", "quadrilha" ou "governo superfaturou". Usar "indícios", "apontamentos", "segundo reportagem", "precisa ser explicado".',
       ] },
       { h: 'Tom recomendado', itens: [
-        'Firmeza com empatia. Dado + história real. Sempre fechar com proposta concreta.',
+        'Firmeza com empatia. Postura presidencial. Dado + história real. Sempre fechar com proposta concreta.',
+        'Reposicionar Moro como GUARDIÃO DAS FAMÍLIAS — não apenas ex-juiz e não apenas combate à corrupção.',
         'Protagonismo feminino nas peças (cada 1 p.p. ganho em mulheres = 0,52 p.p. no total).',
       ] },
     ],
