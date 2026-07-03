@@ -68,8 +68,10 @@ const NOME_CANON: Record<string, string> = {
 };
 function normalizarCandidato(nome: string): string {
   if (!nome) return nome;
-  const key = nome.trim().toLowerCase();
-  return NOME_CANON[key] ?? nome.trim();
+  // Remove qualquer parênteses no final (ex.: "Sergio Moro (PL)", "Moro (apoiado por Lula)")
+  const semParenteses = nome.replace(/\s*\([^)]*\)\s*$/g, '').trim();
+  const key = semParenteses.toLowerCase();
+  return NOME_CANON[key] ?? semParenteses;
 }
 
 const SEGMENTOS = [
