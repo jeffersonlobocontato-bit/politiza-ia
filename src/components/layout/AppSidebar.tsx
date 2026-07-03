@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield
 } from 'lucide-react';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
   { title: 'Gestão de Equipe', url: '/gestao', icon: LayoutGrid, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
+  { title: 'Due Diligence', url: '/due-diligence', icon: Shield, scope: 'shared', malhaAdminOnly: true, highlight: true },
   { title: 'Inteligência', url: '/pesquisas', icon: ShieldAlert, scope: 'shared' },
   { title: 'Base de Pesquisas', url: '/pesquisas/base', icon: BarChart2, scope: 'shared' },
   { title: 'Emendas', url: '/emendas', icon: Banknote, scope: 'shared' },
