@@ -104,14 +104,15 @@ const LIMIARES = [
 ];
 
 const ACOES = [
-  { prioridade: 'urgente', acao: 'Consolidar alianças regionais', objetivo: 'Antecipar apoio de Ratinho a Sandro', segmento: 'Lideranças do interior' },
-  { prioridade: 'urgente', acao: "Comunicação 'voto útil no 1º turno'", objetivo: 'Converter percepção em voto ativo', segmento: 'Indecisos e jovens' },
-  { prioridade: 'alta', acao: 'Agenda em eventos religiosos', objetivo: 'Ampliar gap no eleitorado praticante', segmento: 'Evangélicos e católicos' },
-  { prioridade: 'alta', acao: 'Presença no interior (Cascavel, Maringá, Londrina)', objetivo: 'Capturar votos de Greca em queda', segmento: 'Classe média conservadora' },
-  { prioridade: 'alta', acao: 'Pautas de segurança e família', objetivo: 'Fechar gap feminino 35–59 anos', segmento: 'Mulheres +35' },
-  { prioridade: 'media', acao: 'Debates com postura presidencial', objetivo: 'Proteger voto de ensino superior', segmento: 'Alta escolaridade' },
-  { prioridade: 'media', acao: 'Comunicação digital para jovens', objetivo: 'Crescer em 16–24 anos (hoje 36,5%)', segmento: 'Jovens eleitores' },
-  { prioridade: 'continuo', acao: 'Monitoramento semanal de Sandro Alex', objetivo: 'Detectar cruzamento do limiar de 13%', segmento: '—' },
+  { prioridade: 'urgente', acao: 'Consolidar alianças regionais', objetivo: 'Antecipar movimento de apoio governista a Sandro Alex', segmento: 'Lideranças do interior' },
+  { prioridade: 'urgente', acao: "Reforçar narrativa 'guardião do dinheiro das famílias'", objetivo: 'Reposicionar Moro além do rótulo de ex-juiz — cuidar do dinheiro do povo e proteger famílias', segmento: 'Base ampliada e indecisos' },
+  { prioridade: 'urgente', acao: "Comunicação 'cada voto conta para garantir o 1º turno'", objetivo: 'Converter percepção de vitória em voto ativo e evitar acomodação', segmento: 'Indecisos e jovens' },
+  { prioridade: 'alta', acao: 'Agenda em eventos religiosos', objetivo: 'Ampliar gap no eleitorado praticante com pauta de família e proteção', segmento: 'Evangélicos e católicos' },
+  { prioridade: 'alta', acao: 'Presença no interior (Cascavel, Maringá, Londrina)', objetivo: 'Ser o destino natural do eleitor de Greca em queda — sem desrespeitar trajetória', segmento: 'Classe média conservadora' },
+  { prioridade: 'alta', acao: 'Pautas de segurança e proteção às famílias', objetivo: 'Fechar gap feminino 35–59 anos com cuidado, segurança e custo de vida', segmento: 'Mulheres +35' },
+  { prioridade: 'media', acao: 'Debates com postura presidencial e propositiva', objetivo: 'Proteger voto de alta escolaridade e evitar elevação de rejeição', segmento: 'Alta escolaridade' },
+  { prioridade: 'media', acao: 'Comunicação digital para jovens', objetivo: 'Crescer em 16–24 anos (hoje 36,5%) com pauta de futuro e oportunidade no PR', segmento: 'Jovens eleitores' },
+  { prioridade: 'continuo', acao: 'Monitoramento semanal de Sandro Alex', objetivo: 'Detectar cruzamento do limiar de 13% e ativar plano de contenção', segmento: '—' },
 ];
 
 const COR_CAND: Record<string, string> = {
