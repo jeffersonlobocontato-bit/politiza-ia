@@ -305,6 +305,24 @@ export default function AnaliseIAChat({ context }: Props) {
           <ConversationScrollButton />
         </Conversation>
 
+        <div className="border-t px-3 py-2 flex flex-wrap gap-1.5 bg-muted/30">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground self-center mr-1">
+            Ações rápidas
+          </span>
+          {ACOES_RAPIDAS.map((a) => (
+            <Button
+              key={a.id}
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              disabled={streaming}
+              onClick={() => send(a.prompt)}
+            >
+              {a.label}
+            </Button>
+          ))}
+        </div>
+
         <PromptInput
           onSubmit={(msg) => {
             const text = msg.text ?? input;
