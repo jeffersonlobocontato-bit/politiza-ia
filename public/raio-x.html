@@ -566,9 +566,130 @@ body::before {
 .at-scan-btn:disabled { opacity: .4; cursor: not-allowed; }
 
 /* ══════════════════════════════════════════
-   RESPONSIVE
+   DASHBOARD DE GASTOS
 ══════════════════════════════════════════ */
-@media (max-width: 900px) {
+.dash-panel {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  overflow-y: auto;
+  height: 100%;
+}
+.dash-panel::-webkit-scrollbar { width: 4px; }
+.dash-panel::-webkit-scrollbar-thumb { background: var(--card2); border-radius: 2px; }
+.dash-panel.active { display: flex; }
+
+/* Big Numbers */
+.bignums-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.bignum-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  transition: transform .18s, box-shadow .18s;
+}
+.bignum-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+.bignum-label {
+  font-family: var(--font-m); font-size: 8px; letter-spacing: 2px;
+  color: var(--lo); text-transform: uppercase; margin-bottom: 6px;
+}
+.bignum-val {
+  font-family: var(--font-d); font-size: 26px; font-weight: 700;
+  line-height: 1; margin-bottom: 3px;
+}
+.bignum-sub {
+  font-family: var(--font-m); font-size: 9px; color: var(--lo);
+}
+.bignum-trend {
+  font-family: var(--font-m); font-size: 9px; margin-top: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.trend-up   { color: #ff3355; }
+.trend-down { color: #00e8a2; }
+.trend-neu  { color: var(--lo); }
+
+/* Mini chart de barras */
+.minichart {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 12px 14px;
+}
+.minichart-title {
+  font-family: var(--font-m); font-size: 8px; letter-spacing: 2px;
+  color: var(--lo); text-transform: uppercase; margin-bottom: 10px;
+}
+.minichart-bars {
+  display: flex; align-items: flex-end; gap: 5px; height: 60px;
+}
+.mcbar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.mcbar {
+  width: 100%; border-radius: 3px 3px 0 0;
+  transition: height 1s ease-out;
+  min-height: 2px;
+}
+.mcbar-lbl { font-family: var(--font-m); font-size: 7px; color: var(--lo); }
+
+/* Tabela de consultas recentes */
+.consult-table { width: 100%; border-collapse: collapse; }
+.consult-table th {
+  font-family: var(--font-m); font-size: 8px; letter-spacing: 1.5px;
+  color: var(--lo); text-transform: uppercase;
+  border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left;
+}
+.consult-table td {
+  padding: 8px 8px; border-bottom: 1px solid var(--border2);
+  font-size: 11px; color: var(--mid); vertical-align: middle;
+}
+.consult-table tr:last-child td { border-bottom: none; }
+.consult-table tr:hover td { background: rgba(255,255,255,.015); }
+.ct-name { color: var(--hi); font-weight: 500; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-type-badge {
+  font-family: var(--font-m); font-size: 8px; padding: 2px 6px;
+  border-radius: 3px; white-space: nowrap;
+}
+.ctb-full    { background: rgba(0,232,162,.1);  color: var(--green);  border: 1px solid rgba(0,232,162,.2); }
+.ctb-digital { background: rgba(155,111,255,.1);color: var(--purple); border: 1px solid rgba(155,111,255,.2); }
+.ctb-followup{ background: rgba(61,159,255,.1); color: var(--blue);   border: 1px solid rgba(61,159,255,.2); }
+
+/* Donut de distribuição */
+.dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dist-label { font-family: var(--font-m); font-size: 9px; color: var(--lo); width: 90px; flex-shrink: 0; }
+.dist-track { flex: 1; height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; }
+.dist-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease-out; }
+.dist-pct { font-family: var(--font-m); font-size: 9px; color: var(--mid); width: 30px; text-align: right; }
+
+/* Tabs nav no raio-x-header */
+.rx-tabs { display: flex; gap: 0; flex: 1; }
+.rx-tab {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: 1px;
+  padding: 0 14px; height: 100%; display: flex; align-items: center;
+  color: var(--lo); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s; white-space: nowrap;
+}
+.rx-tab:hover { color: var(--mid); }
+.rx-tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* Custo badge inline */
+.cost-badge {
+  font-family: var(--font-m); font-size: 9px;
+  background: rgba(0,232,162,.08); color: var(--green);
+  border: 1px solid rgba(0,232,162,.15);
+  padding: 2px 8px; border-radius: 3px;
+}
+
+/* Spinner de sync */
+.sync-btn {
+  font-family: var(--font-m); font-size: 9px; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: var(--r-sm); cursor: pointer;
+  border: 1px solid var(--border); color: var(--lo); background: var(--card);
+  transition: all .15s;
+}
+.sync-btn:hover { border-color: rgba(0,232,162,.3); color: var(--green); }
+.sync-btn.syncing { opacity: .5; cursor: not-allowed; }
   .workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
   .col-left { display: none; }
   .col-right { max-height: 40vh; }
@@ -742,7 +863,7 @@ body::before {
 <div class="topbar">
   <span class="topbar-logo">RAIO-X</span>
   <span class="topbar-title">Due Diligence Intelligence</span>
-  <span class="topbar-hint">Digite o nome do sujeito e pressione Enter</span>
+  <span class="topbar-hint" id="topbarHint">Digite o nome do sujeito e pressione Enter</span>
   <span class="topbar-badge">RESTRITO · ADMIN</span>
 </div>
 
@@ -819,8 +940,12 @@ body::before {
   ═══════════════════════════════ -->
   <div class="col-right">
     <div class="raio-x-header">
-      <span class="raio-x-title">Raio-X ao vivo</span>
+      <div class="rx-tabs">
+        <div class="rx-tab active" id="tabRaioX" onclick="switchTab('raiox')">🔎 Raio-X</div>
+        <div class="rx-tab" id="tabGastos" onclick="switchTab('gastos')">💰 Gastos</div>
+      </div>
       <div class="raio-x-actions">
+        <button class="rx-btn sync-btn" id="syncBtn" onclick="syncToSupabase()" title="Sincronizar com Supabase">⟳ Sync</button>
         <button class="rx-btn" onclick="saveCurrentProfile()" title="Salvar perfil">💾 Salvar</button>
         <button class="rx-btn primary" onclick="printRaioX()" title="Exportar PDF">🖨 PDF</button>
       </div>
@@ -1013,6 +1138,110 @@ body::before {
 
       </div><!-- /raioXContent -->
     </div><!-- /raioXBody -->
+
+    <!-- ═══════════════════════════════
+         DASH DE GASTOS
+    ═══════════════════════════════ -->
+    <div class="dash-panel" id="dashPanel">
+
+      <!-- BIG NUMBERS -->
+      <div class="rx-section-label" style="margin-top:4px">Visão Geral</div>
+      <div class="bignums-grid">
+
+        <div class="bignum-card">
+          <div class="bignum-label">Total de consultas</div>
+          <div class="bignum-val" id="bnTotal" style="color:var(--green)">0</div>
+          <div class="bignum-sub">desde o início</div>
+          <div class="bignum-trend" id="bnTotalTrend"></div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Gasto acumulado</div>
+          <div class="bignum-val" id="bnGasto" style="color:var(--amber)">R$ 0,00</div>
+          <div class="bignum-sub">custo total estimado</div>
+          <div class="bignum-trend" id="bnGastoTrend"></div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Custo médio</div>
+          <div class="bignum-val" id="bnMedia" style="color:var(--blue)">R$ 0,00</div>
+          <div class="bignum-sub">por investigação</div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Este mês</div>
+          <div class="bignum-val" id="bnMes" style="color:var(--purple)">0</div>
+          <div class="bignum-sub" id="bnMesSub">consultas</div>
+          <div class="bignum-trend" id="bnMesTrend"></div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Perfil mais investigado</div>
+          <div class="bignum-val" id="bnTop" style="color:var(--red);font-size:14px;margin-top:4px">—</div>
+          <div class="bignum-sub" id="bnTopSub">—</div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Análises digitais</div>
+          <div class="bignum-val" id="bnDigital" style="color:var(--purple)">0</div>
+          <div class="bignum-sub">redes sociais analisadas</div>
+        </div>
+
+      </div>
+
+      <!-- GRÁFICO — Consultas por dia (últimos 7 dias) -->
+      <div class="rx-section-label">Consultas — últimos 7 dias</div>
+      <div class="minichart">
+        <div class="minichart-bars" id="miniChartBars">
+          <!-- preenchido pelo JS -->
+        </div>
+      </div>
+
+      <!-- DISTRIBUIÇÃO POR TIPO -->
+      <div class="rx-section-label">Distribuição por tipo</div>
+      <div class="card" style="padding:12px 14px">
+        <div class="dist-row">
+          <span class="dist-label">🔎 Pesquisa completa</span>
+          <div class="dist-track"><div class="dist-fill" id="distFull" style="background:var(--green);width:0%"></div></div>
+          <span class="dist-pct" id="distFullPct">0%</span>
+        </div>
+        <div class="dist-row">
+          <span class="dist-label">📡 Análise digital</span>
+          <div class="dist-track"><div class="dist-fill" id="distDigital" style="background:var(--purple);width:0%"></div></div>
+          <span class="dist-pct" id="distDigitalPct">0%</span>
+        </div>
+        <div class="dist-row" style="margin-bottom:0">
+          <span class="dist-label">💬 Follow-up</span>
+          <div class="dist-track"><div class="dist-fill" id="distFollowup" style="background:var(--blue);width:0%"></div></div>
+          <span class="dist-pct" id="distFollowupPct">0%</span>
+        </div>
+      </div>
+
+      <!-- CONSULTAS RECENTES -->
+      <div class="rx-section-label">Consultas recentes</div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="consult-table">
+          <thead>
+            <tr>
+              <th>Sujeito</th>
+              <th>Tipo</th>
+              <th>Custo</th>
+              <th>Quando</th>
+            </tr>
+          </thead>
+          <tbody id="consultTableBody">
+            <tr><td colspan="4" style="text-align:center;color:var(--lo);font-family:var(--font-m);font-size:10px;padding:16px">Nenhuma consulta registrada ainda</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- STATUS SYNC -->
+      <div style="font-family:var(--font-m);font-size:9px;color:var(--lo);text-align:center;padding:4px 0" id="syncStatus">
+        ⟳ Dados armazenados localmente · clique em Sync para enviar ao Supabase
+      </div>
+
+    </div><!-- /dashPanel -->
+
   </div><!-- /col-right -->
 
 </div><!-- /workspace -->
@@ -1025,11 +1254,43 @@ body::before {
    ESTADO GLOBAL
 ─────────────────────────────── */
 var state = {
-  profiles: [],          // perfis salvos
-  currentProfile: null,  // perfil ativo
+  profiles: [],
+  currentProfile: null,
   isLoading: false,
   conversationHistory: []
 };
+
+/* ───────────────────────────────
+   CONSTANTES DE CUSTO (Anthropic Sonnet 4.6)
+   Input:  US$ 3,00 / 1M tokens
+   Output: US$ 15,00 / 1M tokens
+   Câmbio: R$ 5,70
+─────────────────────────────── */
+var CUSTO = {
+  USD_BRL:          5.70,
+  INPUT_PER_TOKEN:  3.00  / 1_000_000,
+  OUTPUT_PER_TOKEN: 15.00 / 1_000_000,
+  // Estimativas médias por tipo de operação
+  PESQUISA_COMPLETA: { inputTokens: 850,  outputTokens: 700,  label: 'Pesquisa completa' },
+  ANALISE_DIGITAL:   { inputTokens: 700,  outputTokens: 500,  label: 'Análise digital'   },
+  FOLLOWUP:          { inputTokens: 300,  outputTokens: 200,  label: 'Follow-up'          }
+};
+
+function calcCustoUSD(tipo){
+  var t = CUSTO[tipo] || CUSTO.FOLLOWUP;
+  return (t.inputTokens * CUSTO.INPUT_PER_TOKEN) + (t.outputTokens * CUSTO.OUTPUT_PER_TOKEN);
+}
+function calcCustoBRL(tipo){ return calcCustoUSD(tipo) * CUSTO.USD_BRL; }
+function fmtBRL(v){ return 'R$ ' + v.toFixed(3).replace('.',','); }
+function fmtDate(ts){
+  var d = new Date(ts);
+  var now = new Date();
+  var diff = Math.floor((now - d) / 60000);
+  if(diff < 1)  return 'agora';
+  if(diff < 60) return diff + 'min atrás';
+  if(diff < 1440) return Math.floor(diff/60) + 'h atrás';
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+}
 
 /* ───────────────────────────────
    PERFIS DEMO (pré-carregados)
@@ -1100,6 +1361,7 @@ window.addEventListener('load', function(){
   state.profiles = JSON.parse(localStorage.getItem('aiox_profiles') || 'null') || demoProfiles;
   renderProfileList();
   loadNotes();
+  renderDashboard(); // ← NOVO
 
   // Ler parâmetros passados pelo Politiza IA via URL
   var params = new URLSearchParams(window.location.search);
@@ -1409,9 +1671,8 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
         messages: state.conversationHistory
       })
     });
-
+    if(!response.ok) throw new Error('HTTP ' + response.status);
     var data = await response.json();
-    if(!response.ok){ throw new Error(data.error || ('HTTP '+response.status)); }
     var aiText = data.text || 'Erro ao processar resposta.';
 
     // Adiciona resposta ao histórico
@@ -1430,6 +1691,11 @@ CRITÉRIOS DE ESPECTRO POLÍTICO (0-100):
 
     // Tentar extrair score e atualizar Raio-X automaticamente
     tryExtractAndUpdateScore(aiText, text);
+
+    // Registrar consulta para o dashboard de gastos
+    var tipoConsulta = /pesquise|investigue|raio.?x|pesquisa completa/i.test(text)
+      ? 'PESQUISA_COMPLETA' : 'FOLLOWUP';
+    registrarConsulta(tipoConsulta, state.currentProfile ? state.currentProfile.name : 'Sujeito não identificado');
 
   } catch(err){
     removeTyping();
@@ -1561,9 +1827,8 @@ async function analyzeDigital(){
         messages: state.conversationHistory
       })
     });
-
+    if(!response.ok) throw new Error('HTTP ' + response.status);
     var data = await response.json();
-    if(!response.ok){ throw new Error(data.error || ('HTTP '+response.status)); }
     var aiText = data.text || '';
     state.conversationHistory.push({role:'assistant', content: aiText});
     if(state.conversationHistory.length > 20)
@@ -1582,7 +1847,8 @@ async function analyzeDigital(){
       addMessage('ai', formatResponse(aiText));
     }
 
-  } catch(err){
+    // Registrar consulta para o dashboard
+    registrarConsulta('ANALISE_DIGITAL', display);
     removeTyping();
     addMessage('ai', '⚠ Erro ao analisar perfil: '+err.message);
   }
@@ -1804,8 +2070,313 @@ function loadNotes(){
   if(saved) document.getElementById('analystNotes').value = saved;
 }
 
+/* ═══════════════════════════════════════════════════
+   DASHBOARD DE GASTOS — FUNÇÕES COMPLETAS
+═══════════════════════════════════════════════════ */
+
+/* --- REGISTRAR CONSULTA --- */
+function registrarConsulta(tipo, sujeito){
+  var consultas = JSON.parse(localStorage.getItem('aiox_consultas') || '[]');
+  var consulta = {
+    id:        Date.now(),
+    tipo:      tipo,                          // PESQUISA_COMPLETA | ANALISE_DIGITAL | FOLLOWUP
+    sujeito:   sujeito || 'Não identificado',
+    custoUSD:  calcCustoUSD(tipo),
+    custoBRL:  calcCustoBRL(tipo),
+    ts:        new Date().toISOString(),
+    usuario:   localStorage.getItem('aiox_usuario') || 'admin',
+    synced:    false
+  };
+  consultas.unshift(consulta);
+  // Manter apenas últimas 500 consultas localmente
+  if(consultas.length > 500) consultas = consultas.slice(0, 500);
+  localStorage.setItem('aiox_consultas', JSON.stringify(consultas));
+  // Atualizar dashboard se estiver aberto
+  if(document.getElementById('dashPanel').classList.contains('active')){
+    renderDashboard();
+  }
+}
+
+/* --- CARREGAR CONSULTAS --- */
+function getConsultas(){
+  return JSON.parse(localStorage.getItem('aiox_consultas') || '[]');
+}
+
+/* --- RENDERIZAR DASHBOARD --- */
+function renderDashboard(){
+  var consultas = getConsultas();
+  var agora     = new Date();
+  var mesAtual  = agora.getMonth();
+  var anoAtual  = agora.getFullYear();
+  var mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1;
+  var anoAnterior = mesAtual === 0 ? anoAtual - 1 : anoAtual;
+
+  // Totais
+  var total      = consultas.length;
+  var gastoTotal = consultas.reduce(function(s,c){ return s + (c.custoBRL||0); }, 0);
+  var mediaCusto = total > 0 ? gastoTotal / total : 0;
+
+  // Este mês
+  var deMes = consultas.filter(function(c){
+    var d = new Date(c.ts);
+    return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+  });
+  var gastMes = deMes.reduce(function(s,c){ return s + (c.custoBRL||0); }, 0);
+
+  // Mês anterior
+  var deMesAnt = consultas.filter(function(c){
+    var d = new Date(c.ts);
+    return d.getMonth() === mesAnterior && d.getFullYear() === anoAnterior;
+  });
+
+  // Perfil mais investigado
+  var freq = {};
+  consultas.forEach(function(c){
+    var k = c.sujeito || 'Desconhecido';
+    freq[k] = (freq[k]||0) + 1;
+  });
+  var topPerfil = Object.keys(freq).sort(function(a,b){return freq[b]-freq[a];})[0] || '—';
+  var topFreq   = freq[topPerfil] || 0;
+
+  // Análises digitais
+  var nDigital = consultas.filter(function(c){ return c.tipo === 'ANALISE_DIGITAL'; }).length;
+
+  // Distribuição por tipo
+  var nFull     = consultas.filter(function(c){ return c.tipo === 'PESQUISA_COMPLETA'; }).length;
+  var nFollowup = consultas.filter(function(c){ return c.tipo === 'FOLLOWUP'; }).length;
+  var pFull     = total > 0 ? Math.round(nFull/total*100)     : 0;
+  var pDigital  = total > 0 ? Math.round(nDigital/total*100)  : 0;
+  var pFollowup = total > 0 ? Math.round(nFollowup/total*100) : 0;
+
+  // Trend mês (vs mês anterior)
+  var trendMes = deMes.length - deMesAnt.length;
+  var trendGasto = gastMes - deMesAnt.reduce(function(s,c){ return s + (c.custoBRL||0); }, 0);
+
+  /* --- BIG NUMBERS --- */
+  setText('bnTotal', total);
+  setText('bnGasto', fmtBRL(gastoTotal));
+  setText('bnMedia', fmtBRL(mediaCusto));
+  setText('bnMes',   deMes.length);
+  setText('bnMesSub', fmtBRL(gastMes) + ' este mês');
+
+  // Perfil top
+  var topEl = document.getElementById('bnTop');
+  if(topEl){
+    topEl.textContent = topPerfil === '—' ? '—' : topPerfil.split(' ').slice(0,2).join(' ');
+    topEl.style.fontSize = topPerfil.length > 15 ? '11px' : '14px';
+  }
+  setText('bnTopSub', topFreq > 0 ? topFreq + ' consulta' + (topFreq > 1 ? 's' : '') : '—');
+  setText('bnDigital', nDigital);
+
+  // Trends
+  renderTrend('bnTotalTrend', trendMes, 'vs mês anterior');
+  renderTrend('bnGastoTrend', trendGasto, 'vs mês anterior', true);
+  renderTrend('bnMesTrend', trendMes, 'vs mês anterior');
+
+  /* --- GRÁFICO 7 DIAS --- */
+  renderMiniChart(consultas);
+
+  /* --- DISTRIBUIÇÃO --- */
+  setTimeout(function(){
+    setDistBar('distFull',     'distFullPct',     pFull);
+    setDistBar('distDigital',  'distDigitalPct',  pDigital);
+    setDistBar('distFollowup', 'distFollowupPct', pFollowup);
+  }, 100);
+
+  /* --- TABELA RECENTES --- */
+  renderConsultTable(consultas.slice(0, 20));
+}
+
+function setText(id, val){
+  var el = document.getElementById(id);
+  if(el) el.textContent = val;
+}
+
+function renderTrend(id, diff, label, invertColor){
+  var el = document.getElementById(id);
+  if(!el) return;
+  if(diff === 0){ el.innerHTML = '<span class="trend-neu">→ estável ' + label + '</span>'; return; }
+  var up = diff > 0;
+  // Para gastos, subir é ruim (vermelho); para consultas, subir é neutro
+  var cls = invertColor ? (up ? 'trend-up' : 'trend-down') : (up ? 'trend-up' : 'trend-down');
+  var arrow = up ? '↑' : '↓';
+  var abs = Math.abs(diff);
+  el.innerHTML = '<span class="' + cls + '">' + arrow + ' ' + abs + ' ' + label + '</span>';
+}
+
+function setDistBar(fillId, pctId, pct){
+  var f = document.getElementById(fillId);
+  var p = document.getElementById(pctId);
+  if(f) f.style.width = pct + '%';
+  if(p) p.textContent = pct + '%';
+}
+
+function renderMiniChart(consultas){
+  var wrap = document.getElementById('miniChartBars');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  var dias = [];
+  for(var i = 6; i >= 0; i--){
+    var d = new Date();
+    d.setDate(d.getDate() - i);
+    dias.push(d);
+  }
+
+  var counts = dias.map(function(d){
+    return consultas.filter(function(c){
+      var cd = new Date(c.ts);
+      return cd.getDate()     === d.getDate() &&
+             cd.getMonth()    === d.getMonth() &&
+             cd.getFullYear() === d.getFullYear();
+    }).length;
+  });
+
+  var maxCount = Math.max.apply(null, counts) || 1;
+  var labels = ['D-6','D-5','D-4','D-3','D-2','Ont.','Hoje'];
+
+  dias.forEach(function(d, i){
+    var pct = Math.round((counts[i] / maxCount) * 100);
+    var isToday = i === 6;
+    var col = isToday ? 'var(--green)' : 'rgba(0,232,162,.35)';
+
+    var col_div = document.createElement('div');
+    col_div.className = 'mcbar-wrap';
+    col_div.innerHTML =
+      '<div class="mcbar" style="height:' + Math.max(pct, 3) + '%;background:' + col + '" title="' + counts[i] + ' consulta(s)"></div>' +
+      '<div class="mcbar-lbl">' + (isToday ? 'Hoje' : labels[i]) + '</div>';
+
+    // Adicionar valor acima da barra se > 0
+    if(counts[i] > 0){
+      var vEl = document.createElement('div');
+      vEl.style.cssText = 'font-family:var(--font-m);font-size:8px;color:var(--mid);text-align:center;margin-bottom:2px;order:-1';
+      vEl.textContent = counts[i];
+      col_div.insertBefore(vEl, col_div.firstChild);
+    }
+
+    wrap.appendChild(col_div);
+  });
+}
+
+function renderConsultTable(consultas){
+  var tbody = document.getElementById('consultTableBody');
+  if(!tbody) return;
+  if(consultas.length === 0){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--lo);font-family:var(--font-m);font-size:10px;padding:16px">Nenhuma consulta registrada ainda</td></tr>';
+    return;
+  }
+  var typeMap = {
+    PESQUISA_COMPLETA: '<span class="ct-type-badge ctb-full">🔎 Pesquisa</span>',
+    ANALISE_DIGITAL:   '<span class="ct-type-badge ctb-digital">📡 Digital</span>',
+    FOLLOWUP:          '<span class="ct-type-badge ctb-followup">💬 Follow-up</span>'
+  };
+  tbody.innerHTML = consultas.map(function(c){
+    var nome = (c.sujeito || '—').split(' ').slice(0,2).join(' ');
+    return '<tr>' +
+      '<td class="ct-name" title="' + (c.sujeito||'') + '">' + nome + '</td>' +
+      '<td>' + (typeMap[c.tipo] || c.tipo) + '</td>' +
+      '<td><span class="cost-badge">' + fmtBRL(c.custoBRL||0) + '</span></td>' +
+      '<td style="white-space:nowrap;color:var(--lo)">' + fmtDate(c.ts) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+/* --- SWITCH TABS --- */
+function switchTab(tab){
+  var tabRaioX  = document.getElementById('tabRaioX');
+  var tabGastos = document.getElementById('tabGastos');
+  var raioXBody = document.getElementById('raioXBody');
+  var dashPanel = document.getElementById('dashPanel');
+
+  if(tab === 'raiox'){
+    tabRaioX.classList.add('active');
+    tabGastos.classList.remove('active');
+    raioXBody.style.display = 'block';
+    dashPanel.classList.remove('active');
+    document.getElementById('topbarHint').textContent = 'Digite o nome do sujeito e pressione Enter';
+  } else {
+    tabGastos.classList.add('active');
+    tabRaioX.classList.remove('active');
+    raioXBody.style.display = 'none';
+    dashPanel.classList.add('active');
+    document.getElementById('topbarHint').textContent = 'Dashboard de uso e custos da ferramenta';
+    renderDashboard();
+  }
+}
+
+/* --- SYNC SUPABASE --- */
+async function syncToSupabase(){
+  var btn = document.getElementById('syncBtn');
+  var statusEl = document.getElementById('syncStatus');
+  var SUPABASE_URL = localStorage.getItem('aiox_supabase_url') || '';
+  var SUPABASE_KEY = localStorage.getItem('aiox_supabase_key') || '';
+
+  if(!SUPABASE_URL || !SUPABASE_KEY){
+    statusEl.textContent = '⚠ Configure SUPABASE_URL e SUPABASE_KEY no localStorage para sincronizar.';
+    statusEl.style.color = 'var(--amber)';
+    return;
+  }
+
+  btn.classList.add('syncing');
+  btn.textContent = '⟳ Sincronizando...';
+  statusEl.textContent = 'Enviando consultas para o Supabase...';
+  statusEl.style.color = 'var(--lo)';
+
+  var consultas = getConsultas().filter(function(c){ return !c.synced; });
+  if(consultas.length === 0){
+    btn.classList.remove('syncing');
+    btn.textContent = '⟳ Sync';
+    statusEl.textContent = '✓ Tudo sincronizado · nenhuma consulta pendente';
+    statusEl.style.color = 'var(--green)';
+    return;
+  }
+
+  try {
+    var payload = consultas.map(function(c){
+      return {
+        consulta_id:  c.id,
+        tipo:         c.tipo,
+        sujeito:      c.sujeito,
+        custo_usd:    c.custoUSD,
+        custo_brl:    c.custoBRL,
+        usuario:      c.usuario,
+        criado_em:    c.ts
+      };
+    });
+
+    var res = await fetch(SUPABASE_URL + '/rest/v1/raiox_consultas', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer':        'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if(res.ok || res.status === 201){
+      // Marcar como sincronizadas
+      var todas = getConsultas();
+      var ids = consultas.map(function(c){ return c.id; });
+      todas.forEach(function(c){ if(ids.indexOf(c.id) >= 0) c.synced = true; });
+      localStorage.setItem('aiox_consultas', JSON.stringify(todas));
+      statusEl.textContent = '✓ ' + consultas.length + ' consulta(s) sincronizada(s) com o Supabase';
+      statusEl.style.color = 'var(--green)';
+    } else {
+      throw new Error('HTTP ' + res.status);
+    }
+  } catch(err){
+    statusEl.textContent = '⚠ Erro ao sincronizar: ' + err.message;
+    statusEl.style.color = 'var(--red)';
+  }
+
+  btn.classList.remove('syncing');
+  btn.textContent = '⟳ Sync';
+}
+
 /* ───────────────────────────────
-   FOTO
+   FOTO DO SUJEITO
 ─────────────────────────────── */
 function loadPhoto(input){
   if(!input.files||!input.files[0]) return;
@@ -1831,6 +2402,10 @@ function removePhoto(){
   document.getElementById('removePhotoBtn').style.display='none';
   if(state.currentProfile) localStorage.removeItem('aiox_photo_'+state.currentProfile.id);
 }
+
+/* ═══════════════════════════════════════════════════
+   FIM
+═══════════════════════════════════════════════════ */
 </script>
 </body>
 </html>
