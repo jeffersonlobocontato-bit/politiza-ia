@@ -227,8 +227,8 @@ export default function Inteligencia() {
 
   // Filtra pesquisas usando o cenário escolhido para cada instituto (default C1).
   const pesquisasFiltered = useMemo(() => {
-    return pesquisasAll.filter(p => (cenarioByInst[p.inst] ?? 'C1') === p.cenario);
-  }, [pesquisasAll, cenarioByInst]);
+    return pesquisasAll.filter(p => (appliedCenarioByInst[p.inst] ?? 'C1') === p.cenario);
+  }, [pesquisasAll, appliedCenarioByInst]);
 
   const agregado = useMemo(() => calcularAgregado(pesquisasFiltered, institutosAtivos), [pesquisasFiltered, institutosAtivos]);
 
