@@ -1865,10 +1865,9 @@ export default function Pesquisas() {
 
   const handleDelete = (waveId: string) => {
     // Only delete from DB if it's a DB record (UUID format)
-    if (dbIds.has(waveId)) {
-      deleteSurvey.mutate(waveId);
-    }
-    // Static seeds cannot be deleted (they are read-only display data)
+    if (!dbIds.has(waveId)) return; // Static seeds are read-only display data
+    if (!confirm('Tem certeza que deseja remover esta pesquisa? Essa ação não pode ser desfeita.')) return;
+    deleteSurvey.mutate(waveId);
   };
 
   return (
