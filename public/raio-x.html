@@ -1914,6 +1914,11 @@ CRITÉRIOS DE ESPECTRO (0-100):
       fullSec.style.display = 'block';
     }
 
+    // Guarda última resposta para permitir "Salvar no perfil" via postMessage
+    state.lastAiText = aiText;
+    state.lastVisibleMarkdown = visibleText;
+    state.lastFullHtml = fullHtml;
+
 
     // Tentar extrair score e atualizar Raio-X automaticamente
     tryExtractAndUpdateScore(aiText, text);
@@ -2399,6 +2404,41 @@ function saveCurrentProfile(){
   else state.profiles.unshift(state.currentProfile);
   localStorage.setItem('aiox_profiles', JSON.stringify(state.profiles));
   renderProfileList();
+
+  // Enviar para a plataforma (Ativos Políticos) se aberto via popup com session_id
+  try {
+    var qp = new URLSearchParams(window.location.search);
+    var sid = qp.get('session_id');
+    if(sid && window.opener && !window.opener.closed && state.lastAiText){
+      // Monta HTML completo do relatório diagramado (col-right)
+      var colRight = document.querySelector('.col-right');
+      var reportHtml = '';
+      if(colRight){
+        reportHtml = '<div class="raiox-report" style="font-family:Inter,system-ui,sans-serif;color:#0f172a;background:#fff;padding:16px">' +
+                     colRight.innerHTML +
+                     '</div>';
+      } else if(state.lastFullHtml){
+        reportHtml = state.lastFullHtml;
+      }
+      window.opener.postMessage({
+        type: 'raiox:save',
+        session_id: sid,
+        html: reportHtml,
+        markdown: state.lastVisibleMarkdown || '',
+        context_input: qp.get('contexto') || '',
+        model: 'raio-x-chat',
+        subject: {
+          name: state.currentProfile.name,
+          municipality: qp.get('municipio') || '',
+          party: qp.get('partido') || '',
+          position: qp.get('cargo') || ''
+        }
+      }, '*');
+      addMessage('ai','✓ Relatório de <strong>'+state.currentProfile.name+'</strong> enviado para o card do ativo. Confirme no modal de revisão que abriu na plataforma.');
+      return;
+    }
+  } catch(e){ console.warn('[raiox] postMessage falhou', e); }
+
   addMessage('ai','✓ Perfil de <strong>'+state.currentProfile.name+'</strong> salvo com sucesso.');
 }
 
