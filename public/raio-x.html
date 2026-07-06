@@ -1991,12 +1991,33 @@ function tryExtractAndUpdateScore(aiText, userText){
 
   var alerts = structuredAlerts || extractAlerts(aiText);
 
-function extractDimLegacy(){}
+  var profile = {
+    id: 'auto_'+Date.now(),
+    name: subjectName,
+    meta: 'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR'),
+    score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
+    alerts: alerts,
+    achados: [
+      {lbl:'Score Global',val:score,desc:'Ponderado 4 dimensões'},
+      {lbl:'Judicial',val:jud,desc:'% de risco judicial'},
+      {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
+      {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
+    ],
+    timeline: []
+  };
+
+  state.currentProfile = profile;
+  document.getElementById('subjectName').textContent = subjectName;
+  document.getElementById('subjectSub').textContent = profile.meta;
+  updateRaioX(profile);
+}
+
 function extractDim(text, dim){
   var re = new RegExp(dim+'[:\\s]+(\\d+(?:[.,]\\d+)?)(?:\\s*\\/\\s*(\\d+))?', 'i');
   var m = text.match(re);
   return m ? normalizeScoreValue(m[1], m[2]) : null;
 }
+
 
 
 function extractAlerts(text){
