@@ -1914,6 +1914,11 @@ CRITÉRIOS DE ESPECTRO (0-100):
       fullSec.style.display = 'block';
     }
 
+    // Guarda última resposta para permitir "Salvar no perfil" via postMessage
+    state.lastAiText = aiText;
+    state.lastVisibleMarkdown = visibleText;
+    state.lastFullHtml = fullHtml;
+
 
     // Tentar extrair score e atualizar Raio-X automaticamente
     tryExtractAndUpdateScore(aiText, text);
