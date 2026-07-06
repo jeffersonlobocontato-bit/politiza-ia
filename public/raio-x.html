@@ -1791,7 +1791,19 @@ FORMATO DAS RESPOSTAS
 - Use **negrito** para nomes, scores e achados confirmados
 - Use *itálico* para alertas e pontos de atenção
 - Seja direto — o usuário é um estrategista político com tempo limitado
-- Sempre inclua ao final: SCORE ESTIMADO (0-100), RISCO e PRÓXIMOS PASSOS
+- SEMPRE (em toda resposta que envolva risco/raio-x) termine com o bloco estruturado abaixo, EXATAMENTE neste formato, com números INTEIROS na escala 0–100 (nunca use /10, /5, decimais ou porcentagem — só o inteiro):
+
+---SCORE_START---
+SCORE: NN
+JUDICIAL: NN
+REPUTACIONAL: NN
+REGULATORIO: NN
+SOCIETARIO: NN
+RISCO: baixo|moderado|alto
+ALERTA1: texto curto do alerta principal
+ALERTA2: texto curto do alerta secundário
+ALERTA3: texto curto do terceiro alerta
+---SCORE_END---
 
 QUANDO GERAR RAIO-X COMPLETO, estruture com:
 1. IDENTIDADE (nome, cargo, município, partido, identificadores usados)
@@ -1802,6 +1814,7 @@ QUANDO GERAR RAIO-X COMPLETO, estruture com:
 5. ACHADOS: separe CONFIRMADO vs NÃO CONFIRMADO explicitamente
 6. TIMELINE — apenas eventos com fonte identificável
 7. RECOMENDAÇÕES de aprofundamento para dados não confirmados
+8. Bloco ---SCORE_START--- ... ---SCORE_END--- ao final (OBRIGATÓRIO)
 
 CONTEXTO DO PARANÁ:
 - Litoral: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes
