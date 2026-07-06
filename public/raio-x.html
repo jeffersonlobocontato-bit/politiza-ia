@@ -690,8 +690,6 @@ body::before {
 }
 .sync-btn:hover { border-color: rgba(0,232,162,.3); color: var(--green); }
 .sync-btn.syncing { opacity: .5; cursor: not-allowed; }
-
-@media (max-width: 980px) {
   .workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
   .col-left { display: none; }
   .col-right { max-height: 40vh; }
@@ -858,7 +856,6 @@ body::before {
     size: A4 portrait;
   }
 }
-</style>
 </head>
 <body>
 
@@ -949,9 +946,7 @@ body::before {
       </div>
       <div class="raio-x-actions">
         <button class="rx-btn sync-btn" id="syncBtn" onclick="syncToSupabase()" title="Sincronizar com Supabase">⟳ Sync</button>
-        <button class="rx-btn" onclick="saveCurrentProfile()" title="Salvar perfil localmente">💾 Local</button>
-        <button class="rx-btn" onclick="refazerAnalise()" title="Refazer análise com novo contexto" style="display:none" id="btnRefazer">↻ Refazer</button>
-        <button class="rx-btn primary" onclick="sendToPolitiza()" title="Enviar relatório ao Politiza IA para salvar no perfil do ativo" style="display:none" id="btnEnviarPolitiza">✓ Salvar no Politiza</button>
+        <button class="rx-btn" onclick="saveCurrentProfile()" title="Salvar perfil">💾 Salvar</button>
         <button class="rx-btn primary" onclick="printRaioX()" title="Exportar PDF">🖨 PDF</button>
       </div>
     </div>
@@ -1256,29 +1251,6 @@ body::before {
 ══════════════════════════════════════════ -->
 <script>
 /* ───────────────────────────────
-   ENDPOINT DO PROXY DE IA (Lovable Cloud)
-─────────────────────────────── */
-var RAIO_X_CHAT_URL = 'https://sumdjlmjtqgfzkcfkceq.supabase.co/functions/v1/raio-x-chat';
-var RAIO_X_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1bWRqbG1qdHFnZnprY2ZrY2VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIwMTEsImV4cCI6MjA5MDAxODAxMX0.noLF_BY9rdDO8tUXEeQRAMRxJvmeG4nzLQFkBpNkzl8';
-
-async function callRaioXAI(systemPrompt, messages){
-  var res = await fetch(RAIO_X_CHAT_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': RAIO_X_ANON_KEY,
-      'Authorization': 'Bearer ' + RAIO_X_ANON_KEY
-    },
-    body: JSON.stringify({ system: systemPrompt, messages: messages })
-  });
-  var data = await res.json().catch(function(){ return {}; });
-  if(!res.ok){
-    throw new Error(data && data.error ? data.error : ('HTTP ' + res.status));
-  }
-  return (data && data.text) || '';
-}
-
-/* ───────────────────────────────
    ESTADO GLOBAL
 ─────────────────────────────── */
 var state = {
@@ -1383,93 +1355,6 @@ var demoProfiles = [
 ];
 
 /* ───────────────────────────────
-   PONTE COM POLITIZA IA (postMessage)
-─────────────────────────────── */
-function markReportReady(){
-  var sess = window.__POLITIZA_SESSION__;
-  if(!sess || !sess.session_id) return; // aberto standalone → não mostra CTA
-  sess.hasReport = true;
-  var btn1 = document.getElementById('btnEnviarPolitiza');
-  var btn2 = document.getElementById('btnRefazer');
-  if(btn1) btn1.style.display = '';
-  if(btn2) btn2.style.display = '';
-}
-
-function collectReportHtml(){
-  var container = document.getElementById('raioXContent');
-  if(!container) return '';
-  // Clona removendo botões/inputs interativos
-  var clone = container.cloneNode(true);
-  clone.querySelectorAll('button,input,textarea,select').forEach(function(el){ el.remove(); });
-  return clone.innerHTML;
-}
-
-function collectReportMarkdown(){
-  try {
-    if(!state || !Array.isArray(state.conversationHistory)) return '';
-    return state.conversationHistory
-      .filter(function(m){ return m.role === 'assistant'; })
-      .map(function(m){ return m.content; })
-      .join('\n\n---\n\n');
-  } catch(e){ return ''; }
-}
-
-function sendToPolitiza(){
-  var sess = window.__POLITIZA_SESSION__;
-  if(!sess || !sess.session_id){
-    alert('Este painel não foi aberto pelo Politiza IA — não há a quem enviar.');
-    return;
-  }
-  var html = collectReportHtml();
-  if(!html || html.length < 40){
-    alert('Ainda não há relatório para enviar. Gere a análise primeiro.');
-    return;
-  }
-  var payload = {
-    type: 'raiox:save',
-    session_id: sess.session_id,
-    subject: sess.subject,
-    context_input: sess.context_input,
-    model: 'claude-sonnet-4-6',
-    html: html,
-    markdown: collectReportMarkdown(),
-  };
-  try {
-    if(window.opener && !window.opener.closed){
-      window.opener.postMessage(payload, '*');
-      var btn = document.getElementById('btnEnviarPolitiza');
-      if(btn){ btn.textContent = '✓ Enviado'; btn.disabled = true; }
-      setTimeout(function(){ window.close(); }, 700);
-    } else {
-      alert('A janela do Politiza IA não está mais aberta. Reabra o RAIO-X a partir da plataforma.');
-    }
-  } catch(err){
-    alert('Falha ao enviar ao Politiza: ' + err.message);
-  }
-}
-
-function refazerAnalise(){
-  var sess = window.__POLITIZA_SESSION__;
-  var extra = prompt('Refazer análise. Adicione contexto ou instruções adicionais para o RAIO-X:', sess && sess.context_input || '');
-  if(extra === null) return;
-  if(sess) sess.context_input = extra;
-  // Limpa histórico e re-dispara pesquisa
-  try { state.conversationHistory = []; } catch(e){}
-  var input = document.getElementById('chatInput');
-  if(input){
-    var s = sess && sess.subject || {};
-    var partes = [s.name];
-    if(s.position) partes.push(s.position);
-    if(s.party) partes.push(s.party);
-    if(s.municipality) partes.push(s.municipality + '/PR');
-    if(extra) partes.push('Contexto: ' + extra);
-    input.value = 'refaça a análise, revisando divergências: ' + partes.filter(Boolean).join(', ');
-    autoResize(input);
-    setTimeout(function(){ sendMessage(); }, 200);
-  }
-}
-
-/* ───────────────────────────────
    INIT + RECEBER PARAMS DO POLITIZA
 ─────────────────────────────── */
 window.addEventListener('load', function(){
@@ -1487,20 +1372,6 @@ window.addEventListener('load', function(){
   var contexto  = params.get('contexto');
   var auto      = params.get('auto');
   var redeSocial = params.get('rede_social');
-  var sessionId  = params.get('session_id');
-
-  // Guardar contexto da sessão + subject para o postMessage de volta ao Politiza
-  window.__POLITIZA_SESSION__ = {
-    session_id: sessionId,
-    subject: {
-      name: nome || '',
-      municipality: municipio || '',
-      party: partido || '',
-      position: cargo || '',
-    },
-    context_input: contexto || '',
-    hasReport: false,
-  };
 
   // Se vier rede social, preencher o campo de análise digital
   if(redeSocial){
@@ -1605,7 +1476,6 @@ function showEmptyState(){
 function updateRaioX(p){
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('raioXContent').style.display = 'block';
-  markReportReady();
 
   // Score
   var color = p.risk==='alto'?'#ff3355':p.risk==='mod'?'#ffaa00':'#00e8a2';
@@ -1793,19 +1663,7 @@ FORMATO DAS RESPOSTAS
 - Use **negrito** para nomes, scores e achados confirmados
 - Use *itálico* para alertas e pontos de atenção
 - Seja direto — o usuário é um estrategista político com tempo limitado
-- SEMPRE (em toda resposta que envolva risco/raio-x) termine com o bloco estruturado abaixo, EXATAMENTE neste formato, com números INTEIROS na escala 0–100 (nunca use /10, /5, decimais ou porcentagem — só o inteiro):
-
----SCORE_START---
-SCORE: NN
-JUDICIAL: NN
-REPUTACIONAL: NN
-REGULATORIO: NN
-SOCIETARIO: NN
-RISCO: baixo|moderado|alto
-ALERTA1: texto curto do alerta principal
-ALERTA2: texto curto do alerta secundário
-ALERTA3: texto curto do terceiro alerta
----SCORE_END---
+- Sempre inclua ao final: SCORE ESTIMADO (0-100), RISCO e PRÓXIMOS PASSOS
 
 QUANDO GERAR RAIO-X COMPLETO, estruture com:
 1. IDENTIDADE (nome, cargo, município, partido, identificadores usados)
@@ -1816,7 +1674,6 @@ QUANDO GERAR RAIO-X COMPLETO, estruture com:
 5. ACHADOS: separe CONFIRMADO vs NÃO CONFIRMADO explicitamente
 6. TIMELINE — apenas eventos com fonte identificável
 7. RECOMENDAÇÕES de aprofundamento para dados não confirmados
-8. Bloco ---SCORE_START--- ... ---SCORE_END--- ao final (OBRIGATÓRIO)
 
 CONTEXTO DO PARANÁ:
 - Litoral: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes
@@ -1860,9 +1717,19 @@ CRITÉRIOS DE ESPECTRO (0-100):
 
 
   try {
-    var aiText = await callRaioXAI(systemPrompt, state.conversationHistory);
-    if(!aiText) aiText = 'Erro ao processar resposta.';
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: state.conversationHistory
+      })
+    });
 
+    var data = await response.json();
+    var aiText = (data.content && data.content[0] && data.content[0].text) || 'Erro ao processar resposta.';
 
     // Adiciona resposta ao histórico
     state.conversationHistory.push({role:'assistant', content: aiText});
@@ -1874,12 +1741,9 @@ CRITÉRIOS DE ESPECTRO (0-100):
 
     removeTyping();
 
-    // Formatar texto para HTML (esconde o bloco estruturado do usuário — usado só p/ renderizar o painel)
-    var visibleText = aiText.replace(/---SCORE_START---[\s\S]*?---SCORE_END---/gi, '').trim();
-    var html = formatResponse(visibleText || aiText);
+    // Formatar texto para HTML
+    var html = formatResponse(aiText);
     addMessage('ai', html);
-
-    markReportReady();
 
     // Tentar extrair score e atualizar Raio-X automaticamente
     tryExtractAndUpdateScore(aiText, text);
@@ -1913,86 +1777,26 @@ function formatResponse(text){
 }
 
 /* tentar extrair score da resposta e atualizar painel */
-function normalizeScoreValue(raw, denom){
-  var n = parseFloat(String(raw).replace(',', '.'));
-  if(isNaN(n)) return null;
-  var d = denom ? parseFloat(denom) : null;
-  if(d && d > 0 && d !== 100){
-    n = (n / d) * 100;
-  } else if(!d && n <= 10){
-    // "SCORE: 7.5" sem denominador → provavelmente escala 0-10
-    n = n * 10;
-  }
-  n = Math.round(n);
-  if(n < 0) n = 0; if(n > 100) n = 100;
-  return n;
-}
-
-function parseScoreBlock(aiText){
-  var m = aiText.match(/---SCORE_START---([\s\S]*?)---SCORE_END---/i);
-  if(!m) return null;
-  var body = m[1];
-  function pick(key){
-    var r = new RegExp(key+'\\s*:\\s*([^\\n\\r]+)', 'i');
-    var mm = body.match(r);
-    return mm ? mm[1].trim() : null;
-  }
-  function num(key){
-    var v = pick(key);
-    if(!v) return null;
-    var mm = v.match(/(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/);
-    if(!mm) return null;
-    return normalizeScoreValue(mm[1], mm[2]);
-  }
-  var score = num('SCORE');
-  if(score === null) return null;
-  return {
-    score: score,
-    jud: num('JUDICIAL'),
-    rep: num('REPUTACIONAL'),
-    reg: num('REGULATORIO') !== null ? num('REGULATORIO') : num('REGULATÓRIO'),
-    soc: num('SOCIETARIO') !== null ? num('SOCIETARIO') : num('SOCIETÁRIO'),
-    risco: (pick('RISCO') || '').toLowerCase(),
-    alerts: [pick('ALERTA1'), pick('ALERTA2'), pick('ALERTA3')].filter(Boolean)
-  };
-}
-
 function tryExtractAndUpdateScore(aiText, userText){
-  var block = parseScoreBlock(aiText);
-  var score = null, jud, rep, reg, soc, structuredAlerts = null, riscoLabel = null;
+  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
+  if(!scoreMatch) return;
+  var score = parseInt(scoreMatch[1]);
+  if(score < 0 || score > 100) return;
 
-  if(block){
-    score = block.score;
-    jud = block.jud; rep = block.rep; reg = block.reg; soc = block.soc;
-    riscoLabel = block.risco;
-    if(block.alerts.length){
-      structuredAlerts = block.alerts.map(function(a){
-        return { l: 'amber', txt: a.slice(0,140) };
-      });
-    }
-  } else {
-    // Fallback: tenta regex antigo (SCORE: NN, NN/100, NN/10)
-    var scoreMatch = aiText.match(/SCORE[:\s]+(\d+(?:[.,]\d+)?)\s*\/\s*(\d+)/i)
-      || aiText.match(/(\d+(?:[.,]\d+)?)\s*\/\s*(100|10|5)\b/)
-      || aiText.match(/SCORE[:\s]+(\d+(?:[.,]\d+)?)/i);
-    if(!scoreMatch) return;
-    score = normalizeScoreValue(scoreMatch[1], scoreMatch[2]);
-    if(score === null) return;
-  }
+  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
 
-  var risk = riscoLabel
-    ? (riscoLabel.indexOf('alto') >= 0 ? 'alto' : riscoLabel.indexOf('mod') >= 0 ? 'mod' : 'baixo')
-    : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
+  // Extrair nome do sujeito da mensagem do usuário
+  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
+  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
 
-  // Extrair nome do sujeito preservando o contexto recebido da plataforma.
-  var subjectName = getReportSubjectName(userText);
+  // Extrair scores por dimensão
+  var jud = extractDim(aiText, 'judicial') || score;
+  var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
+  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
+  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
 
-  jud = jud !== null && jud !== undefined ? jud : (extractDim(aiText, 'judicial') || score);
-  rep = rep !== null && rep !== undefined ? rep : (extractDim(aiText, 'reputacional') || Math.round(score * .8));
-  reg = reg !== null && reg !== undefined ? reg : (extractDim(aiText, 'regulatório') || Math.round(score * .85));
-  soc = soc !== null && soc !== undefined ? soc : (extractDim(aiText, 'societário') || Math.round(score * .7));
-
-  var alerts = structuredAlerts || extractAlerts(aiText);
+  // Extrair alertas do texto
+  var alerts = extractAlerts(aiText);
 
   var profile = {
     id: 'auto_'+Date.now(),
@@ -2015,29 +1819,11 @@ function tryExtractAndUpdateScore(aiText, userText){
   updateRaioX(profile);
 }
 
-function getReportSubjectName(userText){
-  var sessSubject = window.__POLITIZA_SESSION__ && window.__POLITIZA_SESSION__.subject;
-  if(sessSubject && sessSubject.name) return sessSubject.name;
-  if(state.currentProfile && state.currentProfile.name) return state.currentProfile.name;
-
-  var cleaned = String(userText || '')
-    .replace(/^(?:pesquise|investigue|analise)\s+(?:profundamente|completamente|detalhadamente)\s*:?\s*/i, '')
-    .replace(/^(?:pesquise|investigue|analise)\s*:?\s*/i, '')
-    .replace(/^(?:faça\s+)?raio.?x\s+(?:de|do|da)?\s*/i, '')
-    .replace(/^perfil\s+de\s*/i, '')
-    .trim();
-
-  var firstPart = cleaned.split(/,|\n|\s+-\s+|\s+Contexto:/i)[0].trim();
-  return firstPart || 'Sujeito';
-}
-
 function extractDim(text, dim){
-  var re = new RegExp(dim+'[:\\s]+(\\d+(?:[.,]\\d+)?)(?:\\s*\\/\\s*(\\d+))?', 'i');
+  var re = new RegExp(dim+'[:\\s]+(\\d+)', 'i');
   var m = text.match(re);
-  return m ? normalizeScoreValue(m[1], m[2]) : null;
+  return m ? Math.min(100, parseInt(m[1])) : null;
 }
-
-
 
 function extractAlerts(text){
   var alerts = [];
@@ -2089,8 +1875,19 @@ async function analyzeDigital(){
   state.conversationHistory.push({role:'user', content: msgDigital});
 
   try {
-    var aiText = await callRaioXAI(buildSystemPrompt(), state.conversationHistory);
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: buildSystemPrompt(),
+        messages: state.conversationHistory
+      })
+    });
 
+    var data = await response.json();
+    var aiText = (data.content && data.content[0] && data.content[0].text) || '';
     state.conversationHistory.push({role:'assistant', content: aiText});
     if(state.conversationHistory.length > 20)
       state.conversationHistory = state.conversationHistory.slice(-20);
@@ -2110,9 +1907,8 @@ async function analyzeDigital(){
 
     // Registrar consulta para o dashboard
     registrarConsulta('ANALISE_DIGITAL', display);
-  } catch(err){
     removeTyping();
-    addMessage('ai', '⚠ Erro ao analisar perfil: ' + (err && err.message ? err.message : err));
+    addMessage('ai', '⚠ Erro ao analisar perfil: '+err.message);
   }
 
   document.getElementById('atScanBtn').disabled = false;
