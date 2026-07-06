@@ -1905,6 +1905,16 @@ CRITÉRIOS DE ESPECTRO (0-100):
     var html = formatResponse(visibleText);
     addMessage('ai', html);
 
+    // Espelha o relatório completo (mesma prosa) na barra lateral / PDF
+    var fullHtml = formatRichMarkdown(visibleText);
+    var fullEl = document.getElementById('relatorioFull');
+    var fullSec = document.getElementById('rxRelatorio');
+    if(fullEl && fullSec){
+      fullEl.innerHTML = fullHtml;
+      fullSec.style.display = 'block';
+    }
+
+
     // Tentar extrair score e atualizar Raio-X automaticamente
     tryExtractAndUpdateScore(aiText, text);
 
