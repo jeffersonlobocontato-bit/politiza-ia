@@ -697,6 +697,45 @@ body::before {
   .col-right { max-height: 40vh; }
 }
 
+/* Relatório completo — tabelas, títulos e listas */
+.report-full h1, .report-full h2, .report-full h3 {
+  font-family: var(--font-d, 'Space Grotesk', sans-serif);
+  color: #00e8a2; margin: 14px 0 6px; letter-spacing: .5px;
+}
+.report-full h1 { font-size: 15px; }
+.report-full h2 { font-size: 13px; }
+.report-full h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; }
+.report-full p { margin: 6px 0; }
+.report-full ul, .report-full ol { margin: 6px 0 8px 18px; padding: 0; }
+.report-full li { margin: 3px 0; }
+.report-full strong { color: #fff; }
+.report-full em { color: #ffd591; font-style: normal; }
+.report-full code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 3px; font-size: 10px; }
+.report-full hr { border: none; border-top: 1px dashed rgba(255,255,255,.15); margin: 10px 0; }
+.report-full table {
+  width: 100%; border-collapse: collapse; margin: 8px 0 10px;
+  font-size: 10px;
+}
+.report-full th, .report-full td {
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 5px 7px; text-align: left; vertical-align: top;
+}
+.report-full th { background: rgba(0,232,162,.08); color: #00e8a2; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 9px; }
+.report-full tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+
+@media print {
+  .report-full { color: #111 !important; background: #fff !important; border-color: #ccc !important; }
+  .report-full h1, .report-full h2, .report-full h3 { color: #0a7a55 !important; }
+  .report-full strong { color: #000 !important; }
+  .report-full em { color: #a15600 !important; }
+  .report-full th { background: #eafaf3 !important; color: #0a7a55 !important; }
+  .report-full th, .report-full td { border-color: #bbb !important; }
+  .report-full tr:nth-child(even) td { background: #f7f7f7 !important; }
+  .report-full tr { break-inside: avoid !important; }
+}
+
+
+
 /* ══════════════════════════════════════════
    PRINT — PDF CORRIGIDO
    Problema: layout 3 colunas colapsava em 1 pág.
