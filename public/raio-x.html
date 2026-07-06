@@ -1872,9 +1872,11 @@ CRITÉRIOS DE ESPECTRO (0-100):
 
     removeTyping();
 
-    // Formatar texto para HTML
-    var html = formatResponse(aiText);
+    // Formatar texto para HTML (esconde o bloco estruturado do usuário — usado só p/ renderizar o painel)
+    var visibleText = aiText.replace(/---SCORE_START---[\s\S]*?---SCORE_END---/gi, '').trim();
+    var html = formatResponse(visibleText || aiText);
     addMessage('ai', html);
+
     markReportReady();
 
     // Tentar extrair score e atualizar Raio-X automaticamente
