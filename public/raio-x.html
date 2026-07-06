@@ -1845,19 +1845,9 @@ CRITÉRIOS DE ESPECTRO (0-100):
 
 
   try {
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: state.conversationHistory
-      })
-    });
+    var aiText = await callRaioXAI(systemPrompt, state.conversationHistory);
+    if(!aiText) aiText = 'Erro ao processar resposta.';
 
-    var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || 'Erro ao processar resposta.';
 
     // Adiciona resposta ao histórico
     state.conversationHistory.push({role:'assistant', content: aiText});
