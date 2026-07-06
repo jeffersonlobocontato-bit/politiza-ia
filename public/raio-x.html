@@ -856,6 +856,7 @@ body::before {
     size: A4 portrait;
   }
 }
+</style>
 </head>
 <body>
 
@@ -2012,8 +2013,9 @@ async function analyzeDigital(){
 
     // Registrar consulta para o dashboard
     registrarConsulta('ANALISE_DIGITAL', display);
+  } catch(err){
     removeTyping();
-    addMessage('ai', '⚠ Erro ao analisar perfil: '+err.message);
+    addMessage('ai', '⚠ Erro ao analisar perfil: ' + (err && err.message ? err.message : err));
   }
 
   document.getElementById('atScanBtn').disabled = false;
