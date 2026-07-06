@@ -1374,6 +1374,20 @@ window.addEventListener('load', function(){
   var contexto  = params.get('contexto');
   var auto      = params.get('auto');
   var redeSocial = params.get('rede_social');
+  var sessionId  = params.get('session_id');
+
+  // Guardar contexto da sessão + subject para o postMessage de volta ao Politiza
+  window.__POLITIZA_SESSION__ = {
+    session_id: sessionId,
+    subject: {
+      name: nome || '',
+      municipality: municipio || '',
+      party: partido || '',
+      position: cargo || '',
+    },
+    context_input: contexto || '',
+    hasReport: false,
+  };
 
   // Se vier rede social, preencher o campo de análise digital
   if(redeSocial){
