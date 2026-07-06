@@ -1026,6 +1026,12 @@ body::before {
           </div>
         </div>
 
+        <!-- RESUMO EXECUTIVO -->
+        <div class="rx-section" id="rxResumo" style="display:none">
+          <div class="rx-section-label">Resumo executivo</div>
+          <div class="resumo-box" id="resumoBox" style="font-family:var(--font-m);font-size:11px;line-height:1.55;color:#eef0ff;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-sm)"></div>
+        </div>
+
         <!-- ALERTAS -->
         <div class="rx-section" id="rxAlertas">
           <div class="rx-section-label">Alertas</div>
@@ -1034,12 +1040,18 @@ body::before {
           </div>
         </div>
 
-        <!-- ACHADOS -->
+        <!-- ACHADOS (métricas) -->
         <div class="rx-section" id="rxAchados">
-          <div class="rx-section-label">Achados</div>
+          <div class="rx-section-label">Achados — indicadores</div>
           <div class="achados-grid" id="achadosGrid">
             <!-- preenchido pelo JS -->
           </div>
+        </div>
+
+        <!-- ACHADOS DETALHADOS -->
+        <div class="rx-section" id="rxAchadosDet" style="display:none">
+          <div class="rx-section-label">Achados detalhados</div>
+          <div id="achadosDetList" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
 
         <!-- TIMELINE -->
@@ -1049,6 +1061,13 @@ body::before {
             <!-- preenchido pelo JS -->
           </div>
         </div>
+
+        <!-- RECOMENDAÇÕES -->
+        <div class="rx-section" id="rxRecs" style="display:none">
+          <div class="rx-section-label">Recomendações de aprofundamento</div>
+          <ol id="recsList" style="font-family:var(--font-m);font-size:11px;line-height:1.5;color:#eef0ff;padding-left:20px;margin:0;display:flex;flex-direction:column;gap:6px"></ol>
+        </div>
+
 
         <!-- ANÁLISE DIGITAL -->
         <div class="rx-section" id="rxDigital">
@@ -1559,6 +1578,51 @@ function updateRaioX(p){
     };
     tl.appendChild(div);
   });
+
+  // Resumo executivo
+  var rSec = document.getElementById('rxResumo');
+  var rBox = document.getElementById('resumoBox');
+  if(p.resumo && p.resumo.trim()){
+    rBox.textContent = p.resumo.trim();
+    rSec.style.display = 'block';
+  } else { rSec.style.display = 'none'; }
+
+  // Achados detalhados
+  var adSec = document.getElementById('rxAchadosDet');
+  var adList = document.getElementById('achadosDetList');
+  adList.innerHTML = '';
+  var catMap = {JUD:{lbl:'Judicial',c:'#ff3355'},REP:{lbl:'Reputacional',c:'#ff6d00'},REG:{lbl:'Regulatório',c:'#ffaa00'},SOC:{lbl:'Societário',c:'#9b6fff'},OUT:{lbl:'Outros',c:'#3d9fff'}};
+  if(p.achadosDet && p.achadosDet.length){
+    p.achadosDet.forEach(function(a){
+      var cat = catMap[a.cat] || catMap.OUT;
+      var confBadge = a.conf
+        ? '<span style="font-size:8px;letter-spacing:1.5px;background:rgba(0,232,162,.15);color:#00e8a2;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,232,162,.35)">CONFIRMADO</span>'
+        : '<span style="font-size:8px;letter-spacing:1.5px;background:rgba(255,170,0,.12);color:#ffaa00;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,170,0,.35)">A CONFIRMAR</span>';
+      var srcHtml = a.src ? '<div style="font-family:var(--font-m);font-size:9px;color:var(--lo);margin-top:4px">Fonte: '+a.src+'</div>' : '';
+      adList.innerHTML += '<div style="padding:9px 11px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-left:3px solid '+cat.c+';border-radius:var(--r-sm)">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px">'+
+          '<span style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:'+cat.c+';text-transform:uppercase">'+cat.lbl+'</span>'+
+          confBadge+
+        '</div>'+
+        '<div style="font-family:var(--font-m);font-size:11px;line-height:1.5;color:#eef0ff">'+a.desc+'</div>'+
+        srcHtml+
+      '</div>';
+    });
+    adSec.style.display = 'block';
+  } else { adSec.style.display = 'none'; }
+
+  // Recomendações
+  var recSec = document.getElementById('rxRecs');
+  var recList = document.getElementById('recsList');
+  recList.innerHTML = '';
+  if(p.recomendacoes && p.recomendacoes.length){
+    p.recomendacoes.forEach(function(r){
+      var li = document.createElement('li');
+      li.textContent = r;
+      recList.appendChild(li);
+    });
+    recSec.style.display = 'block';
+  } else { recSec.style.display = 'none'; }
 }
 
 function setBar(fillId, valId, v){
@@ -1703,24 +1767,37 @@ QUANDO GERAR RAIO-X COMPLETO, estruture com:
 ═══════════════════════════════════════════════════
 Sempre que a resposta envolver uma pessoa/entidade investigada (mesmo em follow-ups),
 inclua ao FINAL da resposta, em uma seção à parte, o bloco abaixo entre marcadores.
-Isso alimenta o painel diagramado da direita (gráficos, matriz de risco, PDF).
+O painel diagramado da direita (gráficos, matriz, timeline, PDF) espelha 100% desse
+bloco — então TODO achado relevante da sua resposta deve estar aqui, não só um resumo.
+Use quantos ALERTA/ACHADO/TL forem necessários (mínimo 3, máximo 15 de cada).
 
 ---RAIOX_START---
 NOME: nome completo do sujeito
 META: cargo/município/partido resumido em uma linha
+RESUMO: 2-3 frases de veredito executivo (o que o estrategista precisa saber agora)
 SCORE: NN (0-100, apenas achados confirmados)
 JUDICIAL: NN
 REPUTACIONAL: NN
 REGULATORIO: NN
 SOCIETARIO: NN
 RISCO: baixo|mod|alto
-ALERTA1: 🔴|⚠|✓ texto curto do alerta (opcional)
-ALERTA2: 🔴|⚠|✓ texto curto (opcional)
-ALERTA3: 🔴|⚠|✓ texto curto (opcional)
-TL1: AAAA-MM-DD | título curto | descrição (opcional)
-TL2: AAAA-MM-DD | título curto | descrição (opcional)
-TL3: AAAA-MM-DD | título curto | descrição (opcional)
+ALERTA1: 🔴|⚠|✓ texto curto do alerta
+ALERTA2: 🔴|⚠|✓ ...
+... (continue ALERTA3..ALERTA15 conforme achados)
+ACHADO1: JUD|REP|REG|SOC|OUT | CONF|NCONF | descrição objetiva do achado | fonte/origem
+ACHADO2: JUD|REP|REG|SOC|OUT | CONF|NCONF | ... | ...
+... (continue ACHADO3..ACHADO15 — inclua TODOS os achados relevantes da prosa acima,
+     separando confirmados de não confirmados)
+TL1: AAAA-MM-DD | título curto | descrição
+TL2: AAAA-MM-DD | título curto | descrição
+... (continue TL3..TL15 com todos os eventos com data identificável)
+RECOMENDACAO1: próximo passo de aprofundamento
+RECOMENDACAO2: ...
+RECOMENDACAO3: ...
 ---RAIOX_END---
+
+Regra dura: se você mencionou um fato na prosa, ele DEVE aparecer como ACHADO
+correspondente no bloco. O painel é a versão auditável da resposta.
 
 CONTEXTO DO PARANÁ:
 - Litoral: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes
@@ -1852,34 +1929,68 @@ function tryExtractAndUpdateScore(aiText, userText){
   var reg = (block && block.REGULATORIO) ? parseInt(block.REGULATORIO) : (extractDim(aiText, 'regulatório') || Math.round(score * .85));
   var soc = (block && block.SOCIETARIO) ? parseInt(block.SOCIETARIO) : (extractDim(aiText, 'societário') || Math.round(score * .7));
 
-  // Alertas do bloco (ALERTA1..ALERTA5) senão extrai do texto
+  // Alertas do bloco (ALERTA1..ALERTA15) senão extrai do texto
   var alerts = [];
   if(block){
-    for(var i=1;i<=5;i++){
+    for(var i=1;i<=15;i++){
       if(block['ALERTA'+i]){
         var a = block['ALERTA'+i];
-        var lvl = /🔴/.test(a) ? 'crit' : /⚠/.test(a) ? 'warn' : 'ok';
-        alerts.push({lvl:lvl, txt:a.replace(/^[🔴⚠✓]\s*/,'')});
+        var lvl = /🔴/.test(a) ? 'red' : /⚠/.test(a) ? 'amber' : 'green';
+        alerts.push({l:lvl, txt:a.replace(/^[🔴⚠✓]\s*/,'')});
       }
     }
   }
   if(!alerts.length) alerts = extractAlerts(aiText);
 
-  // Timeline do bloco (TL1..TL5)
+  // Timeline do bloco (TL1..TL15)
   var timeline = [];
   if(block){
-    for(var j=1;j<=5;j++){
+    for(var j=1;j<=15;j++){
       if(block['TL'+j]){
         var parts = block['TL'+j].split('|').map(function(s){return s.trim();});
-        timeline.push({date:parts[0]||'', title:parts[1]||'', desc:parts[2]||''});
+        timeline.push({
+          date: parts[0]||'',
+          title: parts[1]||'',
+          body: parts[2]||'',
+          color: risk==='alto'?'#ff3355':risk==='mod'?'#ffaa00':'#00e8a2'
+        });
       }
     }
   }
+
+  // Achados detalhados (ACHADO1..ACHADO15)
+  var achadosDet = [];
+  if(block){
+    for(var k=1;k<=15;k++){
+      if(block['ACHADO'+k]){
+        var pp = block['ACHADO'+k].split('|').map(function(s){return s.trim();});
+        var cat = (pp[0]||'OUT').toUpperCase();
+        if(!/^(JUD|REP|REG|SOC|OUT)$/.test(cat)) cat = 'OUT';
+        achadosDet.push({
+          cat: cat,
+          conf: /^CONF/i.test(pp[1]||''),
+          desc: pp[2] || pp[1] || '',
+          src: pp[3] || ''
+        });
+      }
+    }
+  }
+
+  // Recomendações (RECOMENDACAO1..RECOMENDACAO15)
+  var recomendacoes = [];
+  if(block){
+    for(var r=1;r<=15;r++){
+      if(block['RECOMENDACAO'+r]) recomendacoes.push(block['RECOMENDACAO'+r]);
+    }
+  }
+
+  var resumo = (block && block.RESUMO) ? block.RESUMO : '';
 
   var profile = {
     id: (state.currentProfile && state.currentProfile.id) || ('auto_'+Date.now()),
     name: subjectName,
     meta: subjectMeta,
+    resumo: resumo,
     score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
     alerts: alerts,
     achados: [
@@ -1888,7 +1999,9 @@ function tryExtractAndUpdateScore(aiText, userText){
       {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
       {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
     ],
-    timeline: timeline
+    achadosDet: achadosDet,
+    timeline: timeline,
+    recomendacoes: recomendacoes
   };
 
   // Preserva foto e digital anteriores se existirem
