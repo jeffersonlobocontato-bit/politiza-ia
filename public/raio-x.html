@@ -1703,24 +1703,37 @@ QUANDO GERAR RAIO-X COMPLETO, estruture com:
 ═══════════════════════════════════════════════════
 Sempre que a resposta envolver uma pessoa/entidade investigada (mesmo em follow-ups),
 inclua ao FINAL da resposta, em uma seção à parte, o bloco abaixo entre marcadores.
-Isso alimenta o painel diagramado da direita (gráficos, matriz de risco, PDF).
+O painel diagramado da direita (gráficos, matriz, timeline, PDF) espelha 100% desse
+bloco — então TODO achado relevante da sua resposta deve estar aqui, não só um resumo.
+Use quantos ALERTA/ACHADO/TL forem necessários (mínimo 3, máximo 15 de cada).
 
 ---RAIOX_START---
 NOME: nome completo do sujeito
 META: cargo/município/partido resumido em uma linha
+RESUMO: 2-3 frases de veredito executivo (o que o estrategista precisa saber agora)
 SCORE: NN (0-100, apenas achados confirmados)
 JUDICIAL: NN
 REPUTACIONAL: NN
 REGULATORIO: NN
 SOCIETARIO: NN
 RISCO: baixo|mod|alto
-ALERTA1: 🔴|⚠|✓ texto curto do alerta (opcional)
-ALERTA2: 🔴|⚠|✓ texto curto (opcional)
-ALERTA3: 🔴|⚠|✓ texto curto (opcional)
-TL1: AAAA-MM-DD | título curto | descrição (opcional)
-TL2: AAAA-MM-DD | título curto | descrição (opcional)
-TL3: AAAA-MM-DD | título curto | descrição (opcional)
+ALERTA1: 🔴|⚠|✓ texto curto do alerta
+ALERTA2: 🔴|⚠|✓ ...
+... (continue ALERTA3..ALERTA15 conforme achados)
+ACHADO1: JUD|REP|REG|SOC|OUT | CONF|NCONF | descrição objetiva do achado | fonte/origem
+ACHADO2: JUD|REP|REG|SOC|OUT | CONF|NCONF | ... | ...
+... (continue ACHADO3..ACHADO15 — inclua TODOS os achados relevantes da prosa acima,
+     separando confirmados de não confirmados)
+TL1: AAAA-MM-DD | título curto | descrição
+TL2: AAAA-MM-DD | título curto | descrição
+... (continue TL3..TL15 com todos os eventos com data identificável)
+RECOMENDACAO1: próximo passo de aprofundamento
+RECOMENDACAO2: ...
+RECOMENDACAO3: ...
 ---RAIOX_END---
+
+Regra dura: se você mencionou um fato na prosa, ele DEVE aparecer como ACHADO
+correspondente no bloco. O painel é a versão auditável da resposta.
 
 CONTEXTO DO PARANÁ:
 - Litoral: Pontal do Paraná, Paranaguá, Antonina, Guaratuba, Matinhos, Morretes
