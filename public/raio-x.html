@@ -690,6 +690,8 @@ body::before {
 }
 .sync-btn:hover { border-color: rgba(0,232,162,.3); color: var(--green); }
 .sync-btn.syncing { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 980px) {
   .workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
   .col-left { display: none; }
   .col-right { max-height: 40vh; }
@@ -1982,9 +1984,8 @@ function tryExtractAndUpdateScore(aiText, userText){
     ? (riscoLabel.indexOf('alto') >= 0 ? 'alto' : riscoLabel.indexOf('mod') >= 0 ? 'mod' : 'baixo')
     : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
 
-  // Extrair nome do sujeito da mensagem do usuário
-  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
-  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  // Extrair nome do sujeito preservando o contexto recebido da plataforma.
+  var subjectName = getReportSubjectName(userText);
 
   jud = jud !== null && jud !== undefined ? jud : (extractDim(aiText, 'judicial') || score);
   rep = rep !== null && rep !== undefined ? rep : (extractDim(aiText, 'reputacional') || Math.round(score * .8));
@@ -2012,6 +2013,22 @@ function tryExtractAndUpdateScore(aiText, userText){
   document.getElementById('subjectName').textContent = subjectName;
   document.getElementById('subjectSub').textContent = profile.meta;
   updateRaioX(profile);
+}
+
+function getReportSubjectName(userText){
+  var sessSubject = window.__POLITIZA_SESSION__ && window.__POLITIZA_SESSION__.subject;
+  if(sessSubject && sessSubject.name) return sessSubject.name;
+  if(state.currentProfile && state.currentProfile.name) return state.currentProfile.name;
+
+  var cleaned = String(userText || '')
+    .replace(/^(?:pesquise|investigue|analise)\s+(?:profundamente|completamente|detalhadamente)\s*:?\s*/i, '')
+    .replace(/^(?:pesquise|investigue|analise)\s*:?\s*/i, '')
+    .replace(/^(?:faça\s+)?raio.?x\s+(?:de|do|da)?\s*/i, '')
+    .replace(/^perfil\s+de\s*/i, '')
+    .trim();
+
+  var firstPart = cleaned.split(/,|\n|\s+-\s+|\s+Contexto:/i)[0].trim();
+  return firstPart || 'Sujeito';
 }
 
 function extractDim(text, dim){
