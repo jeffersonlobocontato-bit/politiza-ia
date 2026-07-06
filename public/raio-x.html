@@ -1492,6 +1492,7 @@ function showEmptyState(){
 function updateRaioX(p){
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('raioXContent').style.display = 'block';
+  markReportReady();
 
   // Score
   var color = p.risk==='alto'?'#ff3355':p.risk==='mod'?'#ffaa00':'#00e8a2';
