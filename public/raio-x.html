@@ -697,6 +697,45 @@ body::before {
   .col-right { max-height: 40vh; }
 }
 
+/* Relatório completo — tabelas, títulos e listas */
+.report-full h1, .report-full h2, .report-full h3 {
+  font-family: var(--font-d, 'Space Grotesk', sans-serif);
+  color: #00e8a2; margin: 14px 0 6px; letter-spacing: .5px;
+}
+.report-full h1 { font-size: 15px; }
+.report-full h2 { font-size: 13px; }
+.report-full h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; }
+.report-full p { margin: 6px 0; }
+.report-full ul, .report-full ol { margin: 6px 0 8px 18px; padding: 0; }
+.report-full li { margin: 3px 0; }
+.report-full strong { color: #fff; }
+.report-full em { color: #ffd591; font-style: normal; }
+.report-full code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 3px; font-size: 10px; }
+.report-full hr { border: none; border-top: 1px dashed rgba(255,255,255,.15); margin: 10px 0; }
+.report-full table {
+  width: 100%; border-collapse: collapse; margin: 8px 0 10px;
+  font-size: 10px;
+}
+.report-full th, .report-full td {
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 5px 7px; text-align: left; vertical-align: top;
+}
+.report-full th { background: rgba(0,232,162,.08); color: #00e8a2; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 9px; }
+.report-full tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+
+@media print {
+  .report-full { color: #111 !important; background: #fff !important; border-color: #ccc !important; }
+  .report-full h1, .report-full h2, .report-full h3 { color: #0a7a55 !important; }
+  .report-full strong { color: #000 !important; }
+  .report-full em { color: #a15600 !important; }
+  .report-full th { background: #eafaf3 !important; color: #0a7a55 !important; }
+  .report-full th, .report-full td { border-color: #bbb !important; }
+  .report-full tr:nth-child(even) td { background: #f7f7f7 !important; }
+  .report-full tr { break-inside: avoid !important; }
+}
+
+
+
 /* ══════════════════════════════════════════
    PRINT — PDF CORRIGIDO
    Problema: layout 3 colunas colapsava em 1 pág.
@@ -1148,7 +1187,14 @@ body::before {
           </div>
         </div>
 
+        <!-- RELATÓRIO COMPLETO (mesmo conteúdo da resposta do chat) -->
+        <div class="rx-section" id="rxRelatorio" style="display:none">
+          <div class="rx-section-label">Relatório completo</div>
+          <div id="relatorioFull" class="report-full" style="font-family:var(--font-m);font-size:11px;line-height:1.65;color:#eef0ff;padding:12px 14px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--r-sm);overflow-wrap:break-word"></div>
+        </div>
+
         <!-- NOTAS -->
+
         <div class="rx-section" id="rxNotas">
           <div class="rx-section-label">Notas do analista</div>
           <textarea class="nota-area" id="analystNotes" placeholder="Adicione observações, contextos, fontes a consultar..."></textarea>
@@ -1859,6 +1905,16 @@ CRITÉRIOS DE ESPECTRO (0-100):
     var html = formatResponse(visibleText);
     addMessage('ai', html);
 
+    // Espelha o relatório completo (mesma prosa) na barra lateral / PDF
+    var fullHtml = formatRichMarkdown(visibleText);
+    var fullEl = document.getElementById('relatorioFull');
+    var fullSec = document.getElementById('rxRelatorio');
+    if(fullEl && fullSec){
+      fullEl.innerHTML = fullHtml;
+      fullSec.style.display = 'block';
+    }
+
+
     // Tentar extrair score e atualizar Raio-X automaticamente
     tryExtractAndUpdateScore(aiText, text);
 
@@ -1889,6 +1945,102 @@ function formatResponse(text){
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>');
 }
+
+/* Markdown rico → HTML (headings, tabelas, listas, hr) — usado no relatório lateral/PDF */
+function formatRichMarkdown(src){
+  if(!src) return '';
+  // Escape HTML básico primeiro
+  var text = src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Code fences
+  text = text.replace(/```([\s\S]*?)```/g, function(_,c){ return '<pre>'+c+'</pre>'; });
+
+  var lines = text.split('\n');
+  var out = [];
+  var i = 0;
+
+  function isTableSep(l){ return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(l); }
+  function splitRow(l){
+    return l.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(function(c){return c.trim();});
+  }
+
+  while(i < lines.length){
+    var line = lines[i];
+
+    // Tabela markdown
+    if(line.indexOf('|') !== -1 && i+1 < lines.length && isTableSep(lines[i+1])){
+      var header = splitRow(line);
+      i += 2;
+      var rows = [];
+      while(i < lines.length && lines[i].indexOf('|') !== -1 && lines[i].trim() !== ''){
+        rows.push(splitRow(lines[i]));
+        i++;
+      }
+      var t = '<table><thead><tr>';
+      header.forEach(function(h){ t += '<th>'+h+'</th>'; });
+      t += '</tr></thead><tbody>';
+      rows.forEach(function(r){
+        t += '<tr>';
+        for(var c=0;c<header.length;c++) t += '<td>'+(r[c]||'')+'</td>';
+        t += '</tr>';
+      });
+      t += '</tbody></table>';
+      out.push(t);
+      continue;
+    }
+
+    // Headings
+    var mH = line.match(/^(#{1,3})\s+(.*)$/);
+    if(mH){ out.push('<h'+mH[1].length+'>'+mH[2]+'</h'+mH[1].length+'>'); i++; continue; }
+
+    // HR
+    if(/^\s*---+\s*$/.test(line)){ out.push('<hr>'); i++; continue; }
+
+    // Lista não-ordenada
+    if(/^\s*[-*]\s+/.test(line)){
+      var items = [];
+      while(i < lines.length && /^\s*[-*]\s+/.test(lines[i])){
+        items.push('<li>'+lines[i].replace(/^\s*[-*]\s+/,'')+'</li>');
+        i++;
+      }
+      out.push('<ul>'+items.join('')+'</ul>');
+      continue;
+    }
+    // Lista ordenada
+    if(/^\s*\d+\.\s+/.test(line)){
+      var oitems = [];
+      while(i < lines.length && /^\s*\d+\.\s+/.test(lines[i])){
+        oitems.push('<li>'+lines[i].replace(/^\s*\d+\.\s+/,'')+'</li>');
+        i++;
+      }
+      out.push('<ol>'+oitems.join('')+'</ol>');
+      continue;
+    }
+
+    // Linha em branco → separador de parágrafo
+    if(line.trim() === ''){ out.push(''); i++; continue; }
+
+    // Parágrafo: agrupa linhas consecutivas
+    var buf = [line];
+    i++;
+    while(i < lines.length && lines[i].trim() !== '' && !/^(#{1,3}\s|[-*]\s|\d+\.\s|---)/.test(lines[i]) && lines[i].indexOf('|') === -1){
+      buf.push(lines[i]); i++;
+    }
+    out.push('<p>'+buf.join('<br>')+'</p>');
+  }
+
+  var html = out.join('\n');
+  // Inline: negrito, itálico, código, emojis coloridos
+  html = html
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(>])\*(?!\s)(.+?)\*(?=[\s.,;:!?)<]|$)/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/🔴/g, '<span style="color:#ff3355">🔴</span>')
+    .replace(/⚠/g, '<span style="color:#ffaa00">⚠</span>')
+    .replace(/✓/g, '<span style="color:#00e8a2">✓</span>');
+  return html;
+}
+
+
 
 /* tentar extrair score da resposta e atualizar painel */
 function tryExtractAndUpdateScore(aiText, userText){
