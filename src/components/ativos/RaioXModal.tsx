@@ -117,7 +117,8 @@ function Field({
   );
 }
 
-export function openRaioX(dados: RaioXDados) {
+export function openRaioX(dados: RaioXDados, sessionId?: string) {
+  const sid = sessionId ?? (globalThis.crypto?.randomUUID?.() ?? String(Date.now()));
   const params = new URLSearchParams({
     nome: dados.nome,
     municipio: dados.municipio,
@@ -125,7 +126,10 @@ export function openRaioX(dados: RaioXDados) {
     cargo: dados.cargo ?? '',
     contexto: dados.contexto ?? '',
     auto: 'true',
+    session_id: sid,
   });
   const base = (import.meta.env.VITE_RAIOX_URL as string | undefined) || '/raio-x.html';
-  window.open(`${base}?${params.toString()}`, '_blank', 'noopener,noreferrer');
+  // NOTE: precisa manter opener para receber postMessage de volta — não usar 'noopener'
+  window.open(`${base}?${params.toString()}`, '_blank', 'noreferrer');
+  return sid;
 }
