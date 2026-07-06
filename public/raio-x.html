@@ -1254,6 +1254,29 @@ body::before {
 ══════════════════════════════════════════ -->
 <script>
 /* ───────────────────────────────
+   ENDPOINT DO PROXY DE IA (Lovable Cloud)
+─────────────────────────────── */
+var RAIO_X_CHAT_URL = 'https://sumdjlmjtqgfzkcfkceq.supabase.co/functions/v1/raio-x-chat';
+var RAIO_X_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1bWRqbG1qdHFnZnprY2ZrY2VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIwMTEsImV4cCI6MjA5MDAxODAxMX0.noLF_BY9rdDO8tUXEeQRAMRxJvmeG4nzLQFkBpNkzl8';
+
+async function callRaioXAI(systemPrompt, messages){
+  var res = await fetch(RAIO_X_CHAT_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': RAIO_X_ANON_KEY,
+      'Authorization': 'Bearer ' + RAIO_X_ANON_KEY
+    },
+    body: JSON.stringify({ system: systemPrompt, messages: messages })
+  });
+  var data = await res.json().catch(function(){ return {}; });
+  if(!res.ok){
+    throw new Error(data && data.error ? data.error : ('HTTP ' + res.status));
+  }
+  return (data && data.text) || '';
+}
+
+/* ───────────────────────────────
    ESTADO GLOBAL
 ─────────────────────────────── */
 var state = {
@@ -1822,19 +1845,9 @@ CRITÉRIOS DE ESPECTRO (0-100):
 
 
   try {
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: state.conversationHistory
-      })
-    });
+    var aiText = await callRaioXAI(systemPrompt, state.conversationHistory);
+    if(!aiText) aiText = 'Erro ao processar resposta.';
 
-    var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || 'Erro ao processar resposta.';
 
     // Adiciona resposta ao histórico
     state.conversationHistory.push({role:'assistant', content: aiText});
@@ -1981,19 +1994,8 @@ async function analyzeDigital(){
   state.conversationHistory.push({role:'user', content: msgDigital});
 
   try {
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: buildSystemPrompt(),
-        messages: state.conversationHistory
-      })
-    });
+    var aiText = await callRaioXAI(buildSystemPrompt(), state.conversationHistory);
 
-    var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || '';
     state.conversationHistory.push({role:'assistant', content: aiText});
     if(state.conversationHistory.length > 20)
       state.conversationHistory = state.conversationHistory.slice(-20);
