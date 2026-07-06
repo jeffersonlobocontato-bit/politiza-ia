@@ -149,16 +149,91 @@ export default function AtivosPoliticos() {
   const { roles } = useAuth();
   const canRaioX = roles.some(r => ['admin_master', 'coordenador_estadual', 'coordenador_geral'].includes(r));
   const [raioXAsset, setRaioXAsset] = useState<UnifiedAsset | null>(null);
+  const [profileAsset, setProfileAsset] = useState<UnifiedAsset | null>(null);
+  const [pendingReview, setPendingReview] = useState<PendingRaioX | null>(null);
+  const createReport = useCreateRaioXReport();
+  const { data: allReports = [] } = useRaioXReports();
 
-  const handleRaioX = (asset: UnifiedAsset) => {
+  // Mapa session_id → ativo (para saber a que card o RAIO-X que voltou pertence)
+  const sessionMap = useRef<Map<string, UnifiedAsset>>(new Map());
+
+  // Contagem de relatórios por ativo (para badge no card)
+  const reportsByAsset = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of allReports) {
+      map.set(r.asset_key, (map.get(r.asset_key) ?? 0) + 1);
+    }
+    return map;
+  }, [allReports]);
+
+  const openRaioXForAsset = (asset: UnifiedAsset, contexto = '') => {
     const nome = (asset.name ?? '').trim();
     const municipio = (asset.municipality ?? '').trim();
     if (nome.length > 3 && municipio.length > 2) {
-      openRaioX({ nome, municipio, partido: '', cargo: asset.position ?? '', contexto: '' });
+      const sid = openRaioX({ nome, municipio, partido: '', cargo: asset.position ?? '', contexto });
+      sessionMap.current.set(sid, asset);
     } else {
       setRaioXAsset(asset);
     }
   };
+
+  const handleRaioX = (asset: UnifiedAsset) => openRaioXForAsset(asset);
+
+  // Ouve o postMessage do painel RAIO-X (public/raio-x.html)
+  useEffect(() => {
+    const handler = (ev: MessageEvent) => {
+      const data = ev.data;
+      if (!data || data.type !== 'raiox:save' || !data.session_id) return;
+      const asset = sessionMap.current.get(data.session_id);
+      if (!asset) return;
+      setPendingReview({
+        session_id: data.session_id,
+        html: String(data.html ?? ''),
+        markdown: data.markdown,
+        model: data.model,
+        context_input: data.context_input,
+        subject: data.subject ?? {
+          name: asset.name,
+          municipality: asset.municipality ?? '',
+          position: asset.position ?? '',
+        },
+        asset: {
+          origin: asset.origin,
+          source_id: asset.origin === 'nativo' ? asset.source_id : null,
+          asset_key: assetKeyFor(asset.name, asset.municipality),
+        },
+      });
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const confirmSaveReport = async (reviewerNotes: string) => {
+    if (!pendingReview) return;
+    await createReport.mutateAsync({
+      asset_origin: pendingReview.asset.origin,
+      asset_source_id: pendingReview.asset.source_id,
+      asset_key: pendingReview.asset.asset_key,
+      subject_name: pendingReview.subject.name,
+      subject_municipality: pendingReview.subject.municipality ?? null,
+      subject_party: pendingReview.subject.party ?? null,
+      subject_position: pendingReview.subject.position ?? null,
+      context_input: pendingReview.context_input ?? null,
+      report_html: pendingReview.html,
+      report_markdown: pendingReview.markdown ?? null,
+      model: pendingReview.model ?? null,
+      reviewer_notes: reviewerNotes || null,
+    });
+    setPendingReview(null);
+  };
+
+  const redoAnalysis = () => {
+    if (!pendingReview) return;
+    const asset = sessionMap.current.get(pendingReview.session_id);
+    setPendingReview(null);
+    if (asset) openRaioXForAsset(asset, pendingReview.context_input ?? '');
+  };
+
 
   // Lista única de cidades presentes nos ativos (respeita filtro de macrorregião)
   const cityOptions = useMemo(() => {
