@@ -1026,6 +1026,12 @@ body::before {
           </div>
         </div>
 
+        <!-- RESUMO EXECUTIVO -->
+        <div class="rx-section" id="rxResumo" style="display:none">
+          <div class="rx-section-label">Resumo executivo</div>
+          <div class="resumo-box" id="resumoBox" style="font-family:var(--font-m);font-size:11px;line-height:1.55;color:#eef0ff;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-sm)"></div>
+        </div>
+
         <!-- ALERTAS -->
         <div class="rx-section" id="rxAlertas">
           <div class="rx-section-label">Alertas</div>
@@ -1034,12 +1040,18 @@ body::before {
           </div>
         </div>
 
-        <!-- ACHADOS -->
+        <!-- ACHADOS (métricas) -->
         <div class="rx-section" id="rxAchados">
-          <div class="rx-section-label">Achados</div>
+          <div class="rx-section-label">Achados — indicadores</div>
           <div class="achados-grid" id="achadosGrid">
             <!-- preenchido pelo JS -->
           </div>
+        </div>
+
+        <!-- ACHADOS DETALHADOS -->
+        <div class="rx-section" id="rxAchadosDet" style="display:none">
+          <div class="rx-section-label">Achados detalhados</div>
+          <div id="achadosDetList" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
 
         <!-- TIMELINE -->
@@ -1049,6 +1061,13 @@ body::before {
             <!-- preenchido pelo JS -->
           </div>
         </div>
+
+        <!-- RECOMENDAÇÕES -->
+        <div class="rx-section" id="rxRecs" style="display:none">
+          <div class="rx-section-label">Recomendações de aprofundamento</div>
+          <ol id="recsList" style="font-family:var(--font-m);font-size:11px;line-height:1.5;color:#eef0ff;padding-left:20px;margin:0;display:flex;flex-direction:column;gap:6px"></ol>
+        </div>
+
 
         <!-- ANÁLISE DIGITAL -->
         <div class="rx-section" id="rxDigital">
