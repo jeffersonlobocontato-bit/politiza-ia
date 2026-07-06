@@ -946,7 +946,9 @@ body::before {
       </div>
       <div class="raio-x-actions">
         <button class="rx-btn sync-btn" id="syncBtn" onclick="syncToSupabase()" title="Sincronizar com Supabase">⟳ Sync</button>
-        <button class="rx-btn" onclick="saveCurrentProfile()" title="Salvar perfil">💾 Salvar</button>
+        <button class="rx-btn" onclick="saveCurrentProfile()" title="Salvar perfil localmente">💾 Local</button>
+        <button class="rx-btn" onclick="refazerAnalise()" title="Refazer análise com novo contexto" style="display:none" id="btnRefazer">↻ Refazer</button>
+        <button class="rx-btn primary" onclick="sendToPolitiza()" title="Enviar relatório ao Politiza IA para salvar no perfil do ativo" style="display:none" id="btnEnviarPolitiza">✓ Salvar no Politiza</button>
         <button class="rx-btn primary" onclick="printRaioX()" title="Exportar PDF">🖨 PDF</button>
       </div>
     </div>
