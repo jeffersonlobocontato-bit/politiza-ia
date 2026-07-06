@@ -1254,6 +1254,29 @@ body::before {
 ══════════════════════════════════════════ -->
 <script>
 /* ───────────────────────────────
+   ENDPOINT DO PROXY DE IA (Lovable Cloud)
+─────────────────────────────── */
+var RAIO_X_CHAT_URL = 'https://sumdjlmjtqgfzkcfkceq.supabase.co/functions/v1/raio-x-chat';
+var RAIO_X_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1bWRqbG1qdHFnZnprY2ZrY2VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIwMTEsImV4cCI6MjA5MDAxODAxMX0.noLF_BY9rdDO8tUXEeQRAMRxJvmeG4nzLQFkBpNkzl8';
+
+async function callRaioXAI(systemPrompt, messages){
+  var res = await fetch(RAIO_X_CHAT_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': RAIO_X_ANON_KEY,
+      'Authorization': 'Bearer ' + RAIO_X_ANON_KEY
+    },
+    body: JSON.stringify({ system: systemPrompt, messages: messages })
+  });
+  var data = await res.json().catch(function(){ return {}; });
+  if(!res.ok){
+    throw new Error(data && data.error ? data.error : ('HTTP ' + res.status));
+  }
+  return (data && data.text) || '';
+}
+
+/* ───────────────────────────────
    ESTADO GLOBAL
 ─────────────────────────────── */
 var state = {
