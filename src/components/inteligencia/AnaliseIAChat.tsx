@@ -330,24 +330,22 @@ export default function AnaliseIAChat({ context }: Props) {
           }}
           className="mx-3 mb-[76px] rounded-lg border border-slate-300 bg-white shadow-sm"
         >
-          <PromptInputBody>
-            <PromptInputTextarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Pergunte ao analista — ex: compare Moro vs Requião por instituto…"
-              disabled={streaming}
-              className="min-h-[76px] bg-white text-slate-900 placeholder:text-slate-500 focus-visible:ring-0"
+          <PromptInputTextarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Pergunte ao analista — ex: compare Moro vs Requião por instituto…"
+            disabled={streaming}
+            className="min-h-[76px] bg-white text-slate-900 placeholder:text-slate-500 focus-visible:ring-0"
+          />
+          <PromptInputFooter className="bg-white border-t border-slate-200">
+            <div className="text-[10px] text-slate-500">
+              Respostas baseadas exclusivamente nos dados do painel.
+            </div>
+            <PromptInputSubmit
+              status={streaming ? 'streaming' : undefined}
+              disabled={!input.trim() || streaming}
             />
-            <PromptInputFooter className="bg-white border-t border-slate-200">
-              <div className="text-[10px] text-slate-500">
-                Respostas baseadas exclusivamente nos dados do painel.
-              </div>
-              <PromptInputSubmit
-                status={streaming ? 'streaming' : undefined}
-                disabled={!input.trim() || streaming}
-              />
-            </PromptInputFooter>
-          </PromptInputBody>
+          </PromptInputFooter>
         </PromptInput>
       </Card>
     </div>
