@@ -1,72 +1,82 @@
-# Plano: Insights de Comunicação Eleitoral
+## Objetivo
 
-Evoluir a camada de Inteligência de Campanha sem quebrar dados, importações ou abas existentes. Foco em prompt, UX do chat e nova aba de cards visuais.
+Permitir que cada relatório de RAIO-X seja **salvo manualmente no card do ativo político** (após revisão, com opção de pedir nova análise) e adicionar um CTA **"Ver Perfil"** que expande todos os dados relacionados ao ativo, incluindo o histórico de RAIO-X salvos.
 
-## 1. Edge Function `chat-inteligencia`
+## O que será construído
 
-Reescrever `SYSTEM_PROMPT` em `supabase/functions/chat-inteligencia/index.ts` com:
+### 1. Persistência dos relatórios RAIO-X
+Nova tabela `raio_x_reports` no banco, ligada ao ativo por uma chave estável (origem + id de origem + nome + município), para funcionar tanto para ativos nativos quanto para os que vêm de outras tabelas (candidatos, coordenadores, prefeitos etc.).
 
-- **Papel**: estrategista sênior + analista de pesquisa + planejador de comunicação + redator + sala de guerra pró-Moro.
-- **Tese central** (guardião do dinheiro das famílias paranaenses) e traduções obrigatórias (corrupção, segurança, gestão, integridade, obra, futuro).
-- **Regras de dados**: apenas dados do contexto, citar percentuais/institutos/datas, nunca inventar.
-- **Regras de contraste** por adversário (Sandro Alex, Requião Filho, Greca) conforme briefing.
-- **Regras jurídicas/factuais**: vocabulário permitido ("indícios", "apontamentos", "segundo reportagem") e proibido ("roubo", "fraude comprovada", "esquema", etc.).
-- **Regra de alianças/oportunidades**: nunca citar nomes de partidos (regra já acordada).
-- **Formato de resposta padrão** para insights/planos/análises, com as 14 seções: Leitura estratégica, Diagnóstico, Decisão da semana, Maior risco, Maior oportunidade, Públicos prioritários, Narrativa recomendada, Peças recomendadas, Contraste com adversários, Agenda recomendada, Métricas de validação, Frases para o candidato, Alertas jurídicos e factuais, "O marketing deve fazer agora" (5–8 ações).
-- **Peças concretas obrigatórias** quando pedir comunicação (3 Reels, 3 cards, 2 áudios WhatsApp, 1 fala pública, 1 corte de contraste, 1 resposta rápida, 1 manchete, 1 roteiro curto), cada uma com objetivo, público, gancho, mensagem, texto sugerido, CTA e métrica.
+Campos principais:
+- Identificação do ativo (origem, id de origem, nome, município, cargo, partido)
+- Conteúdo do relatório (HTML renderizado + Markdown/texto para busca)
+- Contexto usado na geração e modelo/data
+- Autor, timestamps, soft-delete
 
-Preservar: streaming SSE, persistência de threads/mensagens, verificação `is_admin`, envio do `context` JSON, modelo `google/gemini-2.5-flash`.
+### 2. Fluxo "Gerar → Revisar → Salvar" no painel RAIO-X (`public/raio-x.html`)
+- Após o relatório ser gerado, aparecem no topo da coluna direita três ações:
+  - **Salvar no perfil do ativo** (envia via `postMessage` para a janela que abriu o painel)
+  - **Refazer análise** (permite ajustar o contexto e regerar antes de salvar)
+  - **Descartar** (fecha sem salvar)
+- Nada é salvo automaticamente. O painel só envia o conteúdo para a plataforma quando o usuário clica em "Salvar no perfil".
 
-Aplicar as mesmas regras (tese, vocabulário responsável, sem partidos) ao prompt de `supabase/functions/strategic-analysis/index.ts` para alinhar alertas curtos com o novo tom.
+### 3. Recebimento e persistência na plataforma
+Na página **Ativos Políticos**:
+- Um listener global de `postMessage` recebe o relatório e abre um modal de **revisão final** com preview do relatório e um textarea de "notas do analista".
+- Ao confirmar, grava em `raio_x_reports` vinculado ao ativo que originou a investigação.
+- Toast de sucesso + o card ganha um selo indicando quantos RAIO-X existem.
 
-## 2. Chat `AnaliseIAChat.tsx`
+### 4. CTA "Ver Perfil" nos cards
+Botão principal em cada card (ao lado ou substituindo a área de ações). Abre um **painel lateral (Sheet)** com todos os dados do ativo em seções:
 
-- Substituir `SUGESTOES` pelos 6 prompts orientados a marketing listados no briefing.
-- Adicionar barra de **Ações rápidas** logo acima do `PromptInput` (grid de chips/botões `variant="outline" size="sm"`), com 8 ações:
-  - Plano semanal, Briefing criação, Peças WhatsApp, Roteiro de vídeo, Frases do candidato, Plano mulheres, Contraste adversário, Resposta rápida.
-- Cada botão dispara `send(promptCompleto)` com um prompt pré-formado (definidos em constante `ACOES_RAPIDAS`) que instrui o agente a usar a estrutura padrão + entregar peças concretas.
-- Manter streaming, threads, sugestões iniciais e comportamento atual.
+- **Identificação** — nome, cargo, tipo, origem, município, macrorregião, associação
+- **Alinhamento & influência** — status, nível, apoio, perfis de liderança vinculados
+- **Contato** — telefone, e-mail, responsável pelo relacionamento, indicado por
+- **Observações estratégicas**
+- **Investigações RAIO-X** — lista dos relatórios salvos, com data/autor. Cada item abre o relatório renderizado em um viewer inline (ou reabre o painel RAIO-X com o conteúdo). Botões: **Nova investigação** (abre RAIO-X) e por relatório: **Ver**, **Excluir**.
 
-## 3. Nova aba "Insights de Comunicação" em `Inteligencia.tsx`
+## Detalhes técnicos
 
-Adicionar aba nova (`Tabs`) sem remover as existentes. Conteúdo:
-
-- Botão **"Gerar insights"** que chama `chat-inteligencia` (fora do fluxo de thread — request única, não-streaming ou consumindo o stream até o fim) com um prompt fixo pedindo JSON estruturado:
-
-```text
-{
-  decisao_semana, risco_urgente, oportunidade_prioritaria,
-  publico_decisivo, narrativa_recomendada,
-  pecas_sugeridas[], metricas_validacao[]
-}
+**Migração (Lovable Cloud):**
+```sql
+CREATE TABLE public.raio_x_reports (
+  id uuid PK default gen_random_uuid(),
+  asset_origin text NOT NULL,        -- 'nativo' | 'candidato' | 'coordenador' | 'evento'
+  asset_source_id uuid,              -- id na tabela de origem (nullable)
+  asset_key text NOT NULL,           -- fallback: lower(nome||'|'||municipio)
+  subject_name text NOT NULL,
+  subject_municipality text,
+  subject_party text,
+  subject_position text,
+  context_input text,
+  report_html text NOT NULL,
+  report_markdown text,
+  model text,
+  reviewer_notes text,
+  created_by uuid REFERENCES auth.users,
+  deleted_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 ```
+Índices em `(asset_origin, asset_source_id)` e `asset_key`. GRANTs para `authenticated`/`service_role`. RLS: SELECT/INSERT/UPDATE(soft-delete) permitido para usuários com papel `admin_master`, `coordenador_geral` ou `coordenador_estadual` (mesmos que já podem fazer RAIO-X).
 
-Cada item com: `dado_origem`, `leitura`, `acao`, `peca`, `canal`, `metrica`, `risco`.
+**Ponte janela↔janela:**
+- `RaioXModal.openRaioX` passa um `session_id` na URL do popup.
+- Popup envia `window.opener.postMessage({ type: 'raiox:save', session_id, html, markdown, context, subject })` no clique de "Salvar no perfil".
+- `AtivosPoliticos` mantém `sessionMap: session_id → UnifiedAsset` para saber a que card vincular.
 
-- Renderizar como grid de cards (reutilizando `Card`, tokens MobNex) — 7 cards principais + lista de peças.
-- Estado local: `insights`, `loading`, `geradoEm`. Botão de regenerar.
-- Sem persistência nova no banco nesta fase (evita mudanças de schema); se o usuário quiser histórico depois, avaliamos.
+**Novos arquivos:**
+- `src/hooks/useRaioXReports.ts` — list/create/delete
+- `src/components/ativos/AssetProfileSheet.tsx` — o "Ver Perfil"
+- `src/components/ativos/RaioXReviewDialog.tsx` — modal de revisão pré-save
+- `src/components/ativos/RaioXReportViewer.tsx` — viewer do HTML salvo (iframe sandboxed)
 
-## 4. Detalhes técnicos
+**Arquivos alterados:**
+- `public/raio-x.html` — barra de ações "Salvar / Refazer / Descartar" + `postMessage`
+- `src/components/ativos/RaioXModal.tsx` / `openRaioX` — gera `session_id`
+- `src/pages/AtivosPoliticos.tsx` — listener de `postMessage`, CTA "Ver Perfil", integração do Sheet
 
-- **Prompts pré-formados** vivem em `src/components/inteligencia/prompts.ts` (novo arquivo) para reutilização entre chat e aba de insights.
-- **Parsing JSON** dos insights: pedir ao modelo bloco `json` cercado por fences, extrair via regex, fallback para exibir texto bruto num card se parse falhar.
-- Layout mantém DM Sans, dark Navy/Verde, sem hardcode de cores.
-- Nenhuma alteração em Supabase schema, RLS, importação de pesquisas, ou nas abas atuais (Overview, Cruzamento, Cenários, Análise IA).
-
-## Arquivos afetados
-
-```text
-supabase/functions/chat-inteligencia/index.ts   (prompt + tese + estrutura)
-supabase/functions/strategic-analysis/index.ts  (alinhamento de tom)
-src/components/inteligencia/AnaliseIAChat.tsx   (sugestões + ações rápidas)
-src/components/inteligencia/prompts.ts          (novo — biblioteca de prompts)
-src/components/inteligencia/InsightsComunicacao.tsx (novo — aba de cards)
-src/pages/Inteligencia.tsx                      (nova aba + integração)
-```
-
-## Fora de escopo
-
-- Persistir insights gerados no banco.
-- Alterar importação de pesquisas ou dados existentes.
-- Mudar modelo/gateway ou fluxo de streaming.
+## Fora do escopo desta entrega
+- Exportar PDF do relatório salvo (fica para depois se necessário)
+- Compartilhar/linkar relatório entre usuários
