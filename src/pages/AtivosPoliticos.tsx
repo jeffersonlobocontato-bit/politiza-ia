@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Search, Plus, Pencil, Trash2, X, Upload, ExternalLink, Lock, Shield } from 'lucide-react';
+import { Users, Search, Plus, Pencil, Trash2, X, Upload, ExternalLink, Lock, Shield, Eye, FileText } from 'lucide-react';
 import { RaioXModal, openRaioX } from '@/components/ativos/RaioXModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
@@ -13,6 +13,9 @@ import type { DbAssetType, DbAlignmentStatus } from '@/types/database';
 import { InfographicDonut, InfographicHBar, CHART_PRIMARY, CHART_MINT } from '@/components/ui/InfographicCharts';
 import { ImportAssetsDialog } from '@/components/ativos/ImportAssetsDialog';
 import { useAssociationForCity } from '@/hooks/useMunicipalityAssociation';
+import { AssetProfileSheet } from '@/components/ativos/AssetProfileSheet';
+import { RaioXReviewDialog, type PendingRaioX } from '@/components/ativos/RaioXReviewDialog';
+import { useCreateRaioXReport, useRaioXReports, assetKeyFor } from '@/hooks/useRaioXReports';
 
 const ALIGNMENT_COLORS: Record<DbAlignmentStatus, string> = {
   alinhado:   '#22c55e',
