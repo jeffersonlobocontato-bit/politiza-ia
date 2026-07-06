@@ -656,16 +656,36 @@ export default function AtivosPoliticos() {
                   {asset.observations && (
                     <div className="mt-2 text-[11px] text-muted-foreground italic border-t border-border pt-2 line-clamp-2">{asset.observations}</div>
                   )}
-                  {canRaioX && (
-                    <button
-                      onClick={() => handleRaioX(asset)}
-                      className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:border-destructive/60 transition-all"
-                      title="Iniciar investigação de due diligence"
-                    >
-                      <Shield className="w-3.5 h-3.5" />
-                      Fazer RAIO-X
-                    </button>
-                  )}
+                  {(() => {
+                    const rxCount = reportsByAsset.get(assetKeyFor(asset.name, asset.municipality)) ?? 0;
+                    return (
+                      <div className="mt-3 flex flex-col gap-2">
+                        <button
+                          onClick={() => setProfileAsset(asset)}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60 transition-all"
+                          title="Ver todos os dados deste ativo"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Ver Perfil
+                          {rxCount > 0 && (
+                            <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-destructive/15 border border-destructive/30 text-destructive text-[9px] font-bold">
+                              <FileText className="w-2.5 h-2.5" /> {rxCount}
+                            </span>
+                          )}
+                        </button>
+                        {canRaioX && (
+                          <button
+                            onClick={() => handleRaioX(asset)}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:border-destructive/60 transition-all"
+                            title="Iniciar investigação de due diligence"
+                          >
+                            <Shield className="w-3.5 h-3.5" />
+                            Fazer RAIO-X
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}
@@ -683,11 +703,43 @@ export default function AtivosPoliticos() {
           }}
           onClose={() => setRaioXAsset(null)}
           onConfirm={(dados) => {
+            const asset = raioXAsset;
             setRaioXAsset(null);
-            openRaioX(dados);
+            const sid = openRaioX(dados);
+            if (asset) sessionMap.current.set(sid, asset);
           }}
         />
       )}
+
+      {profileAsset && (
+        <AssetProfileSheet
+          asset={profileAsset}
+          onClose={() => setProfileAsset(null)}
+          canRaioX={canRaioX}
+          onStartRaioX={(a) => {
+            setProfileAsset(null);
+            handleRaioX(a);
+          }}
+          rawAssetExtras={
+            profileAsset.origin === 'nativo'
+              ? (() => {
+                  const raw = rawAssets.find(r => r.id === profileAsset.source_id);
+                  return raw
+                    ? { relationship_owner: raw.relationship_owner, referred_by: (raw as any).referred_by }
+                    : null;
+                })()
+              : null
+          }
+        />
+      )}
+
+      <RaioXReviewDialog
+        pending={pendingReview}
+        onClose={() => setPendingReview(null)}
+        onConfirm={confirmSaveReport}
+        onRedo={redoAnalysis}
+        saving={createReport.isPending}
+      />
     </div>
   );
 }
