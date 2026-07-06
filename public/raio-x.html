@@ -2497,11 +2497,48 @@ function printRaioX(){
    NOTAS
 ─────────────────────────────── */
 function saveNotes(){
+  var notesVal = document.getElementById('analystNotes').value;
   var key = state.currentProfile ? 'aiox_notes_'+state.currentProfile.id : 'aiox_notes_general';
-  localStorage.setItem(key, document.getElementById('analystNotes').value);
+  localStorage.setItem(key, notesVal);
   var s = document.getElementById('notesStatus');
-  s.textContent = '✓ Salvo '+new Date().toLocaleTimeString('pt-BR');
-  setTimeout(function(){s.textContent='';},3000);
+
+  // Também envia o relatório + notas para a plataforma (card do ativo)
+  var sent = false;
+  try {
+    var qp = new URLSearchParams(window.location.search);
+    var sid = qp.get('session_id');
+    if(sid && window.opener && !window.opener.closed && state.lastAiText){
+      var colRight = document.querySelector('.col-right');
+      var reportHtml = '';
+      if(colRight){
+        reportHtml = '<div class="raiox-report" style="font-family:Inter,system-ui,sans-serif;color:#0f172a;background:#fff;padding:16px">' +
+                     colRight.innerHTML + '</div>';
+      } else if(state.lastFullHtml){
+        reportHtml = state.lastFullHtml;
+      }
+      window.opener.postMessage({
+        type: 'raiox:save',
+        session_id: sid,
+        html: reportHtml,
+        markdown: state.lastVisibleMarkdown || '',
+        context_input: qp.get('contexto') || '',
+        reviewer_notes: notesVal,
+        model: 'raio-x-chat',
+        subject: {
+          name: (state.currentProfile && state.currentProfile.name) || qp.get('nome') || '',
+          municipality: qp.get('municipio') || '',
+          party: qp.get('partido') || '',
+          position: qp.get('cargo') || ''
+        }
+      }, '*');
+      sent = true;
+    }
+  } catch(e){ console.warn('[raiox] postMessage falhou', e); }
+
+  s.textContent = sent
+    ? '✓ Notas salvas e relatório enviado ao card '+new Date().toLocaleTimeString('pt-BR')
+    : '✓ Salvo '+new Date().toLocaleTimeString('pt-BR');
+  setTimeout(function(){s.textContent='';},4000);
 }
 function loadNotes(){
   var key = state.currentProfile ? 'aiox_notes_'+state.currentProfile.id : 'aiox_notes_general';
