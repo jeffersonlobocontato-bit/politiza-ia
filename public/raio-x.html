@@ -1578,6 +1578,51 @@ function updateRaioX(p){
     };
     tl.appendChild(div);
   });
+
+  // Resumo executivo
+  var rSec = document.getElementById('rxResumo');
+  var rBox = document.getElementById('resumoBox');
+  if(p.resumo && p.resumo.trim()){
+    rBox.textContent = p.resumo.trim();
+    rSec.style.display = 'block';
+  } else { rSec.style.display = 'none'; }
+
+  // Achados detalhados
+  var adSec = document.getElementById('rxAchadosDet');
+  var adList = document.getElementById('achadosDetList');
+  adList.innerHTML = '';
+  var catMap = {JUD:{lbl:'Judicial',c:'#ff3355'},REP:{lbl:'Reputacional',c:'#ff6d00'},REG:{lbl:'Regulatório',c:'#ffaa00'},SOC:{lbl:'Societário',c:'#9b6fff'},OUT:{lbl:'Outros',c:'#3d9fff'}};
+  if(p.achadosDet && p.achadosDet.length){
+    p.achadosDet.forEach(function(a){
+      var cat = catMap[a.cat] || catMap.OUT;
+      var confBadge = a.conf
+        ? '<span style="font-size:8px;letter-spacing:1.5px;background:rgba(0,232,162,.15);color:#00e8a2;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,232,162,.35)">CONFIRMADO</span>'
+        : '<span style="font-size:8px;letter-spacing:1.5px;background:rgba(255,170,0,.12);color:#ffaa00;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,170,0,.35)">A CONFIRMAR</span>';
+      var srcHtml = a.src ? '<div style="font-family:var(--font-m);font-size:9px;color:var(--lo);margin-top:4px">Fonte: '+a.src+'</div>' : '';
+      adList.innerHTML += '<div style="padding:9px 11px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-left:3px solid '+cat.c+';border-radius:var(--r-sm)">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px">'+
+          '<span style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:'+cat.c+';text-transform:uppercase">'+cat.lbl+'</span>'+
+          confBadge+
+        '</div>'+
+        '<div style="font-family:var(--font-m);font-size:11px;line-height:1.5;color:#eef0ff">'+a.desc+'</div>'+
+        srcHtml+
+      '</div>';
+    });
+    adSec.style.display = 'block';
+  } else { adSec.style.display = 'none'; }
+
+  // Recomendações
+  var recSec = document.getElementById('rxRecs');
+  var recList = document.getElementById('recsList');
+  recList.innerHTML = '';
+  if(p.recomendacoes && p.recomendacoes.length){
+    p.recomendacoes.forEach(function(r){
+      var li = document.createElement('li');
+      li.textContent = r;
+      recList.appendChild(li);
+    });
+    recSec.style.display = 'block';
+  } else { recSec.style.display = 'none'; }
 }
 
 function setBar(fillId, valId, v){
