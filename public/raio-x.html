@@ -1909,53 +1909,95 @@ function formatResponse(text){
 }
 
 /* tentar extrair score da resposta e atualizar painel */
-function tryExtractAndUpdateScore(aiText, userText){
-  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
-  if(!scoreMatch) return;
-  var score = parseInt(scoreMatch[1]);
-  if(score < 0 || score > 100) return;
+function normalizeScoreValue(raw, denom){
+  var n = parseFloat(String(raw).replace(',', '.'));
+  if(isNaN(n)) return null;
+  var d = denom ? parseFloat(denom) : null;
+  if(d && d > 0 && d !== 100){
+    n = (n / d) * 100;
+  } else if(!d && n <= 10){
+    // "SCORE: 7.5" sem denominador → provavelmente escala 0-10
+    n = n * 10;
+  }
+  n = Math.round(n);
+  if(n < 0) n = 0; if(n > 100) n = 100;
+  return n;
+}
 
-  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
+function parseScoreBlock(aiText){
+  var m = aiText.match(/---SCORE_START---([\s\S]*?)---SCORE_END---/i);
+  if(!m) return null;
+  var body = m[1];
+  function pick(key){
+    var r = new RegExp(key+'\\s*:\\s*([^\\n\\r]+)', 'i');
+    var mm = body.match(r);
+    return mm ? mm[1].trim() : null;
+  }
+  function num(key){
+    var v = pick(key);
+    if(!v) return null;
+    var mm = v.match(/(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/);
+    if(!mm) return null;
+    return normalizeScoreValue(mm[1], mm[2]);
+  }
+  var score = num('SCORE');
+  if(score === null) return null;
+  return {
+    score: score,
+    jud: num('JUDICIAL'),
+    rep: num('REPUTACIONAL'),
+    reg: num('REGULATORIO') !== null ? num('REGULATORIO') : num('REGULATÓRIO'),
+    soc: num('SOCIETARIO') !== null ? num('SOCIETARIO') : num('SOCIETÁRIO'),
+    risco: (pick('RISCO') || '').toLowerCase(),
+    alerts: [pick('ALERTA1'), pick('ALERTA2'), pick('ALERTA3')].filter(Boolean)
+  };
+}
+
+function tryExtractAndUpdateScore(aiText, userText){
+  var block = parseScoreBlock(aiText);
+  var score = null, jud, rep, reg, soc, structuredAlerts = null, riscoLabel = null;
+
+  if(block){
+    score = block.score;
+    jud = block.jud; rep = block.rep; reg = block.reg; soc = block.soc;
+    riscoLabel = block.risco;
+    if(block.alerts.length){
+      structuredAlerts = block.alerts.map(function(a){
+        return { l: 'amber', txt: a.slice(0,140) };
+      });
+    }
+  } else {
+    // Fallback: tenta regex antigo (SCORE: NN, NN/100, NN/10)
+    var scoreMatch = aiText.match(/SCORE[:\s]+(\d+(?:[.,]\d+)?)\s*\/\s*(\d+)/i)
+      || aiText.match(/(\d+(?:[.,]\d+)?)\s*\/\s*(100|10|5)\b/)
+      || aiText.match(/SCORE[:\s]+(\d+(?:[.,]\d+)?)/i);
+    if(!scoreMatch) return;
+    score = normalizeScoreValue(scoreMatch[1], scoreMatch[2]);
+    if(score === null) return;
+  }
+
+  var risk = riscoLabel
+    ? (riscoLabel.indexOf('alto') >= 0 ? 'alto' : riscoLabel.indexOf('mod') >= 0 ? 'mod' : 'baixo')
+    : (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
 
   // Extrair nome do sujeito da mensagem do usuário
   var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
   var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
 
-  // Extrair scores por dimensão
-  var jud = extractDim(aiText, 'judicial') || score;
-  var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
-  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
-  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
+  jud = jud !== null && jud !== undefined ? jud : (extractDim(aiText, 'judicial') || score);
+  rep = rep !== null && rep !== undefined ? rep : (extractDim(aiText, 'reputacional') || Math.round(score * .8));
+  reg = reg !== null && reg !== undefined ? reg : (extractDim(aiText, 'regulatório') || Math.round(score * .85));
+  soc = soc !== null && soc !== undefined ? soc : (extractDim(aiText, 'societário') || Math.round(score * .7));
 
-  // Extrair alertas do texto
-  var alerts = extractAlerts(aiText);
+  var alerts = structuredAlerts || extractAlerts(aiText);
 
-  var profile = {
-    id: 'auto_'+Date.now(),
-    name: subjectName,
-    meta: 'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR'),
-    score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
-    alerts: alerts,
-    achados: [
-      {lbl:'Score Global',val:score,desc:'Ponderado 4 dimensões'},
-      {lbl:'Judicial',val:jud,desc:'% de risco judicial'},
-      {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
-      {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
-    ],
-    timeline: []
-  };
-
-  state.currentProfile = profile;
-  document.getElementById('subjectName').textContent = subjectName;
-  document.getElementById('subjectSub').textContent = profile.meta;
-  updateRaioX(profile);
-}
-
+function extractDimLegacy(){}
 function extractDim(text, dim){
-  var re = new RegExp(dim+'[:\\s]+(\\d+)', 'i');
+  var re = new RegExp(dim+'[:\\s]+(\\d+(?:[.,]\\d+)?)(?:\\s*\\/\\s*(\\d+))?', 'i');
   var m = text.match(re);
-  return m ? Math.min(100, parseInt(m[1])) : null;
+  return m ? normalizeScoreValue(m[1], m[2]) : null;
 }
+
 
 function extractAlerts(text){
   var alerts = [];
