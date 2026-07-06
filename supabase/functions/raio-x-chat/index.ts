@@ -1,6 +1,6 @@
-// Edge Function: raio-x-chat
-// Proxy simples para o Lovable AI Gateway usado pelo painel RAIO-X (HTML estático).
-// Público (verify_jwt=false) porque o painel abre em nova aba sem sessão Supabase.
+// Edge Function: raio-x-chat v4.0
+// Chama Anthropic API diretamente com web_search habilitado.
+// Público (verify_jwt=false) porque o painel abre em nova aba sem sessão.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,12 +8,11 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-flash";
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const MODEL = "claude-sonnet-4-5";
 
 interface ChatMessage {
-  role: "user" | "assistant" | "system";
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -23,35 +22,66 @@ interface Body {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return json(null, 200);
 
   try {
-    if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY ausente." }, 500);
-    const body = (await req.json()) as Body;
-    const messages: ChatMessage[] = [];
-    if (body.system) messages.push({ role: "system", content: body.system });
-    if (Array.isArray(body.messages)) messages.push(...body.messages);
-    if (messages.length === 0) return json({ error: "messages obrigatório" }, 400);
+    if (!ANTHROPIC_API_KEY) {
+      return json({ error: "ANTHROPIC_API_KEY não configurada." }, 500);
+    }
 
-    const aiRes = await fetch(AI_GATEWAY_URL, {
+    const body = (await req.json()) as Body;
+    const messages = body.messages ?? [];
+    if (messages.length === 0) {
+      return json({ error: "messages obrigatório" }, 400);
+    }
+
+    const payload = {
+      model: MODEL,
+      max_tokens: 4000,
+      system: body.system ?? "",
+      messages,
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+        },
+      ],
+    };
+
+    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "web-search-2025-03-05",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model: MODEL, messages, temperature: 0.3, max_tokens: 8000 }),
+      body: JSON.stringify(payload),
     });
 
     if (!aiRes.ok) {
       const text = await aiRes.text();
-      if (aiRes.status === 429) return json({ error: "Limite de requisições excedido." }, 429);
-      if (aiRes.status === 402) return json({ error: "Créditos de IA insuficientes." }, 402);
-      return json({ error: `AI Gateway [${aiRes.status}]: ${text}` }, 500);
+      if (aiRes.status === 429) {
+        return json({ error: "Limite de requisições atingido. Aguarde um momento." }, 429);
+      }
+      if (aiRes.status === 402) {
+        return json({ error: "Créditos Anthropic insuficientes." }, 402);
+      }
+      return json({ error: `Anthropic API [${aiRes.status}]: ${text}` }, 500);
     }
 
     const data = await aiRes.json();
-    const text: string = data?.choices?.[0]?.message?.content ?? "";
-    return json({ text });
+
+    let text = "";
+    if (Array.isArray(data.content)) {
+      for (const block of data.content) {
+        if (block.type === "text") {
+          text += block.text;
+        }
+      }
+    }
+
+    return json({ text, model: MODEL, usage: data.usage });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Erro inesperado" }, 500);
   }
