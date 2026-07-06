@@ -1812,30 +1812,71 @@ function formatResponse(text){
 
 /* tentar extrair score da resposta e atualizar painel */
 function tryExtractAndUpdateScore(aiText, userText){
-  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\/100/);
-  if(!scoreMatch) return;
-  var score = parseInt(scoreMatch[1]);
-  if(score < 0 || score > 100) return;
+  // 1) Tenta o bloco estruturado ---RAIOX_START--- ... ---RAIOX_END---
+  var block = null;
+  var mBlock = aiText.match(/---RAIOX_START---([\s\S]*?)---RAIOX_END---/i);
+  if(mBlock){
+    block = {};
+    mBlock[1].split(/\n/).forEach(function(line){
+      var m = line.match(/^\s*([A-Z0-9_]+)\s*:\s*(.+?)\s*$/);
+      if(m) block[m[1].toUpperCase()] = m[2];
+    });
+  }
 
-  var risk = score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo';
+  // 2) Fallback: SCORE solto no texto
+  var scoreMatch = aiText.match(/SCORE[:\s]+(\d+)/i) || aiText.match(/(\d+)\s*\/\s*100/);
+  var score = block && block.SCORE ? parseInt(block.SCORE) :
+              scoreMatch ? parseInt(scoreMatch[1]) : null;
 
-  // Extrair nome do sujeito da mensagem do usuário
+  // Se não achou nada e não há bloco, não força painel
+  if(score === null && !block) return;
+  if(score === null) score = 0;
+  if(score < 0 || score > 100) score = Math.max(0, Math.min(100, score));
+
+  var risk = (block && block.RISCO) ? block.RISCO.toLowerCase() :
+             (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
+
+  // Nome do sujeito
   var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
-  var subjectName = nameMatch ? nameMatch[1] : (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  var subjectName = (block && block.NOME) ? block.NOME :
+                    nameMatch ? nameMatch[1] :
+                    (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+  var subjectMeta = (block && block.META) ? block.META :
+                    'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR');
 
-  // Extrair scores por dimensão
-  var jud = extractDim(aiText, 'judicial') || score;
-  var rep = extractDim(aiText, 'reputacional') || Math.round(score * .8);
-  var reg = extractDim(aiText, 'regulatório') || Math.round(score * .85);
-  var soc = extractDim(aiText, 'societário') || Math.round(score * .7);
+  var jud = (block && block.JUDICIAL) ? parseInt(block.JUDICIAL) : (extractDim(aiText, 'judicial') || score);
+  var rep = (block && block.REPUTACIONAL) ? parseInt(block.REPUTACIONAL) : (extractDim(aiText, 'reputacional') || Math.round(score * .8));
+  var reg = (block && block.REGULATORIO) ? parseInt(block.REGULATORIO) : (extractDim(aiText, 'regulatório') || Math.round(score * .85));
+  var soc = (block && block.SOCIETARIO) ? parseInt(block.SOCIETARIO) : (extractDim(aiText, 'societário') || Math.round(score * .7));
 
-  // Extrair alertas do texto
-  var alerts = extractAlerts(aiText);
+  // Alertas do bloco (ALERTA1..ALERTA5) senão extrai do texto
+  var alerts = [];
+  if(block){
+    for(var i=1;i<=5;i++){
+      if(block['ALERTA'+i]){
+        var a = block['ALERTA'+i];
+        var lvl = /🔴/.test(a) ? 'crit' : /⚠/.test(a) ? 'warn' : 'ok';
+        alerts.push({lvl:lvl, txt:a.replace(/^[🔴⚠✓]\s*/,'')});
+      }
+    }
+  }
+  if(!alerts.length) alerts = extractAlerts(aiText);
+
+  // Timeline do bloco (TL1..TL5)
+  var timeline = [];
+  if(block){
+    for(var j=1;j<=5;j++){
+      if(block['TL'+j]){
+        var parts = block['TL'+j].split('|').map(function(s){return s.trim();});
+        timeline.push({date:parts[0]||'', title:parts[1]||'', desc:parts[2]||''});
+      }
+    }
+  }
 
   var profile = {
-    id: 'auto_'+Date.now(),
+    id: (state.currentProfile && state.currentProfile.id) || ('auto_'+Date.now()),
     name: subjectName,
-    meta: 'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR'),
+    meta: subjectMeta,
     score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
     alerts: alerts,
     achados: [
@@ -1844,8 +1885,14 @@ function tryExtractAndUpdateScore(aiText, userText){
       {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
       {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
     ],
-    timeline: []
+    timeline: timeline
   };
+
+  // Preserva foto e digital anteriores se existirem
+  if(state.currentProfile){
+    if(state.currentProfile.photo)   profile.photo = state.currentProfile.photo;
+    if(state.currentProfile.digital) profile.digital = state.currentProfile.digital;
+  }
 
   state.currentProfile = profile;
   document.getElementById('subjectName').textContent = subjectName;
