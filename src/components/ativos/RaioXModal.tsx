@@ -128,6 +128,10 @@ export function openRaioX(dados: RaioXDados, sessionId?: string) {
     auto: 'true',
     session_id: sid,
   });
+  const backendUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  if (backendUrl) {
+    params.set('api', `${backendUrl}/functions/v1/raio-x-chat`);
+  }
   const base = (import.meta.env.VITE_RAIOX_URL as string | undefined) || '/raio-x.html';
   // NOTE: precisa manter opener para receber postMessage de volta — não usar 'noopener'
   window.open(`${base}?${params.toString()}`, '_blank', 'noreferrer');
