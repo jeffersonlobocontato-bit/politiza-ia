@@ -2043,6 +2043,66 @@ export type Database = {
         }
         Relationships: []
       }
+      raio_x_reports: {
+        Row: {
+          asset_key: string
+          asset_origin: string
+          asset_source_id: string | null
+          context_input: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          model: string | null
+          report_html: string
+          report_markdown: string | null
+          reviewer_notes: string | null
+          subject_municipality: string | null
+          subject_name: string
+          subject_party: string | null
+          subject_position: string | null
+          updated_at: string
+        }
+        Insert: {
+          asset_key: string
+          asset_origin: string
+          asset_source_id?: string | null
+          context_input?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          model?: string | null
+          report_html: string
+          report_markdown?: string | null
+          reviewer_notes?: string | null
+          subject_municipality?: string | null
+          subject_name: string
+          subject_party?: string | null
+          subject_position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asset_key?: string
+          asset_origin?: string
+          asset_source_id?: string | null
+          context_input?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          model?: string | null
+          report_html?: string
+          report_markdown?: string | null
+          reviewer_notes?: string | null
+          subject_municipality?: string | null
+          subject_name?: string
+          subject_party?: string | null
+          subject_position?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       strategic_alerts: {
         Row: {
           created_at: string
