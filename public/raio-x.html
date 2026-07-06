@@ -1357,6 +1357,93 @@ var demoProfiles = [
 ];
 
 /* ───────────────────────────────
+   PONTE COM POLITIZA IA (postMessage)
+─────────────────────────────── */
+function markReportReady(){
+  var sess = window.__POLITIZA_SESSION__;
+  if(!sess || !sess.session_id) return; // aberto standalone → não mostra CTA
+  sess.hasReport = true;
+  var btn1 = document.getElementById('btnEnviarPolitiza');
+  var btn2 = document.getElementById('btnRefazer');
+  if(btn1) btn1.style.display = '';
+  if(btn2) btn2.style.display = '';
+}
+
+function collectReportHtml(){
+  var container = document.getElementById('raioXContent');
+  if(!container) return '';
+  // Clona removendo botões/inputs interativos
+  var clone = container.cloneNode(true);
+  clone.querySelectorAll('button,input,textarea,select').forEach(function(el){ el.remove(); });
+  return clone.innerHTML;
+}
+
+function collectReportMarkdown(){
+  try {
+    if(!state || !Array.isArray(state.conversationHistory)) return '';
+    return state.conversationHistory
+      .filter(function(m){ return m.role === 'assistant'; })
+      .map(function(m){ return m.content; })
+      .join('\n\n---\n\n');
+  } catch(e){ return ''; }
+}
+
+function sendToPolitiza(){
+  var sess = window.__POLITIZA_SESSION__;
+  if(!sess || !sess.session_id){
+    alert('Este painel não foi aberto pelo Politiza IA — não há a quem enviar.');
+    return;
+  }
+  var html = collectReportHtml();
+  if(!html || html.length < 40){
+    alert('Ainda não há relatório para enviar. Gere a análise primeiro.');
+    return;
+  }
+  var payload = {
+    type: 'raiox:save',
+    session_id: sess.session_id,
+    subject: sess.subject,
+    context_input: sess.context_input,
+    model: 'claude-sonnet-4-6',
+    html: html,
+    markdown: collectReportMarkdown(),
+  };
+  try {
+    if(window.opener && !window.opener.closed){
+      window.opener.postMessage(payload, '*');
+      var btn = document.getElementById('btnEnviarPolitiza');
+      if(btn){ btn.textContent = '✓ Enviado'; btn.disabled = true; }
+      setTimeout(function(){ window.close(); }, 700);
+    } else {
+      alert('A janela do Politiza IA não está mais aberta. Reabra o RAIO-X a partir da plataforma.');
+    }
+  } catch(err){
+    alert('Falha ao enviar ao Politiza: ' + err.message);
+  }
+}
+
+function refazerAnalise(){
+  var sess = window.__POLITIZA_SESSION__;
+  var extra = prompt('Refazer análise. Adicione contexto ou instruções adicionais para o RAIO-X:', sess && sess.context_input || '');
+  if(extra === null) return;
+  if(sess) sess.context_input = extra;
+  // Limpa histórico e re-dispara pesquisa
+  try { state.conversationHistory = []; } catch(e){}
+  var input = document.getElementById('chatInput');
+  if(input){
+    var s = sess && sess.subject || {};
+    var partes = [s.name];
+    if(s.position) partes.push(s.position);
+    if(s.party) partes.push(s.party);
+    if(s.municipality) partes.push(s.municipality + '/PR');
+    if(extra) partes.push('Contexto: ' + extra);
+    input.value = 'refaça a análise, revisando divergências: ' + partes.filter(Boolean).join(', ');
+    autoResize(input);
+    setTimeout(function(){ sendMessage(); }, 200);
+  }
+}
+
+/* ───────────────────────────────
    INIT + RECEBER PARAMS DO POLITIZA
 ─────────────────────────────── */
 window.addEventListener('load', function(){
