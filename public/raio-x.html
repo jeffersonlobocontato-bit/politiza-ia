@@ -1848,6 +1848,7 @@ CRITÉRIOS DE ESPECTRO (0-100):
     // Formatar texto para HTML
     var html = formatResponse(aiText);
     addMessage('ai', html);
+    markReportReady();
 
     // Tentar extrair score e atualizar Raio-X automaticamente
     tryExtractAndUpdateScore(aiText, text);
