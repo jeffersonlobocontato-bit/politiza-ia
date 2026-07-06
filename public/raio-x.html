@@ -1929,34 +1929,68 @@ function tryExtractAndUpdateScore(aiText, userText){
   var reg = (block && block.REGULATORIO) ? parseInt(block.REGULATORIO) : (extractDim(aiText, 'regulatório') || Math.round(score * .85));
   var soc = (block && block.SOCIETARIO) ? parseInt(block.SOCIETARIO) : (extractDim(aiText, 'societário') || Math.round(score * .7));
 
-  // Alertas do bloco (ALERTA1..ALERTA5) senão extrai do texto
+  // Alertas do bloco (ALERTA1..ALERTA15) senão extrai do texto
   var alerts = [];
   if(block){
-    for(var i=1;i<=5;i++){
+    for(var i=1;i<=15;i++){
       if(block['ALERTA'+i]){
         var a = block['ALERTA'+i];
-        var lvl = /🔴/.test(a) ? 'crit' : /⚠/.test(a) ? 'warn' : 'ok';
-        alerts.push({lvl:lvl, txt:a.replace(/^[🔴⚠✓]\s*/,'')});
+        var lvl = /🔴/.test(a) ? 'red' : /⚠/.test(a) ? 'amber' : 'green';
+        alerts.push({l:lvl, txt:a.replace(/^[🔴⚠✓]\s*/,'')});
       }
     }
   }
   if(!alerts.length) alerts = extractAlerts(aiText);
 
-  // Timeline do bloco (TL1..TL5)
+  // Timeline do bloco (TL1..TL15)
   var timeline = [];
   if(block){
-    for(var j=1;j<=5;j++){
+    for(var j=1;j<=15;j++){
       if(block['TL'+j]){
         var parts = block['TL'+j].split('|').map(function(s){return s.trim();});
-        timeline.push({date:parts[0]||'', title:parts[1]||'', desc:parts[2]||''});
+        timeline.push({
+          date: parts[0]||'',
+          title: parts[1]||'',
+          body: parts[2]||'',
+          color: risk==='alto'?'#ff3355':risk==='mod'?'#ffaa00':'#00e8a2'
+        });
       }
     }
   }
+
+  // Achados detalhados (ACHADO1..ACHADO15)
+  var achadosDet = [];
+  if(block){
+    for(var k=1;k<=15;k++){
+      if(block['ACHADO'+k]){
+        var pp = block['ACHADO'+k].split('|').map(function(s){return s.trim();});
+        var cat = (pp[0]||'OUT').toUpperCase();
+        if(!/^(JUD|REP|REG|SOC|OUT)$/.test(cat)) cat = 'OUT';
+        achadosDet.push({
+          cat: cat,
+          conf: /^CONF/i.test(pp[1]||''),
+          desc: pp[2] || pp[1] || '',
+          src: pp[3] || ''
+        });
+      }
+    }
+  }
+
+  // Recomendações (RECOMENDACAO1..RECOMENDACAO15)
+  var recomendacoes = [];
+  if(block){
+    for(var r=1;r<=15;r++){
+      if(block['RECOMENDACAO'+r]) recomendacoes.push(block['RECOMENDACAO'+r]);
+    }
+  }
+
+  var resumo = (block && block.RESUMO) ? block.RESUMO : '';
 
   var profile = {
     id: (state.currentProfile && state.currentProfile.id) || ('auto_'+Date.now()),
     name: subjectName,
     meta: subjectMeta,
+    resumo: resumo,
     score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
     alerts: alerts,
     achados: [
@@ -1965,7 +1999,9 @@ function tryExtractAndUpdateScore(aiText, userText){
       {lbl:'Reputacional',val:rep,desc:'% de risco reputacional'},
       {lbl:'Regulatório',val:reg,desc:'% de risco regulatório'}
     ],
-    timeline: timeline
+    achadosDet: achadosDet,
+    timeline: timeline,
+    recomendacoes: recomendacoes
   };
 
   // Preserva foto e digital anteriores se existirem
