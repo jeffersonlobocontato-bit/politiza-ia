@@ -1293,6 +1293,26 @@ function fmtDate(ts){
   return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
 }
 
+function getRaioXApiUrl(){
+  var params = new URLSearchParams(window.location.search);
+  var api = params.get('api') || localStorage.getItem('aiox_raiox_api_url') || '/functions/v1/raio-x-chat';
+  try { localStorage.setItem('aiox_raiox_api_url', api); } catch(e) {}
+  return api;
+}
+
+async function callRaioXChat(systemPrompt, messages){
+  var response = await fetch(getRaioXApiUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ system: systemPrompt, messages: messages })
+  });
+  var data = await response.json().catch(function(){ return {}; });
+  if(!response.ok || data.error){
+    throw new Error(data.error || ('Falha no backend: HTTP ' + response.status));
+  }
+  return data.text || (data.content && data.content[0] && data.content[0].text) || '';
+}
+
 /* ───────────────────────────────
    PERFIS DEMO (pré-carregados)
 ─────────────────────────────── */
@@ -1718,19 +1738,8 @@ CRITÉRIOS DE ESPECTRO (0-100):
 
 
   try {
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: state.conversationHistory
-      })
-    });
-
-    var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || 'Erro ao processar resposta.';
+    var aiText = await callRaioXChat(systemPrompt, state.conversationHistory);
+    if(!aiText) aiText = 'Não foi possível obter resposta do backend.';
 
     // Adiciona resposta ao histórico
     state.conversationHistory.push({role:'assistant', content: aiText});
@@ -1876,19 +1885,7 @@ async function analyzeDigital(){
   state.conversationHistory.push({role:'user', content: msgDigital});
 
   try {
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: buildSystemPrompt(),
-        messages: state.conversationHistory
-      })
-    });
-
-    var data = await response.json();
-    var aiText = (data.content && data.content[0] && data.content[0].text) || '';
+    var aiText = await callRaioXChat(buildSystemPrompt(), state.conversationHistory);
     state.conversationHistory.push({role:'assistant', content: aiText});
     if(state.conversationHistory.length > 20)
       state.conversationHistory = state.conversationHistory.slice(-20);
@@ -1908,6 +1905,7 @@ async function analyzeDigital(){
 
     // Registrar consulta para o dashboard
     registrarConsulta('ANALISE_DIGITAL', display);
+  } catch(err){
     removeTyping();
     addMessage('ai', '⚠ Erro ao analisar perfil: '+err.message);
   }
