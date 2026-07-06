@@ -328,7 +328,7 @@ export default function AnaliseIAChat({ context }: Props) {
             const text = msg.text ?? input;
             send(text);
           }}
-          className="border-t rounded-none"
+          className="mx-3 mb-[76px] rounded-lg border border-slate-300 bg-white shadow-sm"
         >
           <PromptInputBody>
             <PromptInputTextarea
@@ -336,9 +336,10 @@ export default function AnaliseIAChat({ context }: Props) {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Pergunte ao analista — ex: compare Moro vs Requião por instituto…"
               disabled={streaming}
+              className="min-h-[76px] bg-white text-slate-900 placeholder:text-slate-500 focus-visible:ring-0"
             />
-            <PromptInputFooter>
-              <div className="text-[10px] text-muted-foreground">
+            <PromptInputFooter className="bg-white border-t border-slate-200">
+              <div className="text-[10px] text-slate-500">
                 Respostas baseadas exclusivamente nos dados do painel.
               </div>
               <PromptInputSubmit
