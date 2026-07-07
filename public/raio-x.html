@@ -737,11 +737,26 @@ body::before {
     color-adjust: exact !important;
   }
 
+  /* Tema claro para o PDF: fundo cinza, cards brancos, texto escuro,
+     mas mantendo acentos coloridos (barras, dots, badges). */
+  :root {
+    --bg:      #f3f4f6 !important;
+    --surface: #ffffff !important;
+    --card:    #ffffff !important;
+    --card2:   #f9fafb !important;
+    --border:  rgba(0,0,0,.10) !important;
+    --border2: rgba(0,0,0,.06) !important;
+    --hi:      #111827 !important;
+    --mid:     #4b5563 !important;
+    --lo:      #9ca3af !important;
+    /* acentos permanecem inalterados */
+  }
+
   html, body {
     height: auto !important;
     overflow: visible !important;
-    background: #05070f !important;
-    color: #eef0ff !important;
+    background: #f3f4f6 !important;
+    color: #111827 !important;
     font-size: 11px !important;
   }
 
@@ -767,14 +782,14 @@ body::before {
     grid-template-columns: 1fr !important;
   }
 
-  /* Coluna direita: fluir naturalmente em A4, mantendo o fundo escuro */
+  /* Coluna direita: fluir naturalmente em A4, fundo cinza claro */
   .col-right {
     display: block !important;
     width: 100% !important;
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
-    background: #05070f !important;
+    background: #f3f4f6 !important;
     border: none !important;
   }
 
@@ -783,7 +798,7 @@ body::before {
     max-height: none !important;
     overflow: visible !important;
     padding: 14px !important;
-    background: #05070f !important;
+    background: #f3f4f6 !important;
   }
 
   #raioXContent { display: block !important; }
@@ -792,7 +807,7 @@ body::before {
   /* Seções: não quebrar no meio */
   .rx-section { break-inside: avoid; margin-bottom: 14px !important; }
 
-  /* Cards mantêm o tema escuro (removendo apenas sombras pesadas que borram no PDF) */
+  /* Cards com fundo branco no PDF (sombras removidas para não borrar) */
   .score-widget,
   .alert-widget,
   .tl-widget,
@@ -822,6 +837,18 @@ body::before {
     display: block !important;
     min-height: 40px !important;
     overflow: visible !important;
+  }
+
+  /* Override de estilos inline que forçavam tema escuro */
+  #identidadeBox {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: rgba(0,232,162,.35) !important;
+  }
+  #relatorioFull {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: rgba(0,0,0,.10) !important;
   }
 
   /* Relatório completo — mantém tabelas, headings teal, tipografia colorida */
