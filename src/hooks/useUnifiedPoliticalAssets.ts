@@ -43,6 +43,7 @@ export interface UnifiedAsset {
   origin: UnifiedAssetOrigin;
   source_id: string;
   name: string;
+  nickname: string | null;
   type: UnifiedAssetType;
   position: string | null;
   municipality: string | null;
@@ -116,6 +117,7 @@ export function useUnifiedPoliticalAssets() {
         origin: 'nativo',
         source_id: a.id,
         name: a.name,
+        nickname: a.nickname ?? null,
         type: a.type as UnifiedAssetType,
         position: a.position ?? null,
         municipality: a.municipality ?? null,
@@ -139,6 +141,7 @@ export function useUnifiedPoliticalAssets() {
           origin: 'candidato' as UnifiedAssetOrigin,
           source_id: c.id,
           name: c.name,
+          nickname: null,
           type: 'candidato' as UnifiedAssetType,
           position: `${c.cargo ?? 'Candidato'}${c.party ? ` — ${c.party}` : ''}`,
           municipality: null,
@@ -166,6 +169,7 @@ export function useUnifiedPoliticalAssets() {
           origin: 'candidato' as UnifiedAssetOrigin,
           source_id: s.id,
           name: s.name,
+          nickname: null,
           type: 'candidato' as UnifiedAssetType,
           position: `${s.cargo ?? 'Candidato'}${s.party ? ` — ${s.party}` : ''}`,
           municipality: s.city ?? null,
@@ -192,6 +196,7 @@ export function useUnifiedPoliticalAssets() {
             origin: 'coordenador',
             source_id: m.id,
             name: m.name,
+            nickname: null,
             type: t,
             position: m.role,
             municipality: m.municipality ?? null,
@@ -216,6 +221,7 @@ export function useUnifiedPoliticalAssets() {
         origin: 'coordenador' as UnifiedAssetOrigin,
         source_id: l.id,
         name: l.name,
+        nickname: null,
         type: 'lideranca_comunitaria' as UnifiedAssetType,
         position: l.current_party ? `Liderança — ${l.current_party}` : 'Liderança',
         municipality: l.municipality ?? null,
@@ -238,6 +244,7 @@ export function useUnifiedPoliticalAssets() {
         origin: 'evento' as UnifiedAssetOrigin,
         source_id: i.id,
         name: i.nome,
+        nickname: null,
         type: 'publico_eventos' as UnifiedAssetType,
         position: i.cargo_interesse
           ? `${i.cargo_interesse}${i.partido ? ` — ${i.partido}` : ''}`
@@ -273,6 +280,7 @@ export function useUnifiedPoliticalAssets() {
           origin: 'coordenador' as UnifiedAssetOrigin,
           source_id: m.id,
           name: m.mayor_name,
+          nickname: null,
           type: 'prefeito' as UnifiedAssetType,
           position: `Prefeito(a) de ${m.name}`,
           municipality: m.name ?? null,

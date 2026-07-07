@@ -84,6 +84,9 @@ export function AssetProfileSheet({ asset, onClose, onStartRaioX, canRaioX, rawA
                 <div className="text-lg font-bold text-foreground leading-tight break-words">
                   {asset.name}
                 </div>
+                {asset.nickname && (
+                  <div className="text-sm font-medium text-primary mt-0.5">“{asset.nickname}”</div>
+                )}
                 <div className="text-xs text-muted-foreground mt-0.5">
                   {asset.position ?? '—'}
                 </div>

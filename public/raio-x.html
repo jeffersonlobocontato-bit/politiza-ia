@@ -436,6 +436,9 @@ body::before {
 .photo-circle:hover .photo-ov { opacity: 1; }
 .photo-info { flex: 1; min-width: 0; }
 .photo-name { font-family: var(--font-d); font-size: 13px; font-weight: 700; color: var(--hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.photo-nickname { width: 100%; background: transparent; border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--green); font-family: var(--font-m); font-size: 10px; padding: 3px 7px; margin-bottom: 4px; outline: none; transition: border-color .15s; }
+.photo-nickname:focus { border-color: rgba(0,232,162,.3); }
+.photo-nickname::placeholder { color: var(--lo); opacity: .6; }
 .photo-sub { font-family: var(--font-m); font-size: 9px; color: var(--lo); }
 .photo-actions { display: flex; flex-direction: column; gap: 4px; }
 .photo-btn {
@@ -980,6 +983,7 @@ body::before {
           </div>
           <div class="photo-info">
             <div class="photo-name" id="subjectName">—</div>
+            <input class="photo-nickname" id="subjectNickname" placeholder="Apelido" onchange="saveNickname()" />
             <div class="photo-sub" id="subjectSub">—</div>
           </div>
           <div class="photo-actions">
@@ -1528,8 +1532,10 @@ function renderProfileList(filter){
     card.className = 'profile-card' + (state.currentProfile && state.currentProfile.id === p.id ? ' active' : '');
     var color = p.risk === 'alto' ? '#ff3355' : p.risk === 'mod' ? '#ffaa00' : '#00e8a2';
     var emoji = p.risk === 'alto' ? '🔴' : p.risk === 'mod' ? '🟡' : '🟢';
+    var nickHtml = p.nickname ? '<div style="font-family:var(--font-m);font-size:9px;color:var(--green);margin-bottom:3px">“'+p.nickname+'”</div>' : '';
     card.innerHTML =
       '<div class="pc-name">'+p.name+'</div>'+
+      nickHtml +
       '<div class="pc-meta">'+p.meta+'</div>'+
       '<div class="pc-score-row">'+
         '<div class="pc-score-bar"><div class="pc-score-fill" style="width:'+p.score+'%;background:'+color+'"></div></div>'+
@@ -1550,9 +1556,17 @@ function loadProfile(p){
   renderProfileList(document.getElementById('searchProfiles').value);
   updateRaioX(p);
   document.getElementById('subjectName').textContent = p.name;
+  document.getElementById('subjectNickname').value = p.nickname || '';
   document.getElementById('subjectSub').textContent = p.meta;
   document.getElementById('analystNotes').value = localStorage.getItem('aiox_notes_'+p.id) || '';
   addMessage('ai', 'Perfil de <strong>'+p.name+'</strong> carregado. Score: <strong>'+p.score+'/100</strong> <span class="risk-badge-inline rb-'+p.risk+'">'+p.risk.toUpperCase()+'</span><br>O que deseja investigar mais a fundo?');
+}
+
+function saveNickname(){
+  var val = document.getElementById('subjectNickname').value.trim();
+  if(state.currentProfile){
+    state.currentProfile.nickname = val;
+  }
 }
 
 function newProfile(){
@@ -2202,6 +2216,7 @@ function tryExtractAndUpdateScore(aiText, userText){
   var profile = {
     id: (state.currentProfile && state.currentProfile.id) || ('auto_'+Date.now()),
     name: subjectName,
+    nickname: (state.currentProfile && state.currentProfile.nickname) || '',
     meta: subjectMeta,
     resumo: resumo,
     score: score, jud: jud, rep: rep, reg: reg, soc: soc, risk: risk,
@@ -2217,10 +2232,11 @@ function tryExtractAndUpdateScore(aiText, userText){
     recomendacoes: recomendacoes
   };
 
-  // Preserva foto e digital anteriores se existirem
+  // Preserva foto, digital e nickname anteriores se existirem
   if(state.currentProfile){
-    if(state.currentProfile.photo)   profile.photo = state.currentProfile.photo;
-    if(state.currentProfile.digital) profile.digital = state.currentProfile.digital;
+    if(state.currentProfile.photo)     profile.photo = state.currentProfile.photo;
+    if(state.currentProfile.digital)   profile.digital = state.currentProfile.digital;
+    if(state.currentProfile.nickname)  profile.nickname = state.currentProfile.nickname;
   }
 
   state.currentProfile = profile;
