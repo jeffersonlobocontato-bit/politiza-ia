@@ -1395,6 +1395,16 @@ var demoProfiles = [
 ─────────────────────────────── */
 window.addEventListener('load', function(){
   state.profiles = JSON.parse(localStorage.getItem('aiox_profiles') || 'null') || demoProfiles;
+  // Limpeza de entradas fantasma criadas por bugs antigos (nome vazio,
+  // advérbios capturados por regex, "Sujeito" genérico, etc.)
+  var BOGUS = /^(profundamente|completamente|detalhadamente|sujeito|sobre|—|-)?\s*$/i;
+  var before = state.profiles.length;
+  state.profiles = state.profiles.filter(function(p){
+    return p && p.name && !BOGUS.test(p.name.trim());
+  });
+  if(state.profiles.length !== before){
+    try { localStorage.setItem('aiox_profiles', JSON.stringify(state.profiles)); } catch(e){}
+  }
   renderProfileList();
   loadNotes();
   renderDashboard(); // ← NOVO
