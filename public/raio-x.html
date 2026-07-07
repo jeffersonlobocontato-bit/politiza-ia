@@ -807,8 +807,12 @@ body::before {
   #raioXContent { display: block !important; }
   #emptyState   { display: none !important; }
 
-  /* Seções: não quebrar no meio */
-  .rx-section { break-inside: avoid; margin-bottom: 14px !important; }
+  /* Seções: fluxo contínuo, sem espaço entre blocos */
+  .rx-section { break-inside: avoid; margin-bottom: 0 !important; margin-top: 0 !important; }
+  .rx-section + .rx-section { margin-top: 0 !important; }
+  .rx-section-label { margin-top: 6px !important; margin-bottom: 2px !important; }
+  #raioXContent > * { margin-bottom: 0 !important; }
+  #raioXContent { gap: 0 !important; }
 
   /* Cards com fundo branco no PDF (sombras removidas para não borrar) */
   .score-widget,
@@ -821,10 +825,27 @@ body::before {
   .report-full {
     break-inside: avoid;
     box-shadow: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-top: none !important;
   }
+  .subject-photo { border-top: 1px solid var(--border) !important; }
+
+  /* Apelido visível no PDF, abaixo do nome, sem cara de input */
+  .photo-nickname {
+    background: transparent !important;
+    border: none !important;
+    color: #111827 !important;
+    padding: 0 !important;
+    margin: 0 0 2px 0 !important;
+    font-family: var(--font-m) !important;
+    font-size: 10px !important;
+    font-style: italic !important;
+  }
+  .photo-nickname::placeholder { color: transparent !important; }
 
   /* Achados grid: 2 colunas no A4 */
-  .achados-grid { grid-template-columns: 1fr 1fr !important; }
+  .achados-grid { grid-template-columns: 1fr 1fr !important; gap: 0 !important; }
 
   /* Timeline: expandir todos os itens (evita items ocultos por rolagem) */
   .tl-widget { max-height: none !important; overflow: visible !important; }
