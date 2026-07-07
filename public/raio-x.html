@@ -2082,12 +2082,14 @@ function tryExtractAndUpdateScore(aiText, userText){
   var risk = (block && block.RISCO) ? block.RISCO.toLowerCase() :
              (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
 
-  // Nome do sujeito
-  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
+  // Nome do sujeito — prioriza o que foi solicitado explicitamente
+  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+(?:profundamente\s+(?:sobre\s+)?|completamente\s+|detalhadamente\s+|sobre\s+)?([A-ZÀ-Ú][a-zà-ú]+(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Úa-zà-ú]+)*)/i);
   var subjectName = (block && block.NOME) ? block.NOME :
-                    nameMatch ? nameMatch[1] :
-                    (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+                    (state.presetSubject && state.presetSubject.name) ? state.presetSubject.name :
+                    (state.currentProfile ? state.currentProfile.name : null) ||
+                    (nameMatch ? nameMatch[1] : 'Sujeito');
   var subjectMeta = (block && block.META) ? block.META :
+                    (state.presetSubject ? [state.presetSubject.position, state.presetSubject.party, state.presetSubject.municipality].filter(Boolean).join(' · ') : '') ||
                     'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR');
 
   var jud = (block && block.JUDICIAL) ? parseInt(block.JUDICIAL) : (extractDim(aiText, 'judicial') || score);
