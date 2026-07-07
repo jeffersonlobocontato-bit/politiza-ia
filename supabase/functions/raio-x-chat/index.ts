@@ -61,13 +61,25 @@ Deno.serve(async (req) => {
 
     if (!aiRes.ok) {
       const text = await aiRes.text();
+      const lower = text.toLowerCase();
+      // Anthropic devolve 400 com "credit balance is too low" quando acaba o saldo
+      if (lower.includes("credit balance is too low") || lower.includes("insufficient")) {
+        return json({
+          error: "Sem saldo na Anthropic. Recarregue créditos em https://console.anthropic.com/settings/billing para reativar o RAIO-X.",
+          fallback: true,
+          reason: "no_credits",
+        }, 402);
+      }
       if (aiRes.status === 429) {
-        return json({ error: "Limite de requisições atingido. Aguarde um momento." }, 429);
+        return json({ error: "Limite de requisições atingido. Aguarde um momento.", fallback: true, reason: "rate_limit" }, 429);
+      }
+      if (aiRes.status === 401 || aiRes.status === 403) {
+        return json({ error: "Chave da Anthropic inválida ou sem permissão.", fallback: true, reason: "auth" }, aiRes.status);
       }
       if (aiRes.status === 402) {
-        return json({ error: "Créditos Anthropic insuficientes." }, 402);
+        return json({ error: "Créditos Anthropic insuficientes.", fallback: true, reason: "no_credits" }, 402);
       }
-      return json({ error: `Anthropic API [${aiRes.status}]: ${text}` }, 500);
+      return json({ error: `Anthropic API [${aiRes.status}]: ${text}`, fallback: true, reason: "upstream" }, 502);
     }
 
     const data = await aiRes.json();
