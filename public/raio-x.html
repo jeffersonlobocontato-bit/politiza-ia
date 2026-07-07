@@ -2235,61 +2235,144 @@ function focusAtInput(){
 }
 
 async function analyzeDigital(){
-  var handle = document.getElementById('atInput').value.trim();
-  if(!handle){ alert('Informe um @ ou URL de perfil.'); return; }
+  var raw = document.getElementById('atInput').value.trim();
+  if(!raw){ alert('Informe um @ ou URL de perfil.'); return; }
 
-  // Normalizar handle
-  var display = handle.startsWith('@') ? handle : '@'+handle.replace(/.*\/([^/]+)\/?$/, '$1');
+  // ─── 1. Parse robusto do input ───
+  var parsed = parseSocialInput(raw);
+  var display   = parsed.handle;      // ex: @adaolitro
+  var platform  = parsed.platform;    // ex: instagram
+  var profileUrl= parsed.url;         // ex: https://instagram.com/adaolitro
 
-  document.getElementById('atScanBtn').disabled = true;
-  document.getElementById('atScanBtn').textContent = '⏳ Analisando...';
-  document.getElementById('digitalHandle').textContent = display;
+  var btn = document.getElementById('atScanBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analisando...';
+  document.getElementById('digitalHandle').textContent = display + (platform ? ' · ' + platform : '');
   document.getElementById('digitalResult').style.display = 'none';
 
-  // Montar nome do sujeito atual para contextualizar a busca
   var subjectCtx = state.currentProfile ? state.currentProfile.name : '';
-  var msgDigital = 'Faça uma análise digital completa do perfil ' + display +
-    (subjectCtx ? ' pertencente a ' + subjectCtx : '') +
-    '. Busque o conteúdo público indexado desta conta, classifique o tipo de conteúdo (pessoal/profissional/político) e, se houver conteúdo político, determine o espectro ideológico. Use o formato DIGITAL_START/DIGITAL_END obrigatoriamente.';
 
-  addMessage('user', '📡 Analisar perfil: <strong>' + display + '</strong>');
+  // ─── 2. Prompt específico para análise digital via web_search ───
+  var digitalSystem =
+    'Você é um analista de OSINT de redes sociais. Use a ferramenta web_search para investigar ' +
+    'presença digital de perfis públicos. NÃO tente acessar Instagram/TikTok diretamente — a API ' +
+    'do web_search retorna apenas resultados indexados (Google, sites de notícia, cache, menções). ' +
+    'Estratégia obrigatória:\n' +
+    '1. Busque: "' + display + '" site:instagram.com OR site:twitter.com OR site:tiktok.com OR site:facebook.com\n' +
+    '2. Busque: "' + display + '" ' + (subjectCtx || '') + ' — para achar menções, notícias, biografias\n' +
+    '3. Busque o nome do sujeito + rede social + cidade para confirmar identidade\n' +
+    '4. Se achar QUALQUER menção indexada (mesmo cache de notícia citando o perfil), classifique o conteúdo com base no que encontrou.\n' +
+    '5. Se realmente não encontrar nada indexado, retorne o bloco com SEGUIDORES=0 e VERDITO explicando que a conta é privada ou não indexada — MAS SEMPRE retorne o bloco.\n\n' +
+    'Retorne SEMPRE, sem exceção, este bloco (mesmo com campos vazios/estimados):\n' +
+    '---DIGITAL_START---\n' +
+    'HANDLE: ' + display + '\n' +
+    'PLATAFORMA: ' + (platform || 'desconhecida') + '\n' +
+    'SEGUIDORES: número aproximado ou 0\n' +
+    'BIO: bio pública ou "não encontrada"\n' +
+    'PESSOAL: 0-100 (estimativa do % de conteúdo pessoal)\n' +
+    'PROFISSIONAL: 0-100\n' +
+    'POLITICO: 0-100\n' +
+    'ESPECTRO: 0-100 (0=extrema esq, 50=centro, 100=extrema dir)\n' +
+    'VERDITO: 1 parágrafo com o que foi encontrado (ou "conta não indexada")\n' +
+    'TEMAS: #t1,#t2,#t3\n' +
+    'POST1: resumo de menção/post encontrado (ou "n/d")\n' +
+    'POST2: idem\nPOST3: idem\n' +
+    '---DIGITAL_END---\n\n' +
+    'Depois do bloco, escreva 2-3 parágrafos em prosa detalhando as fontes que consultou e o que ' +
+    'de fato conseguiu confirmar vs. o que é estimativa. Cite URLs quando possível.';
+
+  var msgDigital = 'Analise o perfil ' + display +
+    (profileUrl ? ' (URL: ' + profileUrl + ')' : '') +
+    (subjectCtx ? ', pertencente a ' + subjectCtx : '') +
+    '. Execute as buscas na ordem descrita no system prompt e retorne obrigatoriamente o bloco DIGITAL_START/DIGITAL_END.';
+
+  addMessage('user', '📡 Analisar perfil: <strong>' + display + '</strong>' + (platform ? ' <em style="color:var(--lo)">('+platform+')</em>' : ''));
   showTyping();
 
-  state.conversationHistory.push({role:'user', content: msgDigital});
+  // Usa histórico curto e isolado — evita que o RAIO-X anterior polua a análise
+  var digitalMessages = [{ role: 'user', content: msgDigital }];
 
   try {
-    var aiText = await callRaioXChat(buildSystemPrompt(), state.conversationHistory);
-    state.conversationHistory.push({role:'assistant', content: aiText});
-    if(state.conversationHistory.length > 20)
-      state.conversationHistory = state.conversationHistory.slice(-20);
+    var aiText = await callRaioXChat(digitalSystem, digitalMessages);
 
     removeTyping();
 
     // Extrair bloco estruturado
-    var parsed = parseDigitalBlock(aiText);
-    if(parsed){
-      renderDigitalResult(parsed);
-      // Mostrar análise em prosa no chat
+    var parsedBlock = parseDigitalBlock(aiText);
+    if(parsedBlock){
+      // garante que handle/plataforma do input prevaleçam
+      if(!parsedBlock.handle) parsedBlock.handle = display;
+      if(!parsedBlock.plataforma && platform) parsedBlock.plataforma = platform;
+      renderDigitalResult(parsedBlock);
       var prose = aiText.replace(/---DIGITAL_START---[\s\S]*?---DIGITAL_END---/,'').trim();
       if(prose) addMessage('ai', formatResponse(prose));
     } else {
-      addMessage('ai', formatResponse(aiText));
+      // Sem bloco → mostra card com estado "sem dados" e prosa completa no chat
+      renderDigitalEmpty(display, platform);
+      addMessage('ai', '⚠ A IA não retornou o bloco estruturado. Resposta bruta abaixo:<br><br>' + formatResponse(aiText));
     }
 
-    // Registrar consulta para o dashboard
     registrarConsulta('ANALISE_DIGITAL', display);
   } catch(err){
     removeTyping();
-    addMessage('ai', '⚠ Erro ao analisar perfil: '+err.message);
+    renderDigitalEmpty(display, platform);
+    addMessage('ai', '⚠ Erro ao analisar perfil: ' + err.message);
   }
 
-  document.getElementById('atScanBtn').disabled = false;
-  document.getElementById('atScanBtn').textContent = '🔍 Analisar';
+  btn.disabled = false;
+  btn.textContent = '🔍 Analisar';
+}
+
+/* Extrai handle, plataforma e URL canônica de qualquer input */
+function parseSocialInput(raw){
+  var s = raw.trim().replace(/^@+/, '');
+  var platform = '';
+  var handle = '';
+  var url = '';
+
+  // Se veio URL
+  if(/^https?:\/\//i.test(raw) || /^www\./i.test(raw) || /\.(com|net|br)\b/i.test(raw)){
+    var clean = raw.replace(/^https?:\/\//i, '').replace(/^www\./i,'');
+    var host = clean.split('/')[0].toLowerCase();
+    var path = clean.substring(host.length).replace(/^\//,'').split('?')[0].split('#')[0];
+    var seg  = path.split('/').filter(Boolean);
+
+    if(/instagram\.com/.test(host))       { platform='instagram'; handle = seg[0] || ''; }
+    else if(/tiktok\.com/.test(host))      { platform='tiktok';    handle = (seg[0]||'').replace(/^@/,''); }
+    else if(/(twitter|x)\.com/.test(host)) { platform='twitter/x'; handle = seg[0] || ''; }
+    else if(/facebook\.com/.test(host))    { platform='facebook';  handle = seg[0] || ''; }
+    else if(/linkedin\.com/.test(host))    { platform='linkedin';  handle = seg[1] || seg[0] || ''; }
+    else if(/youtube\.com/.test(host))     { platform='youtube';   handle = (seg[0]||'').replace(/^@/,''); }
+    else if(/threads\.net/.test(host))     { platform='threads';   handle = (seg[0]||'').replace(/^@/,''); }
+    else { platform = host.split('.')[0]; handle = seg[0] || ''; }
+
+    url = 'https://' + host + (path ? '/' + path : '');
+  } else {
+    handle = s;
+  }
+
+  handle = (handle || s).replace(/[^\w.\-]/g,'');
+  return {
+    handle: handle ? '@' + handle : '@' + s,
+    platform: platform,
+    url: url
+  };
+}
+
+/* Renderiza o card de análise digital em estado "sem dados" para não deixar vazio */
+function renderDigitalEmpty(display, platform){
+  var d = {
+    handle: display, plataforma: platform || 'desconhecida',
+    seguidores: '—', bio: 'Não localizada em fontes públicas indexadas.',
+    pessoal: 0, profissional: 0, politico: 0, espectro: 50,
+    verdito: 'Conta provavelmente privada ou sem indexação pública. Nada foi confirmado.',
+    temas: [], posts: []
+  };
+  renderDigitalResult(d);
 }
 
 function buildSystemPrompt(){
-  // retorna o mesmo system prompt do sendMessage
-  return document.querySelector('script') ? getSystemPromptText() : '';
+  return getSystemPromptText();
 }
 
 function getSystemPromptText(){
@@ -2301,17 +2384,9 @@ function getSystemPromptText(){
   `4. Separe explicitamente: ✅ CONFIRMADO vs ⚠ NÃO CONFIRMADO em toda resposta.\n` +
   `5. Se o usuário informa que o sujeito nunca teve funcionários: processos trabalhistas sem confirmação de identidade NÃO devem ser atribuídos.\n` +
   `6. NUNCA invente ou extrapole. Se não encontrou: diga "não encontrado".\n\n` +
-  `Para análise de rede social, retorne OBRIGATORIAMENTE:\n` +
-  `---DIGITAL_START---\n` +
-  `HANDLE: @usuario\nPLATAFORMA: plataforma\nSEGUIDORES: número\nBIO: bio\n` +
-  `PESSOAL: XX\nPROFISSIONAL: XX\nPOLITICO: XX\n` +
-  `ESPECTRO: XX (0=extrema esquerda, 50=centro, 100=extrema direita)\n` +
-  `VERDITO: descrição\nTEMAS: #t1,#t2,#t3\n` +
-  `POST1: resumo\nPOST2: resumo\nPOST3: resumo\n` +
-  `---DIGITAL_END---\n\n` +
-  `Espectro: 0-20 extrema esq · 20-35 esq · 35-45 centro-esq · 45-55 centro · 55-70 centro-dir · 70-85 dir · 85-100 extrema dir.\n` +
   `Contexto: Paraná, campanha Juntos Paraná 399 / Sérgio Moro.`;
 }
+
 
 function parseDigitalBlock(text){
   var match = text.match(/---DIGITAL_START---([\s\S]*?)---DIGITAL_END---/);
