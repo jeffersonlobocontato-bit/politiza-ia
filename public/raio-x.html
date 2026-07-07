@@ -1969,6 +1969,49 @@ function formatResponse(text){
     .replace(/\n/g, '<br>');
 }
 
+/* Extrai o bloco "IDENTIDADE CONFIRMADA" do relatório completo e move para a seção
+   dedicada logo abaixo do Score de Risco. */
+function extractIdentidadeSection(container){
+  var box = document.getElementById('identidadeBox');
+  var sec = document.getElementById('rxIdentidade');
+  if(!box || !sec || !container) return;
+  box.innerHTML = '';
+  sec.style.display = 'none';
+
+  var headings = container.querySelectorAll('h1, h2, h3, h4');
+  var target = null;
+  for(var i = 0; i < headings.length; i++){
+    var t = (headings[i].textContent || '').trim().toLowerCase();
+    // aceita: "identidade confirmada", "identidade", "identidade do sujeito"...
+    if(/^identidade(\s+confirmada)?\b/.test(t) || /identidade\s+(confirmada|do sujeito|verificada)/.test(t)){
+      target = headings[i];
+      break;
+    }
+  }
+  if(!target) return;
+
+  var stopTag = target.tagName;
+  var nodes = [];
+  var el = target.nextSibling;
+  while(el){
+    if(el.nodeType === 1 && /^H[1-6]$/.test(el.tagName)){
+      // para em qualquer heading do mesmo nível ou superior
+      var lvl = parseInt(el.tagName[1]);
+      var stopLvl = parseInt(stopTag[1]);
+      if(lvl <= stopLvl) break;
+    }
+    nodes.push(el);
+    el = el.nextSibling;
+  }
+  // Move os nós para o box
+  nodes.forEach(function(n){ box.appendChild(n); });
+  // Remove o próprio heading do relatório completo
+  target.parentNode.removeChild(target);
+  sec.style.display = 'block';
+}
+
+
+
 /* Markdown rico → HTML (headings, tabelas, listas, hr) — usado no relatório lateral/PDF */
 function formatRichMarkdown(src){
   if(!src) return '';
