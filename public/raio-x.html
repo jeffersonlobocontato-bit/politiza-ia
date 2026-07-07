@@ -1395,6 +1395,16 @@ var demoProfiles = [
 ─────────────────────────────── */
 window.addEventListener('load', function(){
   state.profiles = JSON.parse(localStorage.getItem('aiox_profiles') || 'null') || demoProfiles;
+  // Limpeza de entradas fantasma criadas por bugs antigos (nome vazio,
+  // advérbios capturados por regex, "Sujeito" genérico, etc.)
+  var BOGUS = /^(profundamente|completamente|detalhadamente|sujeito|sobre|—|-)?\s*$/i;
+  var before = state.profiles.length;
+  state.profiles = state.profiles.filter(function(p){
+    return p && p.name && !BOGUS.test(p.name.trim());
+  });
+  if(state.profiles.length !== before){
+    try { localStorage.setItem('aiox_profiles', JSON.stringify(state.profiles)); } catch(e){}
+  }
   renderProfileList();
   loadNotes();
   renderDashboard(); // ← NOVO
@@ -1424,6 +1434,21 @@ window.addEventListener('load', function(){
       party: partido || '',
       position: cargo || ''
     };
+
+    // Cria imediatamente um perfil "em andamento" — assim o botão Salvar já funciona
+    // mesmo que a IA responda apenas texto corrido (sem bloco de score).
+    var metaParts = [partido, cargo, municipio + '/PR'].filter(Boolean);
+    state.currentProfile = {
+      id: 'auto_' + Date.now(),
+      name: nome,
+      meta: metaParts.join(' · '),
+      score: 0, jud: 0, rep: 0, reg: 0, soc: 0, risk: 'baixo',
+      alerts: [], achados: [], achadosDet: [], timeline: [], recomendacoes: []
+    };
+    var sName = document.getElementById('subjectName');
+    var sSub  = document.getElementById('subjectSub');
+    if(sName) sName.textContent = nome;
+    if(sSub)  sSub.textContent  = state.currentProfile.meta;
 
     // Montar mensagem de pesquisa estruturada
     var partes = [];
