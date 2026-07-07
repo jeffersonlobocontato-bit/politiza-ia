@@ -1928,6 +1928,8 @@ CRITÉRIOS DE ESPECTRO (0-100):
     if(fullEl && fullSec){
       fullEl.innerHTML = fullHtml;
       fullSec.style.display = 'block';
+      // Move a seção "Identidade confirmada" para logo abaixo do Score
+      extractIdentidadeSection(fullEl);
     }
 
     // Guarda última resposta para permitir "Salvar no perfil" via postMessage
