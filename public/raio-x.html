@@ -723,36 +723,27 @@ body::before {
 .report-full th { background: rgba(0,232,162,.08); color: #00e8a2; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 9px; }
 .report-full tr:nth-child(even) td { background: rgba(255,255,255,.02); }
 
-@media print {
-  .report-full { color: #111 !important; background: #fff !important; border-color: #ccc !important; }
-  .report-full h1, .report-full h2, .report-full h3 { color: #0a7a55 !important; }
-  .report-full strong { color: #000 !important; }
-  .report-full em { color: #a15600 !important; }
-  .report-full th { background: #eafaf3 !important; color: #0a7a55 !important; }
-  .report-full th, .report-full td { border-color: #bbb !important; }
-  .report-full tr:nth-child(even) td { background: #f7f7f7 !important; }
-  .report-full tr { break-inside: avoid !important; }
-}
-
-
-
 /* ══════════════════════════════════════════
-   PRINT — PDF CORRIGIDO
-   Problema: layout 3 colunas colapsava em 1 pág.
-   Solução: ocultar tudo exceto col-right,
-   deixar col-right fluir em altura total,
-   expandir todos os elementos ocultos.
+   PRINT / PDF — preserva o tema colorido
+   Mantém fundo escuro, acentos teal/vermelho/âmbar e todas as barras coloridas
+   como aparecem na tela. Apenas ajusta o layout para caber em A4.
 ══════════════════════════════════════════ */
 @media print {
-  /* Reset crítico de altura — era o bug principal */
+  /* Força o navegador a imprimir cores exatas — sem isso, alguns Chromes
+     removem backgrounds e ficam em preto e branco. */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   html, body {
     height: auto !important;
     overflow: visible !important;
-    background: #ffffff !important;
-    color: #111111 !important;
+    background: #05070f !important;
+    color: #eef0ff !important;
     font-size: 11px !important;
   }
-  body::before { display: none !important; }
 
   /* Ocultar estrutura que não vai para o PDF */
   .topbar,
@@ -776,127 +767,77 @@ body::before {
     grid-template-columns: 1fr !important;
   }
 
-  /* Coluna direita: fluir naturalmente em A4 */
+  /* Coluna direita: fluir naturalmente em A4, mantendo o fundo escuro */
   .col-right {
     display: block !important;
     width: 100% !important;
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
-    background: #ffffff !important;
+    background: #05070f !important;
     border: none !important;
   }
 
-  /* Body do raio-x: fluir sem scroll */
   .raio-x-body {
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
-    padding: 16px !important;
+    padding: 14px !important;
+    background: #05070f !important;
   }
 
-  /* Conteúdo principal sempre visível */
   #raioXContent { display: block !important; }
   #emptyState   { display: none !important; }
 
   /* Seções: não quebrar no meio */
   .rx-section { break-inside: avoid; margin-bottom: 14px !important; }
 
-  /* Cards */
+  /* Cards mantêm o tema escuro (removendo apenas sombras pesadas que borram no PDF) */
   .score-widget,
   .alert-widget,
   .tl-widget,
   .achados-grid,
   .digital-widget,
   .subject-photo,
-  .nota-area {
+  .nota-area,
+  .report-full {
     break-inside: avoid;
-    background: #ffffff !important;
-    border: 1px solid #dddddd !important;
     box-shadow: none !important;
   }
 
-  /* Cores para papel branco */
-  .rx-section-label { color: #555555 !important; }
-  .rx-section-label::after { background: #cccccc !important; }
-  .dim-lbl, .score-note, .dim-margin { color: #555555 !important; }
-  .dim-track { background: #e8e8e8 !important; }
-  .score-name, .score-sub, .score-verdict { color: #111111 !important; }
-  .achado-label { color: #666666 !important; }
-  .achado-desc { color: #444444 !important; }
-  .achado-val { color: #111111 !important; }
-  .a-txt { color: #333333 !important; }
-  .a-lv-r { color: #cc2244 !important; }
-  .a-lv-a { color: #cc8800 !important; }
-  .a-lv-g { color: #006644 !important; }
-
-  /* Alertas */
-  .alert-row { background: #f9f9f9 !important; border-bottom: 1px solid #eeeeee !important; }
-  .a-dot-r { background: #cc2244 !important; box-shadow: none !important; }
-  .a-dot-a { background: #cc8800 !important; box-shadow: none !important; }
-  .a-dot-g { background: #006644 !important; box-shadow: none !important; }
-
-  /* Timeline — expandir TODOS os itens */
-  .tl-row { background: #f9f9f9 !important; border: 1px solid #dddddd !important; break-inside: avoid; }
-  .tl-row-body { display: block !important; color: #333333 !important; }
-  .tl-row-date { color: #555555 !important; }
-  .tl-row-title { color: #111111 !important; }
-
   /* Achados grid: 2 colunas no A4 */
   .achados-grid { grid-template-columns: 1fr 1fr !important; }
-  .achado-card { background: #f9f9f9 !important; border: 1px solid #dddddd !important; }
 
-  /* Score barras */
-  .dim-fill, .ct-fill, .pc-score-fill {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+  /* Timeline: expandir todos os itens (evita items ocultos por rolagem) */
+  .tl-widget { max-height: none !important; overflow: visible !important; }
+  .tl-row { break-inside: avoid; }
+  .tl-row-body { display: block !important; }
 
   /* Foto do sujeito */
-  .subject-photo { background: #f5f5f5 !important; border: 1px solid #dddddd !important; }
-  .photo-name, .photo-sub { color: #111111 !important; }
-  .photo-circle { border-color: #444444 !important; box-shadow: none !important; }
   .photo-circle img { display: block !important; }
   .photo-circle .photo-ph { display: none !important; }
 
-  /* Análise digital */
-  .digital-widget { background: #f9f9f9 !important; border: 1px solid #dddddd !important; }
-  .digital-header { background: #f0f0f0 !important; border-bottom: 1px solid #dddddd !important; }
-  .digital-header-title { color: #555555 !important; }
-  .digital-header-handle { color: #333333 !important; }
-  #digitalResult { display: flex !important; }
-  .ct-label { color: #555555 !important; }
-  .ct-track { background: #e0e0e0 !important; }
-  .ct-pct { color: #333333 !important; }
-  .thermo-track { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .thermo-needle { background: #333333 !important; box-shadow: none !important; }
-  .thermo-labels { color: #666666 !important; }
-  .thermo-verdict { background: #f0f0f0 !important; border: 1px solid #dddddd !important; }
-  .topic-tag { border: 1px solid #bbbbbb !important; color: #333333 !important; background: #f0f0f0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .post-item { background: #f9f9f9 !important; border: 1px solid #e0e0e0 !important; color: #333333 !important; }
-
-  /* Notas */
+  /* Notas visíveis no PDF */
   .nota-area {
     display: block !important;
-    background: #fafafa !important;
-    border: 1px solid #cccccc !important;
-    color: #111111 !important;
     min-height: 40px !important;
     overflow: visible !important;
   }
 
-  /* Garantir que cores sejam impressas */
-  *, *::before, *::after {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+  /* Relatório completo — mantém tabelas, headings teal, tipografia colorida */
+  .report-full,
+  .report-full h1, .report-full h2, .report-full h3,
+  .report-full strong, .report-full em, .report-full th, .report-full td,
+  .report-full li, .report-full p { color: inherit !important; }
+  .report-full tr { break-inside: avoid !important; }
 
-  /* Página A4 com margens adequadas */
+  /* Página A4 */
   @page {
-    margin: 1.5cm;
+    margin: 1.2cm;
     size: A4 portrait;
   }
 }
+
 </style>
 </head>
 <body>
@@ -1064,6 +1005,13 @@ body::before {
             </div>
           </div>
         </div>
+
+        <!-- IDENTIDADE CONFIRMADA (extraída do relatório completo pelo JS) -->
+        <div class="rx-section" id="rxIdentidade" style="display:none">
+          <div class="rx-section-label">Identidade confirmada</div>
+          <div id="identidadeBox" class="report-full" style="font-family:var(--font-m);font-size:11px;line-height:1.6;color:#eef0ff;padding:10px 12px;background:rgba(0,232,162,.04);border:1px solid rgba(0,232,162,.25);border-radius:var(--r-sm);overflow-wrap:break-word"></div>
+        </div>
+
 
         <!-- RESUMO EXECUTIVO -->
         <div class="rx-section" id="rxResumo" style="display:none">
@@ -1468,6 +1416,15 @@ window.addEventListener('load', function(){
   }
 
   if (nome && municipio) {
+    // Guarda o sujeito solicitado — evita que o extrator use nomes errados
+    // (ex.: "profundamente" da própria frase de comando).
+    state.presetSubject = {
+      name: nome,
+      municipality: municipio,
+      party: partido || '',
+      position: cargo || ''
+    };
+
     // Montar mensagem de pesquisa estruturada
     var partes = [];
     partes.push(nome);
@@ -1476,7 +1433,7 @@ window.addEventListener('load', function(){
     partes.push(municipio + '/PR');
     if (contexto)  partes.push('Contexto: ' + contexto);
 
-    var msgPesquisa = 'pesquise profundamente: ' + partes.join(', ');
+    var msgPesquisa = 'pesquise profundamente sobre ' + nome + ' — ' + partes.join(', ');
 
     // Mostrar banner de origem
     addMessage('ai',
@@ -1912,6 +1869,8 @@ CRITÉRIOS DE ESPECTRO (0-100):
     if(fullEl && fullSec){
       fullEl.innerHTML = fullHtml;
       fullSec.style.display = 'block';
+      // Move a seção "Identidade confirmada" para logo abaixo do Score
+      extractIdentidadeSection(fullEl);
     }
 
     // Guarda última resposta para permitir "Salvar no perfil" via postMessage
@@ -1950,6 +1909,49 @@ function formatResponse(text){
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>');
 }
+
+/* Extrai o bloco "IDENTIDADE CONFIRMADA" do relatório completo e move para a seção
+   dedicada logo abaixo do Score de Risco. */
+function extractIdentidadeSection(container){
+  var box = document.getElementById('identidadeBox');
+  var sec = document.getElementById('rxIdentidade');
+  if(!box || !sec || !container) return;
+  box.innerHTML = '';
+  sec.style.display = 'none';
+
+  var headings = container.querySelectorAll('h1, h2, h3, h4');
+  var target = null;
+  for(var i = 0; i < headings.length; i++){
+    var t = (headings[i].textContent || '').trim().toLowerCase();
+    // aceita: "identidade confirmada", "identidade", "identidade do sujeito"...
+    if(/^identidade(\s+confirmada)?\b/.test(t) || /identidade\s+(confirmada|do sujeito|verificada)/.test(t)){
+      target = headings[i];
+      break;
+    }
+  }
+  if(!target) return;
+
+  var stopTag = target.tagName;
+  var nodes = [];
+  var el = target.nextSibling;
+  while(el){
+    if(el.nodeType === 1 && /^H[1-6]$/.test(el.tagName)){
+      // para em qualquer heading do mesmo nível ou superior
+      var lvl = parseInt(el.tagName[1]);
+      var stopLvl = parseInt(stopTag[1]);
+      if(lvl <= stopLvl) break;
+    }
+    nodes.push(el);
+    el = el.nextSibling;
+  }
+  // Move os nós para o box
+  nodes.forEach(function(n){ box.appendChild(n); });
+  // Remove o próprio heading do relatório completo
+  target.parentNode.removeChild(target);
+  sec.style.display = 'block';
+}
+
+
 
 /* Markdown rico → HTML (headings, tabelas, listas, hr) — usado no relatório lateral/PDF */
 function formatRichMarkdown(src){
@@ -2073,12 +2075,14 @@ function tryExtractAndUpdateScore(aiText, userText){
   var risk = (block && block.RISCO) ? block.RISCO.toLowerCase() :
              (score >= 60 ? 'alto' : score >= 35 ? 'mod' : 'baixo');
 
-  // Nome do sujeito
-  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/i);
+  // Nome do sujeito — prioriza o que foi solicitado explicitamente
+  var nameMatch = userText.match(/(?:pesquise|investigue|analise|raio.?x de|perfil de)\s+(?:profundamente\s+(?:sobre\s+)?|completamente\s+|detalhadamente\s+|sobre\s+)?([A-ZÀ-Ú][a-zà-ú]+(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Úa-zà-ú]+)*)/i);
   var subjectName = (block && block.NOME) ? block.NOME :
-                    nameMatch ? nameMatch[1] :
-                    (state.currentProfile ? state.currentProfile.name : 'Sujeito');
+                    (state.presetSubject && state.presetSubject.name) ? state.presetSubject.name :
+                    (state.currentProfile ? state.currentProfile.name : null) ||
+                    (nameMatch ? nameMatch[1] : 'Sujeito');
   var subjectMeta = (block && block.META) ? block.META :
+                    (state.presetSubject ? [state.presetSubject.position, state.presetSubject.party, state.presetSubject.municipality].filter(Boolean).join(' · ') : '') ||
                     'Gerado automaticamente · '+new Date().toLocaleDateString('pt-BR');
 
   var jud = (block && block.JUDICIAL) ? parseInt(block.JUDICIAL) : (extractDim(aiText, 'judicial') || score);
