@@ -1468,6 +1468,15 @@ window.addEventListener('load', function(){
   }
 
   if (nome && municipio) {
+    // Guarda o sujeito solicitado — evita que o extrator use nomes errados
+    // (ex.: "profundamente" da própria frase de comando).
+    state.presetSubject = {
+      name: nome,
+      municipality: municipio,
+      party: partido || '',
+      position: cargo || ''
+    };
+
     // Montar mensagem de pesquisa estruturada
     var partes = [];
     partes.push(nome);
@@ -1476,7 +1485,7 @@ window.addEventListener('load', function(){
     partes.push(municipio + '/PR');
     if (contexto)  partes.push('Contexto: ' + contexto);
 
-    var msgPesquisa = 'pesquise profundamente: ' + partes.join(', ');
+    var msgPesquisa = 'pesquise profundamente sobre ' + nome + ' — ' + partes.join(', ');
 
     // Mostrar banner de origem
     addMessage('ai',
