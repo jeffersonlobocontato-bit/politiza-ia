@@ -1878,6 +1878,7 @@ export type Database = {
           microregion: string | null
           municipality: string | null
           name: string
+          nickname: string | null
           observations: string | null
           phone: string | null
           position: string | null
@@ -1903,6 +1904,7 @@ export type Database = {
           microregion?: string | null
           municipality?: string | null
           name: string
+          nickname?: string | null
           observations?: string | null
           phone?: string | null
           position?: string | null
@@ -1928,6 +1930,7 @@ export type Database = {
           microregion?: string | null
           municipality?: string | null
           name?: string
+          nickname?: string | null
           observations?: string | null
           phone?: string | null
           position?: string | null

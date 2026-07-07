@@ -100,6 +100,7 @@ export interface DbActionHistory {
 export interface DbPoliticalAsset {
   id: string;
   name: string;
+  nickname: string | null;
   type: DbAssetType;
   municipality: string | null;
   microregion: string | null;

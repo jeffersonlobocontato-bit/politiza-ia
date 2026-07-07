@@ -94,6 +94,7 @@ const ALIGNMENT_OPTIONS: { value: DbAlignmentStatus; label: string }[] = [
 
 interface AssetForm {
   name: string;
+  nickname: string;
   type: DbAssetType;
   macroregion_id: string;
   position: string;
@@ -109,6 +110,7 @@ interface AssetForm {
 
 const emptyForm = (): AssetForm => ({
   name: '',
+  nickname: '',
   type: 'lideranca_comunitaria',
   macroregion_id: 'rmc',
   position: '',
@@ -287,6 +289,7 @@ export default function AtivosPoliticos() {
     setEditingId(raw.id);
     setForm({
       name: raw.name,
+      nickname: raw.nickname ?? '',
       type: raw.type,
       macroregion_id: raw.macroregion_id ?? 'rmc',
       position: raw.position ?? '',
@@ -308,6 +311,7 @@ export default function AtivosPoliticos() {
     if (!form.name || !geoForm.city) return;
     const payload = {
       name: form.name,
+      nickname: form.nickname || null,
       type: form.type,
       municipality: geoForm.city || null,
       microregion: null as string | null,
@@ -474,6 +478,10 @@ export default function AtivosPoliticos() {
                 <label className="text-xs text-muted-foreground block mb-1">Nome *</label>
                 <input value={form.name} onChange={e => updateForm('name', e.target.value)} placeholder="Nome completo" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
+              <div className="sm:col-span-2">
+                <label className="text-xs text-muted-foreground block mb-1">Apelido</label>
+                <input value={form.nickname} onChange={e => updateForm('nickname', e.target.value)} placeholder="Ex: Zé da Padaria, Doutor, Tia Ruth" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+              </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Tipo</label>
                 <select value={form.type} onChange={e => updateForm('type', e.target.value)} className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
@@ -606,6 +614,9 @@ export default function AtivosPoliticos() {
                         {asset.name}
                         {asset.readonly && <Lock className="w-3 h-3 text-muted-foreground" />}
                       </div>
+                      {asset.nickname && (
+                        <div className="text-[11px] font-medium text-primary">“{asset.nickname}”</div>
+                      )}
                       <div className="text-xs text-muted-foreground">{asset.position || UNIFIED_TYPE_LABELS[asset.type]}</div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0" style={{ color: ac, borderColor: `${ac}40`, backgroundColor: `${ac}15` }}>
