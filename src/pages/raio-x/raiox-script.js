@@ -135,7 +135,10 @@ var demoProfiles = [
 /* ───────────────────────────────
    INIT + RECEBER PARAMS DO POLITIZA
 ─────────────────────────────── */
-window.addEventListener('load', function(){
+function initRaioXApp(){
+  if(window.__raioxInitialized) return;
+  window.__raioxInitialized = true;
+
   state.profiles = JSON.parse(localStorage.getItem('aiox_profiles') || 'null') || demoProfiles;
   // Limpeza de entradas fantasma criadas por bugs antigos (nome vazio,
   // advérbios capturados por regex, "Sujeito" genérico, etc.)
@@ -225,7 +228,13 @@ window.addEventListener('load', function(){
       setTimeout(function(){ sendMessage(); }, 1000);
     }
   }
-});
+}
+
+if(document.readyState === 'loading'){
+  window.addEventListener('DOMContentLoaded', initRaioXApp, { once: true });
+} else {
+  initRaioXApp();
+}
 
 /* ───────────────────────────────
    LISTA DE PERFIS

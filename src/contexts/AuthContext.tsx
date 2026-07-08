@@ -43,13 +43,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
   const lastLoadedUserIdRef = useRef<string | null>(null);
+  const loadSeqRef = useRef(0);
 
   useEffect(() => {
     let active = true;
 
+    const loadUserData = async (userId: string, seq: number) => {
+      const userData = await fetchUserData(userId);
+      if (!active || loadSeqRef.current !== seq) return;
+
+      lastLoadedUserIdRef.current = userId;
+      setProfile(userData.profile);
+      setRoles(userData.roles);
+      setLoading(false);
+    };
+
     const applySession = (sess: Session | null) => {
       if (!active) return;
 
+      const seq = ++loadSeqRef.current;
       setSession(sess);
       setUser(sess?.user ?? null);
 
@@ -57,26 +69,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lastLoadedUserIdRef.current = null;
         setProfile(null);
         setRoles([]);
+        setLoading(false);
+        return;
       }
+
+      if (lastLoadedUserIdRef.current === sess.user.id) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setProfile(null);
+      setRoles([]);
+      void loadUserData(sess.user.id, seq);
     };
 
     const initialise = async () => {
       try {
         const { data: { session: sess } } = await supabaseClient.auth.getSession();
-        if (!active) return;
-
         applySession(sess);
-
-        if (sess?.user) {
-          const userData = await fetchUserData(sess.user.id);
-          if (!active) return;
-
-          lastLoadedUserIdRef.current = sess.user.id;
-          setProfile(userData.profile);
-          setRoles(userData.roles);
-        }
-      } finally {
-        if (active) setLoading(false);
+      } catch {
+        if (!active) return;
+        lastLoadedUserIdRef.current = null;
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+        setLoading(false);
       }
     };
 
@@ -84,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, sess) => {
       applySession(sess);
-      if (active) setLoading(false);
     });
 
     return () => {
@@ -92,27 +110,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    if (!user?.id || lastLoadedUserIdRef.current === user.id) return;
-
-    let active = true;
-
-    const syncUserData = async () => {
-      const userData = await fetchUserData(user.id);
-      if (!active) return;
-
-      lastLoadedUserIdRef.current = user.id;
-      setProfile(userData.profile);
-      setRoles(userData.roles);
-    };
-
-    void syncUserData();
-
-    return () => {
-      active = false;
-    };
-  }, [user?.id]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
