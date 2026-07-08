@@ -218,10 +218,35 @@ function SucessoInscricao({ codigo, nome, evento }: { codigo: string; nome: stri
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+const RESERVED_SLUGS = new Set([
+  'login','forgot-password','reset-password','e','eventos','mapa','territorios','municipios',
+  'acoes','campo','juridico','ativos','pesquisas','hierarquia','configuracoes','sala-de-crise',
+  'proporcional','tracking','agenda','malha-logistica','due-diligence','raio-x','chapas',
+  'produtividade','gestao','emendas','mobnex','alertas','inteligencia',
+]);
+
 export default function EventoPublico() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: evento, isLoading, isError } = useEventoPublico(slug ?? null);
+  const isReserved = slug ? RESERVED_SLUGS.has(slug.toLowerCase()) : false;
+  const { data: evento, isLoading, isError } = useEventoPublico(isReserved ? null : (slug ?? null));
   const [inscrito, setInscrito] = useState<{ codigo: string; nome: string } | null>(null);
+
+  if (isReserved) {
+    return (
+      <CenterState>
+        <div className="text-center max-w-sm">
+          <AlertCircle className="w-10 h-10 text-[var(--campo-red)] mx-auto mb-3" />
+          <p className="text-[var(--campo-text)] font-semibold mb-1">Página indisponível nesta versão</p>
+          <p className="text-sm text-[var(--campo-text-soft)] mb-4">
+            Esta rota existe em uma versão mais nova do app. Republique a aplicação para ativá-la.
+          </p>
+          <a href="/" className="text-sm underline text-[var(--campo-blue)]">Voltar ao início</a>
+        </div>
+      </CenterState>
+    );
+  }
+
+
 
   if (isLoading) {
     return (
