@@ -9,6 +9,63 @@ export const DATA_CRUZAMENTO_MORO = {
     "Gap temporal de ~5 semanas entre quali (mai/26) e quanti (jun-jul/26) em campanha ativa — ameaça de validade.",
     "Classificação segue a matriz de convergência de O'Cathain, Murphy & Nicholl (2010): Agreement, Partial Agreement, Dissonance, Silence.",
   ],
+  analiseQualitativaIsolada: {
+    descricao: "Análise standalone da pesquisa qualitativa (21-28/05/2026, 16 grupos, 5 cidades), sem cruzamento com o quanti. Trata o próprio relatório como objeto de análise, incluindo seus limites metodológicos.",
+    fichaMetodologica: {
+      cobertura: "16 grupos — Maringá, Londrina, Curitiba, Ponta Grossa, Cascavel — 21 a 28/05/2026",
+      lacunas: [
+        "Não informa número de participantes por grupo.",
+        "Não descreve critérios de recrutamento/cotas (idade, classe, gênero, orientação política).",
+        "Menciona um filtro pontual (\"corte filtrado para eleitores que desaprovam Lula/direita/centro ou aprovam mas avaliam a gestão abaixo de 5\") mas não sistematiza esse tipo de segmentação para o restante dos achados — não dá para saber se os achados sobre Moro vêm de grupos só de direita ou de grupos mistos.",
+      ],
+      recomendacao: "Solicitar ficha técnica completa ao instituto responsável antes de tratar os achados como generalizáveis dentro das próprias 5 cidades amostradas.",
+    },
+    diagnosticoMacro: {
+      titulo: "Brasil x Paraná — separação nítida na percepção do eleitor",
+      achado: "O eleitor paranaense separa claramente o país (inflação, impostos, corrupção, insegurança, cansaço político, polarização) do estado (emprego, obras, qualidade de vida, escolas melhores, governo bem avaliado).",
+      forcaDoAchado: "Alta — sustentado por linguagem espontânea do próprio entrevistado (\"duas sacolas no mercado\", \"trabalhar mais para comprar menos\", \"matamos cinco leões por dia\"), não por categoria imposta pelo moderador.",
+      leituraLula: "Visto pela ampla maioria como corrupto, astuto e perigoso (no corte filtrado mencionado); há desgaste simétrico com o bolsonarismo simbolizado na família Bolsonaro como um todo.",
+    },
+    tipologiaDireitaParanaense: [
+      { subtipo: "Centro-direita / liberal / conservador moderado", descricao: "Cobra eficiência administrativa, não pauta ideológica. Frase mais aceita: \"menos briga ideológica e mais gente que entregue resultado\" — forte em Cascavel, Maringá, Londrina." },
+      { subtipo: "Direita da moralidade pública", descricao: "Não confundir com moralidade religiosa (distinção feita pelo próprio relatório). Forte principalmente em classe média B/C1." },
+      { subtipo: "Direita da segurança", descricao: "Apelo relativamente menor no PR (por já haver condição melhor que outros estados), mas crescente em Curitiba e Londrina, ligado a moradores de rua/drogas/furtos." },
+      { subtipo: "Direita anti-STF radical", descricao: "Forte só entre bolsonaristas raiz e ricos — não é universal. O próprio relatório marca a linha entre \"ser de direita\" e \"ser radical de direita\" como limite real de alcance eleitoral." },
+    ],
+    ratinhoEixoGravitacional: {
+      leitura: "Tratado como o ativo mais forte e menos contestado de todo o relatório — gestor, articulador, visionário, \"quem faz acontecer\", associado a obras/infraestrutura/educação/desenvolvimento.",
+      limiteDoEfeitoHalo: "O efeito halo NÃO se transfere automaticamente: Sandro Alex e Curi seguem sofrendo desconhecimento apesar do vínculo direto com Ratinho — sugere que o ativo é pessoal, não necessariamente transferível por endosso.",
+    },
+    moroLeituraFechada: {
+      forca: ["coragem", "anti-PT / anti-Lula", "Lava Jato", "paladino do combate às injustiças"],
+      vulnerabilidadeCentral: "\"Sumido no Senado\", \"melhor como juiz\", \"se perdeu na política\" — a métrica mais recorrente é ausência de entrega concreta, não rejeição ideológica.",
+      autocriticaDoRelatorio: "Achado mais sofisticado do documento: o próprio relatório desconfia da força numérica aparente de Moro em vários grupos, descrevendo-a como possível \"ilusão mascarada\" pelo desconhecimento de Sandro Alex.",
+      segmentacaoInterna: "Em Curitiba, força concentrada em classe A/B1; a partir de B2 já sofre o efeito Ratinho.",
+      condicionanteMaisCritico: "As críticas a Moro se intensificam especificamente quando o entrevistado é informado de que Ratinho não vai apoiá-lo — parte da força de Moro é emprestada da proximidade com o governador, não é blindada.",
+    },
+    achadoMoroDeltanSubstituicao: {
+      titulo: "Moro e Deltan não competem pelo mesmo motivo",
+      achado: "Eleitores que não votariam em Moro declaram que votariam em Deltan. O relatório atribui isso ao enquadramento diferente: \"procurador perseguido\" soa diferente de \"juiz que virou político\".",
+      implicacao: "Moro e Deltan não são substitutos perfeitos entre si nesse eleitorado — a rejeição a um não migra automaticamente para o outro.",
+    },
+    outrosPlayers: {
+      rafaelGreca: "Afetivo, mas geograficamente preso a Curitiba; teto claro de idade/saúde; visto como caricato/folclórico em Cascavel e Ponta Grossa.",
+      sandroAlex: "Desconhecido em muitos grupos, crescente via associação a Ratinho; mais reconhecido em Ponta Grossa. \"Voto em Moro\" descrito como não consolidado.",
+      requiaoFilho: "Carrega o pai mais do que constrói nome próprio; a imagem negativa do pai funciona como teto, não como piso.",
+    },
+    pautasEstaduaisTestadas: {
+      educacao: "Bem avaliada (cívico-militar, modelo integral), mas com desconfiança de \"maquiagem estatística\".",
+      obrasInfraestrutura: "Ponto mais forte do governo Ratinho e mais fraco de Moro/Deltan. Pedágio caro é atrito recorrente.",
+      seguranca: "Apelo relativo menor no PR, mas crescente em centros urbanos, ligado à percepção federal.",
+      saude: "Relativamente bem avaliada; filas de exame/consulta como ponto de atrito.",
+      desenvolvimentoEconomico: "PR visto como estado de oportunidades, mas com salários baixos/custo alto atribuído ao governo federal.",
+    },
+    tensaoInternaNaoResolvida: {
+      titulo: "Fragilidade evidencial na separação moralidade pública x moralidade religiosa",
+      achado: "O relatório afirma que a pauta é de moralidade pública, não religiosa, mas não traz nenhuma verbalização de participante que sustente essa distinção — é afirmação analítica própria, não citação de grupo.",
+      implicacao: "É a afirmação mais fraca em evidência interna do documento — tratar com mais ceticismo. Coerente com a Dissonance já identificada no cruzamento quali-quanti (VOX Brasil mostra maior vantagem de Moro justamente entre evangélicos).",
+    },
+  },
   abas: [
     {
       id: "regiao",
