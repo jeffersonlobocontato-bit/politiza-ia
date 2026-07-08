@@ -7,8 +7,9 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare
 } from 'lucide-react';
+import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserParty } from '@/hooks/useUserParty';
@@ -77,6 +78,7 @@ export function AppSidebar() {
   const userAreaLabel = roles[0] ? ROLE_AREA_LABELS[roles[0]] : null;
   const userLevelTag = membership?.hierarchy_level ? `Nível ${membership.hierarchy_level}` : null;
   const { isPartyManager } = useUserParty();
+  const { canAccess: canCruzamentoMoro } = useCruzamentoMoroAccess();
 
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
   const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
@@ -94,6 +96,11 @@ export function AppSidebar() {
     .filter(item => item.url !== '/juridico' || isJuridico)
     .filter(item => !item.adminMasterOnly || isAdminMaster)
     .filter(item => !item.malhaAdminOnly || isMalhaAdmin);
+
+  // Item extra restrito: só aparece para admin_master ou usuários com acesso delegado
+  const cruzamentoMoroItem = canCruzamentoMoro ? {
+    title: 'Cruzamento Moro', url: '/inteligencia/cruzamento-moro', icon: GitCompare, highlight: false,
+  } : null;
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
@@ -121,7 +128,7 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5 px-2">
-              {visibleItems.map((item) => {
+              {[...visibleItems, ...(cruzamentoMoroItem ? [cruzamentoMoroItem as any] : [])].map((item) => {
                 const isActive = location.pathname === item.url;
                 const isHighlight = item.highlight;
                 return (

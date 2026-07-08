@@ -2,3 +2,6 @@ project_id = "sumdjlmjtqgfzkcfkceq"
 
 [functions.raio-x-chat]
 verify_jwt = true
+
+[functions.manage-cruzamento-access]
+verify_jwt = true

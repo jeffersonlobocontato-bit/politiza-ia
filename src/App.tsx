@@ -47,6 +47,7 @@ import Eventos from "./pages/Eventos";
 import MalhaLogistica from "./pages/MalhaLogistica";
 import DueDiligence from "./pages/DueDiligence";
 import RaioX from "./pages/raio-x/RaioX";
+import CruzamentoMoro from "./pages/CruzamentoMoro";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +91,7 @@ const AppRoutes = () => (
     <Route path="/agenda" element={<ProtectedRoute><RoleAwareLayout><Agenda /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/malha-logistica" element={<ProtectedRoute><RoleAwareLayout><MalhaLogistica /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/due-diligence" element={<ProtectedRoute><RoleAwareLayout><DueDiligence /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/inteligencia/cruzamento-moro" element={<ProtectedRoute><RoleAwareLayout><CruzamentoMoro /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/raio-x" element={<ProtectedRoute><RaioX /></ProtectedRoute>} />
     <Route path="/chapas" element={<ProtectedRoute><RoleAwareLayout><Chapas /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/chapas/:party" element={<ProtectedRoute><RoleAwareLayout><ChapaPartido /></RoleAwareLayout></ProtectedRoute>} />
