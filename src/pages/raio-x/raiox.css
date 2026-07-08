@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    TOKENS
 ══════════════════════════════════════════ */
-:root {
+.raiox-root {
   --bg:       #05070f;
   --surface:  #0c0f1e;
   --card:     #131829;
@@ -31,9 +31,9 @@
 /* ══════════════════════════════════════════
    BASE
 ══════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-body {
+.raiox-root, .raiox-root *, .raiox-root *::before, .raiox-root *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.raiox-root { height: 100vh; overflow: hidden; }
+.raiox-root {
   background: var(--bg);
   color: var(--hi);
   font-family: var(--font-b);
@@ -43,7 +43,7 @@ body {
 }
 
 /* scanlines sutis */
-body::before {
+.raiox-root::before {
   content: '';
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background: repeating-linear-gradient(
@@ -734,7 +734,7 @@ body::before {
 
   /* Tema claro para o PDF: fundo cinza, cards brancos, texto escuro,
      mas mantendo acentos coloridos (barras, dots, badges). */
-  :root {
+  .raiox-root {
     --bg:      #f3f4f6 !important;
     --surface: #ffffff !important;
     --card:    #ffffff !important;
@@ -747,7 +747,7 @@ body::before {
     /* acentos permanecem inalterados */
   }
 
-  html, body {
+  .raiox-root {
     height: auto !important;
     overflow: visible !important;
     background: #f3f4f6 !important;
