@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { Link as LinkIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { DATA_CRUZAMENTO_MORO } from '@/data/cruzamentoMoro';
+
 
 const TIPO_STYLES: Record<string, { bg: string; border: string; label: string; labelColor: string }> = {
   agreement: { bg: 'rgba(27,175,122,0.12)', border: '#1baf7a', label: 'AGREEMENT', labelColor: '#1baf7a' },
@@ -147,11 +150,27 @@ export default function CruzamentoQualiQuantiMoro() {
         <div style={{ marginBottom: 4, fontSize: 11, letterSpacing: 1, color: '#7a8699', textTransform: 'uppercase' }}>
           Inteligência Moro 2026 · Cruzamento Quali-Quanti
         </div>
-        <h2 style={{ fontSize: 22, color: '#e8ecf1', margin: '4px 0 6px', fontWeight: 700 }}>Sergio Moro — Quanti x Quali por segmento</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+          <h2 style={{ fontSize: 22, color: '#e8ecf1', margin: '4px 0 6px', fontWeight: 700 }}>Sergio Moro — Quanti x Quali por segmento</h2>
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/inteligencia/cruzamento-moro`;
+              navigator.clipboard.writeText(url).then(
+                () => toast.success('Link copiado', { description: 'Apenas usuários com acesso autorizado poderão visualizar.' }),
+                () => toast.error('Não foi possível copiar o link')
+              );
+            }}
+            style={{ flexShrink: 0, padding: '8px 14px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, border: '1px solid #2fa85a', background: '#0f2a1c', color: '#7ee0a1', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            title="Copiar link de acesso desta aba"
+          >
+            <LinkIcon size={14} /> Copiar link de acesso
+          </button>
+        </div>
         <div style={{ fontSize: 12.5, color: '#7a8699', marginBottom: 14, lineHeight: 1.5 }}>
           Quanti: {DATA_CRUZAMENTO_MORO.fontes.quanti}<br />
           Quali: {DATA_CRUZAMENTO_MORO.fontes.quali}
         </div>
+
 
         <details style={{ marginBottom: 20, background: '#151b24', border: '1px solid #232c3a', borderRadius: 10, padding: '10px 16px' }}>
           <summary style={{ cursor: 'pointer', fontSize: 12.5, color: '#9aa4b2', fontWeight: 600 }}>Limitações metodológicas deste cruzamento</summary>
