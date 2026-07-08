@@ -1,34 +1,183 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GitCompare } from 'lucide-react';
-import { cruzamentoMoroData } from '@/data/cruzamentoMoro';
+import { useState } from 'react';
+import { DATA_CRUZAMENTO_MORO } from '@/data/cruzamentoMoro';
 
-/**
- * Placeholder do componente de análise Quali-Quanti Moro.
- * Substitua pelo conteúdo real quando `CruzamentoQualiQuantiMoro.jsx`
- * for anexado — basta trocar este corpo mantendo o export default.
- */
-export default function CruzamentoQualiQuantiMoro() {
+const TIPO_STYLES: Record<string, { bg: string; border: string; label: string; labelColor: string }> = {
+  agreement: { bg: 'rgba(27,175,122,0.12)', border: '#1baf7a', label: 'AGREEMENT', labelColor: '#1baf7a' },
+  partial_agreement: { bg: 'rgba(74,148,236,0.12)', border: '#4a94ec', label: 'PARTIAL AGREEMENT', labelColor: '#4a94ec' },
+  dissonance: { bg: 'rgba(227,73,72,0.12)', border: '#e34948', label: 'DISSONANCE', labelColor: '#e34948' },
+  silence: { bg: 'rgba(237,161,0,0.12)', border: '#eda100', label: 'SILENCE', labelColor: '#eda100' },
+};
+
+function Bar({ seg, v, max }: { seg: string; v: number; max: number }) {
+  const pct = Math.max(2, (v / max) * 100);
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <GitCompare className="w-5 h-5 text-primary" />
-          Cruzamento Quali-Quanti — Moro
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm text-muted-foreground">
-        <p>
-          Este é o placeholder da análise. Anexe o arquivo original
-          <code className="mx-1 px-1 py-0.5 rounded bg-muted">CruzamentoQualiQuantiMoro.jsx</code>
-          e a base de dados
-          <code className="mx-1 px-1 py-0.5 rounded bg-muted">src/data/cruzamentoMoro.ts</code>
-          para exibir o conteúdo completo.
-        </p>
-        <div className="text-xs">
-          Base carregada: {cruzamentoMoroData.segments.length} segmentos ·
-          atualizada em {cruzamentoMoroData.updatedAt}.
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#b8c0cc', marginBottom: 3 }}>
+        <span>{seg}</span>
+        <span style={{ fontWeight: 600, color: '#e8ecf1' }}>{v.toFixed(1)}%</span>
+      </div>
+      <div style={{ height: 8, background: '#1c2430', borderRadius: 5, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #2a78d6, #4a94ec)', borderRadius: 5 }} />
+      </div>
+    </div>
+  );
+}
+
+function AbaConteudo({ aba }: { aba: any }) {
+  const max = Math.max(...aba.barras.map((b: any) => b.v), aba.media || 0) * 1.05;
+  const estilo = TIPO_STYLES[aba.classificacao];
+  return (
+    <div>
+      <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 20, marginBottom: 16 }}>
+        <div style={{ fontSize: 12, letterSpacing: 0.5, color: '#7a8699', marginBottom: 14, textTransform: 'uppercase' }}>
+          Sergio Moro por segmento {aba.media ? `— média estadual: ${aba.media}%` : ''}
         </div>
-      </CardContent>
-    </Card>
+        {aba.barras.map((b: any) => (
+          <Bar key={b.seg} seg={b.seg} v={b.v} max={max} />
+        ))}
+      </div>
+      <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 12 }}>
+        <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 8, textTransform: 'uppercase' }}>Tema qualitativo associado</div>
+        <div style={{ fontSize: 14, color: '#c7cfda', fontStyle: 'italic', lineHeight: 1.5 }}>{aba.tema}</div>
+      </div>
+      <div style={{ background: estilo.bg, border: `1px solid ${estilo.border}`, borderRadius: 12, padding: 18, marginBottom: 12 }}>
+        <div style={{ fontSize: 11, letterSpacing: 0.5, color: estilo.labelColor, marginBottom: 4, fontWeight: 700 }}>{estilo.label} — Leitura cruzada</div>
+        <div style={{ fontSize: 12, color: '#9aa4b2', marginBottom: 10, fontStyle: 'italic' }}>{aba.classificacaoNota}</div>
+        <div style={{ fontSize: 14, color: '#e8ecf1', lineHeight: 1.55 }}>{aba.leitura}</div>
+      </div>
+      <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 12 }}>
+        <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 8, textTransform: 'uppercase' }}>Gap identificado</div>
+        <div style={{ fontSize: 13.5, color: '#b8c0cc', lineHeight: 1.5 }}>{aba.gap}</div>
+      </div>
+      <div style={{ background: 'rgba(42,120,214,0.10)', border: '1px solid #2a78d6', borderRadius: 12, padding: 18 }}>
+        <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#4a94ec', marginBottom: 8, fontWeight: 700 }}>IMPLICAÇÃO ESTRATÉGICA</div>
+        <div style={{ fontSize: 14, color: '#e8ecf1', lineHeight: 1.55 }}>{aba.implicacao}</div>
+      </div>
+    </div>
+  );
+}
+
+function TagCloud({ termos }: { termos: { termo: string; peso: number; valencia: string }[] }) {
+  const cores: Record<string, string> = { positiva: '#1baf7a', negativa: '#e34948', neutra: '#7a8699' };
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 14px', alignItems: 'center', justifyContent: 'center', padding: '8px 4px' }}>
+      {termos.map((t, i) => (
+        <span key={i} style={{ fontSize: 11 + t.peso * 2.6, fontWeight: t.peso >= 4 ? 700 : 500, color: cores[t.valencia], lineHeight: 1.2, opacity: 0.55 + t.peso * 0.09 }}>
+          {t.termo}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ListaPriorizacao({ items, tipo }: { items: any[]; tipo: 'obrigatorio' | 'possivel' | 'irrelevante' }) {
+  const estilos = {
+    obrigatorio: { bg: 'rgba(27,175,122,0.08)', border: '#1baf7a' },
+    possivel: { bg: 'rgba(237,161,0,0.08)', border: '#eda100' },
+    irrelevante: { bg: 'rgba(122,134,153,0.08)', border: '#4a5568' },
+  };
+  const e = estilos[tipo];
+  return (
+    <div>
+      {items.map((it, i) => (
+        <div key={i} style={{ background: e.bg, border: `1px solid ${e.border}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e8ecf1', marginBottom: 6 }}>{it.tema}</div>
+          <div style={{ fontSize: 12.5, color: '#b8c0cc', lineHeight: 1.5, marginBottom: 6 }}>{it.justificativa || it.risco}</div>
+          <div style={{ fontSize: 11.5, color: '#7a8699' }}>Alvo: {it.alvo}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InsightsMarketing() {
+  const d = DATA_CRUZAMENTO_MORO.insightsMarketing;
+  return (
+    <div>
+      <div style={{ background: 'rgba(237,161,0,0.08)', border: '1px solid #eda100', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#c7cfda', lineHeight: 1.5 }}>
+        ⚠ {d.avisoMetodologico}
+      </div>
+      <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 20, marginBottom: 18 }}>
+        <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 10, textTransform: 'uppercase' }}>Mapa de ênfase temática (não é frequência real)</div>
+        <TagCloud termos={d.mapaEnfase as any} />
+      </div>
+      <div style={{ fontSize: 12, letterSpacing: 0.5, color: '#1baf7a', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>Temas obrigatórios</div>
+      <ListaPriorizacao items={d.obrigatorios} tipo="obrigatorio" />
+      <div style={{ fontSize: 12, letterSpacing: 0.5, color: '#eda100', fontWeight: 700, marginBottom: 8, marginTop: 18, textTransform: 'uppercase' }}>Temas que podem ser importantes (testar antes de escalar)</div>
+      <ListaPriorizacao items={d.possiveis} tipo="possivel" />
+      <div style={{ fontSize: 12, letterSpacing: 0.5, color: '#7a8699', fontWeight: 700, marginBottom: 8, marginTop: 18, textTransform: 'uppercase' }}>Temas irrelevantes / baixa prioridade</div>
+      <ListaPriorizacao items={d.irrelevantes} tipo="irrelevante" />
+    </div>
+  );
+}
+
+function SinteseGeral() {
+  const s = DATA_CRUZAMENTO_MORO.sintese;
+  const Bloco = ({ titulo, items, cor }: { titulo: string; items: string[]; cor: string }) => (
+    <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 14 }}>
+      <div style={{ fontSize: 12, letterSpacing: 0.5, color: cor, marginBottom: 10, fontWeight: 700, textTransform: 'uppercase' }}>{titulo}</div>
+      <ul style={{ margin: 0, paddingLeft: 18 }}>
+        {items.map((it, i) => (
+          <li key={i} style={{ fontSize: 13.5, color: '#c7cfda', lineHeight: 1.6, marginBottom: 6 }}>{it}</li>
+        ))}
+      </ul>
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 14, textTransform: 'uppercase' }}>
+        Matriz de convergência — O'Cathain, Murphy & Nicholl (2010)
+      </div>
+      <Bloco titulo="Agreement" items={s.agreement} cor={TIPO_STYLES.agreement.labelColor} />
+      <Bloco titulo="Partial Agreement" items={s.partial_agreement} cor={TIPO_STYLES.partial_agreement.labelColor} />
+      <Bloco titulo="Dissonance" items={s.dissonance} cor={TIPO_STYLES.dissonance.labelColor} />
+      <Bloco titulo="Silence" items={s.silence} cor={TIPO_STYLES.silence.labelColor} />
+      <Bloco titulo="Recomendações para próxima rodada qualitativa" items={s.recomendacoes} cor="#9aa4b2" />
+    </div>
+  );
+}
+
+export default function CruzamentoQualiQuantiMoro() {
+  const [ativa, setAtiva] = useState<string>(DATA_CRUZAMENTO_MORO.abas[0]?.id ?? 'sintese');
+  const abaAtual = DATA_CRUZAMENTO_MORO.abas.find((a) => a.id === ativa);
+
+  return (
+    <div style={{ background: '#0c1117', borderRadius: 12, padding: '24px 16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <div style={{ marginBottom: 4, fontSize: 11, letterSpacing: 1, color: '#7a8699', textTransform: 'uppercase' }}>
+          Inteligência Moro 2026 · Cruzamento Quali-Quanti
+        </div>
+        <h2 style={{ fontSize: 22, color: '#e8ecf1', margin: '4px 0 6px', fontWeight: 700 }}>Sergio Moro — Quanti x Quali por segmento</h2>
+        <div style={{ fontSize: 12.5, color: '#7a8699', marginBottom: 14, lineHeight: 1.5 }}>
+          Quanti: {DATA_CRUZAMENTO_MORO.fontes.quanti}<br />
+          Quali: {DATA_CRUZAMENTO_MORO.fontes.quali}
+        </div>
+
+        <details style={{ marginBottom: 20, background: '#151b24', border: '1px solid #232c3a', borderRadius: 10, padding: '10px 16px' }}>
+          <summary style={{ cursor: 'pointer', fontSize: 12.5, color: '#9aa4b2', fontWeight: 600 }}>Limitações metodológicas deste cruzamento</summary>
+          <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
+            {DATA_CRUZAMENTO_MORO.limitacoes.map((l, i) => (
+              <li key={i} style={{ fontSize: 12.5, color: '#8b96a5', lineHeight: 1.55, marginBottom: 6 }}>{l}</li>
+            ))}
+          </ul>
+        </details>
+
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 18, borderBottom: '1px solid #232c3a' }}>
+          {DATA_CRUZAMENTO_MORO.abas.map((a) => (
+            <button key={a.id} onClick={() => setAtiva(a.id)} style={{ flexShrink: 0, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: ativa === a.id ? '#2a78d6' : '#151b24', color: ativa === a.id ? '#fff' : '#b8c0cc' }}>
+              {a.label}
+            </button>
+          ))}
+          <button onClick={() => setAtiva('marketing')} style={{ flexShrink: 0, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: ativa === 'marketing' ? '#2a78d6' : '#151b24', color: ativa === 'marketing' ? '#fff' : '#b8c0cc' }}>
+            Insights Marketing
+          </button>
+          <button onClick={() => setAtiva('sintese')} style={{ flexShrink: 0, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: ativa === 'sintese' ? '#2a78d6' : '#151b24', color: ativa === 'sintese' ? '#fff' : '#b8c0cc' }}>
+            Síntese Geral
+          </button>
+        </div>
+
+        {ativa === 'sintese' ? <SinteseGeral /> : ativa === 'marketing' ? <InsightsMarketing /> : abaAtual && <AbaConteudo aba={abaAtual} />}
+      </div>
+    </div>
   );
 }
