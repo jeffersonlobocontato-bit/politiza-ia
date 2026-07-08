@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { Link as LinkIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { DATA_CRUZAMENTO_MORO } from '@/data/cruzamentoMoro';
+
 
 const TIPO_STYLES: Record<string, { bg: string; border: string; label: string; labelColor: string }> = {
   agreement: { bg: 'rgba(27,175,122,0.12)', border: '#1baf7a', label: 'AGREEMENT', labelColor: '#1baf7a' },
