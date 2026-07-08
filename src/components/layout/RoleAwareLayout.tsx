@@ -16,9 +16,20 @@ const GESTOR_OPERACIONAL_ALLOWED = [
  */
 export function RoleAwareLayout({ children }: { children: ReactNode }) {
   const { isCampoOperator, isAdmin, roles, loading } = useAuth();
+  const { cruzamentoOnly, loading: cruzLoading } = useCruzamentoMoroAccess();
   const location = useLocation();
 
-  if (loading) return null;
+  if (loading || cruzLoading) return null;
+
+  // Usuário com acesso exclusivo ao Cruzamento Moro — nenhuma outra rota.
+  if (cruzamentoOnly) {
+    if (location.pathname !== '/inteligencia/cruzamento-moro') {
+      return <Navigate to="/inteligencia/cruzamento-moro" replace />;
+    }
+    return <div className="min-h-screen bg-background">{children}</div>;
+  }
+
+
 
   const onCampoRoute = location.pathname.startsWith('/campo');
   const onConfigRoute = location.pathname.startsWith('/configuracoes');
