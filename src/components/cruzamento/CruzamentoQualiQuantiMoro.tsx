@@ -151,7 +151,7 @@ function AnaliseQualitativaIsolada() {
   if (!q) return <div style={{ color: '#7a8699', fontSize: 13 }}>Análise qualitativa isolada indisponível.</div>;
 
   const Card = ({ titulo, cor, children }: { titulo: string; cor?: string; children: React.ReactNode }) => (
-    <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 14 }}>
+    <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 14, breakInside: 'avoid' }}>
       <div style={{ fontSize: 11, letterSpacing: 0.5, color: cor || '#7a8699', marginBottom: 10, fontWeight: 700, textTransform: 'uppercase' }}>{titulo}</div>
       {children}
     </div>
@@ -160,6 +160,8 @@ function AnaliseQualitativaIsolada() {
   return (
     <div>
       <div style={{ fontSize: 13, color: '#9aa4b2', lineHeight: 1.5, marginBottom: 16, fontStyle: 'italic' }}>{q.descricao}</div>
+      <div style={{ columnCount: 2, columnGap: 14 }} className="quali-columns">
+
 
       {q.fichaMetodologica && (
         <Card titulo="Ficha metodológica e lacunas">
