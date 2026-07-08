@@ -18,7 +18,7 @@ import { Navigate } from 'react-router-dom';
 import { useRaioXReports, useDeleteRaioXReport, type RaioXReport } from '@/hooks/useRaioXReports';
 
 export default function DueDiligence() {
-  const { roles } = useAuth();
+  const { roles, loading: authLoading } = useAuth();
   const canAccess = roles.some(r =>
     ['admin_master', 'coordenador_estadual', 'coordenador_geral'].includes(r),
   );
@@ -56,7 +56,13 @@ export default function DueDiligence() {
     };
   }, [reports]);
 
+  if (authLoading) {
+    return (
+      <div className="p-6 text-sm text-muted-foreground">Carregando…</div>
+    );
+  }
   if (!canAccess) return <Navigate to="/" replace />;
+
 
   const podeIniciar = nome.trim().length > 3 && municipio.trim().length > 2;
 
