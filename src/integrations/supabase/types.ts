@@ -632,6 +632,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cruzamento_moro_access: {
+        Row: {
+          created_at: string
+          email: string
+          granted_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          granted_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          granted_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           blocked: string | null
