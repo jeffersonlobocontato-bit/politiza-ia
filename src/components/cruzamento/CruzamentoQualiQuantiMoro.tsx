@@ -153,13 +153,37 @@ export default function CruzamentoQualiQuantiMoro() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
           <h2 style={{ fontSize: 22, color: '#e8ecf1', margin: '4px 0 6px', fontWeight: 700 }}>Sergio Moro — Quanti x Quali por segmento</h2>
           <button
-            onClick={() => {
+            onClick={async () => {
               const url = `${window.location.origin}/inteligencia/cruzamento-moro`;
-              navigator.clipboard.writeText(url).then(
-                () => toast.success('Link copiado', { description: 'Apenas usuários com acesso autorizado poderão visualizar.' }),
-                () => toast.error('Não foi possível copiar o link')
-              );
+              const ok = await (async () => {
+                try {
+                  if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(url);
+                    return true;
+                  }
+                } catch {}
+                try {
+                  const ta = document.createElement('textarea');
+                  ta.value = url;
+                  ta.style.position = 'fixed';
+                  ta.style.opacity = '0';
+                  document.body.appendChild(ta);
+                  ta.focus();
+                  ta.select();
+                  const done = document.execCommand('copy');
+                  document.body.removeChild(ta);
+                  return done;
+                } catch {
+                  return false;
+                }
+              })();
+              if (ok) {
+                toast.success('Link copiado', { description: 'Apenas usuários com acesso autorizado poderão visualizar.' });
+              } else {
+                window.prompt('Copie o link abaixo:', url);
+              }
             }}
+
             style={{ flexShrink: 0, padding: '8px 14px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, border: '1px solid #2fa85a', background: '#0f2a1c', color: '#7ee0a1', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
             title="Copiar link de acesso desta aba"
           >
