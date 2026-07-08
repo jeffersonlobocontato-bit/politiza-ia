@@ -121,7 +121,7 @@ function InsightsMarketing() {
 function SinteseGeral() {
   const s = DATA_CRUZAMENTO_MORO.sintese;
   const Bloco = ({ titulo, items, cor }: { titulo: string; items: string[]; cor: string }) => (
-    <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 14 }}>
+    <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18 }}>
       <div style={{ fontSize: 12, letterSpacing: 0.5, color: cor, marginBottom: 10, fontWeight: 700, textTransform: 'uppercase' }}>{titulo}</div>
       <ul style={{ margin: 0, paddingLeft: 18 }}>
         {items.map((it, i) => (
@@ -135,11 +135,13 @@ function SinteseGeral() {
       <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 14, textTransform: 'uppercase' }}>
         Matriz de convergência — O'Cathain, Murphy & Nicholl (2010)
       </div>
-      <Bloco titulo="Agreement" items={s.agreement} cor={TIPO_STYLES.agreement.labelColor} />
-      <Bloco titulo="Partial Agreement" items={s.partial_agreement} cor={TIPO_STYLES.partial_agreement.labelColor} />
-      <Bloco titulo="Dissonance" items={s.dissonance} cor={TIPO_STYLES.dissonance.labelColor} />
-      <Bloco titulo="Silence" items={s.silence} cor={TIPO_STYLES.silence.labelColor} />
-      <Bloco titulo="Recomendações para próxima rodada qualitativa" items={s.recomendacoes} cor="#9aa4b2" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 14 }}>
+        <Bloco titulo="Agreement" items={s.agreement} cor={TIPO_STYLES.agreement.labelColor} />
+        <Bloco titulo="Partial Agreement" items={s.partial_agreement} cor={TIPO_STYLES.partial_agreement.labelColor} />
+        <Bloco titulo="Dissonance" items={s.dissonance} cor={TIPO_STYLES.dissonance.labelColor} />
+        <Bloco titulo="Silence" items={s.silence} cor={TIPO_STYLES.silence.labelColor} />
+        <Bloco titulo="Recomendações para próxima rodada qualitativa" items={s.recomendacoes} cor="#9aa4b2" />
+      </div>
     </div>
   );
 }
