@@ -132,7 +132,7 @@ export function openRaioX(dados: RaioXDados, sessionId?: string) {
   if (backendUrl) {
     params.set('api', `${backendUrl}/functions/v1/raio-x-chat`);
   }
-  const base = (import.meta.env.VITE_RAIOX_URL as string | undefined) || '/raio-x.html';
+  const base = '/raio-x';
   // NOTE: precisa manter opener para receber postMessage de volta — não usar 'noopener'
   window.open(`${base}?${params.toString()}`, '_blank', 'noreferrer');
   return sid;
