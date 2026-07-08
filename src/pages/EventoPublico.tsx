@@ -232,11 +232,20 @@ export default function EventoPublico() {
   const [inscrito, setInscrito] = useState<{ codigo: string; nome: string } | null>(null);
 
   if (isReserved) {
-    if (typeof window !== 'undefined') {
-      window.location.reload();
-    }
-    return null;
+    return (
+      <CenterState>
+        <div className="text-center max-w-sm">
+          <AlertCircle className="w-10 h-10 text-[var(--campo-red)] mx-auto mb-3" />
+          <p className="text-[var(--campo-text)] font-semibold mb-1">Página indisponível nesta versão</p>
+          <p className="text-sm text-[var(--campo-text-soft)] mb-4">
+            Esta rota existe em uma versão mais nova do app. Republique a aplicação para ativá-la.
+          </p>
+          <a href="/" className="text-sm underline text-[var(--campo-blue)]">Voltar ao início</a>
+        </div>
+      </CenterState>
+    );
   }
+
 
 
   if (isLoading) {
