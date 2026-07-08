@@ -48,12 +48,22 @@ function getRaioXApiUrl(){
 }
 
 async function callRaioXChat(systemPrompt, messages){
+  var token = (window.__raioxAccessToken) || '';
+  if(!token){
+    throw new Error('Sessão expirada. Feche esta aba e acesse novamente pelo painel de Due Diligence.');
+  }
   var response = await fetch(getRaioXApiUrl(), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
     body: JSON.stringify({ system: systemPrompt, messages: messages })
   });
   var data = await response.json().catch(function(){ return {}; });
+  if(response.status === 401 || response.status === 403){
+    throw new Error('Acesso negado. Sua conta não tem permissão para usar o RAIO-X, ou a sessão expirou.');
+  }
   if(!response.ok || data.error){
     throw new Error(data.error || ('Falha no backend: HTTP ' + response.status));
   }
