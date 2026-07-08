@@ -1,8 +1,10 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
 import { AppLayout } from './AppLayout';
 import { CampoLayout } from './CampoLayout';
+
 
 const GESTOR_OPERACIONAL_ALLOWED = [
   '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
