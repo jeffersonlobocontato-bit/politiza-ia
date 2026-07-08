@@ -7,10 +7,11 @@ import raioxScript from './raiox-script.js?raw';
 import './raiox.css';
 
 export default function RaioX() {
-  const { roles } = useAuth();
+  const { roles, loading } = useAuth();
   const canAccess = roles.some((r) =>
     ['admin_master', 'coordenador_estadual', 'coordenador_geral'].includes(r),
   );
+
 
   const scriptRef = useRef<HTMLScriptElement | null>(null);
 
@@ -45,7 +46,15 @@ export default function RaioX() {
     };
   }, [canAccess]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-sm text-muted-foreground">
+        Carregando RAIO-X…
+      </div>
+    );
+  }
   if (!canAccess) return <Navigate to="/" replace />;
+
 
   return (
     <div className="raiox-root raio-x-body" dangerouslySetInnerHTML={{ __html: raioxBodyHtml }} />
