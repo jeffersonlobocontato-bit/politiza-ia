@@ -1,15 +1,26 @@
-// Edge Function: raio-x-chat v4.0
+// Edge Function: raio-x-chat v5.0
 // Chama Anthropic API diretamente com web_search habilitado.
-// Público (verify_jwt=false) porque o painel abre em nova aba sem sessão.
+// Requer sessão Supabase válida + role admin_master/coordenador_geral/
+// coordenador_estadual (verify_jwt=true no config.toml).
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const ALLOWED_ORIGIN = Deno.env.get("APP_ORIGIN") ?? "https://politiza-ia.br";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
 };
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = "claude-sonnet-4-5";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const db = createClient(SUPABASE_URL, SERVICE_KEY);
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -25,6 +36,25 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return json(null, 200);
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: claimsData, error: claimsErr } = await authClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+    const userId = claimsData.claims.sub;
+
+    const { data: allowed, error: roleErr } = await db.rpc("is_admin", {
+      _user_id: userId,
+    });
+    if (roleErr || !allowed) {
+      return json({ error: "Forbidden" }, 403);
+    }
+
     if (!ANTHROPIC_API_KEY) {
       return json({ error: "ANTHROPIC_API_KEY não configurada." }, 500);
     }
@@ -62,7 +92,6 @@ Deno.serve(async (req) => {
     if (!aiRes.ok) {
       const text = await aiRes.text();
       const lower = text.toLowerCase();
-      // Anthropic devolve 400 com "credit balance is too low" quando acaba o saldo
       if (lower.includes("credit balance is too low") || lower.includes("insufficient")) {
         return json({
           error: "Sem saldo na Anthropic. Recarregue créditos em https://console.anthropic.com/settings/billing para reativar o RAIO-X.",
