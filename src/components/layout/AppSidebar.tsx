@@ -128,7 +128,7 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5 px-2">
-              {visibleItems.map((item) => {
+              {[...visibleItems, ...(cruzamentoMoroItem ? [cruzamentoMoroItem as any] : [])].map((item) => {
                 const isActive = location.pathname === item.url;
                 const isHighlight = item.highlight;
                 return (
