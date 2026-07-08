@@ -1,66 +1,211 @@
-/**
- * Base de dados do Cruzamento Quali-Quanti (Moro).
- *
- * ⚠ STUB — este arquivo precisa ser SUBSTITUÍDO pelo conteúdo real
- * de `src/data/cruzamentoMoro.ts` (com todas as abas, insightsMarketing,
- * sintese, fontes e limitacoes). O shape abaixo é o mínimo compatível
- * para o componente renderizar sem quebrar até o arquivo real chegar.
- */
-
-export interface AbaSegmento {
-  id: string;
-  label: string;
-  media?: number;
-  barras: { seg: string; v: number }[];
-  tema: string;
-  classificacao: 'agreement' | 'partial_agreement' | 'dissonance' | 'silence';
-  classificacaoNota: string;
-  leitura: string;
-  gap: string;
-  implicacao: string;
-}
-
-export interface CruzamentoMoroData {
-  fontes: { quanti: string; quali: string };
-  limitacoes: string[];
-  abas: AbaSegmento[];
-  insightsMarketing: {
-    avisoMetodologico: string;
-    mapaEnfase: { termo: string; peso: number; valencia: 'positiva' | 'negativa' | 'neutra' }[];
-    obrigatorios: { tema: string; justificativa?: string; risco?: string; alvo: string }[];
-    possiveis: { tema: string; justificativa?: string; risco?: string; alvo: string }[];
-    irrelevantes: { tema: string; justificativa?: string; risco?: string; alvo: string }[];
-  };
-  sintese: {
-    agreement: string[];
-    partial_agreement: string[];
-    dissonance: string[];
-    silence: string[];
-    recomendacoes: string[];
-  };
-}
-
-export const DATA_CRUZAMENTO_MORO: CruzamentoMoroData = {
+export const DATA_CRUZAMENTO_MORO = {
   fontes: {
-    quanti: 'Pendente — substitua este stub pelo arquivo real de dados.',
-    quali: 'Pendente — substitua este stub pelo arquivo real de dados.',
+    quanti: "VOX Brasil — TSE PR-09668/2026 — divulgação 03/07/2026 — n=2000",
+    quali: "Pesquisa Qualitativa PR — 21 a 28/05/2026 — 16 grupos — Maringá, Londrina, Curitiba, Ponta Grossa, Cascavel",
   },
   limitacoes: [
-    'Arquivo de dados ainda não foi anexado. Este é um placeholder para permitir o build.',
+    "A quali é um relatório-síntese já codificado por terceiros, não transcrição bruta — análise secundária, não primária.",
+    "Quali amostrou 5 cidades (5 de 10 mesorregiões); generalizações regionais além dessas áreas são extrapolação.",
+    "Gap temporal de ~5 semanas entre quali (mai/26) e quanti (jun-jul/26) em campanha ativa — ameaça de validade.",
+    "Classificação segue a matriz de convergência de O'Cathain, Murphy & Nicholl (2010): Agreement, Partial Agreement, Dissonance, Silence.",
   ],
-  abas: [],
-  insightsMarketing: {
-    avisoMetodologico: 'Dados reais ainda não carregados.',
-    mapaEnfase: [],
-    obrigatorios: [],
-    possiveis: [],
-    irrelevantes: [],
-  },
+  abas: [
+    {
+      id: "regiao",
+      label: "Região",
+      classificacao: "agreement",
+      classificacaoNota: "Agreement — com ressalva de cobertura geográfica parcial da quali (5 de 10 mesorregiões).",
+      media: 39.6,
+      barras: [
+        { seg: "Sudoeste Paranaense", v: 56.0 },
+        { seg: "Norte Central Paranaense", v: 49.5 },
+        { seg: "Noroeste Paranaense", v: 50.0 },
+        { seg: "Oeste Paranaense", v: 46.8 },
+        { seg: "Centro Oriental Paranaense", v: 37.5 },
+        { seg: "Centro-Sul Paranaense", v: 37.5 },
+        { seg: "Norte Pioneiro Paranaense", v: 37.5 },
+        { seg: "Centro Ocidental Paranaense", v: 33.3 },
+        { seg: "Sudeste Paranaense", v: 33.3 },
+        { seg: "Metropolitana de Curitiba", v: 29.0 },
+      ],
+      tema: "\"Força de Moro reside no bolsonarismo raiz e na direita rica, ênfase no interior... eficaz para Senado, incompleto para governo.\" \"Em Curitiba, a força está entre os mais ricos (A/B1); a partir de B2 sofre o efeito Ratinho.\"",
+      leitura: "CONFIRMAÇÃO FORTE: a Metropolitana de Curitiba é a região mais fraca de Moro (-10,6pp vs. média). O interior é sistematicamente mais forte — valida a leitura qualitativa com precisão.",
+      gap: "A quali fala de efeito de classe dentro de Curitiba, mas o quanti não cruza renda x região — impossível confirmar isoladamente.",
+      implicacao: "Segmentar Curitiba internamente; concentrar consolidação (não mobilização) no interior, onde a simpatia já existe mas falta percepção de entrega.",
+    },
+    {
+      id: "sexo",
+      label: "Sexo",
+      classificacao: "silence",
+      classificacaoNota: "Silence — quali não aborda gênero em nenhum momento.",
+      media: 39.6,
+      barras: [
+        { seg: "Masculino", v: 46.2 },
+        { seg: "Feminino", v: 33.7 },
+      ],
+      tema: "Não há menção direta a gênero na síntese qualitativa fornecida.",
+      leitura: "GAP DE COBERTURA: diferença de 12,5pp entre homens e mulheres não é discutida em nenhum momento pela quali — maior lacuna temática do cruzamento.",
+      gap: "Nenhum roteiro qualitativo testou percepção de gênero sobre o discurso de Moro.",
+      implicacao: "Incluir recorte de gênero na próxima rodada de grupos; testar mensagens alternativas para público feminino antes de escalar comunicação atual.",
+    },
+    {
+      id: "idade",
+      label: "Faixa Etária",
+      classificacao: "partial_agreement",
+      classificacaoNota: "Partial Agreement — coerência indireta via tema \"bolsonarismo raiz\", sem medição direta por idade na quali.",
+      media: 39.6,
+      barras: [
+        { seg: "Acima de 69 anos", v: 46.3 },
+        { seg: "45 a 59 anos", v: 40.8 },
+        { seg: "35 a 44 anos", v: 40.6 },
+        { seg: "21 a 24 anos", v: 40.6 },
+        { seg: "18 a 20 anos", v: 40.0 },
+        { seg: "60 a 69 anos", v: 36.8 },
+        { seg: "25 a 34 anos", v: 33.0 },
+      ],
+      tema: "Moro associado ao \"bolsonarismo raiz\" — recorte historicamente mais forte em públicos de meia-idade e mais velhos, com desgaste entre jovens urbanos (mencionado de forma indireta).",
+      leitura: "PARCIALMENTE COERENTE: segmento mais fraco é 25-34 anos (-6,6pp); pico em acima de 69 anos é coerente com a base tradicional citada.",
+      gap: "A quali não discute juventude como segmento específico — não dá para saber se o enfraquecimento em 25-34 é rejeição ativa ou desconhecimento.",
+      implicacao: "Testar comunicação segmentada para 25-34 anos para diagnosticar rejeição vs. indiferença antes de agir.",
+    },
+    {
+      id: "instrucao",
+      label: "Instrução",
+      classificacao: "partial_agreement",
+      classificacaoNota: "Partial Agreement — médio completo confirma leitura de classe B/C1; superior completo diverge da expectativa.",
+      media: 39.6,
+      barras: [
+        { seg: "Médio completo", v: 45.5 },
+        { seg: "Fundamental completo", v: 42.9 },
+        { seg: "Lê e escreve", v: 38.9 },
+        { seg: "Superior incompleto", v: 38.5 },
+        { seg: "Médio incompleto", v: 38.2 },
+        { seg: "Superior completo", v: 38.0 },
+        { seg: "Fundamental incompleto", v: 34.0 },
+        { seg: "Analfabeto", v: 30.0 },
+      ],
+      tema: "\"Direita da moralidade pública (não confundir com religiosa) é forte, principalmente entre classe média B/C1\" — pauta central de Moro (Lava Jato, anticorrupção).",
+      leitura: "CONFIRMAÇÃO PARCIAL + SURPRESA: pico em médio completo (+5,9pp) é coerente com \"classe média B/C1\". Mas superior completo fica ABAIXO da média — contraria a expectativa do discurso anticorrupção.",
+      gap: "A quali não explica por que o público de nível superior completo resiste mais. Hipótese não testada: possível migração para Rafael Greca.",
+      implicacao: "Investigar concorrência direta com Greca no público de nível superior antes de assumir a pauta anticorrupção como \"resolvida\" nesse segmento.",
+    },
+    {
+      id: "renda",
+      label: "Renda",
+      classificacao: "dissonance",
+      classificacaoNota: "Dissonance — quali sugere gradiente de classe; quanti estadual mostra distribuição praticamente plana.",
+      media: 39.6,
+      barras: [
+        { seg: "Acima de 10 SM", v: 40.0 },
+        { seg: "Mais de 2 a 5 SM", v: 40.0 },
+        { seg: "Até 2 SM", v: 39.7 },
+        { seg: "Mais de 5 a 10 SM", v: 35.3 },
+      ],
+      tema: "\"Em Curitiba, a força de Moro está entre os mais ricos (A/B1); a partir de B2 sofre efeito Ratinho\" — sugeriria gradiente claro de renda.",
+      leitura: "CONTRADIÇÃO: o quanti estadual NÃO mostra o gradiente esperado — distribuição quase plana, com queda justamente na faixa intermediária, não na mais baixa.",
+      gap: "O efeito de classe da quali parece concentrado na RMC (onde foi coletada) e não generalizável ao estado — maior lacuna do cruzamento junto com religião.",
+      implicacao: "Não usar renda como proxy estadual do comportamento de Moro; qualquer segmentação por renda deveria ser regionalizada.",
+    },
+    {
+      id: "religiao",
+      label: "Religião",
+      classificacao: "dissonance",
+      classificacaoNota: "Dissonance — quali separa moralidade pública de religiosa; quanti mostra maior vantagem de Moro entre evangélicos.",
+      media: 39.6,
+      barras: [
+        { seg: "Evangélico", v: 45.7 },
+        { seg: "Católico", v: 39.1 },
+        { seg: "Outras", v: 31.0 },
+        { seg: "Espírita", v: 30.8 },
+      ],
+      tema: "A quali afirma explicitamente que \"direita da moralidade pública NÃO deve ser confundida com moralidade religiosa\" — esforço deliberado de separar os conceitos.",
+      leitura: "MAIOR DIVERGÊNCIA DO CRUZAMENTO: apesar do esforço qualitativo de dissociar os temas, o quanti mostra vantagem evangélica nítida (+6,1pp, o maior desvio positivo entre todos os recortes de valores/crença).",
+      gap: "Os 16 grupos qualitativos podem não ter capturado adequadamente o público evangélico, ou a separação conceitual não se sustenta na prática eleitoral.",
+      implicacao: "Não descartar comunicação de valores/fé; incluir grupos com recorte religioso explícito na próxima rodada para entender o mecanismo.",
+    },
+    {
+      id: "segundo_turno",
+      label: "2º Turno",
+      classificacao: "agreement",
+      classificacaoNota: "Agreement — correspondência direta e limpa, sem necessidade de inferência.",
+      media: null,
+      barras: [
+        { seg: "Moro x Requião Filho — Nenhum/Branco/Nulo", v: 12.4 },
+        { seg: "Moro x Rafael Greca — Nenhum/Branco/Nulo", v: 12.8 },
+        { seg: "Moro x Sandro Alex — Nenhum/Branco/Nulo", v: 21.4 },
+      ],
+      tema: "\"Mesmo entre quem vota em Moro, há desejo de 'conhecer Alex' — sinal de que o voto não está consolidado.\" \"O desconhecimento de Sandro Alex infla artificialmente a vantagem de Moro.\"",
+      leitura: "CONFIRMAÇÃO MAIS LIMPA DO CRUZAMENTO: o teste Moro x Sandro Alex tem taxa de Nenhum/Branco/Nulo quase o dobro dos demais (21,4% vs ~12%) — materializa exatamente o insight qualitativo.",
+      gap: "Nenhum — correspondência direta entre quali e quanti.",
+      implicacao: "Tratar o confronto com Sandro Alex como cenário de maior risco/volatilidade, não o de vitória mais folgada, apesar do placar aparente (52,6% a 14,4%).",
+    },
+  ],
   sintese: {
-    agreement: [],
-    partial_agreement: [],
-    dissonance: [],
-    silence: [],
-    recomendacoes: [],
+    agreement: [
+      "Região: interior forte / Curitiba fraco para Moro — validado, respeitada a ressalva de cobertura geográfica parcial.",
+      "Consolidação de voto: fragilidade específica contra Sandro Alex, mascarada pelo desconhecimento — confirmada pela taxa anômala de Nenhum/Branco/Nulo no 2º turno.",
+    ],
+    partial_agreement: [
+      "Faixa etária: coerência indireta via tema \"bolsonarismo raiz\", sem medição direta por idade na quali.",
+      "Instrução: médio completo confirma leitura de classe B/C1; superior completo diverge da expectativa.",
+    ],
+    dissonance: [
+      "Renda: quali sugere gradiente de classe (mais forte em Curitiba); quanti estadual mostra distribuição praticamente plana.",
+      "Religião: quali separa moralidade pública de religiosa; quanti mostra maior vantagem de Moro justamente entre evangélicos.",
+    ],
+    silence: [
+      "Sexo: gap de 12,5pp entre homens e mulheres nunca discutido pela quali.",
+    ],
+    recomendacoes: [
+      "Incluir grupos com recorte religioso explícito (evangélico vs. católico) para investigar a Dissonance.",
+      "Incluir recorte de gênero nos roteiros de discussão para preencher a Silence.",
+      "Testar por que o público de superior completo resiste mais que o médio completo.",
+      "Ampliar abrangência geográfica de coleta além das 5 cidades atuais.",
+      "Buscar acesso a transcrições brutas dos grupos focais em vez de depender só do relatório-síntese.",
+    ],
+  },
+  insightsMarketing: {
+    avisoMetodologico: "Este mapa NÃO é uma nuvem de palavras por frequência real (a fonte é relatório-síntese, não transcrição bruta). O tamanho reflete ênfase/saliência qualitativa atribuída, não contagem estatística.",
+    mapaEnfase: [
+      { termo: "coragem / anti-PT", peso: 5, valencia: "positiva" },
+      { termo: "Lava Jato / combate à corrupção", peso: 5, valencia: "positiva" },
+      { termo: "sumido no Senado", peso: 5, valencia: "negativa" },
+      { termo: "sem entregas concretas", peso: 5, valencia: "negativa" },
+      { termo: "melhor como juiz", peso: 4, valencia: "negativa" },
+      { termo: "se perdeu na política", peso: 4, valencia: "negativa" },
+      { termo: "bolsonarismo raiz", peso: 4, valencia: "neutra" },
+      { termo: "direita rica / interior", peso: 4, valencia: "positiva" },
+      { termo: "apoio de Ratinho (condicionante)", peso: 4, valencia: "neutra" },
+      { termo: "desconhecimento de Sandro Alex", peso: 4, valencia: "neutra" },
+      { termo: "voto não consolidado", peso: 4, valencia: "negativa" },
+      { termo: "moralidade pública (não religiosa)", peso: 3, valencia: "positiva" },
+      { termo: "obras e infraestrutura (fraco em Moro)", peso: 4, valencia: "negativa" },
+      { termo: "pedágio caro", peso: 3, valencia: "negativa" },
+      { termo: "segurança urbana", peso: 3, valencia: "neutra" },
+      { termo: "anti-STF radical", peso: 2, valencia: "negativa" },
+      { termo: "terceira via nacional", peso: 1, valencia: "neutra" },
+      { termo: "família Bolsonaro como marca", peso: 2, valencia: "negativa" },
+      { termo: "educação cívico-militar", peso: 2, valencia: "positiva" },
+      { termo: "custo de vida / inflação", peso: 3, valencia: "negativa" },
+    ],
+    obrigatorios: [
+      { tema: "Prova de entrega concreta (fiscalização de emendas, obras, saúde/segurança)", justificativa: "Ataca a vulnerabilidade nº1 (\"sumido no Senado\") e a fraqueza regional confirmada em Curitiba/RMC.", alvo: "Estadual, ênfase na RMC" },
+      { tema: "Blindagem antecipada contra Sandro Alex", justificativa: "Único 2º turno com indefinição quase dobrada (21,4%) — Agreement direto sobre fragilidade de consolidação.", alvo: "Estadual, prioridade máxima, 4 meses" },
+      { tema: "Anticorrupção ligada a fiscalização de obras/pedágios", justificativa: "Combina o ativo mais forte (Lava Jato) com a área mais fraca (obras) e um atrito real já citado (pedágio).", alvo: "Interior e RMC" },
+      { tema: "Segurança urbana ligada à crítica ao governo federal", justificativa: "Medo urbano crescente em Curitiba/Londrina/Maringá associado à percepção federal — ataque nacional com aplicação local.", alvo: "Grandes centros urbanos" },
+    ],
+    possiveis: [
+      { tema: "Valores/fé sem rótulo religioso explícito", justificativa: "Dissonance — quanti mostra vantagem real, quali alerta contra associação direta. Testar antes de escalar.", alvo: "Eleitorado evangélico" },
+      { tema: "Mensagem segmentada por gênero", justificativa: "Silence — gap de 12,5pp nunca explicado. Requer pesquisa dedicada antes de qualquer criativo.", alvo: "Público feminino" },
+      { tema: "Diferenciação frente a Greca no público superior completo", justificativa: "Partial Agreement — segmento resiste mais que o esperado; possível concorrência não mapeada.", alvo: "Ensino superior completo" },
+      { tema: "Educação cívico-militar / modelo integral", justificativa: "Bem avaliada, mas já é ativo consolidado de Ratinho — risco de diluição sem diferencial próprio.", alvo: "Estadual, baixa prioridade" },
+    ],
+    irrelevantes: [
+      { tema: "Combate frontal / retórica anti-STF radical", risco: "Assusta parte do público e embaralha \"direita\" com \"radical de direita\". Usar com extrema moderação.", alvo: "Evitar como pilar de campanha" },
+      { tema: "Terceira via nacional (Zema, Renan Santos, Caiado)", risco: "\"Pouco conhecida, gerando pouca sinergia de voto\" no PR — retorno de mídia baixo.", alvo: "Nenhum investimento" },
+      { tema: "Família Bolsonaro como identidade central", risco: "Desgaste explícito (\"despreparado, falastrão\") mesmo entre simpatizantes — usar só como endosso pontual.", alvo: "Referência lateral, nunca narrativa dominante" },
+    ],
   },
 };
+
+export type CruzamentoMoroData = typeof DATA_CRUZAMENTO_MORO;
