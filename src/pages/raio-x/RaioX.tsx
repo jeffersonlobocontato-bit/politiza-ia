@@ -7,10 +7,11 @@ import raioxScript from './raiox-script.js?raw';
 import './raiox.css';
 
 export default function RaioX() {
-  const { roles } = useAuth();
+  const { roles, loading } = useAuth();
   const canAccess = roles.some((r) =>
     ['admin_master', 'coordenador_estadual', 'coordenador_geral'].includes(r),
   );
+
 
   const scriptRef = useRef<HTMLScriptElement | null>(null);
 
