@@ -253,7 +253,7 @@ export default function CruzamentoQualiQuantiMoro() {
 
   return (
     <div style={{ background: '#0c1117', borderRadius: 12, padding: '24px 16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ marginBottom: 4, fontSize: 11, letterSpacing: 1, color: '#7a8699', textTransform: 'uppercase' }}>
           Inteligência Moro 2026 · Cruzamento Quali-Quanti
         </div>
