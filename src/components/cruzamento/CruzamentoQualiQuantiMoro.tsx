@@ -140,6 +140,113 @@ function SinteseGeral() {
   );
 }
 
+function AnaliseQualitativaIsolada() {
+  const q = (DATA_CRUZAMENTO_MORO as any).analiseQualitativaIsolada;
+  if (!q) return <div style={{ color: '#7a8699', fontSize: 13 }}>Análise qualitativa isolada indisponível.</div>;
+
+  const Card = ({ titulo, cor, children }: { titulo: string; cor?: string; children: React.ReactNode }) => (
+    <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 14 }}>
+      <div style={{ fontSize: 11, letterSpacing: 0.5, color: cor || '#7a8699', marginBottom: 10, fontWeight: 700, textTransform: 'uppercase' }}>{titulo}</div>
+      {children}
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{ fontSize: 13, color: '#9aa4b2', lineHeight: 1.5, marginBottom: 16, fontStyle: 'italic' }}>{q.descricao}</div>
+
+      {q.fichaMetodologica && (
+        <Card titulo="Ficha metodológica e lacunas">
+          <div style={{ fontSize: 13, color: '#e8ecf1', marginBottom: 8 }}>{q.fichaMetodologica.cobertura}</div>
+          <ul style={{ margin: '0 0 8px', paddingLeft: 18 }}>
+            {q.fichaMetodologica.lacunas.map((l: string, i: number) => (
+              <li key={i} style={{ fontSize: 12.5, color: '#b8c0cc', lineHeight: 1.55, marginBottom: 5 }}>{l}</li>
+            ))}
+          </ul>
+          <div style={{ fontSize: 12.5, color: '#eda100', fontStyle: 'italic' }}>{q.fichaMetodologica.recomendacao}</div>
+        </Card>
+      )}
+
+      {q.diagnosticoMacro && (
+        <Card titulo="Diagnóstico macro — Brasil x Paraná">
+          <div style={{ fontSize: 14, color: '#e8ecf1', marginBottom: 8, lineHeight: 1.55 }}>{q.diagnosticoMacro.achado}</div>
+          <div style={{ fontSize: 12.5, color: '#1baf7a', marginBottom: 6 }}>Força do achado: {q.diagnosticoMacro.forcaDoAchado}</div>
+          <div style={{ fontSize: 12.5, color: '#b8c0cc' }}>{q.diagnosticoMacro.leituraLula}</div>
+        </Card>
+      )}
+
+      {q.tipologiaDireitaParanaense && (
+        <Card titulo="Tipologia da direita paranaense">
+          {q.tipologiaDireitaParanaense.map((t: any, i: number) => (
+            <div key={i} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: '#e8ecf1' }}>{t.subtipo}</div>
+              <div style={{ fontSize: 12.5, color: '#b8c0cc', lineHeight: 1.5 }}>{t.descricao}</div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {q.ratinhoEixoGravitacional && (
+        <Card titulo="Ratinho como eixo gravitacional">
+          <div style={{ fontSize: 13.5, color: '#e8ecf1', marginBottom: 8, lineHeight: 1.55 }}>{q.ratinhoEixoGravitacional.leitura}</div>
+          <div style={{ fontSize: 12.5, color: '#eda100', lineHeight: 1.5 }}>{q.ratinhoEixoGravitacional.limiteDoEfeitoHalo}</div>
+        </Card>
+      )}
+
+      {q.moroLeituraFechada && (
+        <Card titulo="Moro — leitura fechada da quali" cor="#4a94ec">
+          <div style={{ fontSize: 12.5, color: '#1baf7a', marginBottom: 8 }}>Força: {(q.moroLeituraFechada.forca || []).join(', ')}</div>
+          <div style={{ fontSize: 13, color: '#e34948', marginBottom: 10, lineHeight: 1.5 }}>{q.moroLeituraFechada.vulnerabilidadeCentral}</div>
+          {q.moroLeituraFechada.autocriticaDoRelatorio && (
+            <div style={{ background: 'rgba(74,148,236,0.10)', border: '1px solid #4a94ec', borderRadius: 8, padding: 12, marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: '#4a94ec', fontWeight: 700, marginBottom: 4 }}>AUTOCRÍTICA DO PRÓPRIO RELATÓRIO</div>
+              <div style={{ fontSize: 12.5, color: '#c7cfda', lineHeight: 1.5 }}>{q.moroLeituraFechada.autocriticaDoRelatorio}</div>
+            </div>
+          )}
+          <div style={{ fontSize: 12.5, color: '#b8c0cc', marginBottom: 6 }}>{q.moroLeituraFechada.segmentacaoInterna}</div>
+          <div style={{ fontSize: 12.5, color: '#b8c0cc' }}>{q.moroLeituraFechada.condicionanteMaisCritico}</div>
+        </Card>
+      )}
+
+      {q.achadoMoroDeltanSubstituicao && (
+        <Card titulo={q.achadoMoroDeltanSubstituicao.titulo} cor="#eda100">
+          <div style={{ fontSize: 13, color: '#e8ecf1', marginBottom: 8, lineHeight: 1.55 }}>{q.achadoMoroDeltanSubstituicao.achado}</div>
+          <div style={{ fontSize: 12.5, color: '#b8c0cc', lineHeight: 1.5 }}>{q.achadoMoroDeltanSubstituicao.implicacao}</div>
+        </Card>
+      )}
+
+      {q.outrosPlayers && (
+        <Card titulo="Outros players">
+          {Object.entries(q.outrosPlayers).map(([k, v]: [string, any]) => (
+            <div key={k} style={{ fontSize: 12.5, color: '#b8c0cc', marginBottom: 8, lineHeight: 1.5 }}>
+              <b style={{ color: '#e8ecf1', textTransform: 'capitalize' }}>{k.replace(/([A-Z])/g, ' $1')}:</b> {v}
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {q.pautasEstaduaisTestadas && (
+        <Card titulo="Pautas estaduais testadas">
+          {Object.entries(q.pautasEstaduaisTestadas).map(([k, v]: [string, any]) => (
+            <div key={k} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: '#e8ecf1', textTransform: 'capitalize' }}>{k.replace(/([A-Z])/g, ' $1')}</div>
+              <div style={{ fontSize: 12.5, color: '#b8c0cc', lineHeight: 1.5 }}>{v}</div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {q.tensaoInternaNaoResolvida && (
+        <div style={{ background: 'rgba(227,73,72,0.08)', border: '1px solid #e34948', borderRadius: 12, padding: 18 }}>
+          <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#e34948', marginBottom: 8, fontWeight: 700 }}>{q.tensaoInternaNaoResolvida.titulo}</div>
+          <div style={{ fontSize: 13.5, color: '#e8ecf1', marginBottom: 8, lineHeight: 1.55 }}>{q.tensaoInternaNaoResolvida.achado}</div>
+          <div style={{ fontSize: 12.5, color: '#c7cfda', lineHeight: 1.5 }}>{q.tensaoInternaNaoResolvida.implicacao}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CruzamentoQualiQuantiMoro() {
   const [ativa, setAtiva] = useState<string>(DATA_CRUZAMENTO_MORO.abas[0]?.id ?? 'sintese');
   const abaAtual = DATA_CRUZAMENTO_MORO.abas.find((a) => a.id === ativa);
