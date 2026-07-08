@@ -35,26 +35,30 @@ function AbaConteudo({ aba }: { aba: any }) {
         <div style={{ fontSize: 12, letterSpacing: 0.5, color: '#7a8699', marginBottom: 14, textTransform: 'uppercase' }}>
           Sergio Moro por segmento {aba.media ? `— média estadual: ${aba.media}%` : ''}
         </div>
-        {aba.barras.map((b: any) => (
-          <Bar key={b.seg} seg={b.seg} v={b.v} max={max} />
-        ))}
+        <div style={{ display: 'grid', gridTemplateColumns: aba.barras.length > 4 ? 'repeat(auto-fit, minmax(280px, 1fr))' : '1fr', gap: '4px 32px' }}>
+          {aba.barras.map((b: any) => (
+            <Bar key={b.seg} seg={b.seg} v={b.v} max={max} />
+          ))}
+        </div>
       </div>
-      <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 12 }}>
-        <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 8, textTransform: 'uppercase' }}>Tema qualitativo associado</div>
-        <div style={{ fontSize: 14, color: '#c7cfda', fontStyle: 'italic', lineHeight: 1.5 }}>{aba.tema}</div>
-      </div>
-      <div style={{ background: estilo.bg, border: `1px solid ${estilo.border}`, borderRadius: 12, padding: 18, marginBottom: 12 }}>
-        <div style={{ fontSize: 11, letterSpacing: 0.5, color: estilo.labelColor, marginBottom: 4, fontWeight: 700 }}>{estilo.label} — Leitura cruzada</div>
-        <div style={{ fontSize: 12, color: '#9aa4b2', marginBottom: 10, fontStyle: 'italic' }}>{aba.classificacaoNota}</div>
-        <div style={{ fontSize: 14, color: '#e8ecf1', lineHeight: 1.55 }}>{aba.leitura}</div>
-      </div>
-      <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18, marginBottom: 12 }}>
-        <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 8, textTransform: 'uppercase' }}>Gap identificado</div>
-        <div style={{ fontSize: 13.5, color: '#b8c0cc', lineHeight: 1.5 }}>{aba.gap}</div>
-      </div>
-      <div style={{ background: 'rgba(42,120,214,0.10)', border: '1px solid #2a78d6', borderRadius: 12, padding: 18 }}>
-        <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#4a94ec', marginBottom: 8, fontWeight: 700 }}>IMPLICAÇÃO ESTRATÉGICA</div>
-        <div style={{ fontSize: 14, color: '#e8ecf1', lineHeight: 1.55 }}>{aba.implicacao}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 12 }}>
+        <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18 }}>
+          <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 8, textTransform: 'uppercase' }}>Tema qualitativo associado</div>
+          <div style={{ fontSize: 14, color: '#c7cfda', fontStyle: 'italic', lineHeight: 1.5 }}>{aba.tema}</div>
+        </div>
+        <div style={{ background: estilo.bg, border: `1px solid ${estilo.border}`, borderRadius: 12, padding: 18 }}>
+          <div style={{ fontSize: 11, letterSpacing: 0.5, color: estilo.labelColor, marginBottom: 4, fontWeight: 700 }}>{estilo.label} — Leitura cruzada</div>
+          <div style={{ fontSize: 12, color: '#9aa4b2', marginBottom: 10, fontStyle: 'italic' }}>{aba.classificacaoNota}</div>
+          <div style={{ fontSize: 14, color: '#e8ecf1', lineHeight: 1.55 }}>{aba.leitura}</div>
+        </div>
+        <div style={{ background: '#151b24', border: '1px solid #232c3a', borderRadius: 12, padding: 18 }}>
+          <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#7a8699', marginBottom: 8, textTransform: 'uppercase' }}>Gap identificado</div>
+          <div style={{ fontSize: 13.5, color: '#b8c0cc', lineHeight: 1.5 }}>{aba.gap}</div>
+        </div>
+        <div style={{ background: 'rgba(42,120,214,0.10)', border: '1px solid #2a78d6', borderRadius: 12, padding: 18 }}>
+          <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#4a94ec', marginBottom: 8, fontWeight: 700 }}>IMPLICAÇÃO ESTRATÉGICA</div>
+          <div style={{ fontSize: 14, color: '#e8ecf1', lineHeight: 1.55 }}>{aba.implicacao}</div>
+        </div>
       </div>
     </div>
   );
