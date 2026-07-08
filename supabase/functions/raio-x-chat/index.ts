@@ -42,7 +42,14 @@ interface Body {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return json(null, 200);
+  const corsHeaders = buildCorsHeaders(req.headers.get("Origin"));
+  const json = (body: unknown, status = 200) =>
+    new Response(body === null ? null : JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
+  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
