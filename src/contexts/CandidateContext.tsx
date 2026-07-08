@@ -89,6 +89,10 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchCandidates = useCallback(async () => {
+    if (!user?.id) {
+      setCandidates([]);
+      return;
+    }
     try {
       const { data } = await (supabase as any)
         .from('candidates')
@@ -98,7 +102,7 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
-  }, []);
+  }, [user?.id]);
 
   const fetchScope = useCallback(async () => {
     if (!user?.id || isAdmin) {
@@ -118,6 +122,12 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (authLoading) return;
+    if (!user?.id) {
+      setCandidates([]);
+      setScopedCandidateIds([]);
+      setDataLoading(false);
+      return;
+    }
 
     let cancelled = false;
     (async () => {
@@ -126,7 +136,8 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
       if (!cancelled) setDataLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [authLoading, fetchCandidates, fetchScope]);
+  }, [authLoading, user?.id, fetchCandidates, fetchScope]);
+
 
   const hasFullAccess = isAdmin || scopedCandidateIds.length === 0;
 
