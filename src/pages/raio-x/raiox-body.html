@@ -1,0 +1,425 @@
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <span class="topbar-logo">RAIO-X</span>
+  <span class="topbar-title">Due Diligence Intelligence</span>
+  <span class="topbar-hint" id="topbarHint">Digite o nome do sujeito e pressione Enter</span>
+  <span class="topbar-badge">RESTRITO · ADMIN</span>
+</div>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+  <!-- ═══════════════════════════════
+       COL ESQUERDA — Perfis
+  ═══════════════════════════════ -->
+  <div class="col-left">
+    <div class="col-header">
+      <div class="col-header-title">Perfis investigados</div>
+      <input class="search-input" type="text" placeholder="Buscar perfil..." id="searchProfiles" oninput="filterProfiles(this.value)">
+    </div>
+    <div class="profiles-list" id="profilesList">
+      <!-- preenchido pelo JS -->
+    </div>
+    <button class="new-profile-btn" onclick="newProfile()">+ Nova Investigação</button>
+  </div>
+
+  <!-- ═══════════════════════════════
+       COL CENTRAL — Chat IA
+  ═══════════════════════════════ -->
+  <div class="col-center">
+    <div class="chat-area" id="chatArea">
+      <!-- mensagem inicial -->
+      <div class="msg ai">
+        <div class="msg-avatar msg-avatar-ai">AI</div>
+        <div>
+          <div class="msg-bubble">
+            Olá! Sou o <strong>RAIO-X Intelligence</strong>, seu agente de due diligence integrado ao Politiza IA.<br><br>
+            Para iniciar uma investigação, informe:<br>
+            • <strong>Nome completo</strong> do sujeito<br>
+            • <strong>Cidade/contexto</strong> (ex: "vereador de Pontal do Paraná")<br>
+            • <strong>Partido ou cargo</strong>, se souber<br><br>
+            Posso também <em>aprofundar processos judiciais</em>, <em>verificar vínculos societários</em>, <em>mapear redes sociais</em> ou <em>gerar o Raio-X completo</em> em PDF.
+          </div>
+          <div class="msg-time">Agora</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INPUT AREA -->
+    <div class="chat-input-area">
+      <div class="quick-cmds">
+        <button class="qcmd" onclick="quickCmd('pesquise profundamente')">🔍 Pesquisa completa</button>
+        <button class="qcmd" onclick="quickCmd('verifique processos judiciais de')">⚖️ Processos judiciais</button>
+        <button class="qcmd" onclick="quickCmd('mapeie as redes sociais e empresas de')">🏢 Societário + Redes</button>
+        <button class="qcmd" onclick="quickCmd('gere o raio-x completo de')">📊 Gerar Raio-X</button>
+        <button class="qcmd" onclick="quickCmd('calcule o score de risco de')">🎯 Score de risco</button>
+        <button class="qcmd" onclick="quickCmd('compare os perfis já investigados')">📋 Comparar perfis</button>
+        <button class="qcmd" onclick="focusAtInput()">📡 Análise de redes sociais</button>
+      </div>
+      <div class="input-row">
+        <textarea
+          class="chat-textarea"
+          id="chatInput"
+          placeholder="Ex: pesquise Edgar Rossi, ex-prefeito de Pontal do Paraná..."
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       COL DIREITA — Raio-X ao vivo
+  ═══════════════════════════════ -->
+  <div class="col-right">
+    <div class="raio-x-header">
+      <div class="rx-tabs">
+        <div class="rx-tab active" id="tabRaioX" onclick="switchTab('raiox')">🔎 Raio-X</div>
+        <div class="rx-tab" id="tabGastos" onclick="switchTab('gastos')">💰 Gastos</div>
+      </div>
+      <div class="raio-x-actions">
+        <button class="rx-btn sync-btn" id="syncBtn" onclick="syncToSupabase()" title="Sincronizar com Supabase">⟳ Sync</button>
+        <button class="rx-btn" onclick="saveCurrentProfile()" title="Salvar perfil">💾 Salvar</button>
+        <button class="rx-btn primary" onclick="printRaioX()" title="Exportar PDF">🖨 PDF</button>
+      </div>
+    </div>
+
+    <div class="raio-x-body" id="raioXBody">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🔎</div>
+        <div class="empty-title">Nenhum perfil ativo</div>
+        <div class="empty-sub">Inicie uma investigação no chat ao lado.<br>O Raio-X será construído aqui em tempo real.</div>
+      </div>
+
+      <!-- CONTEÚDO DO RAIO-X (oculto até ter dados) -->
+      <div id="raioXContent" style="display:none">
+
+        <!-- FOTO + IDENTIDADE -->
+        <div class="subject-photo" id="subjectPhoto">
+          <div class="photo-circle" onclick="document.getElementById('photoInput').click()" id="photoCircle">
+            <div class="photo-ph">👤</div>
+            <div class="photo-ov">FOTO</div>
+            <img id="photoImg" alt="">
+          </div>
+          <div class="photo-info">
+            <div class="photo-name" id="subjectName">—</div>
+            <input class="photo-nickname" id="subjectNickname" placeholder="Apelido" onchange="saveNickname()" />
+            <div class="photo-sub" id="subjectSub">—</div>
+          </div>
+          <div class="photo-actions">
+            <button class="photo-btn" onclick="document.getElementById('photoInput').click()">📷 Foto</button>
+            <button class="photo-btn danger" id="removePhotoBtn" onclick="removePhoto()" style="display:none">✕ Remover</button>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" onchange="loadPhoto(this)">
+        </div>
+
+        <!-- SCORE -->
+        <div class="rx-section" id="rxScore">
+          <div class="rx-section-label">Score de risco</div>
+          <div class="score-widget">
+            <div class="score-top">
+              <div class="score-donut-sm">
+                <svg viewBox="0 0 80 80" width="72" height="72" id="scoreSvg">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="10"/>
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#00e8a2" stroke-width="10"
+                    stroke-dasharray="0 201" stroke-linecap="round" transform="rotate(-90 40 40)" id="scoreArc"/>
+                  <text x="40" y="45" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="18" font-weight="700" fill="#eef0ff" id="scoreVal">—</text>
+                </svg>
+              </div>
+              <div class="score-info">
+                <div class="score-name" id="scoreSubjectName">—</div>
+                <div class="score-sub" id="scoreSubjectMeta">Aguardando dados...</div>
+                <div class="score-verdict" id="scoreVerdict">—</div>
+              </div>
+            </div>
+            <div class="dim-bars">
+              <div class="dim-row">
+                <span class="dim-lbl">Judicial</span>
+                <div class="dim-track"><div class="dim-fill" id="dj" style="background:#ff3355;width:0%"></div></div>
+                <span class="dim-num" id="vj" style="color:#ff3355">—</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-lbl">Reputacional</span>
+                <div class="dim-track"><div class="dim-fill" id="dr" style="background:#ff6d00;width:0%"></div></div>
+                <span class="dim-num" id="vr" style="color:#ff6d00">—</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-lbl">Regulatório</span>
+                <div class="dim-track"><div class="dim-fill" id="dreg" style="background:#ffaa00;width:0%"></div></div>
+                <span class="dim-num" id="vreg" style="color:#ffaa00">—</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-lbl">Societário</span>
+                <div class="dim-track"><div class="dim-fill" id="ds" style="background:#9b6fff;width:0%"></div></div>
+                <span class="dim-num" id="vs" style="color:#9b6fff">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IDENTIDADE CONFIRMADA (extraída do relatório completo pelo JS) -->
+        <div class="rx-section" id="rxIdentidade" style="display:none">
+          <div class="rx-section-label">Identidade confirmada</div>
+          <div id="identidadeBox" class="report-full" style="font-family:var(--font-m);font-size:11px;line-height:1.6;color:#eef0ff;padding:10px 12px;background:rgba(0,232,162,.04);border:1px solid rgba(0,232,162,.25);border-radius:var(--r-sm);overflow-wrap:break-word"></div>
+        </div>
+
+
+        <!-- RESUMO EXECUTIVO -->
+        <div class="rx-section" id="rxResumo" style="display:none">
+          <div class="rx-section-label">Resumo executivo</div>
+          <div class="resumo-box" id="resumoBox" style="font-family:var(--font-m);font-size:11px;line-height:1.55;color:#eef0ff;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-sm)"></div>
+        </div>
+
+        <!-- ALERTAS -->
+        <div class="rx-section" id="rxAlertas">
+          <div class="rx-section-label">Alertas</div>
+          <div class="alert-widget" id="alertList">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+
+        <!-- ACHADOS (métricas) -->
+        <div class="rx-section" id="rxAchados">
+          <div class="rx-section-label">Achados — indicadores</div>
+          <div class="achados-grid" id="achadosGrid">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+
+        <!-- ACHADOS DETALHADOS -->
+        <div class="rx-section" id="rxAchadosDet" style="display:none">
+          <div class="rx-section-label">Achados detalhados</div>
+          <div id="achadosDetList" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="rx-section" id="rxTimeline">
+          <div class="rx-section-label">Timeline</div>
+          <div class="tl-widget" id="tlWidget">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+
+        <!-- RECOMENDAÇÕES -->
+        <div class="rx-section" id="rxRecs" style="display:none">
+          <div class="rx-section-label">Recomendações de aprofundamento</div>
+          <ol id="recsList" style="font-family:var(--font-m);font-size:11px;line-height:1.5;color:#eef0ff;padding-left:20px;margin:0;display:flex;flex-direction:column;gap:6px"></ol>
+        </div>
+
+
+        <!-- ANÁLISE DIGITAL -->
+        <div class="rx-section" id="rxDigital">
+          <div class="rx-section-label">Análise Digital</div>
+          <div class="digital-widget" id="digitalWidget">
+            <div class="digital-header">
+              <span class="digital-header-icon">📡</span>
+              <span class="digital-header-title">Presença nas Redes</span>
+              <span class="digital-header-handle" id="digitalHandle"></span>
+            </div>
+            <div class="digital-body">
+              <!-- Input de @ -->
+              <div class="at-input-row">
+                <input class="at-input" id="atInput" type="text" placeholder="@usuario ou URL do perfil" />
+                <button class="at-scan-btn" id="atScanBtn" onclick="analyzeDigital()">🔍 Analisar</button>
+              </div>
+              <!-- Resultado (oculto até ter dados) -->
+              <div id="digitalResult" style="display:none; display:flex; flex-direction:column; gap:12px;">
+
+                <!-- Tipo de conteúdo -->
+                <div>
+                  <div style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:var(--lo);text-transform:uppercase;margin-bottom:7px">Classificação do Conteúdo</div>
+                  <div class="content-type-bars">
+                    <div class="ct-row">
+                      <span class="ct-label">🧑 Pessoal</span>
+                      <div class="ct-track"><div class="ct-fill" id="ctPessoal" style="background:#00e8a2;width:0%"></div></div>
+                      <span class="ct-pct" id="pctPessoal">—</span>
+                    </div>
+                    <div class="ct-row">
+                      <span class="ct-label">💼 Profissional</span>
+                      <div class="ct-track"><div class="ct-fill" id="ctProfissional" style="background:#3d9fff;width:0%"></div></div>
+                      <span class="ct-pct" id="pctProfissional">—</span>
+                    </div>
+                    <div class="ct-row">
+                      <span class="ct-label">🏛 Político</span>
+                      <div class="ct-track"><div class="ct-fill" id="ctPolitico" style="background:#ff3355;width:0%"></div></div>
+                      <span class="ct-pct" id="pctPolitico">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Termômetro político (oculto se % político < 15%) -->
+                <div id="thermoSection" style="display:none">
+                  <div class="thermo-wrap">
+                    <div class="thermo-label">Espectro Político</div>
+                    <div class="thermo-bar-wrap">
+                      <div class="thermo-track">
+                        <div class="thermo-needle" id="thermoNeedle" style="left:50%"></div>
+                      </div>
+                      <div class="thermo-labels">
+                        <span>Esquerda</span>
+                        <span>Centro</span>
+                        <span>Direita</span>
+                      </div>
+                    </div>
+                    <div class="thermo-verdict" id="thermoVerdict">—</div>
+                  </div>
+                </div>
+
+                <!-- Temas detectados -->
+                <div id="topicsSection" style="display:none">
+                  <div style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:var(--lo);text-transform:uppercase;margin-bottom:6px">Temas Detectados</div>
+                  <div class="topics-wrap" id="topicsWrap"></div>
+                </div>
+
+                <!-- Posts representativos -->
+                <div id="postsSection" style="display:none">
+                  <div style="font-family:var(--font-m);font-size:8px;letter-spacing:2px;color:var(--lo);text-transform:uppercase;margin-bottom:6px">Conteúdo Recente</div>
+                  <div class="posts-list" id="postsWrap"></div>
+                </div>
+
+                <!-- Aviso de limitação -->
+                <div style="font-family:var(--font-m);font-size:9px;color:var(--lo);line-height:1.6;padding:7px 9px;background:rgba(255,255,255,.02);border-radius:var(--r-sm);border:1px solid var(--border2)">
+                  ⚠ Análise baseada em conteúdo indexado publicamente. Perfis privados ou com baixo indexamento podem ter cobertura parcial.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RELATÓRIO COMPLETO (mesmo conteúdo da resposta do chat) -->
+        <div class="rx-section" id="rxRelatorio" style="display:none">
+          <div class="rx-section-label">Relatório completo</div>
+          <div id="relatorioFull" class="report-full" style="font-family:var(--font-m);font-size:11px;line-height:1.65;color:#eef0ff;padding:12px 14px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--r-sm);overflow-wrap:break-word"></div>
+        </div>
+
+        <!-- NOTAS -->
+
+        <div class="rx-section" id="rxNotas">
+          <div class="rx-section-label">Notas do analista</div>
+          <textarea class="nota-area" id="analystNotes" placeholder="Adicione observações, contextos, fontes a consultar..."></textarea>
+          <div class="nota-bar">
+            <button class="nota-save" onclick="saveNotes()">💾 Salvar notas</button>
+            <span class="nota-status" id="notesStatus"></span>
+          </div>
+        </div>
+
+      </div><!-- /raioXContent -->
+    </div><!-- /raioXBody -->
+
+    <!-- ═══════════════════════════════
+         DASH DE GASTOS
+    ═══════════════════════════════ -->
+    <div class="dash-panel" id="dashPanel">
+
+      <!-- BIG NUMBERS -->
+      <div class="rx-section-label" style="margin-top:4px">Visão Geral</div>
+      <div class="bignums-grid">
+
+        <div class="bignum-card">
+          <div class="bignum-label">Total de consultas</div>
+          <div class="bignum-val" id="bnTotal" style="color:var(--green)">0</div>
+          <div class="bignum-sub">desde o início</div>
+          <div class="bignum-trend" id="bnTotalTrend"></div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Gasto acumulado</div>
+          <div class="bignum-val" id="bnGasto" style="color:var(--amber)">R$ 0,00</div>
+          <div class="bignum-sub">custo total estimado</div>
+          <div class="bignum-trend" id="bnGastoTrend"></div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Custo médio</div>
+          <div class="bignum-val" id="bnMedia" style="color:var(--blue)">R$ 0,00</div>
+          <div class="bignum-sub">por investigação</div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Este mês</div>
+          <div class="bignum-val" id="bnMes" style="color:var(--purple)">0</div>
+          <div class="bignum-sub" id="bnMesSub">consultas</div>
+          <div class="bignum-trend" id="bnMesTrend"></div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Perfil mais investigado</div>
+          <div class="bignum-val" id="bnTop" style="color:var(--red);font-size:14px;margin-top:4px">—</div>
+          <div class="bignum-sub" id="bnTopSub">—</div>
+        </div>
+
+        <div class="bignum-card">
+          <div class="bignum-label">Análises digitais</div>
+          <div class="bignum-val" id="bnDigital" style="color:var(--purple)">0</div>
+          <div class="bignum-sub">redes sociais analisadas</div>
+        </div>
+
+      </div>
+
+      <!-- GRÁFICO — Consultas por dia (últimos 7 dias) -->
+      <div class="rx-section-label">Consultas — últimos 7 dias</div>
+      <div class="minichart">
+        <div class="minichart-bars" id="miniChartBars">
+          <!-- preenchido pelo JS -->
+        </div>
+      </div>
+
+      <!-- DISTRIBUIÇÃO POR TIPO -->
+      <div class="rx-section-label">Distribuição por tipo</div>
+      <div class="card" style="padding:12px 14px">
+        <div class="dist-row">
+          <span class="dist-label">🔎 Pesquisa completa</span>
+          <div class="dist-track"><div class="dist-fill" id="distFull" style="background:var(--green);width:0%"></div></div>
+          <span class="dist-pct" id="distFullPct">0%</span>
+        </div>
+        <div class="dist-row">
+          <span class="dist-label">📡 Análise digital</span>
+          <div class="dist-track"><div class="dist-fill" id="distDigital" style="background:var(--purple);width:0%"></div></div>
+          <span class="dist-pct" id="distDigitalPct">0%</span>
+        </div>
+        <div class="dist-row" style="margin-bottom:0">
+          <span class="dist-label">💬 Follow-up</span>
+          <div class="dist-track"><div class="dist-fill" id="distFollowup" style="background:var(--blue);width:0%"></div></div>
+          <span class="dist-pct" id="distFollowupPct">0%</span>
+        </div>
+      </div>
+
+      <!-- CONSULTAS RECENTES -->
+      <div class="rx-section-label">Consultas recentes</div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="consult-table">
+          <thead>
+            <tr>
+              <th>Sujeito</th>
+              <th>Tipo</th>
+              <th>Custo</th>
+              <th>Quando</th>
+            </tr>
+          </thead>
+          <tbody id="consultTableBody">
+            <tr><td colspan="4" style="text-align:center;color:var(--lo);font-family:var(--font-m);font-size:10px;padding:16px">Nenhuma consulta registrada ainda</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- STATUS SYNC -->
+      <div style="font-family:var(--font-m);font-size:9px;color:var(--lo);text-align:center;padding:4px 0" id="syncStatus">
+        ⟳ Dados armazenados localmente · clique em Sync para enviar ao Supabase
+      </div>
+
+    </div><!-- /dashPanel -->
+
+  </div><!-- /col-right -->
+
+</div><!-- /workspace -->
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
