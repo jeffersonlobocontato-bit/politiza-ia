@@ -245,12 +245,13 @@ function AnaliseQualitativaIsolada() {
       )}
 
       {q.tensaoInternaNaoResolvida && (
-        <div style={{ background: 'rgba(227,73,72,0.08)', border: '1px solid #e34948', borderRadius: 12, padding: 18 }}>
+        <div style={{ background: 'rgba(227,73,72,0.08)', border: '1px solid #e34948', borderRadius: 12, padding: 18, breakInside: 'avoid' }}>
           <div style={{ fontSize: 11, letterSpacing: 0.5, color: '#e34948', marginBottom: 8, fontWeight: 700 }}>{q.tensaoInternaNaoResolvida.titulo}</div>
           <div style={{ fontSize: 13.5, color: '#e8ecf1', marginBottom: 8, lineHeight: 1.55 }}>{q.tensaoInternaNaoResolvida.achado}</div>
           <div style={{ fontSize: 12.5, color: '#c7cfda', lineHeight: 1.5 }}>{q.tensaoInternaNaoResolvida.implicacao}</div>
         </div>
       )}
+      </div>
     </div>
   );
 }
