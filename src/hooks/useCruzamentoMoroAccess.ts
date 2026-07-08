@@ -7,6 +7,10 @@ import { useAuth } from '@/contexts/AuthContext';
  * Regras:
  *  - admin_master sempre pode
  *  - qualquer outro papel só pode se tiver registro em `cruzamento_moro_access`
+ *
+ * Também expõe `cruzamentoOnly`: usuário só tem grant de cruzamento e nenhum
+ * papel funcional (roles vazio) — nesse caso a plataforma inteira é restrita
+ * à página /inteligencia/cruzamento-moro.
  */
 export function useCruzamentoMoroAccess() {
   const { user, roles, loading: authLoading } = useAuth();
@@ -14,7 +18,7 @@ export function useCruzamentoMoroAccess() {
 
   const q = useQuery({
     queryKey: ['cruzamento-moro-access', user?.id],
-    enabled: !!user?.id && !isMaster && !authLoading,
+    enabled: !!user?.id && !authLoading,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from('cruzamento_moro_access')
@@ -27,10 +31,16 @@ export function useCruzamentoMoroAccess() {
     staleTime: 5 * 60_000,
   });
 
-  const canAccess = isMaster || (q.data ?? false);
+  const hasGrant = !!q.data;
+  const canAccess = isMaster || hasGrant;
+  const cruzamentoOnly =
+    !isMaster && hasGrant && (!roles || roles.length === 0);
+
   return {
     canAccess,
     isMaster,
-    loading: authLoading || (!isMaster && q.isLoading),
+    hasGrant,
+    cruzamentoOnly,
+    loading: authLoading || q.isLoading,
   };
 }

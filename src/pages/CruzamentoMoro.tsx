@@ -1,11 +1,14 @@
 import { Navigate } from 'react-router-dom';
 import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
+import { useAuth } from '@/contexts/AuthContext';
 import CruzamentoMoroAdminPanel from '@/components/cruzamento/CruzamentoMoroAdminPanel';
 import CruzamentoQualiQuantiMoro from '@/components/cruzamento/CruzamentoQualiQuantiMoro';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, LogOut } from 'lucide-react';
 
 export default function CruzamentoMoroPage() {
-  const { canAccess, isMaster, loading } = useCruzamentoMoroAccess();
+  const { canAccess, isMaster, cruzamentoOnly, loading } = useCruzamentoMoroAccess();
+  const { signOut, profile, user } = useAuth();
 
   if (loading) {
     return (
@@ -19,6 +22,22 @@ export default function CruzamentoMoroPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
+      {cruzamentoOnly && (
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              Acesso exclusivo
+            </div>
+            <div className="text-sm text-foreground">
+              {profile?.full_name || user?.email}
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => signOut()}>
+            <LogOut className="w-4 h-4 mr-2" /> Sair
+          </Button>
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold">Cruzamento Moro</h1>
         <p className="text-sm text-muted-foreground">
