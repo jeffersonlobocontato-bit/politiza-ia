@@ -5,14 +5,23 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ALLOWED_ORIGIN = Deno.env.get("APP_ORIGIN") ?? "https://politiza-ia.br";
+const ALLOWED_ORIGINS = new Set([
+  Deno.env.get("APP_ORIGIN") ?? "https://politiza.ia.br",
+  "https://politiza.ia.br",
+  "https://politiza-ia.lovable.app",
+  "https://id-preview--f380f93a-c842-436f-b4cc-1c33f0a98846.lovable.app",
+  "http://localhost:8080",
+]);
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Vary": "Origin",
-};
+function buildCorsHeaders(origin: string | null) {
+  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://politiza.ia.br";
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = "claude-sonnet-4-5";
@@ -33,7 +42,14 @@ interface Body {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return json(null, 200);
+  const corsHeaders = buildCorsHeaders(req.headers.get("Origin"));
+  const json = (body: unknown, status = 200) =>
+    new Response(body === null ? null : JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
+  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -127,10 +143,3 @@ Deno.serve(async (req) => {
     return json({ error: e instanceof Error ? e.message : "Erro inesperado" }, 500);
   }
 });
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
