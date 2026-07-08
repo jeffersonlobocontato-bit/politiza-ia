@@ -85,9 +85,9 @@ function ListaPriorizacao({ items, tipo }: { items: any[]; tipo: 'obrigatorio' |
   };
   const e = estilos[tipo];
   return (
-    <div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 10 }}>
       {items.map((it, i) => (
-        <div key={i} style={{ background: e.bg, border: `1px solid ${e.border}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
+        <div key={i} style={{ background: e.bg, border: `1px solid ${e.border}`, borderRadius: 10, padding: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: '#e8ecf1', marginBottom: 6 }}>{it.tema}</div>
           <div style={{ fontSize: 12.5, color: '#b8c0cc', lineHeight: 1.5, marginBottom: 6 }}>{it.justificativa || it.risco}</div>
           <div style={{ fontSize: 11.5, color: '#7a8699' }}>Alvo: {it.alvo}</div>
