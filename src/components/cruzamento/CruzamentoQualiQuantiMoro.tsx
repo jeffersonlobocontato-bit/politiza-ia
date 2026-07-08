@@ -206,6 +206,9 @@ export default function CruzamentoQualiQuantiMoro() {
         </details>
 
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 18, borderBottom: '1px solid #232c3a' }}>
+          <button onClick={() => setAtiva('qualitativa')} style={{ flexShrink: 0, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: ativa === 'qualitativa' ? '#2a78d6' : '#151b24', color: ativa === 'qualitativa' ? '#fff' : '#b8c0cc' }}>
+            Qualitativa
+          </button>
           {DATA_CRUZAMENTO_MORO.abas.map((a) => (
             <button key={a.id} onClick={() => setAtiva(a.id)} style={{ flexShrink: 0, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: ativa === a.id ? '#2a78d6' : '#151b24', color: ativa === a.id ? '#fff' : '#b8c0cc' }}>
               {a.label}
@@ -219,7 +222,7 @@ export default function CruzamentoQualiQuantiMoro() {
           </button>
         </div>
 
-        {ativa === 'sintese' ? <SinteseGeral /> : ativa === 'marketing' ? <InsightsMarketing /> : abaAtual && <AbaConteudo aba={abaAtual} />}
+        {ativa === 'qualitativa' ? <AnaliseQualitativaIsolada /> : ativa === 'sintese' ? <SinteseGeral /> : ativa === 'marketing' ? <InsightsMarketing /> : abaAtual && <AbaConteudo aba={abaAtual} />}
       </div>
     </div>
   );
