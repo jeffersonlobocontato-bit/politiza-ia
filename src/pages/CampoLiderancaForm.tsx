@@ -128,7 +128,15 @@ export default function CampoLiderancaForm() {
       if (isEdit && id) {
         await updateLeader.mutateAsync({ id, ...payload, updated_by: user?.id ?? null });
       } else {
-        const res = await createLeader.mutateAsync({ ...payload, created_by: user?.id ?? null });
+        const candidateId =
+          activeCandidate?.id
+          ?? scopedCandidateIds[0]
+          ?? (allActiveCandidates.length === 1 ? allActiveCandidates[0].id : null);
+        const res = await createLeader.mutateAsync({
+          ...payload,
+          candidate_id: candidateId,
+          created_by: user?.id ?? null,
+        });
         leaderId = (res as any)?.id;
       }
       if (leaderId) {
