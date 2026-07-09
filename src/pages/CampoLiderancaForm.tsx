@@ -25,6 +25,7 @@ export default function CampoLiderancaForm() {
   const { id } = useParams();
   const isEdit = !!id;
   const { user } = useAuth();
+  const { activeCandidate, scopedCandidateIds, allActiveCandidates } = useCandidate();
 
   const { data: existing } = useLeader(id);
   const { data: politicalHistory } = useLeaderPoliticalHistory(id);
