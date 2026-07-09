@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, User, MapPin, Tag, Vote, FileCheck,
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCandidate } from '@/contexts/CandidateContext';
 import {
   useLeader, useCreateLeader, useUpdateLeader,
   useLeaderPoliticalHistory, useSaveLeaderPoliticalHistory,
@@ -24,6 +25,7 @@ export default function CampoLiderancaForm() {
   const { id } = useParams();
   const isEdit = !!id;
   const { user } = useAuth();
+  const { activeCandidate, scopedCandidateIds, allActiveCandidates } = useCandidate();
 
   const { data: existing } = useLeader(id);
   const { data: politicalHistory } = useLeaderPoliticalHistory(id);
@@ -126,7 +128,15 @@ export default function CampoLiderancaForm() {
       if (isEdit && id) {
         await updateLeader.mutateAsync({ id, ...payload, updated_by: user?.id ?? null });
       } else {
-        const res = await createLeader.mutateAsync({ ...payload, created_by: user?.id ?? null });
+        const candidateId =
+          activeCandidate?.id
+          ?? scopedCandidateIds[0]
+          ?? (allActiveCandidates.length === 1 ? allActiveCandidates[0].id : null);
+        const res = await createLeader.mutateAsync({
+          ...payload,
+          candidate_id: candidateId,
+          created_by: user?.id ?? null,
+        });
         leaderId = (res as any)?.id;
       }
       if (leaderId) {
