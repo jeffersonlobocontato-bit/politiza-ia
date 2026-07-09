@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, User, MapPin, Tag, Vote, FileCheck,
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { LeadershipProfileSelect } from '@/components/leadership/LeadershipProfileSelect';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCandidate } from '@/contexts/CandidateContext';
 import {
   useLeader, useCreateLeader, useUpdateLeader,
   useLeaderPoliticalHistory, useSaveLeaderPoliticalHistory,
