@@ -59,7 +59,10 @@ const PRESET_CANDIDATES = [
 export default function Configuracoes() {
   const { candidates, activeCandidates, toggleActive, refetch } = useCandidate();
   const { isAdmin, roles } = useAuth();
-  const canManageUsers = isAdmin || roles?.includes('coordenador_regional' as any);
+  const canManageUsers = isAdmin
+    || roles?.includes('coordenador_regional' as any)
+    || roles?.includes('coordenador_microrregional' as any)
+    || roles?.includes('coordenador_municipal' as any);
 
   const { party: userParty, isPartyManager } = useUserParty();
   const lockedParty = userParty === 'PL' ? 'PL' : userParty === 'Novo' ? 'Novo' : '';
@@ -192,7 +195,7 @@ export default function Configuracoes() {
       <div className="px-6 border-b border-border flex gap-1 flex-shrink-0">
         {([
           { key: 'candidatos', label: 'Candidatos', adminOnly: false, hideForRegional: true },
-          { key: 'usuarios', label: 'Usuários', adminOnly: false, requiresUserMgmt: true },
+          { key: 'usuarios', label: 'Membros da Equipe', adminOnly: false, requiresUserMgmt: true },
           { key: 'perfis_lideranca', label: 'Perfis de Liderança', adminOnly: false, hideForRegional: true },
           { key: 'conta', label: 'Minha Conta', adminOnly: false },
         ] as const).filter(t => {

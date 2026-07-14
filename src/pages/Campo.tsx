@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   Users, ClipboardCheck, ShieldAlert, ArrowRight, Camera, Loader2, User as UserIcon,
+  UserPlus, Trophy,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCandidate } from '@/contexts/CandidateContext';
@@ -10,7 +11,7 @@ import { ROLE_AREA_LABELS } from '@/types/database';
 import { useMyCampaignMembership } from '@/hooks/useMyCampaignMembership';
 import { toast } from 'sonner';
 
-const tools = [
+const baseTools = [
   {
     to: '/campo/liderancas',
     icon: Users,
@@ -31,6 +32,23 @@ const tools = [
     title: 'FISCALIZE',
     desc: 'Reporte ao jurídico possíveis crimes eleitorais e irregularidades.',
     accent: '#E85D3A',
+  },
+] as const;
+
+const coordinatorTools = [
+  {
+    to: '/campo/membros',
+    icon: UserPlus,
+    title: 'CADASTRAR MEMBRO DA EQUIPE',
+    desc: 'Gerencie os membros da sua equipe abaixo da sua hierarquia.',
+    accent: '#9B87F5',
+  },
+  {
+    to: '/campo/produtividade',
+    icon: Trophy,
+    title: 'PRODUTIVIDADE DA EQUIPE',
+    desc: 'Ranking e drill-down de produtividade individual do seu time.',
+    accent: '#F5B342',
   },
 ] as const;
 
