@@ -413,20 +413,84 @@ export function UsersManager() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Macrorregião</Label>
-                <Input placeholder="(opcional)" value={form.macroregion_id} onChange={e => setForm({ ...form, macroregion_id: e.target.value })} />
+                <Label className="text-xs">Macrorregião (vínculo)</Label>
+                <Select
+                  value={form.macroregion_id || 'none'}
+                  onValueChange={v => setForm({ ...form, macroregion_id: v === 'none' ? '' : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Nenhuma —</SelectItem>
+                    {macros.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Microrregião</Label>
-                <Input placeholder="(opcional)" value={form.microregion} onChange={e => setForm({ ...form, microregion: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Município</Label>
-                <Input placeholder="(opcional)" value={form.municipality} onChange={e => setForm({ ...form, municipality: e.target.value })} />
+                <Label className="text-xs">Cidade base *</Label>
+                <Input
+                  list="cidades-base-list"
+                  placeholder="Digite a cidade"
+                  value={form.municipality}
+                  onChange={e => setForm({ ...form, municipality: e.target.value })}
+                />
+                <datalist id="cidades-base-list">
+                  {municipiosList
+                    .filter(m => !form.macroregion_id || m.macroregion_id === form.macroregion_id)
+                    .map(m => <option key={m.nome} value={m.nome} />)}
+                </datalist>
               </div>
             </div>
+
+            {form.role === 'coordenador_microrregional' && (
+              <div className="space-y-2 border border-teal-500/30 bg-teal-500/5 rounded-lg p-3">
+                <Label className="text-xs font-semibold text-teal-400">
+                  Cidades sob coordenação ({form.coordinated_municipalities.length} selecionadas)
+                </Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Selecione todos os municípios que este coordenador microrregional é responsável por coordenar.
+                </p>
+                <Input
+                  placeholder="Buscar cidade..."
+                  className="h-8 text-xs"
+                  value={citySearch}
+                  onChange={e => setCitySearch(e.target.value)}
+                />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-56 overflow-y-auto rounded-lg border border-border p-2 bg-background">
+                  {municipiosList
+                    .filter(m => {
+                      if (form.macroregion_id && m.macroregion_id !== form.macroregion_id) return false;
+                      if (citySearch && !m.nome.toLowerCase().includes(citySearch.toLowerCase())) return false;
+                      return true;
+                    })
+                    .map(m => {
+                      const checked = form.coordinated_municipalities.includes(m.nome);
+                      return (
+                        <label
+                          key={m.nome}
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-[11px] ${checked ? 'bg-teal-500/20 border border-teal-500/40' : 'hover:bg-muted'}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={e => {
+                              setForm(f => ({
+                                ...f,
+                                coordinated_municipalities: e.target.checked
+                                  ? [...f.coordinated_municipalities, m.nome]
+                                  : f.coordinated_municipalities.filter(x => x !== m.nome),
+                              }));
+                            }}
+                          />
+                          <span className="truncate">{m.nome}</span>
+                        </label>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
 
             {/* Candidatos vinculados */}
             <div className="space-y-2 border-t border-border pt-4">
