@@ -37,8 +37,10 @@ Deno.serve(async (req) => {
     const isAdminFull = ["admin_master", "coordenador_geral"].some(r => callerRoleSet.has(r));
     const isEstadual = callerRoleSet.has("coordenador_estadual");
     const isRegional = callerRoleSet.has("coordenador_regional");
-    if (!isAdminFull && !isEstadual && !isRegional)
-      return json({ error: "Apenas administradores podem gerenciar usuários" }, 403);
+    const isMicro = callerRoleSet.has("coordenador_microrregional");
+    const isMunicipal = callerRoleSet.has("coordenador_municipal");
+    if (!isAdminFull && !isEstadual && !isRegional && !isMicro && !isMunicipal)
+      return json({ error: "Apenas coordenadores podem gerenciar membros da equipe" }, 403);
 
     const ESTADUAL_ALLOWED_ROLES = new Set([
       "coordenador_regional",
@@ -53,19 +55,34 @@ Deno.serve(async (req) => {
       "operador_campo",
       "lideranca_local",
     ]);
+    const MICRO_ALLOWED_ROLES = new Set([
+      "coordenador_municipal",
+      "operador_campo",
+      "lideranca_local",
+    ]);
+    const MUNICIPAL_ALLOWED_ROLES = new Set([
+      "operador_campo",
+      "lideranca_local",
+    ]);
 
     const allowedSet = isAdminFull
       ? null
       : isEstadual
         ? ESTADUAL_ALLOWED_ROLES
-        : REGIONAL_ALLOWED_ROLES;
+        : isRegional
+          ? REGIONAL_ALLOWED_ROLES
+          : isMicro
+            ? MICRO_ALLOWED_ROLES
+            : MUNICIPAL_ALLOWED_ROLES;
 
     const assertCanManageRole = (role: string | null | undefined): string | null => {
       if (isAdminFull) return null;
-      if (!role || !allowedSet!.has(role))
-        return isEstadual
-          ? "Coordenador Estadual só pode gerenciar usuários N3, N4, N5, Operador de Campo ou Liderança Local"
-          : "Coordenador Regional só pode gerenciar usuários N4, N5, Operador de Campo ou Liderança Local";
+      if (!role || !allowedSet!.has(role)) {
+        if (isEstadual) return "Coordenador Estadual só pode gerenciar membros N3, N4, N5, Operador de Campo ou Liderança Local";
+        if (isRegional) return "Coordenador Regional só pode gerenciar membros N4, N5, Operador de Campo ou Liderança Local";
+        if (isMicro) return "Coordenador Microrregional só pode gerenciar membros N5, Operador de Campo ou Liderança Local";
+        return "Coordenador Municipal só pode gerenciar Operador de Campo ou Liderança Local";
+      }
       return null;
     };
 

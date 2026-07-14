@@ -1,82 +1,85 @@
+
+# Cadastro de Membros da Equipe + Produtividade para Coordenadores de Campo
+
 ## Objetivo
 
-Permitir que cada relatório de RAIO-X seja **salvo manualmente no card do ativo político** (após revisão, com opção de pedir nova análise) e adicionar um CTA **"Ver Perfil"** que expande todos os dados relacionados ao ativo, incluindo o histórico de RAIO-X salvos.
+Habilitar os perfis **Coordenador Macrorregional**, **Coordenador Regional** e **Coordenador Municipal** a:
 
-## O que será construído
+1. Cadastrar e visualizar apenas os membros da própria subárvore hierárquica.
+2. Acessar um dashboard de produtividade da equipe (ranking do time).
+3. Fazer drill-down individual em qualquer membro subordinado para analisar sua produtividade.
 
-### 1. Persistência dos relatórios RAIO-X
-Nova tabela `raio_x_reports` no banco, ligada ao ativo por uma chave estável (origem + id de origem + nome + município), para funcionar tanto para ativos nativos quanto para os que vêm de outras tabelas (candidatos, coordenadores, prefeitos etc.).
+Admins continuam com acesso global, sem alteração.
 
-Campos principais:
-- Identificação do ativo (origem, id de origem, nome, município, cargo, partido)
-- Conteúdo do relatório (HTML renderizado + Markdown/texto para busca)
-- Contexto usado na geração e modelo/data
-- Autor, timestamps, soft-delete
+---
 
-### 2. Fluxo "Gerar → Revisar → Salvar" no painel RAIO-X (`public/raio-x.html`)
-- Após o relatório ser gerado, aparecem no topo da coluna direita três ações:
-  - **Salvar no perfil do ativo** (envia via `postMessage` para a janela que abriu o painel)
-  - **Refazer análise** (permite ajustar o contexto e regerar antes de salvar)
-  - **Descartar** (fecha sem salvar)
-- Nada é salvo automaticamente. O painel só envia o conteúdo para a plataforma quando o usuário clica em "Salvar no perfil".
+## 1. Renomeação e novo CTA no app Campo
 
-### 3. Recebimento e persistência na plataforma
-Na página **Ativos Políticos**:
-- Um listener global de `postMessage` recebe o relatório e abre um modal de **revisão final** com preview do relatório e um textarea de "notas do analista".
-- Ao confirmar, grava em `raio_x_reports` vinculado ao ativo que originou a investigação.
-- Toast de sucesso + o card ganha um selo indicando quantos RAIO-X existem.
+- Renomear em toda a UI: **"Cadastrar Usuário" → "Cadastrar Membro da Equipe"**.
+- Adicionar um **4º/5º CTA no `CampoDashboard`**, ao lado dos existentes (Registrar Ação, Nova Liderança, Fiscalize), chamado **"Cadastrar Membro da Equipe"**.
+- CTA visível apenas para os 3 novos perfis (Macro/Regional/Municipal). Admins mantêm o acesso já existente em `/configuracoes`.
+- Adicionar também um CTA **"Produtividade da Equipe"** no mesmo grupo, apontando para `/campo/produtividade`.
 
-### 4. CTA "Ver Perfil" nos cards
-Botão principal em cada card (ao lado ou substituindo a área de ações). Abre um **painel lateral (Sheet)** com todos os dados do ativo em seções:
+## 2. Tela de cadastro no Campo
 
-- **Identificação** — nome, cargo, tipo, origem, município, macrorregião, associação
-- **Alinhamento & influência** — status, nível, apoio, perfis de liderança vinculados
-- **Contato** — telefone, e-mail, responsável pelo relacionamento, indicado por
-- **Observações estratégicas**
-- **Investigações RAIO-X** — lista dos relatórios salvos, com data/autor. Cada item abre o relatório renderizado em um viewer inline (ou reabre o painel RAIO-X com o conteúdo). Botões: **Nova investigação** (abre RAIO-X) e por relatório: **Ver**, **Excluir**.
+- Nova rota protegida `/campo/membros`.
+- Reaproveita o `UsersManager` (usado hoje em `/configuracoes`), mas em modo "escopo de equipe":
+  - Lista de membros filtrada pela **subárvore** do coordenador logado (via `get_delegable_members`).
+  - Formulário de criação restringe as opções de papel/hierarquia aos níveis **abaixo** do próprio.
+  - Bloqueia edição/remoção de membros fora da subárvore.
 
-## Detalhes técnicos
+## 3. Nova tela de produtividade no Campo
 
-**Migração (Lovable Cloud):**
-```sql
-CREATE TABLE public.raio_x_reports (
-  id uuid PK default gen_random_uuid(),
-  asset_origin text NOT NULL,        -- 'nativo' | 'candidato' | 'coordenador' | 'evento'
-  asset_source_id uuid,              -- id na tabela de origem (nullable)
-  asset_key text NOT NULL,           -- fallback: lower(nome||'|'||municipio)
-  subject_name text NOT NULL,
-  subject_municipality text,
-  subject_party text,
-  subject_position text,
-  context_input text,
-  report_html text NOT NULL,
-  report_markdown text,
-  model text,
-  reviewer_notes text,
-  created_by uuid REFERENCES auth.users,
-  deleted_at timestamptz,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-```
-Índices em `(asset_origin, asset_source_id)` e `asset_key`. GRANTs para `authenticated`/`service_role`. RLS: SELECT/INSERT/UPDATE(soft-delete) permitido para usuários com papel `admin_master`, `coordenador_geral` ou `coordenador_estadual` (mesmos que já podem fazer RAIO-X).
+- Nova rota protegida `/campo/produtividade` (dentro do `CampoLayout`, mobile-first).
+- Reusa o RPC `get_productivity_ranking` com autorização estendida:
+  - Ranking do time (macros/micros/lideranças que estão dentro da subárvore do coordenador).
+  - KPIs consolidados do time (ações, score total, score médio, pessoas impactadas).
+- **Drill-down individual**: clicar em qualquer linha do ranking abre um painel/sheet com:
+  - Score total, score médio, nº de ações, pessoas impactadas.
+  - Lista das ações do membro (com data, município, score, pessoas).
+  - Evolução temporal (mini gráfico por semana).
 
-**Ponte janela↔janela:**
-- `RaioXModal.openRaioX` passa um `session_id` na URL do popup.
-- Popup envia `window.opener.postMessage({ type: 'raiox:save', session_id, html, markdown, context, subject })` no clique de "Salvar no perfil".
-- `AtivosPoliticos` mantém `sessionMap: session_id → UnifiedAsset` para saber a que card vincular.
+## 4. Backend (migrations)
 
-**Novos arquivos:**
-- `src/hooks/useRaioXReports.ts` — list/create/delete
-- `src/components/ativos/AssetProfileSheet.tsx` — o "Ver Perfil"
-- `src/components/ativos/RaioXReviewDialog.tsx` — modal de revisão pré-save
-- `src/components/ativos/RaioXReportViewer.tsx` — viewer do HTML salvo (iframe sandboxed)
+### 4.1 Ajuste no RPC `get_productivity_ranking`
 
-**Arquivos alterados:**
-- `public/raio-x.html` — barra de ações "Salvar / Refazer / Descartar" + `postMessage`
-- `src/components/ativos/RaioXModal.tsx` / `openRaioX` — gera `session_id`
-- `src/pages/AtivosPoliticos.tsx` — listener de `postMessage`, CTA "Ver Perfil", integração do Sheet
+- Adicionar parâmetro opcional `p_member_id uuid default null`.
+  - Se **nulo**: comportamento atual (ranking agregado).
+  - Se **preenchido**: retorna JSON de detalhamento individual (totais + lista de ações + série temporal).
+- Substituir o guard atual (`is_admin` only) por: **admin OU o `p_member_id` / subárvore consultada pertence à subárvore do usuário logado**. Reusar a lógica recursiva de `get_delegable_members`.
+- Quando chamado por um coordenador sem `p_member_id`, o RPC filtra automaticamente `leader_id`, `micro_id` e `macro_id` para os que estão na subárvore dele.
 
-## Fora do escopo desta entrega
-- Exportar PDF do relatório salvo (fica para depois se necessário)
-- Compartilhar/linkar relatório entre usuários
+### 4.2 Policies
+
+- Nenhuma nova tabela. Apenas revisão das RLS de `campaign_members` para garantir que o coordenador consiga `INSERT` de membros cuja `supervisor_id` esteja na sua subárvore, e `SELECT`/`UPDATE`/`DELETE` restritos à mesma subárvore. Ajustar policies existentes se necessário (mantendo admin como bypass).
+
+## 5. Roteamento e layout
+
+- Em `RoleAwareLayout`, adicionar `/campo/membros` e `/campo/produtividade` como rotas válidas para os 3 perfis de coordenador dentro do `CampoLayout`.
+- Admins seguem acessando `/configuracoes` (cadastro global) e `/produtividade` (visão estadual). Nada removido.
+
+---
+
+## Arquivos a criar / editar
+
+**Criar:**
+- `src/pages/CampoMembros.tsx` — tela de cadastro/listagem de membros com escopo de subárvore.
+- `src/pages/CampoProdutividade.tsx` — dashboard de produtividade da equipe + drill-down.
+- `src/components/campo/MemberProductivitySheet.tsx` — painel lateral de produtividade individual.
+- Migration SQL para atualizar `get_productivity_ranking` e ajustar RLS de `campaign_members`.
+
+**Editar:**
+- `src/App.tsx` — registrar as novas rotas.
+- `src/components/layout/RoleAwareLayout.tsx` — liberar rotas para os 3 perfis.
+- `src/pages/CampoDashboard.tsx` — adicionar os 2 novos CTAs no grid.
+- `src/components/settings/UsersManager.tsx` — suportar modo "scoped" (subárvore) reusável.
+- `src/hooks/useProductivity.ts` — aceitar `memberId` opcional e retornar payload de detalhe quando presente.
+- Textos: substituir "Cadastrar Usuário" por "Cadastrar Membro da Equipe" onde aparecer.
+
+---
+
+## Fora do escopo
+
+- Não altera módulos administrativos (Inteligência, Jurídico, Emendas, Ativos etc.).
+- Não altera a `/produtividade` estadual usada pelo admin master.
+- Não cria novo layout — reusa `CampoLayout` existente.
