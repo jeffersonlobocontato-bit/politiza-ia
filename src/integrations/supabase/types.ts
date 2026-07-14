@@ -2928,6 +2928,7 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          coordinated_municipalities: string[] | null
           id: string
           macroregion_id: string | null
           microregion: string | null
@@ -2936,6 +2937,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coordinated_municipalities?: string[] | null
           id?: string
           macroregion_id?: string | null
           microregion?: string | null
@@ -2944,6 +2946,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coordinated_municipalities?: string[] | null
           id?: string
           macroregion_id?: string | null
           microregion?: string | null
