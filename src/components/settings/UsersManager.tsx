@@ -10,6 +10,13 @@ import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users } from 'lucide-re
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
+type AppRole =
+  | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
+  | 'coordenador_regional' | 'coordenador_microrregional' | 'coordenador_municipal'
+  | 'lideranca_local' | 'operador_campo' | 'analista_inteligencia'
+  | 'analista_pesquisa' | 'executivo_leitura'
+  | 'gestor_estadual_novo' | 'gestor_estadual_pl' | 'gestor_operacional';
+
 const ESTADUAL_ALLOWED_ROLES: AppRole[] = [
   'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
   'operador_campo', 'lideranca_local',
@@ -18,14 +25,12 @@ const REGIONAL_ALLOWED_ROLES: AppRole[] = [
   'coordenador_microrregional', 'coordenador_municipal',
   'operador_campo', 'lideranca_local',
 ];
-
-
-type AppRole =
-  | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
-  | 'coordenador_regional' | 'coordenador_microrregional' | 'coordenador_municipal'
-  | 'lideranca_local' | 'operador_campo' | 'analista_inteligencia'
-  | 'analista_pesquisa' | 'executivo_leitura'
-  | 'gestor_estadual_novo' | 'gestor_estadual_pl' | 'gestor_operacional';
+const MICRO_ALLOWED_ROLES: AppRole[] = [
+  'coordenador_municipal', 'operador_campo', 'lideranca_local',
+];
+const MUNICIPAL_ALLOWED_ROLES: AppRole[] = [
+  'operador_campo', 'lideranca_local',
+];
 
 const ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   { value: 'admin_master',              label: 'Admin Master',              description: 'Acesso total. Gerencia plataforma, usuários e candidatos.', color: 'bg-red-500/15 text-red-400 border-red-500/30' },
@@ -65,13 +70,19 @@ export function UsersManager() {
   const isFullAdmin = callerRoles.some(r => ['admin_master', 'coordenador_geral'].includes(r));
   const isEstadualOnly = !isFullAdmin && callerRoles.includes('coordenador_estadual' as any);
   const isRegionalOnly = !isFullAdmin && !isEstadualOnly && callerRoles.includes('coordenador_regional' as any);
+  const isMicroOnly = !isFullAdmin && !isEstadualOnly && !isRegionalOnly && callerRoles.includes('coordenador_microrregional' as any);
+  const isMunicipalOnly = !isFullAdmin && !isEstadualOnly && !isRegionalOnly && !isMicroOnly && callerRoles.includes('coordenador_municipal' as any);
   const manageableRoleSet: AppRole[] = isFullAdmin
     ? ROLES.map(r => r.value)
     : isEstadualOnly
       ? ESTADUAL_ALLOWED_ROLES
       : isRegionalOnly
         ? REGIONAL_ALLOWED_ROLES
-        : [];
+        : isMicroOnly
+          ? MICRO_ALLOWED_ROLES
+          : isMunicipalOnly
+            ? MUNICIPAL_ALLOWED_ROLES
+            : [];
   const allowedRoles = ROLES.filter(r => manageableRoleSet.includes(r.value));
   const canManageRow = (r: AppRole | null) => isFullAdmin || (r != null && manageableRoleSet.includes(r));
 
@@ -126,7 +137,8 @@ export function UsersManager() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ full_name: '', email: '', password: '', phone: '', role: 'operador_campo', macroregion_id: '', microregion: '', municipality: '', candidate_ids: [] });
+    const defaultRole: AppRole = (allowedRoles[allowedRoles.length - 1]?.value ?? 'operador_campo') as AppRole;
+    setForm({ full_name: '', email: '', password: '', phone: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', candidate_ids: [] });
     setDialogOpen(true);
   };
 
@@ -170,14 +182,14 @@ export function UsersManager() {
           },
         });
         if (r2.error || (r2.data as any)?.error) throw new Error((r2.data as any)?.error || r2.error?.message);
-        toast.success('Usuário atualizado');
+        toast.success('Membro atualizado');
       } else {
         const r = await supabase.functions.invoke('manage-user', {
           body: { action: 'create', ...form },
         });
         if (r.error || (r.data as any)?.error) throw new Error((r.data as any)?.error || r.error?.message);
         targetUserId = (r.data as any)?.user_id ?? null;
-        toast.success('Usuário criado com sucesso');
+        toast.success('Membro da equipe criado com sucesso');
       }
 
       // Sincronizar vínculos de candidatos (sempre, inclusive para limpar lista)
@@ -203,7 +215,7 @@ export function UsersManager() {
       toast.error((r.data as any)?.error || r.error?.message || 'Erro');
       return;
     }
-    toast.success('Usuário removido');
+    toast.success('Membro removido');
     await load();
   };
 
@@ -244,12 +256,12 @@ export function UsersManager() {
             <Users className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-foreground">Usuários e Níveis de Acesso</h2>
-            <p className="text-xs text-muted-foreground">{users.length} usuário(s) cadastrado(s) na plataforma</p>
+            <h2 className="text-sm font-bold text-foreground">Membros da Equipe e Níveis de Acesso</h2>
+            <p className="text-xs text-muted-foreground">{users.length} membro(s) cadastrado(s) na plataforma</p>
           </div>
         </div>
         <Button size="sm" className="gap-1.5 text-xs h-8" onClick={openCreate}>
-          <Plus className="w-3.5 h-3.5" /> Novo usuário
+          <Plus className="w-3.5 h-3.5" /> Cadastrar Membro da Equipe
         </Button>
       </div>
 
@@ -268,7 +280,7 @@ export function UsersManager() {
       <div className="flex gap-3 items-center">
         <div className="flex-1 relative">
           <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input className="pl-9 h-9 text-sm" placeholder="Buscar por nome ou e-mail..." value={search} onChange={e => setSearch(e.target.value)} />
+          <Input className="pl-9 h-9 text-sm" placeholder="Buscar membro por nome ou e-mail..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <Select value={filterRole} onValueChange={v => setFilterRole(v as any)}>
           <SelectTrigger className="w-56 h-9 text-sm"><SelectValue /></SelectTrigger>
@@ -285,7 +297,7 @@ export function UsersManager() {
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-border p-8 text-center">
           <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
+          <p className="text-sm text-muted-foreground">Nenhum membro da equipe encontrado.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -345,7 +357,7 @@ export function UsersManager() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? 'Editar usuário' : 'Novo usuário'}</DialogTitle>
+            <DialogTitle>{editing ? 'Editar membro da equipe' : 'Cadastrar Membro da Equipe'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5">
@@ -438,7 +450,7 @@ export function UsersManager() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={submit} disabled={saving}>{saving ? 'Salvando…' : editing ? 'Salvar' : 'Criar usuário'}</Button>
+            <Button onClick={submit} disabled={saving}>{saving ? 'Salvando…' : editing ? 'Salvar' : 'Cadastrar membro'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
