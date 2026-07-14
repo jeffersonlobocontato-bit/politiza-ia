@@ -305,30 +305,76 @@ export default function CampoAcao() {
             <h2 className="campo-h2">Evidências Fotográficas</h2>
             <p className="campo-helper">Adicione fotos que comprovem a realização da ação.</p>
             <div className="grid grid-cols-2 gap-3">
-              {photos.map((p, i) => (
-                <div key={i} className="aspect-square rounded-xl overflow-hidden relative campo-card-flat">
-                  <img src={p} alt={`Evidência ${i + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
-                    className="absolute top-2 right-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white text-xs"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+              {photos.map((p, i) => {
+                const src = p.startsWith('http') ? p : photoUrls[p];
+                return (
+                  <div key={i} className="aspect-square rounded-xl overflow-hidden relative campo-card-flat">
+                    {src ? (
+                      <img src={src} alt={`Evidência ${i + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 animate-spin text-white/60" />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
+                      className="absolute top-2 right-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
               <button
-                onClick={() => setPhotos([...photos, `https://picsum.photos/200/200?random=${Date.now()}`])}
-                className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors"
+                type="button"
+                onClick={() => cameraInput.current?.click()}
+                disabled={uploadingPhoto}
+                className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 style={{
                   border: '2px dashed var(--campo-line-strong)',
                   background: 'rgba(255,255,255,0.02)',
                   color: 'var(--campo-text-mute)',
                 }}
               >
-                <Camera className="w-6 h-6" />
-                <span className="text-xs">Adicionar foto</span>
+                {uploadingPhoto ? <Loader2 className="w-6 h-6 animate-spin" /> : <Camera className="w-6 h-6" />}
+                <span className="text-xs">{uploadingPhoto ? 'Enviando...' : 'Tirar foto'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => galleryInput.current?.click()}
+                disabled={uploadingPhoto}
+                className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                style={{
+                  border: '2px dashed var(--campo-line-strong)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: 'var(--campo-text-mute)',
+                }}
+              >
+                <Upload className="w-6 h-6" />
+                <span className="text-xs">Da galeria</span>
               </button>
             </div>
+            <input
+              ref={cameraInput}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ''; }}
+            />
+            <input
+              ref={galleryInput}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={async e => {
+                const files = Array.from(e.target.files ?? []);
+                for (const f of files) await uploadPhoto(f);
+                e.target.value = '';
+              }}
+            />
+
             <button onClick={() => setStep('confirm')} className="campo-cta w-full">
               Próximo: Confirmar →
             </button>
