@@ -129,6 +129,7 @@ export default function CampoAcao() {
       updated_by: null,
       impact_score: impactScore,
       municipality_population_snapshot: cityPopulation,
+      candidate_id: activeCandidate?.id ?? null,
     } as any);
 
     setSubmitted(true);
