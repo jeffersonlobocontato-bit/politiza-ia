@@ -60,10 +60,13 @@ type UserRow = {
   macroregion_id: string | null;
   microregion: string | null;
   municipality: string | null;
+  coordinated_municipalities: string[];
   candidate_ids: string[];
 };
 
 type CandidateOption = { id: string; name: string; cargo: string; party: string };
+type MacroOption = { id: string; name: string };
+type MunicipalityOption = { nome: string; macroregion_id: string | null };
 
 export function UsersManager() {
   const { roles: callerRoles } = useAuth();
