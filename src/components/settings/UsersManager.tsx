@@ -92,6 +92,8 @@ export function UsersManager() {
 
   const [users, setUsers] = useState<UserRow[]>([]);
   const [candidatesList, setCandidatesList] = useState<CandidateOption[]>([]);
+  const [macros, setMacros] = useState<MacroOption[]>([]);
+  const [municipiosList, setMunicipiosList] = useState<MunicipalityOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | AppRole>('all');
@@ -99,22 +101,26 @@ export function UsersManager() {
   const [pwDialog, setPwDialog] = useState<UserRow | null>(null);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [saving, setSaving] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
 
   const [form, setForm] = useState({
     full_name: '', email: '', password: '', phone: '',
     role: 'operador_campo' as AppRole,
     macroregion_id: '', microregion: '', municipality: '',
+    coordinated_municipalities: [] as string[],
     candidate_ids: [] as string[],
   });
   const [newPassword, setNewPassword] = useState('');
 
   const load = async () => {
     setLoading(true);
-    const [{ data: profiles }, { data: roles }, { data: links }, { data: cands }] = await Promise.all([
+    const [{ data: profiles }, { data: roles }, { data: links }, { data: cands }, { data: macrosData }, { data: munData }] = await Promise.all([
       (supabase as any).from('profiles').select('id, full_name, email, phone').order('full_name'),
-      (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality'),
+      (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality, coordinated_municipalities'),
       (supabase as any).from('user_candidates').select('user_id, candidate_id'),
       (supabase as any).from('candidates').select('id, name, cargo, party').order('name'),
+      (supabase as any).from('macroregions').select('id, name').order('name'),
+      (supabase as any).from('pr_municipios').select('nome, macroregion_id').order('nome'),
     ]);
     const rolesMap = new Map<string, any>();
     (roles ?? []).forEach((r: any) => rolesMap.set(r.user_id, r));
@@ -125,12 +131,15 @@ export function UsersManager() {
       linksMap.set(l.user_id, arr);
     });
     setCandidatesList((cands ?? []) as CandidateOption[]);
+    setMacros((macrosData ?? []) as MacroOption[]);
+    setMunicipiosList((munData ?? []) as MunicipalityOption[]);
     setUsers((profiles ?? []).map((p: any) => ({
       ...p,
       role: rolesMap.get(p.id)?.role ?? null,
       macroregion_id: rolesMap.get(p.id)?.macroregion_id ?? null,
       microregion: rolesMap.get(p.id)?.microregion ?? null,
       municipality: rolesMap.get(p.id)?.municipality ?? null,
+      coordinated_municipalities: rolesMap.get(p.id)?.coordinated_municipalities ?? [],
       candidate_ids: linksMap.get(p.id) ?? [],
     })));
     setLoading(false);
@@ -141,7 +150,8 @@ export function UsersManager() {
   const openCreate = () => {
     setEditing(null);
     const defaultRole: AppRole = (allowedRoles[allowedRoles.length - 1]?.value ?? 'operador_campo') as AppRole;
-    setForm({ full_name: '', email: '', password: '', phone: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', candidate_ids: [] });
+    setForm({ full_name: '', email: '', password: '', phone: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', coordinated_municipalities: [], candidate_ids: [] });
+    setCitySearch('');
     setDialogOpen(true);
   };
 
@@ -151,8 +161,10 @@ export function UsersManager() {
       full_name: u.full_name || '', email: u.email || '', password: '', phone: u.phone || '',
       role: (u.role ?? 'operador_campo') as AppRole,
       macroregion_id: u.macroregion_id || '', microregion: u.microregion || '', municipality: u.municipality || '',
+      coordinated_municipalities: u.coordinated_municipalities ?? [],
       candidate_ids: u.candidate_ids ?? [],
     });
+    setCitySearch('');
     setDialogOpen(true);
   };
 
