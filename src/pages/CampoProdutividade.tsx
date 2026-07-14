@@ -79,9 +79,8 @@ export default function CampoProdutividade() {
       byUser.set(a.created_by, arr);
     });
     return team
-      .filter(m => m.user_id)
       .map(m => {
-        const acts = byUser.get(m.user_id!) ?? [];
+        const acts = m.user_id ? (byUser.get(m.user_id) ?? []) : [];
         const scored = acts.filter(a => a.impact_score != null);
         const total = scored.reduce((s, a) => s + (a.impact_score ?? 0), 0);
         const people = acts.reduce((s, a) => s + (a.executed_people_count ?? 0), 0);
@@ -98,7 +97,11 @@ export default function CampoProdutividade() {
           last_action_at: last,
         };
       })
-      .sort((a, b) => b.total_score - a.total_score);
+      .sort((a, b) => {
+        if (b.total_score !== a.total_score) return b.total_score - a.total_score;
+        if (b.action_count !== a.action_count) return b.action_count - a.action_count;
+        return (a.name ?? '').localeCompare(b.name ?? '', 'pt-BR');
+      });
   }, [team, actions]);
 
   const totals = useMemo(() => {
