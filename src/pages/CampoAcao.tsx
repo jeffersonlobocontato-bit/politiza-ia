@@ -1,9 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Smartphone, Camera, CheckCircle } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Smartphone, Camera, CheckCircle, Upload, Loader2 } from 'lucide-react';
 import { useCreateAction } from '@/hooks/useActions';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { db } from '@/lib/db';
 import { calcImpactScore, scoreColor, scoreLabel } from '@/lib/impactScore';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCandidate } from '@/contexts/CandidateContext';
+import { toast } from 'sonner';
 
 interface FieldInput {
   actionTitle: string;
