@@ -76,6 +76,11 @@ export default function Campo() {
   const [avatarPath, setAvatarPath] = useState<string | null>(profile?.avatar_url ?? null);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const isCoordinator = roles?.some(r => [
+    'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
+  ].includes(r)) || roles?.some(r => ['admin_master', 'coordenador_geral', 'coordenador_estadual'].includes(r));
+  const tools = isCoordinator ? [...baseTools, ...coordinatorTools] : baseTools;
+
   useEffect(() => { setAvatarPath(profile?.avatar_url ?? null); }, [profile?.avatar_url]);
 
   const avatarUrl = useAvatarUrl(avatarPath);
