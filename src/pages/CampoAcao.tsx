@@ -19,6 +19,8 @@ interface FieldInput {
 
 export default function CampoAcao() {
   const createAction = useCreateAction();
+  const { user } = useAuth();
+  const { activeCandidate } = useCandidate();
   const [step, setStep] = useState<'form' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
     actionTitle: '',
@@ -29,11 +31,50 @@ export default function CampoAcao() {
   });
   const [geo, setGeo] = useState<GeoValue>({ city: '', lat: null, lng: null });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [cityPopulation, setCityPopulation] = useState<number | null>(null);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
   const geoValid = geo.city.trim() !== '' && geo.lat !== null && geo.lng !== null;
+
+  const uploadPhoto = async (file: File) => {
+    if (!user) { toast.error('Faça login para enviar fotos'); return; }
+    setUploadingPhoto(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('action-evidence').upload(path, file, {
+        contentType: file.type || 'image/jpeg',
+        upsert: false,
+      });
+      if (error) throw error;
+      setPhotos(prev => [...prev, path]);
+      toast.success('Foto adicionada');
+    } catch (e: any) {
+      toast.error(e.message ?? 'Erro ao enviar foto');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const missing = photos.filter(p => !photoUrls[p] && !p.startsWith('http'));
+      if (missing.length === 0) return;
+      const entries = await Promise.all(missing.map(async p => {
+        const { data } = await supabase.storage.from('action-evidence').createSignedUrl(p, 60 * 60);
+        return [p, data?.signedUrl ?? ''] as const;
+      }));
+      if (!cancelled) setPhotoUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
+    })();
+    return () => { cancelled = true; };
+  }, [photos, photoUrls]);
+
 
   // Busca população do município sempre que a cidade mudar
   useEffect(() => {
