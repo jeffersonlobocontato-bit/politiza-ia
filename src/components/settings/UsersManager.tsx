@@ -194,6 +194,7 @@ export function UsersManager() {
             action: 'update_role',
             user_id: editing.id, role: form.role,
             macroregion_id: form.macroregion_id, microregion: form.microregion, municipality: form.municipality,
+            coordinated_municipalities: form.role === 'coordenador_microrregional' ? form.coordinated_municipalities : [],
           },
         });
         if (r2.error || (r2.data as any)?.error) throw new Error((r2.data as any)?.error || r2.error?.message);
