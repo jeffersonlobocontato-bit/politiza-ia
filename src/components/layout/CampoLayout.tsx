@@ -18,7 +18,9 @@ const tabs = [
 export function CampoLayout({ children }: CampoLayoutProps) {
   const { profile, user, roles, signOut } = useAuth();
   const navigate = useNavigate();
-  const isRegional = roles?.includes('coordenador_regional' as any);
+  const isCoordinator = roles?.some(r => [
+    'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
+  ].includes(r as any));
 
   const displayName = profile?.full_name?.trim() || user?.email || 'Liderança';
 
@@ -62,14 +64,14 @@ export function CampoLayout({ children }: CampoLayoutProps) {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {isRegional && (
+          {isCoordinator && (
             <button
-              onClick={() => navigate('/configuracoes')}
+              onClick={() => navigate('/campo/membros')}
               className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
               style={{ color: 'var(--campo-text-mute)' }}
-              title="Gerenciar usuários"
+              title="Membros da equipe"
             >
-              <UserCog className="w-3.5 h-3.5" /> Usuários
+              <UserCog className="w-3.5 h-3.5" /> Membros
             </button>
           )}
           <button
