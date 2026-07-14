@@ -1,9 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Smartphone, Camera, CheckCircle } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Smartphone, Camera, CheckCircle, Upload, Loader2 } from 'lucide-react';
 import { useCreateAction } from '@/hooks/useActions';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { db } from '@/lib/db';
 import { calcImpactScore, scoreColor, scoreLabel } from '@/lib/impactScore';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCandidate } from '@/contexts/CandidateContext';
+import { toast } from 'sonner';
 
 interface FieldInput {
   actionTitle: string;
@@ -15,6 +19,8 @@ interface FieldInput {
 
 export default function CampoAcao() {
   const createAction = useCreateAction();
+  const { user } = useAuth();
+  const { activeCandidate } = useCandidate();
   const [step, setStep] = useState<'form' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
     actionTitle: '',
@@ -25,11 +31,50 @@ export default function CampoAcao() {
   });
   const [geo, setGeo] = useState<GeoValue>({ city: '', lat: null, lng: null });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [cityPopulation, setCityPopulation] = useState<number | null>(null);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
   const geoValid = geo.city.trim() !== '' && geo.lat !== null && geo.lng !== null;
+
+  const uploadPhoto = async (file: File) => {
+    if (!user) { toast.error('Faça login para enviar fotos'); return; }
+    setUploadingPhoto(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('action-evidence').upload(path, file, {
+        contentType: file.type || 'image/jpeg',
+        upsert: false,
+      });
+      if (error) throw error;
+      setPhotos(prev => [...prev, path]);
+      toast.success('Foto adicionada');
+    } catch (e: any) {
+      toast.error(e.message ?? 'Erro ao enviar foto');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const missing = photos.filter(p => !photoUrls[p] && !p.startsWith('http'));
+      if (missing.length === 0) return;
+      const entries = await Promise.all(missing.map(async p => {
+        const { data } = await supabase.storage.from('action-evidence').createSignedUrl(p, 60 * 60);
+        return [p, data?.signedUrl ?? ''] as const;
+      }));
+      if (!cancelled) setPhotoUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
+    })();
+    return () => { cancelled = true; };
+  }, [photos, photoUrls]);
+
 
   // Busca população do município sempre que a cidade mudar
   useEffect(() => {
@@ -84,6 +129,7 @@ export default function CampoAcao() {
       updated_by: null,
       impact_score: impactScore,
       municipality_population_snapshot: cityPopulation,
+      candidate_id: activeCandidate?.id ?? null,
     } as any);
 
     setSubmitted(true);
@@ -259,30 +305,76 @@ export default function CampoAcao() {
             <h2 className="campo-h2">Evidências Fotográficas</h2>
             <p className="campo-helper">Adicione fotos que comprovem a realização da ação.</p>
             <div className="grid grid-cols-2 gap-3">
-              {photos.map((p, i) => (
-                <div key={i} className="aspect-square rounded-xl overflow-hidden relative campo-card-flat">
-                  <img src={p} alt={`Evidência ${i + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
-                    className="absolute top-2 right-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white text-xs"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+              {photos.map((p, i) => {
+                const src = p.startsWith('http') ? p : photoUrls[p];
+                return (
+                  <div key={i} className="aspect-square rounded-xl overflow-hidden relative campo-card-flat">
+                    {src ? (
+                      <img src={src} alt={`Evidência ${i + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 animate-spin text-white/60" />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
+                      className="absolute top-2 right-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
               <button
-                onClick={() => setPhotos([...photos, `https://picsum.photos/200/200?random=${Date.now()}`])}
-                className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors"
+                type="button"
+                onClick={() => cameraInput.current?.click()}
+                disabled={uploadingPhoto}
+                className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 style={{
                   border: '2px dashed var(--campo-line-strong)',
                   background: 'rgba(255,255,255,0.02)',
                   color: 'var(--campo-text-mute)',
                 }}
               >
-                <Camera className="w-6 h-6" />
-                <span className="text-xs">Adicionar foto</span>
+                {uploadingPhoto ? <Loader2 className="w-6 h-6 animate-spin" /> : <Camera className="w-6 h-6" />}
+                <span className="text-xs">{uploadingPhoto ? 'Enviando...' : 'Tirar foto'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => galleryInput.current?.click()}
+                disabled={uploadingPhoto}
+                className="aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                style={{
+                  border: '2px dashed var(--campo-line-strong)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: 'var(--campo-text-mute)',
+                }}
+              >
+                <Upload className="w-6 h-6" />
+                <span className="text-xs">Da galeria</span>
               </button>
             </div>
+            <input
+              ref={cameraInput}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ''; }}
+            />
+            <input
+              ref={galleryInput}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={async e => {
+                const files = Array.from(e.target.files ?? []);
+                for (const f of files) await uploadPhoto(f);
+                e.target.value = '';
+              }}
+            />
+
             <button onClick={() => setStep('confirm')} className="campo-cta w-full">
               Próximo: Confirmar →
             </button>
