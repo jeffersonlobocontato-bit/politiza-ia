@@ -500,6 +500,9 @@ export function UsersManager() {
                     })}
                 </div>
               </div>
+            )}
+
+
 
             {/* Módulos permitidos (Nível 2 e assessores) */}
             {supportsCustomModules(form.role) && (
