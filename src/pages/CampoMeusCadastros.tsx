@@ -4,6 +4,7 @@ import { FolderKanban, Users, ClipboardList, UsersRound, Trash2, ChevronRight, S
 import { toast } from 'sonner';
 import { useCandidate } from '@/contexts/CandidateContext';
 import { useMyScope, softDeleteRow, newestSince } from '@/hooks/useMyScope';
+import ActionDetailSheet from '@/components/campo/ActionDetailSheet';
 
 type Tab = 'assets' | 'leaders' | 'actions' | 'members';
 
