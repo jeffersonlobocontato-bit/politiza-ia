@@ -231,6 +231,7 @@ export default function Hierarquia() {
       status: member.status,
       observations: member.observations ?? '',
       photo_url: member.photo_url ?? '',
+      referred_by: (member as any).referred_by ?? '',
     });
     setGeoForm({ city: member.municipality ?? '', lat: null, lng: null });
     // links populated by useEffect when queries resolve
