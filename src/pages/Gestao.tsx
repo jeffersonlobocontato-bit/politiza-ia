@@ -583,7 +583,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
 
   const levelLabel = (lvl: number) => {
     if (lvl >= 99) return 'Outros';
-    const names = ['', 'Nível 1 · Direção', 'Nível 2 · Coordenação Geral', 'Nível 3 · Coordenação Regional', 'Nível 4 · Coordenação Municipal', 'Nível 5 · Coordenação Local', 'Nível 6 · Operacional'];
+    const names = ['', 'Nível 1 · Direção', 'Nível 2 · Coordenação Geral', 'Nível 3 · Coordenação Macrorregional', 'Nível 4 · Coordenação Microrregional', 'Nível 5 · Coordenação Municipal', 'Nível 6 · Liderança / Operacional'];
     return names[lvl] ?? `Nível ${lvl}`;
   };
 
