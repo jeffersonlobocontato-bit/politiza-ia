@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "update_role") {
-      const { user_id, role, macroregion_id, microregion, municipality, coordinated_municipalities } = payload;
+      const { user_id, role, macroregion_id, microregion, municipality, coordinated_municipalities, allowed_modules } = payload;
       if (!user_id || !role) return json({ error: "user_id e role obrigatórios" }, 400);
       const newRoleErr = assertCanManageRole(role);
       if (newRoleErr) return json({ error: newRoleErr }, 403);
@@ -239,6 +239,7 @@ Deno.serve(async (req) => {
         microregion: microregion || null,
         municipality: municipality || null,
         coordinated_municipalities: Array.isArray(coordinated_municipalities) ? coordinated_municipalities : [],
+        allowed_modules: Array.isArray(allowed_modules) ? allowed_modules : null,
       });
       if (error) return json({ error: error.message }, 400);
 
