@@ -83,6 +83,7 @@ export function AppSidebar() {
 
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
   const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
+  const isAuditorHierarquia = !isAdmin && roles?.includes('auditor_hierarquia' as any);
   const isAdminMaster = roles?.includes('admin_master' as any);
   const isMalhaAdmin = roles?.includes('admin_master' as any) || roles?.includes('coordenador_estadual' as any);
 
@@ -90,13 +91,23 @@ export function AppSidebar() {
     '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
   ]);
 
+  const allowedForAuditor = new Set<string>([
+    '/hierarquia', '/gestao', '/mapa', '/agenda', '/meus-cadastros',
+    '/ativos', '/proporcional', '/territorios', '/municipios',
+    '/produtividade', '/eventos', '/acoes',
+  ]);
+
   const showChapas = isAdmin || isPartyManager;
   void showChapas;
   const visibleItems = navItems
-    .filter(item => isGestorOperacional ? allowedForGestorOperacional.has(item.url) : isItemVisible(item, campaignType))
+    .filter(item => {
+      if (isAuditorHierarquia) return allowedForAuditor.has(item.url);
+      if (isGestorOperacional) return allowedForGestorOperacional.has(item.url);
+      return isItemVisible(item, campaignType);
+    })
     .filter(item => item.url !== '/juridico' || isJuridico)
-    .filter(item => !item.adminMasterOnly || isAdminMaster)
-    .filter(item => !item.malhaAdminOnly || isMalhaAdmin);
+    .filter(item => !item.adminMasterOnly || isAdminMaster || isAuditorHierarquia)
+    .filter(item => !item.malhaAdminOnly || isMalhaAdmin || (isAuditorHierarquia && allowedForAuditor.has(item.url)));
 
   // Item extra restrito: só aparece para admin_master ou usuários com acesso delegado
   const cruzamentoMoroItem = canCruzamentoMoro ? {
