@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { ALL_MODULES, supportsCustomModules } from '@/config/modules';
 
 type AppRole =
   | 'admin_master' | 'coordenador_geral' | 'coordenador_estadual'
@@ -62,6 +63,7 @@ type UserRow = {
   microregion: string | null;
   municipality: string | null;
   coordinated_municipalities: string[];
+  allowed_modules: string[] | null;
   candidate_ids: string[];
 };
 
@@ -110,6 +112,7 @@ export function UsersManager() {
     macroregion_id: '', microregion: '', municipality: '',
     coordinated_municipalities: [] as string[],
     candidate_ids: [] as string[],
+    allowed_modules: null as string[] | null,
   });
   const [newPassword, setNewPassword] = useState('');
 
@@ -117,7 +120,7 @@ export function UsersManager() {
     setLoading(true);
     const [{ data: profiles }, { data: roles }, { data: links }, { data: cands }, { data: macrosData }, { data: munData }] = await Promise.all([
       (supabase as any).from('profiles').select('id, full_name, email, phone, referred_by').order('full_name'),
-      (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality, coordinated_municipalities'),
+      (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality, coordinated_municipalities, allowed_modules'),
       (supabase as any).from('user_candidates').select('user_id, candidate_id'),
       (supabase as any).from('candidates').select('id, name, cargo, party').order('name'),
       (supabase as any).from('macroregions').select('id, name').order('name'),
@@ -141,6 +144,7 @@ export function UsersManager() {
       microregion: rolesMap.get(p.id)?.microregion ?? null,
       municipality: rolesMap.get(p.id)?.municipality ?? null,
       coordinated_municipalities: rolesMap.get(p.id)?.coordinated_municipalities ?? [],
+      allowed_modules: rolesMap.get(p.id)?.allowed_modules ?? null,
       candidate_ids: linksMap.get(p.id) ?? [],
     })));
     setLoading(false);
@@ -151,7 +155,7 @@ export function UsersManager() {
   const openCreate = () => {
     setEditing(null);
     const defaultRole: AppRole = (allowedRoles[allowedRoles.length - 1]?.value ?? 'operador_campo') as AppRole;
-    setForm({ full_name: '', email: '', password: '', phone: '', referred_by: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', coordinated_municipalities: [], candidate_ids: [] });
+    setForm({ full_name: '', email: '', password: '', phone: '', referred_by: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', coordinated_municipalities: [], candidate_ids: [], allowed_modules: null });
     setCitySearch('');
     setDialogOpen(true);
   };
@@ -164,6 +168,7 @@ export function UsersManager() {
       macroregion_id: u.macroregion_id || '', microregion: u.microregion || '', municipality: u.municipality || '',
       coordinated_municipalities: u.coordinated_municipalities ?? [],
       candidate_ids: u.candidate_ids ?? [],
+      allowed_modules: u.allowed_modules ?? null,
     });
     setCitySearch('');
     setDialogOpen(true);
@@ -196,6 +201,7 @@ export function UsersManager() {
             user_id: editing.id, role: form.role,
             macroregion_id: form.macroregion_id, microregion: form.microregion, municipality: form.municipality,
             coordinated_municipalities: form.role === 'coordenador_microrregional' ? form.coordinated_municipalities : [],
+            allowed_modules: supportsCustomModules(form.role) ? form.allowed_modules : null,
           },
         });
         if (r2.error || (r2.data as any)?.error) throw new Error((r2.data as any)?.error || r2.error?.message);
@@ -495,6 +501,74 @@ export function UsersManager() {
                 </div>
               </div>
             )}
+
+
+
+            {/* Módulos permitidos (Nível 2 e assessores) */}
+            {supportsCustomModules(form.role) && (
+              <div className="space-y-2 border border-primary/30 bg-primary/5 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    Ferramentas com acesso
+                    {form.allowed_modules && (
+                      <span className="text-[10px] font-normal text-muted-foreground">
+                        ({form.allowed_modules.length}/{ALL_MODULES.length})
+                      </span>
+                    )}
+                  </Label>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <button type="button" className="text-primary hover:underline"
+                      onClick={() => setForm(f => ({ ...f, allowed_modules: ALL_MODULES.map(m => m.key) }))}>
+                      Marcar todos
+                    </button>
+                    <span className="text-muted-foreground">·</span>
+                    <button type="button" className="text-primary hover:underline"
+                      onClick={() => setForm(f => ({ ...f, allowed_modules: [] }))}>
+                      Limpar
+                    </button>
+                    <span className="text-muted-foreground">·</span>
+                    <button type="button" className="text-muted-foreground hover:underline"
+                      onClick={() => setForm(f => ({ ...f, allowed_modules: null }))}>
+                      Usar padrão do papel
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Marque as ferramentas que este membro poderá acessar. Deixe em "padrão do papel" para seguir a regra do nível de acesso.
+                </p>
+                {form.allowed_modules !== null && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 max-h-64 overflow-y-auto rounded-lg border border-border p-2 bg-background">
+                    {ALL_MODULES.map(m => {
+                      const checked = form.allowed_modules?.includes(m.key) ?? false;
+                      return (
+                        <label key={m.key}
+                          className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-xs ${checked ? 'bg-primary/15 border border-primary/30' : 'hover:bg-muted'}`}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={e => {
+                              setForm(f => {
+                                const base = f.allowed_modules ?? [];
+                                return {
+                                  ...f,
+                                  allowed_modules: e.target.checked
+                                    ? Array.from(new Set([...base, m.key]))
+                                    : base.filter(k => k !== m.key),
+                                };
+                              });
+                            }}
+                          />
+                          <span className="truncate">{m.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+
 
 
             {/* Candidatos vinculados */}

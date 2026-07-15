@@ -2985,6 +2985,7 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          allowed_modules: string[] | null
           coordinated_municipalities: string[] | null
           id: string
           macroregion_id: string | null
@@ -2994,6 +2995,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          allowed_modules?: string[] | null
           coordinated_municipalities?: string[] | null
           id?: string
           macroregion_id?: string | null
@@ -3003,6 +3005,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          allowed_modules?: string[] | null
           coordinated_municipalities?: string[] | null
           id?: string
           macroregion_id?: string | null
