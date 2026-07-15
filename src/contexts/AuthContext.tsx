@@ -14,6 +14,7 @@ interface AuthContextValue {
   loading: boolean;
   isAdmin: boolean;
   isCampoOperator: boolean;
+  isAuditorHierarquia: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
@@ -121,13 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
     const isAdmin = roles.some(r => ['admin_master', 'coordenador_geral', 'coordenador_estadual'].includes(r));
-  const isCampoOperator = !isAdmin && roles.some(r => [
+  const isAuditorHierarquia = roles.includes('auditor_hierarquia' as AppRole);
+  const isCampoOperator = !isAdmin && !isAuditorHierarquia && roles.some(r => [
     'operador_campo', 'lideranca_local',
     'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
   ].includes(r));
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, roles, loading, isAdmin, isCampoOperator, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, roles, loading, isAdmin, isCampoOperator, isAuditorHierarquia, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

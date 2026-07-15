@@ -3353,6 +3353,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_auditor_hierarquia: { Args: { _user_id: string }; Returns: boolean }
       is_in_my_subtree: {
         Args: { _manager: string; _target: string }
         Returns: boolean
@@ -3408,6 +3409,7 @@ export type Database = {
         | "gestor_estadual_pl"
         | "juridico"
         | "gestor_operacional"
+        | "auditor_hierarquia"
       asset_type:
         | "prefeito"
         | "ex_prefeito"
@@ -3650,6 +3652,7 @@ export const Constants = {
         "gestor_estadual_pl",
         "juridico",
         "gestor_operacional",
+        "auditor_hierarquia",
       ],
       asset_type: [
         "prefeito",

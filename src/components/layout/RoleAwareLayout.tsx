@@ -10,12 +10,18 @@ const GESTOR_OPERACIONAL_ALLOWED = [
   '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
 ];
 
+const AUDITOR_HIERARQUIA_ALLOWED = [
+  '/hierarquia', '/gestao', '/mapa', '/agenda', '/meus-cadastros',
+  '/ativos', '/proporcional', '/territorios', '/municipios',
+  '/produtividade', '/eventos', '/acoes', '/chapas',
+];
+
 /**
  * Roteia o usuário para o layout correto e impede que lideranças de campo
  * acessem rotas administrativas (sempre as redireciona para /campo).
  */
 export function RoleAwareLayout({ children }: { children: ReactNode }) {
-  const { isCampoOperator, isAdmin, roles, loading } = useAuth();
+  const { isCampoOperator, isAdmin, isAuditorHierarquia, roles, loading } = useAuth();
   const { cruzamentoOnly, loading: cruzLoading } = useCruzamentoMoroAccess();
   const location = useLocation();
 
@@ -53,6 +59,12 @@ export function RoleAwareLayout({ children }: { children: ReactNode }) {
       p => p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
     );
     if (!allowed) return <Navigate to="/" replace />;
+  }
+
+  // Auditor de Hierarquia: leitura restrita a um conjunto de módulos.
+  if (!isAdmin && isAuditorHierarquia) {
+    const allowed = AUDITOR_HIERARQUIA_ALLOWED.some(p => location.pathname.startsWith(p));
+    if (!allowed) return <Navigate to="/hierarquia" replace />;
   }
 
   return <AppLayout>{children}</AppLayout>;
