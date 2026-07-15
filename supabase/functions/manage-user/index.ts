@@ -290,6 +290,8 @@ Deno.serve(async (req) => {
       if (user_id === user.id) return json({ error: "Você não pode excluir o próprio usuário" }, 400);
       const tErr3 = await assertCanManageTargetUser(user_id);
       if (tErr3) return json({ error: tErr3 }, 403);
+      // Remove o vínculo hierárquico antes de excluir o auth user.
+      await admin.from("campaign_members").delete().eq("user_id", user_id);
       const { error } = await admin.auth.admin.deleteUser(user_id);
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true });
