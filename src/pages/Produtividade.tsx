@@ -127,7 +127,7 @@ export default function Produtividade() {
   const { roles, loading } = useAuth();
   const { activeCandidate } = useCandidate();
   const [period, setPeriod] = useState(30);
-  const [metric, setMetric] = useState<'total' | 'avg'>('total');
+  const [metric, setMetric] = useState<'total' | 'efficiency'>('total');
 
   const isAdminMaster = roles.includes('admin_master' as any);
 
