@@ -27,6 +27,7 @@ const TYPE_OPTIONS: { value: DbActionType; label: string }[] = [
   { value: 'reuniao_empresarios', label: 'Reunião Empresários' },
   { value: 'encontro_liderancas', label: 'Encontro Lideranças' },
   { value: 'acao_digital', label: 'Ação Digital' },
+  { value: 'cadastrar_liderancas' as DbActionType, label: 'Cadastrar Lideranças' },
 ];
 const PRIORITY_OPTIONS: { value: DbPriorityLevel; label: string }[] = [
   { value: 'critica', label: 'Crítica' },
