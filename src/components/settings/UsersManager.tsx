@@ -144,6 +144,7 @@ export function UsersManager() {
       microregion: rolesMap.get(p.id)?.microregion ?? null,
       municipality: rolesMap.get(p.id)?.municipality ?? null,
       coordinated_municipalities: rolesMap.get(p.id)?.coordinated_municipalities ?? [],
+      allowed_modules: rolesMap.get(p.id)?.allowed_modules ?? null,
       candidate_ids: linksMap.get(p.id) ?? [],
     })));
     setLoading(false);
