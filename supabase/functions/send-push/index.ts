@@ -17,16 +17,39 @@ interface PushPayload {
   tag?: string;
 }
 
+const extraCors = {
+  ...corsHeaders,
+  'Access-Control-Allow-Headers':
+    (corsHeaders as any)['Access-Control-Allow-Headers'] + ', x-cron-secret',
+};
+
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: extraCors });
 
   try {
-    // Autorização: exige service role (chamado por cron / outras edge functions)
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false } },
+    );
+
+    // Autorização: service role OU cron secret armazenado no DB
     const authHeader = req.headers.get('Authorization') ?? '';
     const token = authHeader.replace(/^Bearer\s+/i, '');
-    if (token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
-      return json({ error: 'forbidden' }, 403);
+    let authorized = token && token === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!authorized) {
+      const cronHeader = req.headers.get('x-cron-secret') ?? '';
+      if (cronHeader) {
+        const { data } = await admin
+          .from('internal_cron_secrets')
+          .select('secret')
+          .eq('name', 'task-overdue-reminders')
+          .maybeSingle();
+        if (data?.secret && data.secret === cronHeader) authorized = true;
+      }
     }
+    if (!authorized) return json({ error: 'forbidden' }, 403);
+
 
     const { user_ids, payload } = await req.json() as {
       user_ids: string[]; payload: PushPayload;
