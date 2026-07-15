@@ -199,20 +199,15 @@ export function useMyScope(candidateId?: string | null): UseMyScopeResult {
   };
 }
 
-/** Deleta em soft-delete se a tabela suportar. */
+/** Soft-delete quando disponível; caso contrário, delete definitivo. */
 export async function softDeleteRow(table: 'political_assets' | 'leaders' | 'actions' | 'campaign_members', id: string) {
-  const { error } = await (supabase as any).from(table).update({ deleted_at: new Date().toISOString() }).eq('id', id);
-  if (error && /deleted_at/.test(error.message || '')) {
-    // fallback hard delete when column missing (campaign_members has no deleted_at)
-    const { error: e2 } = await (supabase as any).from(table).delete().eq('id', id);
-    if (e2) throw e2;
+  if (table === 'campaign_members') {
+    const { error } = await (supabase as any).from(table).delete().eq('id', id);
+    if (error) throw error;
     return;
   }
-  if (error) {
-    // fallback hard delete
-    const { error: e2 } = await (supabase as any).from(table).delete().eq('id', id);
-    if (e2) throw e2;
-  }
+  const { error } = await (supabase as any).from(table).update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  if (error) throw error;
 }
 
 export function newestSince(rows: { created_at: string }[], days: number) {
