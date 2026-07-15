@@ -462,7 +462,7 @@ export default function CampoAcao() {
               </div>
             )}
             <button onClick={handleSubmit} disabled={!geoValid} className="campo-cta w-full">
-              <CheckCircle className="w-5 h-5" /> Confirmar e Enviar
+              <CheckCircle className="w-5 h-5" /> {editId ? 'Salvar alterações' : 'Confirmar e Enviar'}
             </button>
           </div>
         )}
