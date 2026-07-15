@@ -211,6 +211,8 @@ export default function Produtividade() {
                 rows={data.macros}
                 metric={metric}
                 showLeaderCount
+                level="macro"
+                onSelect={openDetail}
                 emptyHint="Sem ações pontuadas no período para o nível macro."
               />
             </TabsContent>
@@ -219,6 +221,8 @@ export default function Produtividade() {
                 rows={data.micros}
                 metric={metric}
                 showLeaderCount
+                level="micro"
+                onSelect={openDetail}
                 emptyHint="Sem coordenadores micro com ações pontuadas no período."
               />
             </TabsContent>
@@ -226,11 +230,26 @@ export default function Produtividade() {
               <RankingTable
                 rows={data.leaders}
                 metric={metric}
+                level="leader"
+                onSelect={openDetail}
                 emptyHint="Sem lideranças com ações pontuadas no período."
               />
             </TabsContent>
           </Tabs>
         </>
+      )}
+
+      <ProductivityDetailDialog
+        open={!!detail}
+        onOpenChange={(v) => { if (!v) setDetail(null); }}
+        row={detail?.row ?? null}
+        level={detail?.level ?? 'leader'}
+        candidateId={activeCandidate?.id ?? null}
+        periodDays={period}
+      />
+    </div>
+  );
+}
       )}
     </div>
   );
