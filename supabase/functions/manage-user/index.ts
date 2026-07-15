@@ -75,6 +75,69 @@ Deno.serve(async (req) => {
             ? MICRO_ALLOWED_ROLES
             : MUNICIPAL_ALLOWED_ROLES;
 
+    // Mapeamento role → hierarquia (aba Hierarquia).
+    // Mantém compatibilidade com dados existentes (Regional=3, Municipal=5).
+    const HIERARCHY_MAP: Record<string, { level: number; label: string }> = {
+      coordenador_regional:       { level: 3, label: "Coordenador Regional" },
+      coordenador_microrregional: { level: 4, label: "Coordenador Microrregional" },
+      coordenador_municipal:      { level: 5, label: "Coordenador Municipal" },
+      lideranca_local:            { level: 6, label: "Liderança Local" },
+    };
+
+    const syncCampaignMember = async (
+      target_user_id: string,
+      role: string,
+      profile: { full_name?: string; email?: string; phone?: string | null },
+      scope: { macroregion_id?: string | null; microregion?: string | null; municipality?: string | null },
+      candidate_ids?: string[],
+    ) => {
+      const map = HIERARCHY_MAP[role];
+      // Remove entradas antigas caso o role não seja hierárquico (evita órfãos após update_role).
+      if (!map) {
+        await admin.from("campaign_members").delete().eq("user_id", target_user_id);
+        return;
+      }
+
+      // Descobre supervisor: o campaign_member do usuário logado (quem cadastra).
+      let supervisor_id: string | null = null;
+      const { data: sup } = await admin
+        .from("campaign_members")
+        .select("id, hierarchy_level")
+        .eq("user_id", user.id)
+        .order("hierarchy_level", { ascending: true })
+        .maybeSingle();
+      if (sup?.id && (sup.hierarchy_level ?? 99) < map.level) supervisor_id = sup.id;
+
+      const candidate_id = Array.isArray(candidate_ids) && candidate_ids.length > 0 ? candidate_ids[0] : null;
+
+      // Upsert por user_id.
+      const { data: existing } = await admin
+        .from("campaign_members")
+        .select("id")
+        .eq("user_id", target_user_id)
+        .maybeSingle();
+
+      const payloadCm: any = {
+        user_id: target_user_id,
+        name: profile.full_name || "",
+        email: profile.email || null,
+        phone: profile.phone || null,
+        role: map.label,
+        hierarchy_level: map.level,
+        macroregion_id: scope.macroregion_id || null,
+        microregion: scope.microregion || null,
+        municipality: scope.municipality || null,
+        supervisor_id,
+        candidate_id,
+        status: "ativo",
+      };
+      if (existing?.id) {
+        await admin.from("campaign_members").update(payloadCm).eq("id", existing.id);
+      } else {
+        await admin.from("campaign_members").insert({ ...payloadCm, created_by: user.id });
+      }
+    };
+
     const assertCanManageRole = (role: string | null | undefined): string | null => {
       if (isAdminFull) return null;
       if (!role || !allowedSet!.has(role)) {
