@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
       if (createErr) return json({ error: createErr.message }, 400);
 
       const userId = created.user.id;
-      await admin.from("profiles").upsert({ id: userId, full_name, email, phone: phone || null });
+      await admin.from("profiles").upsert({ id: userId, full_name, email, phone: phone || null, referred_by: referred_by || null });
       const { error: roleErr } = await admin.from("user_roles").insert({
         user_id: userId,
         role,
