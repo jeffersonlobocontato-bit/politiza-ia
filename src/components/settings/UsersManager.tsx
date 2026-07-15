@@ -56,6 +56,7 @@ type UserRow = {
   full_name: string;
   email: string | null;
   phone: string | null;
+  referred_by: string | null;
   role: AppRole | null;
   macroregion_id: string | null;
   microregion: string | null;
