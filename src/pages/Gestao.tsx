@@ -754,7 +754,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
                   </button>
                   <span className="text-[10px] text-muted-foreground">{assigneeIds.length}/{team.length}</span>
                 </div>
-                <ScrollArea className="max-h-[320px]">
+                <ScrollArea className="max-h-[480px]">
                   {teamLoading && <div className="px-3 py-4 text-xs text-muted-foreground">Carregando hierarquia...</div>}
                   {!teamLoading && team.length === 0 && candidateId && (
                     <div className="px-3 py-4 text-xs text-muted-foreground">
