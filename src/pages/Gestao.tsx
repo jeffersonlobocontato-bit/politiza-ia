@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   LayoutGrid, CheckSquare, BarChart2, Plus, X, AlertCircle, Clock, CheckCircle2, Loader2,
-  Calendar, Users, TrendingUp, Flag, Trash2, ChevronDown, Check,
+  Calendar, Users, TrendingUp, Flag, Trash2, Check,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -17,7 +17,6 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
@@ -564,7 +563,6 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
   const [candidateId, setCandidateId] = useState<string | null>(defaultCandidateId);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   const { data: team = [], isLoading: teamLoading } = useAssignableTeam(candidateId);
   const { data: myMember } = useMyCampaignMember(candidateId);
@@ -602,7 +600,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
 
   const handleClose = () => {
     setTitle(''); setDescription(''); setArea('central'); setPriority('normal');
-    setDueDate(''); setCandidateId(defaultCandidateId); setAssigneeIds([]); setPickerOpen(false);
+    setDueDate(''); setCandidateId(defaultCandidateId); setAssigneeIds([]);
     onClose();
   };
 
@@ -635,7 +633,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && !busy && handleClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nova tarefa</DialogTitle>
         </DialogHeader>
@@ -713,39 +711,29 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
               </span>
             </Label>
 
-            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!candidateId}
-                  className="w-full justify-between font-normal h-auto min-h-10 py-2"
-                >
-                  <span className="flex flex-wrap gap-1 items-center text-left">
-                    {selectedMembers.length === 0 && (
-                      <span className="text-muted-foreground text-sm">
-                        {candidateId ? 'Selecione um ou mais responsáveis' : 'Escolha um candidato'}
-                      </span>
-                    )}
-                    {selectedMembers.slice(0, 4).map(m => (
-                      <Badge key={m.id} variant="secondary" className="text-[10px] font-normal">
-                        {m.name}
-                      </Badge>
-                    ))}
-                    {selectedMembers.length > 4 && (
-                      <Badge variant="secondary" className="text-[10px] font-normal">
-                        +{selectedMembers.length - 4}
-                      </Badge>
-                    )}
+            <div className="rounded-md border border-input bg-background overflow-hidden">
+              <div className="min-h-10 px-3 py-2 border-b flex flex-wrap gap-1 items-center">
+                {selectedMembers.length === 0 && (
+                  <span className="text-muted-foreground text-sm">
+                    {candidateId ? 'Selecione um ou mais responsáveis abaixo' : 'Escolha um candidato'}
                   </span>
-                  <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0 overflow-hidden" align="start">
-                <div className="flex items-center justify-between border-b px-3 py-2">
+                )}
+                {selectedMembers.slice(0, 6).map(m => (
+                  <Badge key={m.id} variant="secondary" className="text-[10px] font-normal">
+                    {m.name}
+                  </Badge>
+                ))}
+                {selectedMembers.length > 6 && (
+                  <Badge variant="secondary" className="text-[10px] font-normal">
+                    +{selectedMembers.length - 6}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center justify-between border-b px-3 py-2">
                   <button
                     type="button"
                     onClick={toggleAll}
+                    disabled={!candidateId || team.length === 0}
                     className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
                   >
                     <Check className="w-3 h-3" />
@@ -753,7 +741,11 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
                   </button>
                   <span className="text-[10px] text-muted-foreground">{assigneeIds.length}/{team.length}</span>
                 </div>
-                <div className="max-h-[min(480px,55vh)] overflow-y-auto overscroll-contain pr-1">
+                <div
+                  className="h-[320px] max-h-[40vh] overflow-y-auto overscroll-contain touch-pan-y pr-1 [scrollbar-gutter:stable]"
+                  onWheel={(event) => event.stopPropagation()}
+                  onTouchMove={(event) => event.stopPropagation()}
+                >
                   {teamLoading && <div className="px-3 py-4 text-xs text-muted-foreground">Carregando hierarquia...</div>}
                   {!teamLoading && team.length === 0 && candidateId && (
                     <div className="px-3 py-4 text-xs text-muted-foreground">
@@ -798,8 +790,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
                     );
                   })}
                 </div>
-              </PopoverContent>
-            </Popover>
+            </div>
             {selectedMembers.length > 1 && (
               <p className="text-[10px] text-muted-foreground mt-1">
                 Será criada uma tarefa individual para cada um dos {selectedMembers.length} responsáveis.
