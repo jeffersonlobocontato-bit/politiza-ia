@@ -261,6 +261,14 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
           </div>
         )}
       </DialogContent>
+      <ActionDetailSheet
+        actionId={selectedActionId}
+        onClose={() => setSelectedActionId(null)}
+        onDelete={() => {
+          setSelectedActionId(null);
+          setActions(prev => prev.filter(a => a.id !== selectedActionId));
+        }}
+      />
     </Dialog>
   );
 }
