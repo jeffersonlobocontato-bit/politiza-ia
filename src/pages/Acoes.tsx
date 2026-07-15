@@ -4,6 +4,7 @@ import { macroRegions, getStatusColor, getStatusLabel, getActionTypeLabel } from
 import { InfographicDonut, InfographicHBar, InfographicVBar } from '@/components/ui/InfographicCharts';
 import { useActions, useCreateAction, useUpdateAction, useUpdateActionStatus, useDeleteAction } from '@/hooks/useActions';
 import type { DbAction, DbActionStatus, DbActionType, DbPriorityLevel } from '@/types/database';
+import ActionDetailSheet from '@/components/campo/ActionDetailSheet';
 
 const STATUS_OPTIONS: DbActionStatus[] = ['prevista','confirmada','em_andamento','realizada','atrasada','cancelada','pendente_validacao'];
 const TYPE_OPTIONS: { value: DbActionType; label: string }[] = [
@@ -68,6 +69,7 @@ export default function Acoes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ActionForm>(emptyForm());
   const [statusMenuId, setStatusMenuId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const filtered = actions.filter(a => {
     const q = search.toLowerCase();
@@ -365,7 +367,11 @@ export default function Acoes() {
             {filtered.map(action => {
               const pColor = PRIORITY_OPTIONS.find(p => p.value === action.priority)?.color ?? '#6b7280';
               return (
-                <div key={action.id} className="px-6 py-4 hover:bg-accent/30 transition-colors group">
+                <div
+                  key={action.id}
+                  onClick={() => setDetailId(action.id)}
+                  className="px-6 py-4 hover:bg-accent/30 transition-colors group cursor-pointer"
+                >
                   <div className="flex items-start gap-4">
                     <div className="w-3 h-3 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: getStatusColor(action.status) }} />
                     <div className="flex-1 min-w-0">
@@ -425,7 +431,7 @@ export default function Acoes() {
                             <div className="mt-1 text-xs text-brand-amber font-medium">⚠ {action.observations}</div>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
                           <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md hidden group-hover:block">
                             {TYPE_OPTIONS.find(t => t.value === action.type)?.label ?? action.type}
                           </span>
@@ -458,6 +464,18 @@ export default function Acoes() {
           </div>
         )}
       </div>
+
+      <ActionDetailSheet
+        actionId={detailId}
+        onClose={() => setDetailId(null)}
+        onDelete={async () => {
+          if (!detailId) return;
+          const id = detailId;
+          setDetailId(null);
+          if (!confirm('Tem certeza que deseja remover esta ação?')) return;
+          await deleteAction.mutateAsync(id);
+        }}
+      />
     </div>
   );
 }
