@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Activity, Target, Users, MapPin, Zap, Calendar } from 'lucide-react';
 import { scoreColor, scoreLabel } from '@/lib/impactScore';
 import type { ProductivityRow } from '@/hooks/useProductivity';
+import ActionDetailSheet from '@/components/campo/ActionDetailSheet';
 
 type Level = 'macro' | 'micro' | 'leader';
 
