@@ -73,7 +73,11 @@ export default function Acoes() {
 
   const filtered = actions.filter(a => {
     const q = search.toLowerCase();
-    const matchSearch = !search || a.title.toLowerCase().includes(q) || (a.municipality ?? '').toLowerCase().includes(q);
+    const matchSearch = !search
+      || a.title.toLowerCase().includes(q)
+      || (a.municipality ?? '').toLowerCase().includes(q)
+      || (a.responsible ?? '').toLowerCase().includes(q)
+      || ((a.team ?? []) as string[]).some(t => (t ?? '').toLowerCase().includes(q));
     const matchStatus = statusFilter === 'all' || a.status === statusFilter;
     const matchMacro = macroFilter === 'all' || a.macroregion_id === macroFilter;
     return matchSearch && matchStatus && matchMacro;
