@@ -231,7 +231,11 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
               ) : (
                 <div className="space-y-1.5">
                   {actions.map(a => (
-                    <Card key={a.id} className="p-3 bg-card border-border">
+                    <Card
+                      key={a.id}
+                      className="p-3 bg-card border-border cursor-pointer hover:border-primary/60 hover:bg-muted/30 transition-colors"
+                      onClick={() => setSelectedActionId(a.id)}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="text-sm font-medium truncate">{a.title}</div>
