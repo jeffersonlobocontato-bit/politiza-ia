@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   const secret = req.headers.get("x-cron-secret");
-  const expected = Deno.env.get("CRON_SHARED_SECRET");
+  const expected = Deno.env.get("BOOTSTRAP_TOKEN");
   if (!expected || secret !== expected) return json({ error: "unauthorized" }, 401);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
