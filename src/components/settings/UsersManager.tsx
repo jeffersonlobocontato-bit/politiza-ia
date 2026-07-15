@@ -56,6 +56,7 @@ type UserRow = {
   full_name: string;
   email: string | null;
   phone: string | null;
+  referred_by: string | null;
   role: AppRole | null;
   macroregion_id: string | null;
   microregion: string | null;
@@ -104,7 +105,7 @@ export function UsersManager() {
   const [citySearch, setCitySearch] = useState('');
 
   const [form, setForm] = useState({
-    full_name: '', email: '', password: '', phone: '',
+    full_name: '', email: '', password: '', phone: '', referred_by: '',
     role: 'operador_campo' as AppRole,
     macroregion_id: '', microregion: '', municipality: '',
     coordinated_municipalities: [] as string[],
@@ -115,7 +116,7 @@ export function UsersManager() {
   const load = async () => {
     setLoading(true);
     const [{ data: profiles }, { data: roles }, { data: links }, { data: cands }, { data: macrosData }, { data: munData }] = await Promise.all([
-      (supabase as any).from('profiles').select('id, full_name, email, phone').order('full_name'),
+      (supabase as any).from('profiles').select('id, full_name, email, phone, referred_by').order('full_name'),
       (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality, coordinated_municipalities'),
       (supabase as any).from('user_candidates').select('user_id, candidate_id'),
       (supabase as any).from('candidates').select('id, name, cargo, party').order('name'),
@@ -150,7 +151,7 @@ export function UsersManager() {
   const openCreate = () => {
     setEditing(null);
     const defaultRole: AppRole = (allowedRoles[allowedRoles.length - 1]?.value ?? 'operador_campo') as AppRole;
-    setForm({ full_name: '', email: '', password: '', phone: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', coordinated_municipalities: [], candidate_ids: [] });
+    setForm({ full_name: '', email: '', password: '', phone: '', referred_by: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', coordinated_municipalities: [], candidate_ids: [] });
     setCitySearch('');
     setDialogOpen(true);
   };
@@ -158,7 +159,7 @@ export function UsersManager() {
   const openEdit = (u: UserRow) => {
     setEditing(u);
     setForm({
-      full_name: u.full_name || '', email: u.email || '', password: '', phone: u.phone || '',
+      full_name: u.full_name || '', email: u.email || '', password: '', phone: u.phone || '', referred_by: u.referred_by || '',
       role: (u.role ?? 'operador_campo') as AppRole,
       macroregion_id: u.macroregion_id || '', microregion: u.microregion || '', municipality: u.municipality || '',
       coordinated_municipalities: u.coordinated_municipalities ?? [],
@@ -184,7 +185,7 @@ export function UsersManager() {
         const r1 = await supabase.functions.invoke('manage-user', {
           body: {
             action: 'update_profile',
-            user_id: editing.id, full_name: form.full_name, phone: form.phone,
+            user_id: editing.id, full_name: form.full_name, phone: form.phone, referred_by: form.referred_by,
           },
         });
         if (r1.error || (r1.data as any)?.error) throw new Error((r1.data as any)?.error || r1.error?.message);
@@ -389,6 +390,10 @@ export function UsersManager() {
                 <Label>Telefone</Label>
                 <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Indicado por</Label>
+              <Input placeholder="Nome de quem indicou este membro" value={form.referred_by} onChange={e => setForm({ ...form, referred_by: e.target.value })} />
             </div>
             {!editing && (
               <div className="space-y-1.5">

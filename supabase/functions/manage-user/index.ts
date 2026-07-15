@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
     const { action, ...payload } = await req.json();
 
     if (action === "create") {
-      const { email, password, full_name, phone, role, macroregion_id, microregion, municipality, coordinated_municipalities, candidate_ids } = payload;
+      const { email, password, full_name, phone, referred_by, role, macroregion_id, microregion, municipality, coordinated_municipalities, candidate_ids } = payload;
       if (!email || !password || !full_name || !role)
         return json({ error: "Campos obrigatórios: email, senha, nome e nível de acesso" }, 400);
       const roleErrMsg = assertCanManageRole(role);
@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
       if (createErr) return json({ error: createErr.message }, 400);
 
       const userId = created.user.id;
-      await admin.from("profiles").upsert({ id: userId, full_name, email, phone: phone || null });
+      await admin.from("profiles").upsert({ id: userId, full_name, email, phone: phone || null, referred_by: referred_by || null });
       const { error: roleErr } = await admin.from("user_roles").insert({
         user_id: userId,
         role,
@@ -257,13 +257,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === "update_profile") {
-      const { user_id, full_name, phone } = payload;
+      const { user_id, full_name, phone, referred_by } = payload;
       if (!user_id) return json({ error: "user_id obrigatório" }, 400);
       const tErr1 = await assertCanManageTargetUser(user_id);
       if (tErr1) return json({ error: tErr1 }, 403);
-      const { error } = await admin.from("profiles").update({
-        full_name, phone: phone || null,
-      }).eq("id", user_id);
+      const patch: any = { full_name, phone: phone || null };
+      if (referred_by !== undefined) patch.referred_by = referred_by || null;
+      const { error } = await admin.from("profiles").update(patch).eq("id", user_id);
       if (error) return json({ error: error.message }, 400);
 
       // Reflete alterações de nome/telefone no cadastro da hierarquia.
