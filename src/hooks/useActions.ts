@@ -24,9 +24,19 @@ export function useCreateAction() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (payload: Omit<DbAction, 'id' | 'created_at' | 'updated_at' | 'deleted_at'>) => {
+      let candidateId = (payload as any).candidate_id ?? null;
+      // If user has candidate scope (RLS) and no candidate_id was provided, pick the first linked candidate
+      if (!candidateId && user?.id) {
+        const { data: uc } = await (db as any)
+          .from('user_candidates')
+          .select('candidate_id')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (uc && uc.length > 0) candidateId = uc[0].candidate_id;
+      }
       const { data, error } = await db
         .from('actions')
-        .insert({ ...payload, created_by: user?.id } as any)
+        .insert({ ...payload, candidate_id: candidateId, created_by: user?.id } as any)
         .select()
         .single();
       if (error) throw error;
