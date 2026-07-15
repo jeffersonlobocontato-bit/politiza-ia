@@ -258,4 +258,5 @@ export const ROLE_AREA_LABELS: Record<AppRole, string> = {
   analista_pesquisa: 'Pesquisa',
   executivo_leitura: 'Executivo',
   gestor_operacional: 'Operacional',
+  auditor_hierarquia: 'Auditoria',
 };
