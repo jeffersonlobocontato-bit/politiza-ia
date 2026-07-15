@@ -139,6 +139,8 @@ export default function Produtividade() {
   const { activeCandidate } = useCandidate();
   const [period, setPeriod] = useState(30);
   const [metric, setMetric] = useState<'total' | 'efficiency'>('total');
+  const [detail, setDetail] = useState<{ row: ProductivityRow; level: LevelKind } | null>(null);
+  const openDetail = (row: ProductivityRow, level: LevelKind) => setDetail({ row, level });
 
   const isAdminMaster = roles.includes('admin_master' as any);
 
