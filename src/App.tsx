@@ -52,6 +52,7 @@ import RaioX from "./pages/raio-x/RaioX";
 import CruzamentoMoro from "./pages/CruzamentoMoro";
 import MeusCadastros from "./pages/MeusCadastros";
 import CampoMeusCadastros from "./pages/CampoMeusCadastros";
+import CampoTarefas from "./pages/CampoTarefas";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -87,6 +88,7 @@ const AppRoutes = () => (
     <Route path="/campo/membros" element={<ProtectedRoute><RoleAwareLayout><CampoMembros /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/produtividade" element={<ProtectedRoute><RoleAwareLayout><CampoProdutividade /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/meus-cadastros" element={<ProtectedRoute><RoleAwareLayout><CampoMeusCadastros /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/tarefas" element={<ProtectedRoute><RoleAwareLayout><CampoTarefas /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/meus-cadastros" element={<ProtectedRoute><RoleAwareLayout><MeusCadastros /></RoleAwareLayout></ProtectedRoute>} />
 
 

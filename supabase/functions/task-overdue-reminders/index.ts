@@ -5,17 +5,37 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
+const extraCorsHeaders = {
+  ...corsHeaders,
+  'Access-Control-Allow-Headers':
+    (corsHeaders as any)['Access-Control-Allow-Headers'] + ', x-cron-secret',
+};
+
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: extraCorsHeaders });
 
   try {
-    // Autorização: service role (cron) OU chamada autenticada de admin_master
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const token = authHeader.replace(/^Bearer\s+/i, '');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const isService = token === serviceKey;
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      serviceKey,
+      { auth: { persistSession: false } },
+    );
 
-    if (!isService) {
+    // Autorização: (a) cron via x-cron-secret armazenado no DB, ou (b) admin autenticado
+    const cronHeader = req.headers.get('x-cron-secret') ?? '';
+    let authorized = false;
+    if (cronHeader) {
+      const { data } = await admin
+        .from('internal_cron_secrets')
+        .select('secret')
+        .eq('name', 'task-overdue-reminders')
+        .maybeSingle();
+      if (data?.secret && data.secret === cronHeader) authorized = true;
+    }
+
+    if (!authorized) {
+      const authHeader = req.headers.get('Authorization') ?? '';
       const supa = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_ANON_KEY')!,
@@ -26,12 +46,6 @@ Deno.serve(async (req) => {
       const { data: isAdmin } = await supa.rpc('is_admin', { _user_id: user.id });
       if (!isAdmin) return json({ error: 'forbidden' }, 403);
     }
-
-    const admin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      serviceKey,
-      { auth: { persistSession: false } },
-    );
 
     const todayISO = new Date().toISOString().slice(0, 10);
 
@@ -50,13 +64,12 @@ Deno.serve(async (req) => {
 
     const startOfDay = new Date(); startOfDay.setUTCHours(0, 0, 0, 0);
     let created = 0;
-    const pushJobs = new Map<string, { title: string; body: string; url: string; tag: string }[]>();
+    const pushByUser = new Map<string, { title: string; body: string; url: string; tag: string }[]>();
 
     for (const t of overdue) {
       const dueDate = new Date(t.due_date + 'T00:00:00Z');
       const daysLate = Math.max(1, Math.floor((Date.now() - dueDate.getTime()) / 86400000));
 
-      // idempotência: só cria notification se ainda não houver uma 'task_overdue' hoje
       const { data: existing } = await admin
         .from('notifications')
         .select('id')
@@ -80,8 +93,8 @@ Deno.serve(async (req) => {
       });
       created++;
 
-      if (!pushJobs.has(t.assigned_to)) pushJobs.set(t.assigned_to, []);
-      pushJobs.get(t.assigned_to)!.push({
+      if (!pushByUser.has(t.assigned_to)) pushByUser.set(t.assigned_to, []);
+      pushByUser.get(t.assigned_to)!.push({
         title: 'Tarefa atrasada',
         body: msg,
         url: link,
@@ -89,12 +102,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Dispara web push agregado por usuário
-    const url = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-push`;
-    await Promise.allSettled([...pushJobs.entries()].map(async ([userId, jobs]) => {
-      // Envia uma notification por tarefa (usuário pode ver várias)
+    // Dispara web push agregado
+    const sendPushUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-push`;
+    await Promise.allSettled([...pushByUser.entries()].map(async ([userId, jobs]) => {
       for (const p of jobs) {
-        await fetch(url, {
+        await fetch(sendPushUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${serviceKey}`,
@@ -115,6 +127,6 @@ Deno.serve(async (req) => {
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...extraCorsHeaders, 'Content-Type': 'application/json' },
   });
 }
