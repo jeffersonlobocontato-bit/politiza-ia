@@ -35,12 +35,16 @@ function RankingTable({
   showLeaderCount,
 }: {
   rows: ProductivityRow[];
-  metric: 'total' | 'avg';
+  metric: 'total' | 'efficiency';
   emptyHint: string;
   showLeaderCount?: boolean;
 }) {
   const sorted = useMemo(
-    () => [...rows].sort((a, b) => (metric === 'total' ? b.total_score - a.total_score : b.avg_score - a.avg_score)),
+    () => [...rows].sort((a, b) =>
+      metric === 'total'
+        ? b.total_score - a.total_score
+        : (b.efficiency_score ?? 0) - (a.efficiency_score ?? 0),
+    ),
     [rows, metric],
   );
 
@@ -52,14 +56,17 @@ function RankingTable({
     );
   }
 
-  const max = Math.max(1, ...sorted.map(r => (metric === 'total' ? r.total_score : r.avg_score)));
+  const max = Math.max(
+    1,
+    ...sorted.map(r => (metric === 'total' ? r.total_score : r.efficiency_score ?? 0)),
+  );
 
   return (
     <div className="space-y-2">
       {sorted.map((r, idx) => {
-        const value = metric === 'total' ? r.total_score : r.avg_score;
-        const widthPct = (value / max) * 100;
-        const barColor = scoreColor(r.avg_score);
+        const value = metric === 'total' ? r.total_score : (r.efficiency_score ?? 0);
+        const widthPct = metric === 'efficiency' ? value : (value / max) * 100;
+        const barColor = metric === 'efficiency' ? scoreColor(value) : scoreColor(r.avg_score);
         return (
           <Card key={r.id} className="p-3 bg-card border-border">
             <div className="flex items-center gap-3">
@@ -84,7 +91,18 @@ function RankingTable({
                   <span>{r.action_count} ações</span>
                   {showLeaderCount && r.leader_count != null && <span>{r.leader_count} lideranças</span>}
                   <span>{r.people_impacted.toLocaleString('pt-BR')} pessoas</span>
-                  <span>média {r.avg_score} · {scoreLabel(r.avg_score)}</span>
+                  {metric === 'efficiency' ? (
+                    <>
+                      <span>ações {r.actions_score ?? 0}</span>
+                      <span>velocidade {r.speed_score ?? 0}</span>
+                      <span>ativos {r.active_score ?? 0}</span>
+                      {(r.active_count ?? 0) > 0 && (
+                        <span>{r.active_count} ativos · {r.avg_lead_days}d antec.</span>
+                      )}
+                    </>
+                  ) : (
+                    <span>média {r.avg_score} · {scoreLabel(r.avg_score)}</span>
+                  )}
                 </div>
                 <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
                   <div className="h-full rounded-full transition-all"
@@ -94,7 +112,7 @@ function RankingTable({
               <div className="text-right flex-shrink-0">
                 <div className="text-lg font-bold">{value}</div>
                 <div className="text-[10px] text-muted-foreground">
-                  {metric === 'total' ? 'total' : 'média'}
+                  {metric === 'total' ? 'total' : 'eficiência'}
                 </div>
               </div>
             </div>
@@ -109,7 +127,7 @@ export default function Produtividade() {
   const { roles, loading } = useAuth();
   const { activeCandidate } = useCandidate();
   const [period, setPeriod] = useState(30);
-  const [metric, setMetric] = useState<'total' | 'avg'>('total');
+  const [metric, setMetric] = useState<'total' | 'efficiency'>('total');
 
   const isAdminMaster = roles.includes('admin_master' as any);
 
@@ -144,7 +162,7 @@ export default function Produtividade() {
             ))}
           </div>
           <div className="flex rounded-lg border border-border overflow-hidden">
-            {(['total', 'avg'] as const).map(m => (
+            {(['total', 'efficiency'] as const).map(m => (
               <button key={m}
                 onClick={() => setMetric(m)}
                 className={`px-3 py-1.5 text-xs font-medium transition-colors ${

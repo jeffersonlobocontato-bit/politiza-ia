@@ -10,6 +10,12 @@ export interface ProductivityRow {
   leader_count?: number;
   people_impacted: number;
   kind?: 'coordenador' | 'regiao';
+  active_count?: number;
+  avg_lead_days?: number;
+  actions_score?: number;
+  speed_score?: number;
+  active_score?: number;
+  efficiency_score?: number;
 }
 
 export interface ProductivityData {
