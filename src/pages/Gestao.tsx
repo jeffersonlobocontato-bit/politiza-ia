@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCandidate } from '@/contexts/CandidateContext';
@@ -742,7 +741,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
                   <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0 overflow-hidden" align="start">
                 <div className="flex items-center justify-between border-b px-3 py-2">
                   <button
                     type="button"
@@ -754,7 +753,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
                   </button>
                   <span className="text-[10px] text-muted-foreground">{assigneeIds.length}/{team.length}</span>
                 </div>
-                <ScrollArea className="max-h-[480px]">
+                <div className="max-h-[min(480px,55vh)] overflow-y-auto overscroll-contain pr-1">
                   {teamLoading && <div className="px-3 py-4 text-xs text-muted-foreground">Carregando hierarquia...</div>}
                   {!teamLoading && team.length === 0 && candidateId && (
                     <div className="px-3 py-4 text-xs text-muted-foreground">
@@ -798,7 +797,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
                       </div>
                     );
                   })}
-                </ScrollArea>
+                </div>
               </PopoverContent>
             </Popover>
             {selectedMembers.length > 1 && (
