@@ -159,7 +159,7 @@ export function UsersManager() {
   const openEdit = (u: UserRow) => {
     setEditing(u);
     setForm({
-      full_name: u.full_name || '', email: u.email || '', password: '', phone: u.phone || '',
+      full_name: u.full_name || '', email: u.email || '', password: '', phone: u.phone || '', referred_by: u.referred_by || '',
       role: (u.role ?? 'operador_campo') as AppRole,
       macroregion_id: u.macroregion_id || '', microregion: u.microregion || '', municipality: u.municipality || '',
       coordinated_municipalities: u.coordinated_municipalities ?? [],
