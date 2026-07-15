@@ -1,8 +1,6 @@
 // Módulos disponíveis para permissionamento por usuário.
 // A chave é a rota base (mesma usada em AppSidebar / RoleAwareLayout).
 
-import type { AppRole } from '@/types/database';
-
 export interface ModuleDef {
   key: string;
   label: string;
