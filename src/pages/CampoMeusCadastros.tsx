@@ -22,6 +22,7 @@ export default function CampoMeusCadastros() {
   const scope = useMyScope(activeCandidate?.id ?? null);
   const [tab, setTab] = useState<Tab>('assets');
   const [q, setQ] = useState('');
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
 
   const kpi = useMemo(() => ({
     assets: scope.assets.length,
