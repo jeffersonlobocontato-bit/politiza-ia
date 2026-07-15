@@ -105,7 +105,7 @@ export function UsersManager() {
   const [citySearch, setCitySearch] = useState('');
 
   const [form, setForm] = useState({
-    full_name: '', email: '', password: '', phone: '',
+    full_name: '', email: '', password: '', phone: '', referred_by: '',
     role: 'operador_campo' as AppRole,
     macroregion_id: '', microregion: '', municipality: '',
     coordinated_municipalities: [] as string[],
