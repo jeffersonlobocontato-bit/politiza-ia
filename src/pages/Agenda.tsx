@@ -51,6 +51,7 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
   reuniao_empresarios: 'Reunião Empresários',
   encontro_liderancas: 'Encontro Lideranças',
   acao_digital: 'Ação Digital',
+  cadastrar_liderancas: 'Cadastrar Lideranças',
 };
 
 const STATUS_COLORS: Record<string, string> = {
