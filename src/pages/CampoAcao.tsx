@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Smartphone, Camera, CheckCircle, Upload, Loader2 } from 'lucide-react';
-import { useCreateAction } from '@/hooks/useActions';
+import { useCreateAction, useUpdateAction } from '@/hooks/useActions';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { db } from '@/lib/db';
 import { calcImpactScore, scoreColor, scoreLabel } from '@/lib/impactScore';
