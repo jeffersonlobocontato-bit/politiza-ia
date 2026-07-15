@@ -48,7 +48,7 @@ export default function ActionDetailSheet({ actionId, authorName, onClose, onDel
   if (!actionId) return null;
 
   const fmtDate = (iso?: string | null) => iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
-  const impact = action?.impact_score ?? 0;
+  const impact = (action as any)?.impact_score ?? 0;
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" onClick={onClose}>
