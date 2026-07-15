@@ -234,7 +234,7 @@ export default function CampoAcao() {
           <Smartphone className="w-4 h-4" style={{ color: '#5BA0FF' }} />
         </div>
         <div className="min-w-0 flex-1">
-          <h1>Registrar Ação</h1>
+          <h1>{editId ? 'Editar Ação' : 'Registrar Ação'}</h1>
           <p>Execução de campo · {steps.find(s => s.id === step)?.label}</p>
         </div>
       </div>
