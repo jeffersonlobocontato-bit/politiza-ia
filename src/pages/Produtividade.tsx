@@ -75,7 +75,11 @@ function RankingTable({
         const widthPct = metric === 'efficiency' ? value : (value / max) * 100;
         const barColor = metric === 'efficiency' ? scoreColor(value) : scoreColor(r.avg_score);
         return (
-          <Card key={r.id} className="p-3 bg-card border-border">
+          <Card
+            key={r.id}
+            className="p-3 bg-card border-border cursor-pointer hover:border-primary/60 hover:bg-muted/30 transition-colors"
+            onClick={() => onSelect(r, level)}
+          >
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                    style={{
