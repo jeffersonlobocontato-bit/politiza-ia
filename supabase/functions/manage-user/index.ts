@@ -240,16 +240,21 @@ Deno.serve(async (req) => {
         coordinated_municipalities: Array.isArray(coordinated_municipalities) ? coordinated_municipalities : [],
       });
       if (error) return json({ error: error.message }, 400);
+
+      // Busca perfil e vínculos para sincronizar hierarquia.
+      const { data: prof } = await admin.from("profiles").select("full_name, email, phone").eq("id", user_id).maybeSingle();
+      const { data: linksRows } = await admin.from("user_candidates").select("candidate_id").eq("user_id", user_id);
+      const linkedIds = (linksRows ?? []).map((r: any) => r.candidate_id);
+      await syncCampaignMember(
+        user_id,
+        role,
+        { full_name: (prof as any)?.full_name, email: (prof as any)?.email, phone: (prof as any)?.phone },
+        { macroregion_id, microregion, municipality },
+        linkedIds,
+      );
+
       return json({ ok: true });
     }
-
-    if (action === "update_profile") {
-      const { user_id, full_name, phone } = payload;
-      if (!user_id) return json({ error: "user_id obrigatório" }, 400);
-      const tErr1 = await assertCanManageTargetUser(user_id);
-      if (tErr1) return json({ error: tErr1 }, 403);
-      const { error } = await admin.from("profiles").update({
-        full_name, phone: phone || null,
       }).eq("id", user_id);
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true });
