@@ -151,7 +151,7 @@ export function UsersManager() {
   const openCreate = () => {
     setEditing(null);
     const defaultRole: AppRole = (allowedRoles[allowedRoles.length - 1]?.value ?? 'operador_campo') as AppRole;
-    setForm({ full_name: '', email: '', password: '', phone: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', coordinated_municipalities: [], candidate_ids: [] });
+    setForm({ full_name: '', email: '', password: '', phone: '', referred_by: '', role: defaultRole, macroregion_id: '', microregion: '', municipality: '', coordinated_municipalities: [], candidate_ids: [] });
     setCitySearch('');
     setDialogOpen(true);
   };
