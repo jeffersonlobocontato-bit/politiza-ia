@@ -7,6 +7,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Navigate } from 'react-router-dom';
 import { scoreColor, scoreLabel } from '@/lib/impactScore';
+import { ProductivityDetailDialog } from '@/components/produtividade/ProductivityDetailDialog';
+
+type LevelKind = 'macro' | 'micro' | 'leader';
 
 const PERIODS = [
   { value: 7, label: '7 dias' },
@@ -33,11 +36,15 @@ function RankingTable({
   metric,
   emptyHint,
   showLeaderCount,
+  level,
+  onSelect,
 }: {
   rows: ProductivityRow[];
   metric: 'total' | 'efficiency';
   emptyHint: string;
   showLeaderCount?: boolean;
+  level: LevelKind;
+  onSelect: (row: ProductivityRow, level: LevelKind) => void;
 }) {
   const sorted = useMemo(
     () => [...rows].sort((a, b) =>
@@ -68,7 +75,11 @@ function RankingTable({
         const widthPct = metric === 'efficiency' ? value : (value / max) * 100;
         const barColor = metric === 'efficiency' ? scoreColor(value) : scoreColor(r.avg_score);
         return (
-          <Card key={r.id} className="p-3 bg-card border-border">
+          <Card
+            key={r.id}
+            className="p-3 bg-card border-border cursor-pointer hover:border-primary/60 hover:bg-muted/30 transition-colors"
+            onClick={() => onSelect(r, level)}
+          >
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                    style={{
@@ -128,6 +139,8 @@ export default function Produtividade() {
   const { activeCandidate } = useCandidate();
   const [period, setPeriod] = useState(30);
   const [metric, setMetric] = useState<'total' | 'efficiency'>('total');
+  const [detail, setDetail] = useState<{ row: ProductivityRow; level: LevelKind } | null>(null);
+  const openDetail = (row: ProductivityRow, level: LevelKind) => setDetail({ row, level });
 
   const isAdminMaster = roles.includes('admin_master' as any);
 
@@ -198,6 +211,8 @@ export default function Produtividade() {
                 rows={data.macros}
                 metric={metric}
                 showLeaderCount
+                level="macro"
+                onSelect={openDetail}
                 emptyHint="Sem ações pontuadas no período para o nível macro."
               />
             </TabsContent>
@@ -206,6 +221,8 @@ export default function Produtividade() {
                 rows={data.micros}
                 metric={metric}
                 showLeaderCount
+                level="micro"
+                onSelect={openDetail}
                 emptyHint="Sem coordenadores micro com ações pontuadas no período."
               />
             </TabsContent>
@@ -213,12 +230,23 @@ export default function Produtividade() {
               <RankingTable
                 rows={data.leaders}
                 metric={metric}
+                level="leader"
+                onSelect={openDetail}
                 emptyHint="Sem lideranças com ações pontuadas no período."
               />
             </TabsContent>
           </Tabs>
         </>
       )}
+
+      <ProductivityDetailDialog
+        open={!!detail}
+        onOpenChange={(v) => { if (!v) setDetail(null); }}
+        row={detail?.row ?? null}
+        level={detail?.level ?? 'leader'}
+        candidateId={activeCandidate?.id ?? null}
+        periodDays={period}
+      />
     </div>
   );
 }
