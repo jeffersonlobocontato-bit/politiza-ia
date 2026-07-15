@@ -32,6 +32,15 @@ interface ActionRow {
   type: string;
 }
 
+interface MemberRow {
+  id: string;
+  user_id: string | null;
+  email: string | null;
+  name: string | null;
+  supervisor_id: string | null;
+  hierarchy_level: number | null;
+}
+
 export function ProductivityDetailDialog({ open, onOpenChange, row, level, candidateId, periodDays }: Props) {
   const [loading, setLoading] = useState(false);
   const [actions, setActions] = useState<ActionRow[]>([]);
@@ -47,50 +56,59 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
       setError(null);
       setActions([]);
       try {
-        // Resolve creator user ids to filter actions by
+        // Resolve executor user ids from campaign_members, matching the backend ranking.
         const creatorIds = new Set<string>();
 
-        if (level === 'leader') {
-          const { data: lead } = await supabase
-            .from('leaders')
-            .select('created_by')
-            .eq('id', row.id)
-            .maybeSingle();
-          if (lead?.created_by) creatorIds.add(lead.created_by);
-        } else {
-          // macro or micro: row.id is campaign_members.id (unless kind==='regiao')
-          if (row.kind === 'regiao') {
-            const regionId = row.id.replace(/^region:/, '');
-            // fallback: fetch actions by macroregion_id directly
-            let q = supabase
-              .from('actions')
-              .select('id,title,municipality,planned_date,executed_date,executed_people_count,impact_score,status,type,created_at')
-              .is('deleted_at', null)
-              .eq('macroregion_id', regionId);
-            if (candidateId) q = q.eq('candidate_id', candidateId);
-            if (periodDays && periodDays > 0) {
-              const cutoff = new Date(Date.now() - periodDays * 86400000).toISOString();
-              q = q.gte('created_at', cutoff);
-            }
-            const { data, error } = await q.order('planned_date', { ascending: false });
-            if (error) throw error;
-            if (!cancelled) setActions((data as any) ?? []);
-            setLoading(false);
-            return;
-          }
+        let membersQuery = supabase
+          .from('campaign_members')
+          .select('id,user_id,email,name,supervisor_id,hierarchy_level,candidate_id,status')
+          .eq('status', 'ativo')
+          .gte('hierarchy_level', 3)
+          .lte('hierarchy_level', 6);
+        if (candidateId) {
+          membersQuery = membersQuery.or(`candidate_id.is.null,candidate_id.eq.${candidateId}`);
+        }
+        const { data: allMembers, error: membersError } = await membersQuery;
+        if (membersError) throw membersError;
 
-          const { data: cm } = await supabase
-            .from('campaign_members')
-            .select('user_id,email,name')
-            .eq('id', row.id)
-            .maybeSingle();
-          if (cm?.user_id) creatorIds.add(cm.user_id);
-          if (cm?.email || cm?.name) {
-            let pq = supabase.from('profiles').select('id,email,full_name');
-            const filters: string[] = [];
-            if (cm.email) filters.push(`email.ilike.${cm.email}`);
-            if (cm.name) filters.push(`full_name.ilike.${cm.name}`);
-            if (filters.length) pq = pq.or(filters.join(','));
+        const members = ((allMembers as any[]) ?? []) as MemberRow[];
+        const selected = members.find(m => m.id === row.id);
+        if (!selected) {
+          setActions([]);
+          setLoading(false);
+          return;
+        }
+
+        const targetIds = new Set<string>([selected.id]);
+        if (level !== 'leader') {
+          const queue = [selected.id];
+          while (queue.length > 0) {
+            const current = queue.shift()!;
+            members
+              .filter(m => m.supervisor_id === current && !targetIds.has(m.id))
+              .forEach(child => {
+                targetIds.add(child.id);
+                queue.push(child.id);
+              });
+          }
+        }
+
+        const targetMembers = members.filter(m => targetIds.has(m.id));
+        targetMembers.forEach(m => {
+          if (m.user_id) creatorIds.add(m.user_id);
+        });
+
+        const missingUserMembers = targetMembers.filter(m => !m.user_id && (m.email || m.name));
+        if (missingUserMembers.length > 0) {
+          let pq = supabase.from('profiles').select('id,email,full_name');
+          const filters = missingUserMembers.flatMap(m => {
+            const parts: string[] = [];
+            if (m.email) parts.push(`email.ilike.${m.email}`);
+            if (m.name) parts.push(`full_name.ilike.${m.name}`);
+            return parts;
+          });
+          if (filters.length) {
+            pq = pq.or(filters.join(','));
             const { data: profs } = await pq;
             profs?.forEach((p: any) => p?.id && creatorIds.add(p.id));
           }
@@ -106,6 +124,8 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
           .from('actions')
           .select('id,title,municipality,planned_date,executed_date,executed_people_count,impact_score,status,type,created_at')
           .is('deleted_at', null)
+          .eq('status', 'realizada')
+          .not('impact_score', 'is', null)
           .in('created_by', Array.from(creatorIds));
         if (candidateId) q = q.eq('candidate_id', candidateId);
         if (periodDays && periodDays > 0) {

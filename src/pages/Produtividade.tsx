@@ -104,7 +104,7 @@ function RankingTable({
                   <span>{r.people_impacted.toLocaleString('pt-BR')} pessoas</span>
                   {metric === 'efficiency' ? (
                     <>
-                      <span>ações {r.actions_score ?? 0}</span>
+                      <span>volume {r.actions_score ?? 0}</span>
                       <span>velocidade {r.speed_score ?? 0}</span>
                       <span>ativos {r.active_score ?? 0}</span>
                       {(r.active_count ?? 0) > 0 && (
@@ -123,7 +123,7 @@ function RankingTable({
               <div className="text-right flex-shrink-0">
                 <div className="text-lg font-bold">{value}</div>
                 <div className="text-[10px] text-muted-foreground">
-                  {metric === 'total' ? 'total' : 'eficiência'}
+                  {metric === 'total' ? 'impacto' : 'eficiência'}
                 </div>
               </div>
             </div>
@@ -194,8 +194,8 @@ export default function Produtividade() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <KpiCard icon={Activity} label="Ações pontuadas" value={data.totals.action_count} color="#5BA0FF" />
-            <KpiCard icon={Target} label="Score total" value={data.totals.total_score.toLocaleString('pt-BR')} color="#2FA85A" />
-            <KpiCard icon={TrendingUp} label="Score médio" value={data.totals.avg_score} hint={scoreLabel(data.totals.avg_score)} color="#F59E0B" />
+            <KpiCard icon={Target} label="Impacto total" value={data.totals.total_score.toLocaleString('pt-BR')} color="#2FA85A" />
+            <KpiCard icon={TrendingUp} label="Impacto médio" value={data.totals.avg_score} hint={scoreLabel(data.totals.avg_score)} color="#F59E0B" />
             <KpiCard icon={Users} label="Pessoas impactadas" value={data.totals.people_impacted.toLocaleString('pt-BR')} color="#A78BFA" />
           </div>
 
