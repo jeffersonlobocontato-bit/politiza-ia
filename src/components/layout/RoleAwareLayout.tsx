@@ -61,5 +61,11 @@ export function RoleAwareLayout({ children }: { children: ReactNode }) {
     if (!allowed) return <Navigate to="/" replace />;
   }
 
+  // Auditor de Hierarquia: leitura restrita a um conjunto de módulos.
+  if (!isAdmin && isAuditorHierarquia) {
+    const allowed = AUDITOR_HIERARQUIA_ALLOWED.some(p => location.pathname.startsWith(p));
+    if (!allowed) return <Navigate to="/hierarquia" replace />;
+  }
+
   return <AppLayout>{children}</AppLayout>;
 }
