@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Users, BarChart3, LogOut, Home, UserCog } from 'lucide-react';
+import { ClipboardCheck, Users, BarChart3, LogOut, Home, UserCog, FolderKanban } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstallPrompt } from './InstallPrompt';
 
@@ -12,6 +12,7 @@ const tabs = [
   { to: '/campo', icon: Home, label: 'Início', end: true },
   { to: '/campo/acao', icon: ClipboardCheck, label: 'Ações', end: false },
   { to: '/campo/liderancas', icon: Users, label: 'Lideranças', end: false },
+  { to: '/campo/meus-cadastros', icon: FolderKanban, label: 'Meus', end: false },
   { to: '/campo/dashboard', icon: BarChart3, label: 'Painel', end: false },
 ];
 
