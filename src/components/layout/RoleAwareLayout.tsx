@@ -10,6 +10,12 @@ const GESTOR_OPERACIONAL_ALLOWED = [
   '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
 ];
 
+const AUDITOR_HIERARQUIA_ALLOWED = [
+  '/hierarquia', '/gestao', '/mapa', '/agenda', '/meus-cadastros',
+  '/ativos', '/proporcional', '/territorios', '/municipios',
+  '/produtividade', '/eventos', '/acoes', '/chapas',
+];
+
 /**
  * Roteia o usuário para o layout correto e impede que lideranças de campo
  * acessem rotas administrativas (sempre as redireciona para /campo).
