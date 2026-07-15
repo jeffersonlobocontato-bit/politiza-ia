@@ -390,7 +390,7 @@ export default function Gestao() {
         isAdminMaster={isAdminMaster}
         defaultCandidateId={scope === 'all' || scope === 'active' ? activeCandidate?.id ?? null : scope}
         candidates={allActiveCandidates}
-        onCreate={(input) => createTask.mutateAsync(input).then(() => setModalOpen(false))}
+        onCreate={(input) => createTask.mutateAsync(input)}
         loading={createTask.isPending}
       />
     </div>
