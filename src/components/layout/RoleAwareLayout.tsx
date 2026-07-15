@@ -21,7 +21,7 @@ const AUDITOR_HIERARQUIA_ALLOWED = [
  * acessem rotas administrativas (sempre as redireciona para /campo).
  */
 export function RoleAwareLayout({ children }: { children: ReactNode }) {
-  const { isCampoOperator, isAdmin, roles, loading } = useAuth();
+  const { isCampoOperator, isAdmin, isAuditorHierarquia, roles, loading } = useAuth();
   const { cruzamentoOnly, loading: cruzLoading } = useCruzamentoMoroAccess();
   const location = useLocation();
 
