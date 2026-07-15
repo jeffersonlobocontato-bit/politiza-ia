@@ -37,6 +37,12 @@ export default function Login() {
       setError('Credenciais inválidas. Verifique e-mail e senha.');
       setLoading(false);
     } else {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (u?.user_metadata?.must_change_password) {
+        navigate('/reset-password', { replace: true });
+        return;
+      }
       navigate(targetForUser(), { replace: true });
     }
   };

@@ -33,7 +33,10 @@ export default function ResetPassword() {
     }
     setLoading(true);
     setError(null);
-    const { error: err } = await supabase.auth.updateUser({ password });
+    const { error: err } = await supabase.auth.updateUser({
+      password,
+      data: { must_change_password: false },
+    });
     setLoading(false);
     if (err) {
       setError('Não foi possível atualizar a senha. O link pode ter expirado.');
