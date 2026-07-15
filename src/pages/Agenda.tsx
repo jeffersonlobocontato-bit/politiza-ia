@@ -27,6 +27,7 @@ const TYPE_OPTIONS: { value: DbActionType; label: string }[] = [
   { value: 'reuniao_empresarios', label: 'Reunião Empresários' },
   { value: 'encontro_liderancas', label: 'Encontro Lideranças' },
   { value: 'acao_digital', label: 'Ação Digital' },
+  { value: 'cadastrar_liderancas' as DbActionType, label: 'Cadastrar Lideranças' },
 ];
 const PRIORITY_OPTIONS: { value: DbPriorityLevel; label: string }[] = [
   { value: 'critica', label: 'Crítica' },
@@ -50,6 +51,7 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
   reuniao_empresarios: 'Reunião Empresários',
   encontro_liderancas: 'Encontro Lideranças',
   acao_digital: 'Ação Digital',
+  cadastrar_liderancas: 'Cadastrar Lideranças',
 };
 
 const STATUS_COLORS: Record<string, string> = {

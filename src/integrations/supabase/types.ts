@@ -3377,6 +3377,7 @@ export type Database = {
         | "encontro_liderancas"
         | "acao_digital"
         | "ativacao_campo"
+        | "cadastrar_liderancas"
       alert_level: "critico" | "atencao" | "oportunidade" | "info"
       alert_status: "novo" | "em_analise" | "resolvido"
       alignment_status:
@@ -3616,6 +3617,7 @@ export const Constants = {
         "encontro_liderancas",
         "acao_digital",
         "ativacao_campo",
+        "cadastrar_liderancas",
       ],
       alert_level: ["critico", "atencao", "oportunidade", "info"],
       alert_status: ["novo", "em_analise", "resolvido"],
