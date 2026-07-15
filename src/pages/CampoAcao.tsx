@@ -134,8 +134,29 @@ export default function CampoAcao() {
   const impactColor = scoreColor(impactScore);
   const impactLabel = scoreLabel(impactScore);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!geoValid) return;
+    if (editId) {
+      await updateAction.mutateAsync({
+        id: editId,
+        title: input.actionTitle || 'Ação de Campo',
+        description: input.observations || null,
+        municipality: geo.city,
+        lat: geo.lat!,
+        lng: geo.lng!,
+        planned_date: input.executedDate,
+        planned_time: input.executedTime,
+        executed_date: input.executedDate,
+        executed_people_count: parseInt(input.peopleCount) || 0,
+        estimated_impact: parseInt(input.peopleCount) || 0,
+        observations: input.observations || null,
+        evidence_photos: photos,
+        impact_score: impactScore,
+        municipality_population_snapshot: cityPopulation,
+      } as any);
+      navigate('/meus-cadastros');
+      return;
+    }
     createAction.mutate({
       title: input.actionTitle || 'Ação de Campo',
       type: 'mobilizacao_comunitaria',
