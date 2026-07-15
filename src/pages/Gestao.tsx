@@ -563,12 +563,14 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
   const [priority, setPriority] = useState<TaskPriority>('normal');
   const [dueDate, setDueDate] = useState('');
   const [candidateId, setCandidateId] = useState<string | null>(defaultCandidateId);
-  const [assigneeId, setAssigneeId] = useState<string>('none');
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const { data: team = [], isLoading: teamLoading } = useAssignableTeam(candidateId);
   const { data: myMember } = useMyCampaignMember(candidateId);
 
-  // Agrupa por nível hierárquico para exibir como grupos no Select
+  // Filtro apenas para coordenadores (níveis 3-5) e lideranças (6). Ordena por nível.
   const groupedTeam = useMemo(() => {
     const groups = new Map<number, typeof team>();
     team.forEach(m => {
@@ -585,29 +587,55 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
     return names[lvl] ?? `Nível ${lvl}`;
   };
 
-  // Reset when modal opens
+  const toggle = (id: string) =>
+    setAssigneeIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const allIds = useMemo(() => team.map(m => m.id), [team]);
+  const allSelected = allIds.length > 0 && assigneeIds.length === allIds.length;
+  const toggleAll = () => setAssigneeIds(allSelected ? [] : allIds);
+  const toggleLevel = (members: typeof team) => {
+    const ids = members.map(m => m.id);
+    const allIn = ids.every(id => assigneeIds.includes(id));
+    setAssigneeIds(prev => allIn ? prev.filter(x => !ids.includes(x)) : Array.from(new Set([...prev, ...ids])));
+  };
+
+  const selectedMembers = team.filter(m => assigneeIds.includes(m.id));
+
   const handleClose = () => {
     setTitle(''); setDescription(''); setArea('central'); setPriority('normal');
-    setDueDate(''); setCandidateId(defaultCandidateId); setAssigneeId('none');
+    setDueDate(''); setCandidateId(defaultCandidateId); setAssigneeIds([]); setPickerOpen(false);
     onClose();
   };
 
-  const submit = () => {
-    if (!title.trim()) return;
-    const assignee = team.find(m => m.id === assigneeId);
-    onCreate({
-      title: title.trim(),
-      description: description.trim() || null,
-      area, priority,
-      due_date: dueDate || null,
-      candidate_id: candidateId,
-      assigned_to: assignee?.user_id ?? null,
-      assigned_name: assignee?.name ?? null,
-    }).then(handleClose);
+  const submit = async () => {
+    if (!title.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      const base = {
+        title: title.trim(),
+        description: description.trim() || null,
+        area, priority,
+        due_date: dueDate || null,
+        candidate_id: candidateId,
+      };
+      if (selectedMembers.length === 0) {
+        await onCreate({ ...base, assigned_to: null, assigned_name: null });
+      } else {
+        // Cria uma tarefa por responsável (delegação em lote).
+        for (const m of selectedMembers) {
+          await onCreate({ ...base, assigned_to: m.user_id ?? null, assigned_name: m.name });
+        }
+      }
+      handleClose();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  const busy = loading || submitting;
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && !busy && handleClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Nova tarefa</DialogTitle>
@@ -643,7 +671,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
           {isAdminMaster && candidates.length > 1 && (
             <div>
               <Label className="text-xs">Candidato (delegação)</Label>
-              <Select value={candidateId ?? ''} onValueChange={(v) => { setCandidateId(v || null); setAssigneeId('none'); }}>
+              <Select value={candidateId ?? ''} onValueChange={(v) => { setCandidateId(v || null); setAssigneeIds([]); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {candidates.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -673,50 +701,118 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">Prazo</Label>
-              <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-            </div>
-            <div>
-              <Label className="text-xs flex items-center justify-between">
-                <span>Delegar a (subordinado)</span>
-                <span className="text-[10px] text-muted-foreground font-normal">{team.length} disponível{team.length === 1 ? '' : 'is'}</span>
-              </Label>
-              <Select value={assigneeId} onValueChange={setAssigneeId} disabled={!candidateId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={candidateId ? 'Selecione um subordinado' : 'Escolha um candidato'} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[320px]">
-                  <SelectItem value="none">Sem responsável</SelectItem>
-                  {teamLoading && <div className="px-2 py-1.5 text-xs text-muted-foreground">Carregando hierarquia...</div>}
+          <div>
+            <Label className="text-xs">Prazo</Label>
+            <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+          </div>
+
+          <div>
+            <Label className="text-xs flex items-center justify-between">
+              <span>Delegar a</span>
+              <span className="text-[10px] text-muted-foreground font-normal">
+                {team.length} disponível{team.length === 1 ? '' : 'is'} · {assigneeIds.length} selecionado{assigneeIds.length === 1 ? '' : 's'}
+              </span>
+            </Label>
+
+            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!candidateId}
+                  className="w-full justify-between font-normal h-auto min-h-10 py-2"
+                >
+                  <span className="flex flex-wrap gap-1 items-center text-left">
+                    {selectedMembers.length === 0 && (
+                      <span className="text-muted-foreground text-sm">
+                        {candidateId ? 'Selecione um ou mais responsáveis' : 'Escolha um candidato'}
+                      </span>
+                    )}
+                    {selectedMembers.slice(0, 4).map(m => (
+                      <Badge key={m.id} variant="secondary" className="text-[10px] font-normal">
+                        {m.name}
+                      </Badge>
+                    ))}
+                    {selectedMembers.length > 4 && (
+                      <Badge variant="secondary" className="text-[10px] font-normal">
+                        +{selectedMembers.length - 4}
+                      </Badge>
+                    )}
+                  </span>
+                  <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <div className="flex items-center justify-between border-b px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={toggleAll}
+                    className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Check className="w-3 h-3" />
+                    {allSelected ? 'Limpar seleção' : 'Selecionar todos'}
+                  </button>
+                  <span className="text-[10px] text-muted-foreground">{assigneeIds.length}/{team.length}</span>
+                </div>
+                <ScrollArea className="max-h-[320px]">
+                  {teamLoading && <div className="px-3 py-4 text-xs text-muted-foreground">Carregando hierarquia...</div>}
                   {!teamLoading && team.length === 0 && candidateId && (
-                    <div className="px-2 py-2 text-xs text-muted-foreground">
-                      Você não possui subordinados cadastrados neste candidato para delegar.
+                    <div className="px-3 py-4 text-xs text-muted-foreground">
+                      Nenhum subordinado cadastrado para delegar.
                     </div>
                   )}
-                  {groupedTeam.map(([lvl, members]) => (
-                    <div key={lvl}>
-                      <div className="px-2 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                        {levelLabel(lvl)}
+                  {groupedTeam.map(([lvl, members]) => {
+                    const ids = members.map(m => m.id);
+                    const allIn = ids.every(id => assigneeIds.includes(id));
+                    return (
+                      <div key={lvl} className="py-1">
+                        <button
+                          type="button"
+                          onClick={() => toggleLevel(members)}
+                          className="w-full flex items-center justify-between px-3 py-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground hover:bg-accent"
+                        >
+                          <span>{levelLabel(lvl)} · {members.length}</span>
+                          <span className="text-primary normal-case tracking-normal">
+                            {allIn ? 'Remover todos' : 'Selecionar todos'}
+                          </span>
+                        </button>
+                        {members.map(m => {
+                          const checked = assigneeIds.includes(m.id);
+                          return (
+                            <label
+                              key={m.id}
+                              className="flex items-start gap-2 px-3 py-1.5 hover:bg-accent cursor-pointer"
+                            >
+                              <Checkbox checked={checked} onCheckedChange={() => toggle(m.id)} className="mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-medium truncate">{m.name}</div>
+                                {(m.role || m.municipality) && (
+                                  <div className="text-[10px] text-muted-foreground truncate">
+                                    {m.role}{m.role && m.municipality ? ' · ' : ''}{m.municipality}
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          );
+                        })}
                       </div>
-                      {members.map(m => (
-                        <SelectItem key={m.id} value={m.id}>
-                          <span className="font-medium">{m.name}</span>
-                          {m.role && <span className="text-muted-foreground"> · {m.role}</span>}
-                          {m.municipality && <span className="text-muted-foreground"> · {m.municipality}</span>}
-                        </SelectItem>
-                      ))}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                    );
+                  })}
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
+            {selectedMembers.length > 1 && (
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Será criada uma tarefa individual para cada um dos {selectedMembers.length} responsáveis.
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
-          <Button onClick={submit} disabled={loading || !title.trim()}>{loading ? 'Criando...' : 'Criar tarefa'}</Button>
+          <Button variant="ghost" onClick={handleClose} disabled={busy}>Cancelar</Button>
+          <Button onClick={submit} disabled={busy || !title.trim()}>
+            {busy ? 'Criando...' : selectedMembers.length > 1 ? `Criar ${selectedMembers.length} tarefas` : 'Criar tarefa'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
