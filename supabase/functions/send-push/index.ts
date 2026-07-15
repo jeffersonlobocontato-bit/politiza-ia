@@ -61,11 +61,6 @@ Deno.serve(async (req) => {
       return json({ error: 'payload.title/body required' }, 400);
     }
 
-    const admin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { auth: { persistSession: false } },
-    );
 
     const { data: subs, error } = await admin
       .from('push_subscriptions')
@@ -105,6 +100,6 @@ Deno.serve(async (req) => {
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...extraCors, 'Content-Type': 'application/json' },
   });
 }
