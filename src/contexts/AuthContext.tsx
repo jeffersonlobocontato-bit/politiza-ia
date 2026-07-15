@@ -85,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lastLoadedUserIdRef.current = null;
         setProfile(null);
         setRoles([]);
+        setAllowedModules(null);
         setLoading(false);
         return;
       }
@@ -97,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setProfile(null);
       setRoles([]);
+      setAllowedModules(null);
       void loadUserData(sess.user.id, seq);
     };
 
