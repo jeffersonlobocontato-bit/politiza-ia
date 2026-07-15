@@ -116,7 +116,7 @@ export function UsersManager() {
   const load = async () => {
     setLoading(true);
     const [{ data: profiles }, { data: roles }, { data: links }, { data: cands }, { data: macrosData }, { data: munData }] = await Promise.all([
-      (supabase as any).from('profiles').select('id, full_name, email, phone').order('full_name'),
+      (supabase as any).from('profiles').select('id, full_name, email, phone, referred_by').order('full_name'),
       (supabase as any).from('user_roles').select('user_id, role, macroregion_id, microregion, municipality, coordinated_municipalities'),
       (supabase as any).from('user_candidates').select('user_id, candidate_id'),
       (supabase as any).from('candidates').select('id, name, cargo, party').order('name'),
