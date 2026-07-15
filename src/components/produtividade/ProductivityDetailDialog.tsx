@@ -36,6 +36,7 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
   const [loading, setLoading] = useState(false);
   const [actions, setActions] = useState<ActionRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !row) return;
