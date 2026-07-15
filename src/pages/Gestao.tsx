@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   LayoutGrid, CheckSquare, BarChart2, Plus, X, AlertCircle, Clock, CheckCircle2, Loader2,
-  Calendar, Users, TrendingUp, Flag, Trash2,
+  Calendar, Users, TrendingUp, Flag, Trash2, ChevronDown, Check,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
