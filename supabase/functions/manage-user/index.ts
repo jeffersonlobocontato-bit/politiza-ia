@@ -186,6 +186,7 @@ Deno.serve(async (req) => {
         microregion: microregion || null,
         municipality: municipality || null,
         coordinated_municipalities: Array.isArray(coordinated_municipalities) ? coordinated_municipalities : [],
+        allowed_modules: Array.isArray(allowed_modules) ? allowed_modules : null,
       });
       if (roleErr) return json({ error: roleErr.message }, 400);
 
