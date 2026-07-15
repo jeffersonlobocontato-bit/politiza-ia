@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       lastLoadedUserIdRef.current = userId;
       setProfile(userData.profile);
       setRoles(userData.roles);
+      setAllowedModules(userData.allowedModules);
       setLoading(false);
     };
 
