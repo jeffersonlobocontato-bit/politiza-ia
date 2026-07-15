@@ -37,7 +37,7 @@ export const ALL_MODULES: ModuleDef[] = [
 // Papéis onde a lista de permissões customizáveis faz sentido (Nível 2
 // e assessores administrativos). admin_master fica sempre livre; papéis
 // operacionais N3-N6 usam o layout de Campo.
-const CUSTOMIZABLE_ROLES: AppRole[] = [
+const CUSTOMIZABLE_ROLES: string[] = [
   'coordenador_geral',
   'coordenador_estadual',
   'gestor_estadual_novo',
@@ -47,9 +47,9 @@ const CUSTOMIZABLE_ROLES: AppRole[] = [
   'analista_pesquisa',
   'executivo_leitura',
   'gestor_operacional',
-] as AppRole[];
+];
 
-export function supportsCustomModules(role: AppRole | null | undefined): boolean {
+export function supportsCustomModules(role: string | null | undefined): boolean {
   return !!role && CUSTOMIZABLE_ROLES.includes(role);
 }
 
