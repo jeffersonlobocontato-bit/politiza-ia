@@ -73,7 +73,11 @@ export default function Acoes() {
 
   const filtered = actions.filter(a => {
     const q = search.toLowerCase();
-    const matchSearch = !search || a.title.toLowerCase().includes(q) || (a.municipality ?? '').toLowerCase().includes(q);
+    const matchSearch = !search
+      || a.title.toLowerCase().includes(q)
+      || (a.municipality ?? '').toLowerCase().includes(q)
+      || (a.responsible ?? '').toLowerCase().includes(q)
+      || ((a.team ?? []) as string[]).some(t => (t ?? '').toLowerCase().includes(q));
     const matchStatus = statusFilter === 'all' || a.status === statusFilter;
     const matchMacro = macroFilter === 'all' || a.macroregion_id === macroFilter;
     return matchSearch && matchStatus && matchMacro;
@@ -275,7 +279,7 @@ export default function Acoes() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar ação ou município..."
+            placeholder="Buscar ação, município ou membro da equipe..."
             className="w-full h-9 rounded-lg border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>

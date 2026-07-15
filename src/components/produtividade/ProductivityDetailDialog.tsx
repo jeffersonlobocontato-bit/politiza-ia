@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Activity, Target, Users, MapPin, Zap, Calendar } from 'lucide-react';
 import { scoreColor, scoreLabel } from '@/lib/impactScore';
 import type { ProductivityRow } from '@/hooks/useProductivity';
+import ActionDetailSheet from '@/components/campo/ActionDetailSheet';
 
 type Level = 'macro' | 'micro' | 'leader';
 
@@ -35,6 +36,7 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
   const [loading, setLoading] = useState(false);
   const [actions, setActions] = useState<ActionRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !row) return;
@@ -229,7 +231,11 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
               ) : (
                 <div className="space-y-1.5">
                   {actions.map(a => (
-                    <Card key={a.id} className="p-3 bg-card border-border">
+                    <Card
+                      key={a.id}
+                      className="p-3 bg-card border-border cursor-pointer hover:border-primary/60 hover:bg-muted/30 transition-colors"
+                      onClick={() => setSelectedActionId(a.id)}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="text-sm font-medium truncate">{a.title}</div>
@@ -255,6 +261,14 @@ export function ProductivityDetailDialog({ open, onOpenChange, row, level, candi
           </div>
         )}
       </DialogContent>
+      <ActionDetailSheet
+        actionId={selectedActionId}
+        onClose={() => setSelectedActionId(null)}
+        onDelete={() => {
+          setSelectedActionId(null);
+          setActions(prev => prev.filter(a => a.id !== selectedActionId));
+        }}
+      />
     </Dialog>
   );
 }
