@@ -36,11 +36,15 @@ function RankingTable({
   metric,
   emptyHint,
   showLeaderCount,
+  level,
+  onSelect,
 }: {
   rows: ProductivityRow[];
   metric: 'total' | 'efficiency';
   emptyHint: string;
   showLeaderCount?: boolean;
+  level: LevelKind;
+  onSelect: (row: ProductivityRow, level: LevelKind) => void;
 }) {
   const sorted = useMemo(
     () => [...rows].sort((a, b) =>
