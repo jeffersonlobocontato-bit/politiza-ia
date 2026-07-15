@@ -510,12 +510,13 @@ export default function Hierarquia() {
                 <input value={form.microregion} onChange={e => updateForm('microregion', e.target.value)} placeholder="Ex: Londrina" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
               {(() => {
-                const lvl = parseInt(form.hierarchy_level);
-                if (lvl < 4) return null;
-                // Allowed superior levels (skip-level permitido até o Estadual)
-                const allowedLevels: number[] = lvl === 4 ? [3, 2]
-                  : lvl === 5 ? [4, 3, 2]
-                  : /* 6 */     [5];
+                 const lvl = parseInt(form.hierarchy_level);
+                 if (lvl < 3) return null;
+                 // Allowed superior levels (skip-level permitido até o Estadual)
+                 const allowedLevels: number[] = lvl === 3 ? [2]
+                   : lvl === 4 ? [3, 2]
+                   : lvl === 5 ? [4, 3, 2]
+                   : /* 6 */     [5, 4, 3, 2];
                 const filterByLevel = (lv: number, m: DbCampaignMember) => {
                   if (m.id === editingId) return false;
                   if (lv === 5) {
