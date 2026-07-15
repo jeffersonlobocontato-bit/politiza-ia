@@ -500,7 +500,72 @@ export function UsersManager() {
                     })}
                 </div>
               </div>
+
+            {/* Módulos permitidos (Nível 2 e assessores) */}
+            {supportsCustomModules(form.role) && (
+              <div className="space-y-2 border border-primary/30 bg-primary/5 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    Ferramentas com acesso
+                    {form.allowed_modules && (
+                      <span className="text-[10px] font-normal text-muted-foreground">
+                        ({form.allowed_modules.length}/{ALL_MODULES.length})
+                      </span>
+                    )}
+                  </Label>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <button type="button" className="text-primary hover:underline"
+                      onClick={() => setForm(f => ({ ...f, allowed_modules: ALL_MODULES.map(m => m.key) }))}>
+                      Marcar todos
+                    </button>
+                    <span className="text-muted-foreground">·</span>
+                    <button type="button" className="text-primary hover:underline"
+                      onClick={() => setForm(f => ({ ...f, allowed_modules: [] }))}>
+                      Limpar
+                    </button>
+                    <span className="text-muted-foreground">·</span>
+                    <button type="button" className="text-muted-foreground hover:underline"
+                      onClick={() => setForm(f => ({ ...f, allowed_modules: null }))}>
+                      Usar padrão do papel
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Marque as ferramentas que este membro poderá acessar. Deixe em "padrão do papel" para seguir a regra do nível de acesso.
+                </p>
+                {form.allowed_modules !== null && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 max-h-64 overflow-y-auto rounded-lg border border-border p-2 bg-background">
+                    {ALL_MODULES.map(m => {
+                      const checked = form.allowed_modules?.includes(m.key) ?? false;
+                      return (
+                        <label key={m.key}
+                          className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-xs ${checked ? 'bg-primary/15 border border-primary/30' : 'hover:bg-muted'}`}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={e => {
+                              setForm(f => {
+                                const base = f.allowed_modules ?? [];
+                                return {
+                                  ...f,
+                                  allowed_modules: e.target.checked
+                                    ? Array.from(new Set([...base, m.key]))
+                                    : base.filter(k => k !== m.key),
+                                };
+                              });
+                            }}
+                          />
+                          <span className="truncate">{m.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             )}
+
+
 
 
             {/* Candidatos vinculados */}
