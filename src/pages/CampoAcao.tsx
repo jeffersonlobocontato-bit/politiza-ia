@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Smartphone, Camera, CheckCircle, Upload, Loader2 } from 'lucide-react';
-import { useCreateAction } from '@/hooks/useActions';
+import { useCreateAction, useUpdateAction } from '@/hooks/useActions';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
 import { db } from '@/lib/db';
 import { calcImpactScore, scoreColor, scoreLabel } from '@/lib/impactScore';
@@ -19,8 +20,13 @@ interface FieldInput {
 
 export default function CampoAcao() {
   const createAction = useCreateAction();
+  const updateAction = useUpdateAction();
   const { user } = useAuth();
   const { activeCandidate } = useCandidate();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const editId = searchParams.get('edit');
+  const [loadingEdit, setLoadingEdit] = useState<boolean>(!!editId);
   const [step, setStep] = useState<'form' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
     actionTitle: '',
@@ -36,6 +42,34 @@ export default function CampoAcao() {
   const [cityPopulation, setCityPopulation] = useState<number | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const galleryInput = useRef<HTMLInputElement>(null);
+
+  // Load existing action when editing
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingEdit(true);
+      const { data, error } = await db.from('actions').select('*').eq('id', editId).maybeSingle();
+      if (cancelled) return;
+      if (error || !data) {
+        toast.error('Não foi possível carregar a ação.');
+        setLoadingEdit(false);
+        return;
+      }
+      const a: any = data;
+      setInput({
+        actionTitle: a.title ?? '',
+        executedDate: (a.executed_date ?? a.planned_date ?? new Date().toISOString().split('T')[0]).slice(0, 10),
+        executedTime: (a.planned_time ?? new Date().toTimeString().slice(0, 5)).slice(0, 5),
+        peopleCount: String(a.executed_people_count ?? a.estimated_impact ?? ''),
+        observations: a.observations ?? a.description ?? '',
+      });
+      setGeo({ city: a.municipality ?? '', lat: a.lat ?? null, lng: a.lng ?? null });
+      setPhotos(Array.isArray(a.evidence_photos) ? a.evidence_photos : []);
+      setLoadingEdit(false);
+    })();
+    return () => { cancelled = true; };
+  }, [editId]);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
   const geoValid = geo.city.trim() !== '' && geo.lat !== null && geo.lng !== null;
@@ -100,8 +134,29 @@ export default function CampoAcao() {
   const impactColor = scoreColor(impactScore);
   const impactLabel = scoreLabel(impactScore);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!geoValid) return;
+    if (editId) {
+      await updateAction.mutateAsync({
+        id: editId,
+        title: input.actionTitle || 'Ação de Campo',
+        description: input.observations || null,
+        municipality: geo.city,
+        lat: geo.lat!,
+        lng: geo.lng!,
+        planned_date: input.executedDate,
+        planned_time: input.executedTime,
+        executed_date: input.executedDate,
+        executed_people_count: parseInt(input.peopleCount) || 0,
+        estimated_impact: parseInt(input.peopleCount) || 0,
+        observations: input.observations || null,
+        evidence_photos: photos,
+        impact_score: impactScore,
+        municipality_population_snapshot: cityPopulation,
+      } as any);
+      navigate('/meus-cadastros');
+      return;
+    }
     createAction.mutate({
       title: input.actionTitle || 'Ação de Campo',
       type: 'mobilizacao_comunitaria',
@@ -179,7 +234,7 @@ export default function CampoAcao() {
           <Smartphone className="w-4 h-4" style={{ color: '#5BA0FF' }} />
         </div>
         <div className="min-w-0 flex-1">
-          <h1>Registrar Ação</h1>
+          <h1>{editId ? 'Editar Ação' : 'Registrar Ação'}</h1>
           <p>Execução de campo · {steps.find(s => s.id === step)?.label}</p>
         </div>
       </div>
@@ -407,7 +462,7 @@ export default function CampoAcao() {
               </div>
             )}
             <button onClick={handleSubmit} disabled={!geoValid} className="campo-cta w-full">
-              <CheckCircle className="w-5 h-5" /> Confirmar e Enviar
+              <CheckCircle className="w-5 h-5" /> {editId ? 'Salvar alterações' : 'Confirmar e Enviar'}
             </button>
           </div>
         )}
