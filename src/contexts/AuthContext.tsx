@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<DbProfile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
+  const [allowedModules, setAllowedModules] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(true);
   const lastLoadedUserIdRef = useRef<string | null>(null);
   const loadSeqRef = useRef(0);
