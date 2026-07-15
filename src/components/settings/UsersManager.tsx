@@ -63,6 +63,7 @@ type UserRow = {
   microregion: string | null;
   municipality: string | null;
   coordinated_municipalities: string[];
+  allowed_modules: string[] | null;
   candidate_ids: string[];
 };
 
