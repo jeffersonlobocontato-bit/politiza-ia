@@ -168,6 +168,7 @@ export function UsersManager() {
       macroregion_id: u.macroregion_id || '', microregion: u.microregion || '', municipality: u.municipality || '',
       coordinated_municipalities: u.coordinated_municipalities ?? [],
       candidate_ids: u.candidate_ids ?? [],
+      allowed_modules: u.allowed_modules ?? null,
     });
     setCitySearch('');
     setDialogOpen(true);
