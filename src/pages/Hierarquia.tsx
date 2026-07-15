@@ -517,24 +517,11 @@ export default function Hierarquia() {
                    : lvl === 4 ? [3, 2]
                    : lvl === 5 ? [4, 3, 2]
                    : /* 6 */     [5, 4, 3, 2];
-                const filterByLevel = (lv: number, m: DbCampaignMember) => {
-                  if (m.id === editingId) return false;
-                  if (lv === 5) {
-                    return !geoForm.city || (m.municipality ?? '').toLowerCase() === geoForm.city.toLowerCase();
-                  }
-                  if (lv === 4) {
-                    return (!form.macroregion_id || m.macroregion_id === form.macroregion_id) &&
-                      (!form.microregion || (m.microregion ?? '').toLowerCase() === form.microregion.toLowerCase());
-                  }
-                  if (lv === 3) {
-                    return !form.macroregion_id || m.macroregion_id === form.macroregion_id;
-                  }
-                  return true; // nível 2 (Estadual): sem filtro territorial
-                };
+                 const canBeSupervisor = (m: DbCampaignMember) => m.id !== editingId;
                 const groups = allowedLevels.map(lv => ({
                   level: lv,
                   label: LEVEL_LABELS[lv],
-                  options: members.filter(m => m.hierarchy_level === lv && filterByLevel(lv, m)),
+                   options: allMembers.filter(m => m.hierarchy_level === lv && canBeSupervisor(m)),
                 }));
                 const total = groups.reduce((s, g) => s + g.options.length, 0);
                 return (
@@ -554,7 +541,7 @@ export default function Hierarquia() {
                     </select>
                     {lvl !== 6 && (
                       <p className="text-[10px] text-muted-foreground mt-1">
-                        Se ainda não houver coordenador macro/micro, vincule diretamente ao estadual. Pode ser re-hierarquizado depois.
+                        A lista mostra todos os superiores cadastrados nos níveis permitidos, sem limitar por território.
                       </p>
                     )}
                     {total === 0 && (
