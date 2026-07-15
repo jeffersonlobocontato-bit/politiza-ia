@@ -112,6 +112,7 @@ export function UsersManager() {
     macroregion_id: '', microregion: '', municipality: '',
     coordinated_municipalities: [] as string[],
     candidate_ids: [] as string[],
+    allowed_modules: null as string[] | null,
   });
   const [newPassword, setNewPassword] = useState('');
 
