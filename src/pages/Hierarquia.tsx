@@ -287,6 +287,7 @@ export default function Hierarquia() {
       status: form.status,
       observations: form.observations || null,
       photo_url: form.photo_url || null,
+      referred_by: form.referred_by || null,
       user_id: null as string | null,
       created_by: null as string | null,
     };
