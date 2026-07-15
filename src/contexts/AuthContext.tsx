@@ -11,6 +11,7 @@ interface AuthContextValue {
   session: Session | null;
   profile: DbProfile | null;
   roles: AppRole[];
+  allowedModules: string[] | null;
   loading: boolean;
   isAdmin: boolean;
   isCampoOperator: boolean;
@@ -21,19 +22,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const fetchUserData = async (userId: string): Promise<{ profile: DbProfile | null; roles: AppRole[] }> => {
+const fetchUserData = async (userId: string): Promise<{ profile: DbProfile | null; roles: AppRole[]; allowedModules: string[] | null }> => {
   try {
     const [profileRes, rolesRes] = await Promise.all([
       (supabaseClient as any).from('profiles').select('*').eq('id', userId).single(),
-      (supabaseClient as any).from('user_roles').select('role').eq('user_id', userId),
+      (supabaseClient as any).from('user_roles').select('role, allowed_modules').eq('user_id', userId),
     ]);
+
+    const rows = ((rolesRes.data as { role: AppRole; allowed_modules: string[] | null }[] | null) ?? []);
+    // Merge allowlists across all role rows; qualquer valor null vira "sem restrição"
+    let allowedModules: string[] | null = null;
+    const hasAny = rows.some(r => Array.isArray(r.allowed_modules));
+    const hasUnrestricted = rows.some(r => !Array.isArray(r.allowed_modules));
+    if (hasAny && !hasUnrestricted) {
+      const set = new Set<string>();
+      rows.forEach(r => (r.allowed_modules ?? []).forEach(m => set.add(m)));
+      allowedModules = Array.from(set);
+    }
 
     return {
       profile: (profileRes.data as DbProfile | null) ?? null,
-      roles: ((rolesRes.data as { role: AppRole }[] | null) ?? []).map(({ role }) => role),
+      roles: rows.map(({ role }) => role),
+      allowedModules,
     };
   } catch {
-    return { profile: null, roles: [] };
+    return { profile: null, roles: [], allowedModules: null };
   }
 };
 
