@@ -503,6 +503,12 @@ export default function Hierarquia() {
                 <label className="text-xs text-muted-foreground block mb-1">Telefone</label>
                 <input value={form.phone} onChange={e => updateForm('phone', e.target.value)} placeholder="(41) 99999-0000" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
+              {parseInt(form.hierarchy_level) >= 3 && (
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Indicado por</label>
+                  <input value={form.referred_by} onChange={e => updateForm('referred_by', e.target.value)} placeholder="Nome de quem indicou" className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                </div>
+              )}
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Macrorregião</label>
                 <select value={form.macroregion_id} onChange={e => updateForm('macroregion_id', e.target.value)} className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
