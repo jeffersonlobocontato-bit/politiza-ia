@@ -176,6 +176,18 @@ export default function CampoMeusCadastros() {
           ))}
         </div>
       </div>
+
+      <ActionDetailSheet
+        actionId={selectedActionId}
+        authorName={scope.authors[(scope.actions.find(a => a.id === selectedActionId)?.created_by ?? '')]?.name}
+        onClose={() => setSelectedActionId(null)}
+        onDelete={async () => {
+          if (!selectedActionId) return;
+          const id = selectedActionId;
+          setSelectedActionId(null);
+          await handleDelete('actions', id);
+        }}
+      />
     </div>
   );
 }
