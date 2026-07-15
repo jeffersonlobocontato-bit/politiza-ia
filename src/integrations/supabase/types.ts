@@ -457,6 +457,7 @@ export type Database = {
           observations: string | null
           phone: string | null
           photo_url: string | null
+          referred_by: string | null
           role: string
           status: string
           supervisor_id: string | null
@@ -481,6 +482,7 @@ export type Database = {
           observations?: string | null
           phone?: string | null
           photo_url?: string | null
+          referred_by?: string | null
           role?: string
           status?: string
           supervisor_id?: string | null
@@ -505,6 +507,7 @@ export type Database = {
           observations?: string | null
           phone?: string | null
           photo_url?: string | null
+          referred_by?: string | null
           role?: string
           status?: string
           supervisor_id?: string | null
