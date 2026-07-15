@@ -14,6 +14,7 @@ interface AuthContextValue {
   loading: boolean;
   isAdmin: boolean;
   isCampoOperator: boolean;
+  isAuditorHierarquia: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
