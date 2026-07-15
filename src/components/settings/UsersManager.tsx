@@ -391,6 +391,10 @@ export function UsersManager() {
                 <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <Label>Indicado por</Label>
+              <Input placeholder="Nome de quem indicou este membro" value={form.referred_by} onChange={e => setForm({ ...form, referred_by: e.target.value })} />
+            </div>
             {!editing && (
               <div className="space-y-1.5">
                 <Label>Senha inicial *</Label>
