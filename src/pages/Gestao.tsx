@@ -583,7 +583,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
 
   const levelLabel = (lvl: number) => {
     if (lvl >= 99) return 'Outros';
-    const names = ['', 'Nível 1 · Direção', 'Nível 2 · Coordenação Geral', 'Nível 3 · Coordenação Regional', 'Nível 4 · Coordenação Municipal', 'Nível 5 · Coordenação Local', 'Nível 6 · Operacional'];
+    const names = ['', 'Nível 1 · Direção', 'Nível 2 · Coordenação Geral', 'Nível 3 · Coordenação Macrorregional', 'Nível 4 · Coordenação Microrregional', 'Nível 5 · Coordenação Municipal', 'Nível 6 · Liderança / Operacional'];
     return names[lvl] ?? `Nível ${lvl}`;
   };
 
@@ -754,7 +754,7 @@ function NewTaskDialog({ open, onClose, isAdminMaster, defaultCandidateId, candi
                   </button>
                   <span className="text-[10px] text-muted-foreground">{assigneeIds.length}/{team.length}</span>
                 </div>
-                <ScrollArea className="max-h-[320px]">
+                <ScrollArea className="max-h-[480px]">
                   {teamLoading && <div className="px-3 py-4 text-xs text-muted-foreground">Carregando hierarquia...</div>}
                   {!teamLoading && team.length === 0 && candidateId && (
                     <div className="px-3 py-4 text-xs text-muted-foreground">
