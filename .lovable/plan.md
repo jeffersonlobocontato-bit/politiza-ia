@@ -1,56 +1,87 @@
+# Sino de Tarefas + Web Push Diário no App de Campo
 
-# Nova métrica de Eficiência por nível hierárquico
+## 1. Atribuição de tarefas por membro
 
-Substituir o modo "Eficiência" (hoje média de `impact_score`) por um Score de Eficiência 0–100 calculado de forma diferente por nível, com deadline fixo do 1º turno em **04/10/2026**.
+**Painel de gestores (`TasksManager` / criação de tarefa):**
+- Substituir/complementar campo `assigned_to` por dropdown "Atribuir a" carregando membros da equipe (`campaign_members` + `profiles`) do candidato ativo.
+- Salvar `assigned_to` (uuid do profile do membro) e `assigned_name` na tabela `tasks` (colunas já existem).
 
-## Fórmula geral (0–100)
+## 2. Notificações in-app (sino)
 
-Para cada pessoa avaliada:
+**Backend:**
+- Trigger `AFTER INSERT` em `public.tasks`: se `assigned_to` for diferente do criador, insere linha em `public.notifications` com `type='task_assignment'`, mensagem "Nova tarefa: <título>", `link='/campo/tarefas?task=<id>'`.
+- Trigger `AFTER UPDATE OF assigned_to`: notifica novo responsável quando a atribuição muda.
 
-```
-Eficiência = 0,50 × Ações + 0,30 × Velocidade + 0,20 × CadastrosAtivos
-```
+**Frontend (app de campo):**
+- Adicionar `NotificationBell` (já existe) ao header do `CampoLayout`.
+- Reaproveitar realtime channel existente para toast + badge de não lidas.
 
-- **Ações (0–100)**: normaliza o total de ações de campo executadas pelos liderados abaixo dele (recursivo), contra o topo do próprio nível no período.
-- **Cadastros Ativos (0–100)**: normaliza a quantidade de subordinados diretos "ativos" contra o topo do próprio nível. "Ativo" = `status = 'ativo'` **E** ao menos 1 ação de campo registrada.
-- **Velocidade (0–100)**: mede antecipação em relação a 04/10/2026. Para cada cadastro ativo direto, `dias_de_antecedência = deadline - data_de_ativação` (data da 1ª ação). Score = média(dias_antecedência) / (deadline − data_referência_do_projeto) × 100, saturado em 100.
+## 3. Painel de tarefas do membro no app de campo
 
-## O que muda por nível
+Nova rota `/campo/tarefas` (link no `CampoDashboard`):
+- Lista tarefas onde `assigned_to = auth.uid()`, agrupadas por status (A fazer / Em andamento / Bloqueado / Concluído).
+- Cada card exibe: título, prazo (`due_date`), badge de status, badge de **atraso** ("Atrasada há X dias") calculado em relação a `due_date` quando status ≠ `concluido` e `due_date < hoje`.
+- Ações rápidas: marcar em andamento / concluído (usa `useUpdateTaskStatus`).
+- Abre detalhe (sheet) com descrição, prioridade, área, criador.
 
-| Nível | Cadastros diretos considerados | Ações consideradas |
-|---|---|---|
-| Macrorregional (nível 3) | Coord. microrregionais ativos abaixo | Todas as ações da sub-árvore |
-| Microrregional/Municipal (nível 5) | Coord. municipais / lideranças ativas abaixo | Ações da sub-árvore |
-| Liderança municipal | — (só ações) | Ações próprias |
+## 4. Lembrete diário 7h (America/Sao_Paulo) — tarefas atrasadas
 
-Para liderança: `Eficiência = 100% Ações` (não há cadastros).
+**Edge function `task-overdue-reminders`:**
+- Busca tarefas com `deleted_at IS NULL`, `status <> 'concluido'`, `assigned_to IS NOT NULL`, `due_date < CURRENT_DATE`.
+- Para cada uma:
+  - Insere linha em `notifications` (`type='task_overdue'`, mensagem "Tarefa atrasada há N dias: <título>").
+  - Envia Web Push para todas as subscriptions do usuário (ver §5).
+- Idempotência: só cria notification do dia se ainda não existir para (`user_id`, `task_id`, `date_trunc('day', now())`).
 
-## Backend
+**Cron (pg_cron + pg_net):** dispara a function todo dia às `10:00 UTC` (= 07:00 BRT).
 
-Reescrever `public.get_productivity_ranking(p_candidate_id, p_period_days)` para retornar, além dos campos atuais, por linha:
+## 5. Web Push (PWA)
 
-- `actions_score` (0–100)
-- `speed_score` (0–100)
-- `active_score` (0–100)
-- `efficiency_score` (0–100) — composto conforme fórmula
-- `active_count`, `avg_lead_days`
+**Infra:**
+- Ativar PWA manifest-only já existente + registrar service worker dedicado `public/push-sw.js` (só push, sem app-shell cache — respeita a skill PWA).
+- Gerar par VAPID e salvar `VAPID_PUBLIC_KEY` (env pública via `set_secret` + expor pelo edge) e `VAPID_PRIVATE_KEY` (`generate_secret`).
+- Nova tabela `push_subscriptions` (user_id, endpoint unique, p256dh, auth, user_agent, created_at) com RLS: usuário só vê/gerencia as próprias.
 
-Constantes: `DEADLINE = 2026-10-04`, `PROJECT_START = 2026-01-01` (base de normalização da velocidade).
+**Frontend:**
+- Ao logar no app de campo, pedir permissão de notificação (banner discreto no `CampoDashboard`), registrar subscription e persistir via edge `register-push-subscription`.
+- Botão "Ativar notificações" nas configurações do campo caso o usuário negue.
 
-## Frontend
+**Edge function `send-push`:** helper usado por `task-overdue-reminders` e pelo trigger de nova tarefa (via `pg_net` → função) para enviar payload `{title, body, url}` a todas as subscriptions do destinatário, removendo endpoints 404/410.
 
-`src/hooks/useProductivity.ts`: adicionar os novos campos ao tipo `ProductivityRow`.
+## 6. UI – indicadores de atraso no painel do gestor
 
-`src/pages/Produtividade.tsx`:
-- Toggle passa a ser **Volume** (score total, como hoje) × **Eficiência** (novo `efficiency_score`).
-- No modo Eficiência, cada card mostra o valor 0–100 + mini-breakdown `Ações / Velocidade / Ativos` e um `Badge` "Ativos: N · Antecedência média: X dias".
-- Barra de progresso passa a usar `efficiency_score` no modo Eficiência.
+- No `TasksManager` existente, adicionar chip vermelho "Atrasada Xd" ao lado do prazo quando aplicável, para paridade visual com o app de campo.
 
-Nada muda para admins que não olham essa aba; não altera schema de tabelas.
+---
 
 ## Detalhes técnicos
 
-- Ativação de um subordinado = `MIN(created_at)` da tabela `actions` filtrada por `created_by = subordinado.user_id` (fallback: `campaign_members.created_at` se nunca agiu → não conta como ativo).
-- Recursão pela sub-árvore reaproveita a lógica já existente em `get_subtree_user_ids` / joins de `campaign_members.supervisor_id`.
-- Normalização: divide pelo topo do nível no conjunto retornado; se topo = 0, score = 0.
-- Segurança: mantém `SECURITY DEFINER` + checagem `is_admin(auth.uid())`.
+**Novos arquivos:**
+- `supabase/functions/task-overdue-reminders/index.ts`
+- `supabase/functions/register-push-subscription/index.ts`
+- `supabase/functions/send-push/index.ts` (helper reutilizável)
+- `public/push-sw.js`
+- `src/pages/CampoTarefas.tsx`
+- `src/components/campo/TaskCard.tsx`
+- `src/hooks/usePushSubscription.ts`
+- `src/lib/taskOverdue.ts` (`getOverdueDays(dueDate, status)`)
+
+**Alterados:**
+- `src/components/layout/CampoLayout.tsx` — adiciona sino.
+- `src/pages/CampoDashboard.tsx` — card "Minhas Tarefas" + prompt de permissão.
+- `src/App.tsx` — rota `/campo/tarefas`.
+- Componente de criação de tarefa do gestor — dropdown de atribuição.
+- `public/manifest.webmanifest` — verificar `gcm_sender_id`/`scope` se preciso.
+
+**Migrations:**
+1. `push_subscriptions` (tabela + RLS + GRANTs).
+2. Triggers em `tasks` para notificação de atribuição.
+3. Índice em `tasks(assigned_to, status, due_date)` para o cron.
+4. `pg_cron` job diário 10:00 UTC chamando `task-overdue-reminders` via `pg_net`.
+
+**Secrets a solicitar/gerar:**
+- `VAPID_PUBLIC_KEY` (set_secret com valor gerado localmente pelo agent — publicável) e cópia em `.env` como `VITE_VAPID_PUBLIC_KEY`.
+- `VAPID_PRIVATE_KEY` (generate_secret / server-only).
+- `VAPID_SUBJECT` = `mailto:contato@politiza.ia.br` (set_secret).
+
+**Observação iOS:** Web Push no iOS só funciona com o PWA instalado na tela de início (iOS 16.4+). O sino in-app e a lista de tarefas com badge de atraso garantem o alerta mesmo sem push nativo.
