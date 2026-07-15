@@ -22,7 +22,7 @@ const AUDITOR_HIERARQUIA_ALLOWED = [
  * acessem rotas administrativas (sempre as redireciona para /campo).
  */
 export function RoleAwareLayout({ children }: { children: ReactNode }) {
-  const { isCampoOperator, isAdmin, isAuditorHierarquia, roles, loading } = useAuth();
+  const { isCampoOperator, isAdmin, isAuditorHierarquia, roles, allowedModules, loading } = useAuth();
   const { cruzamentoOnly, loading: cruzLoading } = useCruzamentoMoroAccess();
   const location = useLocation();
 
@@ -36,14 +36,11 @@ export function RoleAwareLayout({ children }: { children: ReactNode }) {
     return <div className="min-h-screen bg-background">{children}</div>;
   }
 
-
-
   const onCampoRoute = location.pathname.startsWith('/campo');
   const onConfigRoute = location.pathname.startsWith('/configuracoes');
   const isRegional = roles?.includes('coordenador_regional' as any);
 
   if (isCampoOperator) {
-    // Coordenador Regional pode gerenciar usuários em /configuracoes
     if (isRegional && onConfigRoute) {
       return <AppLayout>{children}</AppLayout>;
     }
@@ -53,19 +50,24 @@ export function RoleAwareLayout({ children }: { children: ReactNode }) {
     return <CampoLayout>{children}</CampoLayout>;
   }
 
-
   const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
-  if (isGestorOperacional) {
+  if (isGestorOperacional && !allowedModules) {
     const allowed = GESTOR_OPERACIONAL_ALLOWED.some(
       p => p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
     );
     if (!allowed) return <Navigate to="/" replace />;
   }
 
-  // Auditor de Hierarquia: leitura restrita a um conjunto de módulos.
-  if (!isAdmin && isAuditorHierarquia) {
+  // Auditor de Hierarquia: leitura restrita a um conjunto de módulos (default).
+  if (!isAdmin && isAuditorHierarquia && !allowedModules) {
     const allowed = AUDITOR_HIERARQUIA_ALLOWED.some(p => location.pathname.startsWith(p));
     if (!allowed) return <Navigate to="/hierarquia" replace />;
+  }
+
+  // Allowlist customizada por usuário (definida em Configurações).
+  if (allowedModules && !isModuleAllowed(location.pathname, allowedModules)) {
+    const fallback = allowedModules[0] ?? '/';
+    if (location.pathname !== fallback) return <Navigate to={fallback} replace />;
   }
 
   return <AppLayout>{children}</AppLayout>;
