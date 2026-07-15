@@ -185,7 +185,7 @@ export function UsersManager() {
         const r1 = await supabase.functions.invoke('manage-user', {
           body: {
             action: 'update_profile',
-            user_id: editing.id, full_name: form.full_name, phone: form.phone,
+            user_id: editing.id, full_name: form.full_name, phone: form.phone, referred_by: form.referred_by,
           },
         });
         if (r1.error || (r1.data as any)?.error) throw new Error((r1.data as any)?.error || r1.error?.message);
