@@ -1,85 +1,82 @@
 
-# Cadastro de Membros da Equipe + Produtividade para Coordenadores de Campo
+# Meus Cadastros — gestão hierárquica de subárvore
 
-## Objetivo
+Objetivo: cada usuário passa a ter uma aba única onde vê e gerencia tudo que ele e seus subordinados (diretos e indiretos) cadastraram — ativos políticos, lideranças, ações de campo e membros da equipe — com edição total, tanto no desktop quanto no app Campo.
 
-Habilitar os perfis **Coordenador Macrorregional**, **Coordenador Regional** e **Coordenador Municipal** a:
+## 1. Backend — função de subárvore reutilizável
 
-1. Cadastrar e visualizar apenas os membros da própria subárvore hierárquica.
-2. Acessar um dashboard de produtividade da equipe (ranking do time).
-3. Fazer drill-down individual em qualquer membro subordinado para analisar sua produtividade.
+Nova função SQL `get_subtree_user_ids(_user_id uuid, _candidate_id uuid)` (SECURITY DEFINER) que retorna o array de `auth.uid()` correspondente ao usuário logado + todos os subordinados via `campaign_members.supervisor_id` (recursiva), resolvendo os `user_id` de cada nó. Admin master recebe todos os usuários do candidato.
 
-Admins continuam com acesso global, sem alteração.
+Base para todas as consultas do módulo; complementa a `get_delegable_members` já existente (que hoje retorna `campaign_members`, não `auth.users`).
 
----
+## 2. Ajustes de RLS (edição total na subárvore)
 
-## 1. Renomeação e novo CTA no app Campo
+Adicionar policies `UPDATE`/`DELETE` em:
+- `political_assets`
+- `leaders`
+- `actions`
+- `campaign_members` e `user_roles` (para gerenciar membros)
 
-- Renomear em toda a UI: **"Cadastrar Usuário" → "Cadastrar Membro da Equipe"**.
-- Adicionar um **4º/5º CTA no `CampoDashboard`**, ao lado dos existentes (Registrar Ação, Nova Liderança, Fiscalize), chamado **"Cadastrar Membro da Equipe"**.
-- CTA visível apenas para os 3 novos perfis (Macro/Regional/Municipal). Admins mantêm o acesso já existente em `/configuracoes`.
-- Adicionar também um CTA **"Produtividade da Equipe"** no mesmo grupo, apontando para `/campo/produtividade`.
+Regra: `created_by = auth.uid()` **OU** `created_by = ANY(get_subtree_user_ids(auth.uid(), candidate_id))` **OU** `is_admin(auth.uid())`.
 
-## 2. Tela de cadastro no Campo
+SELECT já existe para admin/criador/party; adicionamos leitura por subárvore usando a mesma função.
 
-- Nova rota protegida `/campo/membros`.
-- Reaproveita o `UsersManager` (usado hoje em `/configuracoes`), mas em modo "escopo de equipe":
-  - Lista de membros filtrada pela **subárvore** do coordenador logado (via `get_delegable_members`).
-  - Formulário de criação restringe as opções de papel/hierarquia aos níveis **abaixo** do próprio.
-  - Bloqueia edição/remoção de membros fora da subárvore.
+## 3. Hook único de dados
 
-## 3. Nova tela de produtividade no Campo
+`src/hooks/useMyScope.ts` expõe:
+- `subtreeUserIds` (via RPC nova)
+- `assets`, `leaders`, `actions`, `members` filtrados por `created_by IN subtreeUserIds` e candidato ativo
+- KPIs agregados: total por entidade, novos nos últimos 7/30 dias, top 5 subordinados por volume
 
-- Nova rota protegida `/campo/produtividade` (dentro do `CampoLayout`, mobile-first).
-- Reusa o RPC `get_productivity_ranking` com autorização estendida:
-  - Ranking do time (macros/micros/lideranças que estão dentro da subárvore do coordenador).
-  - KPIs consolidados do time (ações, score total, score médio, pessoas impactadas).
-- **Drill-down individual**: clicar em qualquer linha do ranking abre um painel/sheet com:
-  - Score total, score médio, nº de ações, pessoas impactadas.
-  - Lista das ações do membro (com data, município, score, pessoas).
-  - Evolução temporal (mini gráfico por semana).
+Usa TanStack Query + `fetchAllRows` para paginação.
 
-## 4. Backend (migrations)
+## 4. Desktop — nova rota `/meus-cadastros`
 
-### 4.1 Ajuste no RPC `get_productivity_ranking`
+Página `src/pages/MeusCadastros.tsx` na sidebar (ícone `FolderKanban`, entre "Campo" e "Produtividade"), visível para qualquer usuário autenticado exceto perfis restritos (Cruzamento Moro / gestor_operacional já filtrados pelo RoleAwareLayout).
 
-- Adicionar parâmetro opcional `p_member_id uuid default null`.
-  - Se **nulo**: comportamento atual (ranking agregado).
-  - Se **preenchido**: retorna JSON de detalhamento individual (totais + lista de ações + série temporal).
-- Substituir o guard atual (`is_admin` only) por: **admin OU o `p_member_id` / subárvore consultada pertence à subárvore do usuário logado**. Reusar a lógica recursiva de `get_delegable_members`.
-- Quando chamado por um coordenador sem `p_member_id`, o RPC filtra automaticamente `leader_id`, `micro_id` e `macro_id` para os que estão na subárvore dele.
+Layout:
+- Header com big numbers (Ativos, Lideranças, Ações, Membros, Novos na semana)
+- Tabs: **Ativos políticos** · **Lideranças** · **Ações** · **Membros da equipe**
+- Cada tab: tabela com busca, filtro por subordinado (autor), badge do autor, ações inline **Editar** e **Excluir** (soft-delete quando existir)
+- Editor reaproveita os dialogs já existentes (`AssetProfileSheet`, `LeaderFormDialog`, `UsersManager`) abertos em modo edição
 
-### 4.2 Policies
+## 5. App Campo — nova aba `/campo/meus-cadastros`
 
-- Nenhuma nova tabela. Apenas revisão das RLS de `campaign_members` para garantir que o coordenador consiga `INSERT` de membros cuja `supervisor_id` esteja na sua subárvore, e `SELECT`/`UPDATE`/`DELETE` restritos à mesma subárvore. Ajustar policies existentes se necessário (mantendo admin como bypass).
+Adiciona 5º item no bottom nav do `CampoLayout` (ícone `FolderKanban`, label "Meus"). Página mobile-first `src/pages/CampoMeusCadastros.tsx`:
+- Cards de big numbers no topo (2×2 grid)
+- Segmented control com as 4 entidades
+- Lista scrollable com card por item, swipe/tap → sheet de edição
+- Reaproveita formulários mobile já existentes de `CampoLiderancaForm`, `CampoAcao`, `CampoMembros`
 
-## 5. Roteamento e layout
+Substitui os CTAs redundantes de "Membros" e "Produtividade" que já existem em `Campo.tsx` — passam a viver dentro do painel.
 
-- Em `RoleAwareLayout`, adicionar `/campo/membros` e `/campo/produtividade` como rotas válidas para os 3 perfis de coordenador dentro do `CampoLayout`.
-- Admins seguem acessando `/configuracoes` (cadastro global) e `/produtividade` (visão estadual). Nada removido.
+## 6. Exclusão
 
----
+Soft-delete onde a coluna `deleted_at` já existe (actions, leaders, political_assets, campaign_members). Para `user_roles` sem soft-delete, edge function `manage-user` já suporta remoção — reutilizamos.
 
-## Arquivos a criar / editar
+## Detalhes técnicos
 
-**Criar:**
-- `src/pages/CampoMembros.tsx` — tela de cadastro/listagem de membros com escopo de subárvore.
-- `src/pages/CampoProdutividade.tsx` — dashboard de produtividade da equipe + drill-down.
-- `src/components/campo/MemberProductivitySheet.tsx` — painel lateral de produtividade individual.
-- Migration SQL para atualizar `get_productivity_ranking` e ajustar RLS de `campaign_members`.
+```text
+RPC get_subtree_user_ids
+  └─ recursive CTE em campaign_members via supervisor_id
+     └─ SELECT DISTINCT user_id WHERE user_id IS NOT NULL
 
-**Editar:**
-- `src/App.tsx` — registrar as novas rotas.
-- `src/components/layout/RoleAwareLayout.tsx` — liberar rotas para os 3 perfis.
-- `src/pages/CampoDashboard.tsx` — adicionar os 2 novos CTAs no grid.
-- `src/components/settings/UsersManager.tsx` — suportar modo "scoped" (subárvore) reusável.
-- `src/hooks/useProductivity.ts` — aceitar `memberId` opcional e retornar payload de detalhe quando presente.
-- Textos: substituir "Cadastrar Usuário" por "Cadastrar Membro da Equipe" onde aparecer.
+useMyScope(candidateId)
+  ├─ subtreeUserIds  (RPC, staleTime 60s)
+  ├─ useQuery assets   .in('created_by', subtreeUserIds)
+  ├─ useQuery leaders  .in('created_by', subtreeUserIds)
+  ├─ useQuery actions  .in('created_by', subtreeUserIds)
+  └─ useQuery members  (RPC get_delegable_members, já existe)
 
----
+Rotas
+  Desktop: /meus-cadastros           → MeusCadastros.tsx
+  Campo:   /campo/meus-cadastros     → CampoMeusCadastros.tsx
+```
+
+RLS de UPDATE/DELETE usa a mesma função SECURITY DEFINER, evitando recursão. Grants mantidos como já estão (`authenticated` + `service_role`).
 
 ## Fora do escopo
 
-- Não altera módulos administrativos (Inteligência, Jurídico, Emendas, Ativos etc.).
-- Não altera a `/produtividade` estadual usada pelo admin master.
-- Não cria novo layout — reusa `CampoLayout` existente.
+- Não altera o modelo de dados existente (nenhuma coluna nova).
+- Não mexe em permissões de outros módulos.
+- Não cria relatórios/exports (podemos adicionar depois se quiser).

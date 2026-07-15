@@ -50,6 +50,8 @@ import MalhaLogistica from "./pages/MalhaLogistica";
 import DueDiligence from "./pages/DueDiligence";
 import RaioX from "./pages/raio-x/RaioX";
 import CruzamentoMoro from "./pages/CruzamentoMoro";
+import MeusCadastros from "./pages/MeusCadastros";
+import CampoMeusCadastros from "./pages/CampoMeusCadastros";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +86,9 @@ const AppRoutes = () => (
     <Route path="/campo/dashboard" element={<ProtectedRoute><RoleAwareLayout><CampoDashboard /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/membros" element={<ProtectedRoute><RoleAwareLayout><CampoMembros /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/campo/produtividade" element={<ProtectedRoute><RoleAwareLayout><CampoProdutividade /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/campo/meus-cadastros" element={<ProtectedRoute><RoleAwareLayout><CampoMeusCadastros /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/meus-cadastros" element={<ProtectedRoute><RoleAwareLayout><MeusCadastros /></RoleAwareLayout></ProtectedRoute>} />
+
 
     <Route path="/ativos" element={<ProtectedRoute><RoleAwareLayout><AtivosPoliticos /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/pesquisas" element={<ProtectedRoute><RoleAwareLayout><Inteligencia /></RoleAwareLayout></ProtectedRoute>} />

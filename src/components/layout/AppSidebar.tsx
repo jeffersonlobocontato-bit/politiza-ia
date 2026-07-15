@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban
 } from 'lucide-react';
 import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
   { title: 'Malha Logística', url: '/malha-logistica', icon: Map, scope: 'shared', malhaAdminOnly: true },
   { title: 'Gestão de Equipe', url: '/gestao', icon: LayoutGrid, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
+  { title: 'Meus Cadastros', url: '/meus-cadastros', icon: FolderKanban, scope: 'shared' },
   { title: 'Ativos Políticos', url: '/ativos', icon: Users, scope: 'shared' },
   { title: 'Due Diligence', url: '/due-diligence', icon: Shield, scope: 'shared', malhaAdminOnly: true, highlight: true },
   { title: 'Inteligência', url: '/pesquisas', icon: ShieldAlert, scope: 'shared' },

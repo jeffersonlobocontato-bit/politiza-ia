@@ -3281,6 +3281,7 @@ export type Database = {
         Args: { p_candidate_id?: string; p_period_days?: number }
         Returns: Json
       }
+      get_subtree_user_ids: { Args: { _manager: string }; Returns: string[] }
       get_tracking_evolution: {
         Args: { p_candidate_id: string }
         Returns: Json
@@ -3295,6 +3296,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_in_my_subtree: {
+        Args: { _manager: string; _target: string }
+        Returns: boolean
+      }
       is_malha_admin: { Args: { _user_id: string }; Returns: boolean }
       unaccent: { Args: { "": string }; Returns: string }
       user_has_candidate_scope: { Args: { _user_id: string }; Returns: boolean }
