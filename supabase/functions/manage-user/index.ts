@@ -195,6 +195,14 @@ Deno.serve(async (req) => {
         );
       }
 
+      await syncCampaignMember(
+        userId,
+        role,
+        { full_name, email, phone },
+        { macroregion_id, microregion, municipality },
+        Array.isArray(candidate_ids) ? candidate_ids : [],
+      );
+
       return json({ user_id: userId });
     }
 
