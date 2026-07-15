@@ -138,15 +138,30 @@ export default function CampoMeusCadastros() {
             />
           ))}
           {tab === 'actions' && (list as typeof scope.actions).map(a => (
-            <ItemCard
+            <div
               key={a.id}
-              title={a.title}
-              subtitle={[a.category ?? a.type, a.municipality, `${a.executed_people_count ?? 0} pessoas`].filter(Boolean).join(' · ')}
-              meta={`por ${scope.authors[a.created_by ?? '']?.name ?? '—'} · ${fmt(a.created_at)}`}
-              linkTo="/campo/acao"
-              onDelete={() => handleDelete('actions', a.id)}
-              accent="#E85D3A"
-            />
+              className="rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #E85D3A33' }}
+              onClick={() => setSelectedActionId(a.id)}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold text-white truncate">{a.title}</div>
+                <div className="text-[11px] text-white/70 truncate">
+                  {[a.category ?? a.type, a.municipality, `${a.executed_people_count ?? 0} pessoas`].filter(Boolean).join(' · ')}
+                </div>
+                <div className="text-[10px] text-white/40 truncate mt-0.5">
+                  por {scope.authors[a.created_by ?? '']?.name ?? '—'} · {fmt(a.created_at)}
+                </div>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDelete('actions', a.id); }}
+                className="p-2 rounded-lg text-white/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                aria-label="Excluir"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <ChevronRight className="w-4 h-4 text-white/50" />
+            </div>
           ))}
           {tab === 'members' && (list as typeof scope.members).map(m => (
             <ItemCard
