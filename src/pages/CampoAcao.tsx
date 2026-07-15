@@ -20,8 +20,13 @@ interface FieldInput {
 
 export default function CampoAcao() {
   const createAction = useCreateAction();
+  const updateAction = useUpdateAction();
   const { user } = useAuth();
   const { activeCandidate } = useCandidate();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const editId = searchParams.get('edit');
+  const [loadingEdit, setLoadingEdit] = useState<boolean>(!!editId);
   const [step, setStep] = useState<'form' | 'photo' | 'confirm'>('form');
   const [input, setInput] = useState<FieldInput>({
     actionTitle: '',
@@ -37,6 +42,34 @@ export default function CampoAcao() {
   const [cityPopulation, setCityPopulation] = useState<number | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const galleryInput = useRef<HTMLInputElement>(null);
+
+  // Load existing action when editing
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingEdit(true);
+      const { data, error } = await db.from('actions').select('*').eq('id', editId).maybeSingle();
+      if (cancelled) return;
+      if (error || !data) {
+        toast.error('Não foi possível carregar a ação.');
+        setLoadingEdit(false);
+        return;
+      }
+      const a: any = data;
+      setInput({
+        actionTitle: a.title ?? '',
+        executedDate: (a.executed_date ?? a.planned_date ?? new Date().toISOString().split('T')[0]).slice(0, 10),
+        executedTime: (a.planned_time ?? new Date().toTimeString().slice(0, 5)).slice(0, 5),
+        peopleCount: String(a.executed_people_count ?? a.estimated_impact ?? ''),
+        observations: a.observations ?? a.description ?? '',
+      });
+      setGeo({ city: a.municipality ?? '', lat: a.lat ?? null, lng: a.lng ?? null });
+      setPhotos(Array.isArray(a.evidence_photos) ? a.evidence_photos : []);
+      setLoadingEdit(false);
+    })();
+    return () => { cancelled = true; };
+  }, [editId]);
 
   const update = (key: keyof FieldInput, value: string) => setInput(prev => ({ ...prev, [key]: value }));
   const geoValid = geo.city.trim() !== '' && geo.lat !== null && geo.lng !== null;
