@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
     const { action, ...payload } = await req.json();
 
     if (action === "create") {
-      const { email, password, full_name, phone, role, macroregion_id, microregion, municipality, coordinated_municipalities, candidate_ids } = payload;
+      const { email, password, full_name, phone, referred_by, role, macroregion_id, microregion, municipality, coordinated_municipalities, candidate_ids } = payload;
       if (!email || !password || !full_name || !role)
         return json({ error: "Campos obrigatórios: email, senha, nome e nível de acesso" }, 400);
       const roleErrMsg = assertCanManageRole(role);
