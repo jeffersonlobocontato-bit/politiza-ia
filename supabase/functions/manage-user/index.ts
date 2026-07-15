@@ -75,6 +75,69 @@ Deno.serve(async (req) => {
             ? MICRO_ALLOWED_ROLES
             : MUNICIPAL_ALLOWED_ROLES;
 
+    // Mapeamento role → hierarquia (aba Hierarquia).
+    // Mantém compatibilidade com dados existentes (Regional=3, Municipal=5).
+    const HIERARCHY_MAP: Record<string, { level: number; label: string }> = {
+      coordenador_regional:       { level: 3, label: "Coordenador Regional" },
+      coordenador_microrregional: { level: 4, label: "Coordenador Microrregional" },
+      coordenador_municipal:      { level: 5, label: "Coordenador Municipal" },
+      lideranca_local:            { level: 6, label: "Liderança Local" },
+    };
+
+    const syncCampaignMember = async (
+      target_user_id: string,
+      role: string,
+      profile: { full_name?: string; email?: string; phone?: string | null },
+      scope: { macroregion_id?: string | null; microregion?: string | null; municipality?: string | null },
+      candidate_ids?: string[],
+    ) => {
+      const map = HIERARCHY_MAP[role];
+      // Remove entradas antigas caso o role não seja hierárquico (evita órfãos após update_role).
+      if (!map) {
+        await admin.from("campaign_members").delete().eq("user_id", target_user_id);
+        return;
+      }
+
+      // Descobre supervisor: o campaign_member do usuário logado (quem cadastra).
+      let supervisor_id: string | null = null;
+      const { data: sup } = await admin
+        .from("campaign_members")
+        .select("id, hierarchy_level")
+        .eq("user_id", user.id)
+        .order("hierarchy_level", { ascending: true })
+        .maybeSingle();
+      if (sup?.id && (sup.hierarchy_level ?? 99) < map.level) supervisor_id = sup.id;
+
+      const candidate_id = Array.isArray(candidate_ids) && candidate_ids.length > 0 ? candidate_ids[0] : null;
+
+      // Upsert por user_id.
+      const { data: existing } = await admin
+        .from("campaign_members")
+        .select("id")
+        .eq("user_id", target_user_id)
+        .maybeSingle();
+
+      const payloadCm: any = {
+        user_id: target_user_id,
+        name: profile.full_name || "",
+        email: profile.email || null,
+        phone: profile.phone || null,
+        role: map.label,
+        hierarchy_level: map.level,
+        macroregion_id: scope.macroregion_id || null,
+        microregion: scope.microregion || null,
+        municipality: scope.municipality || null,
+        supervisor_id,
+        candidate_id,
+        status: "ativo",
+      };
+      if (existing?.id) {
+        await admin.from("campaign_members").update(payloadCm).eq("id", existing.id);
+      } else {
+        await admin.from("campaign_members").insert({ ...payloadCm, created_by: user.id });
+      }
+    };
+
     const assertCanManageRole = (role: string | null | undefined): string | null => {
       if (isAdminFull) return null;
       if (!role || !allowedSet!.has(role)) {
@@ -132,6 +195,14 @@ Deno.serve(async (req) => {
         );
       }
 
+      await syncCampaignMember(
+        userId,
+        role,
+        { full_name, email, phone },
+        { macroregion_id, microregion, municipality },
+        Array.isArray(candidate_ids) ? candidate_ids : [],
+      );
+
       return json({ user_id: userId });
     }
 
@@ -169,6 +240,19 @@ Deno.serve(async (req) => {
         coordinated_municipalities: Array.isArray(coordinated_municipalities) ? coordinated_municipalities : [],
       });
       if (error) return json({ error: error.message }, 400);
+
+      // Busca perfil e vínculos para sincronizar hierarquia.
+      const { data: prof } = await admin.from("profiles").select("full_name, email, phone").eq("id", user_id).maybeSingle();
+      const { data: linksRows } = await admin.from("user_candidates").select("candidate_id").eq("user_id", user_id);
+      const linkedIds = (linksRows ?? []).map((r: any) => r.candidate_id);
+      await syncCampaignMember(
+        user_id,
+        role,
+        { full_name: (prof as any)?.full_name, email: (prof as any)?.email, phone: (prof as any)?.phone },
+        { macroregion_id, microregion, municipality },
+        linkedIds,
+      );
+
       return json({ ok: true });
     }
 
@@ -181,6 +265,12 @@ Deno.serve(async (req) => {
         full_name, phone: phone || null,
       }).eq("id", user_id);
       if (error) return json({ error: error.message }, 400);
+
+      // Reflete alterações de nome/telefone no cadastro da hierarquia.
+      await admin.from("campaign_members")
+        .update({ name: full_name, phone: phone || null })
+        .eq("user_id", user_id);
+
       return json({ ok: true });
     }
 
@@ -200,6 +290,8 @@ Deno.serve(async (req) => {
       if (user_id === user.id) return json({ error: "Você não pode excluir o próprio usuário" }, 400);
       const tErr3 = await assertCanManageTargetUser(user_id);
       if (tErr3) return json({ error: tErr3 }, 403);
+      // Remove o vínculo hierárquico antes de excluir o auth user.
+      await admin.from("campaign_members").delete().eq("user_id", user_id);
       const { error } = await admin.auth.admin.deleteUser(user_id);
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true });
