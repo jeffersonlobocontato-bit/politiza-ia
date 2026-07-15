@@ -7,6 +7,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Navigate } from 'react-router-dom';
 import { scoreColor, scoreLabel } from '@/lib/impactScore';
+import { ProductivityDetailDialog } from '@/components/produtividade/ProductivityDetailDialog';
+
+type LevelKind = 'macro' | 'micro' | 'leader';
 
 const PERIODS = [
   { value: 7, label: '7 dias' },
