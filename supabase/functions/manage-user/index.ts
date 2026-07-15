@@ -255,8 +255,22 @@ Deno.serve(async (req) => {
 
       return json({ ok: true });
     }
+
+    if (action === "update_profile") {
+      const { user_id, full_name, phone } = payload;
+      if (!user_id) return json({ error: "user_id obrigatório" }, 400);
+      const tErr1 = await assertCanManageTargetUser(user_id);
+      if (tErr1) return json({ error: tErr1 }, 403);
+      const { error } = await admin.from("profiles").update({
+        full_name, phone: phone || null,
       }).eq("id", user_id);
       if (error) return json({ error: error.message }, 400);
+
+      // Reflete alterações de nome/telefone no cadastro da hierarquia.
+      await admin.from("campaign_members")
+        .update({ name: full_name, phone: phone || null })
+        .eq("user_id", user_id);
+
       return json({ ok: true });
     }
 
