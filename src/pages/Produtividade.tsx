@@ -162,7 +162,7 @@ export default function Produtividade() {
             ))}
           </div>
           <div className="flex rounded-lg border border-border overflow-hidden">
-            {(['total', 'avg'] as const).map(m => (
+            {(['total', 'efficiency'] as const).map(m => (
               <button key={m}
                 onClick={() => setMetric(m)}
                 className={`px-3 py-1.5 text-xs font-medium transition-colors ${
