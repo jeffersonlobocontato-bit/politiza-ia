@@ -668,16 +668,23 @@ export default function Hierarquia() {
                 <textarea value={form.observations} onChange={e => updateForm('observations', e.target.value)} rows={2} placeholder="Notas sobre este membro..." className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
-              <button
-                onClick={handleSubmit}
-                disabled={!form.name || !geoForm.city || createMember.isPending || updateMember.isPending}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
-                style={{ background: 'var(--gradient-primary)' }}
-              >
-                {createMember.isPending || updateMember.isPending ? 'Salvando...' : editingId ? 'Salvar' : 'Cadastrar'}
-              </button>
+            <div className="flex flex-col gap-2 mt-5">
+              {!isFormValid && (
+                <p className="text-[11px] text-amber-500">
+                  Campos obrigatórios pendentes: {missingFields.join(', ')}
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!isFormValid || createMember.isPending || updateMember.isPending}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                  style={{ background: 'var(--gradient-primary)' }}
+                >
+                  {createMember.isPending || updateMember.isPending ? 'Salvando...' : editingId ? 'Salvar' : 'Cadastrar'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
