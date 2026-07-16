@@ -275,7 +275,6 @@ export default function Hierarquia() {
     if (!form.hierarchy_level) missing.push('Nível hierárquico');
     if (!form.email.trim()) missing.push('E-mail');
     if (!form.phone.trim()) missing.push('Telefone');
-    if (!form.macroregion_id) missing.push('Macrorregião');
     if (!form.microregion.trim()) missing.push('Microrregião');
     if (!geoForm.city) missing.push('Município');
     if (!form.status) missing.push('Status');
@@ -283,7 +282,6 @@ export default function Hierarquia() {
       if (!form.referred_by.trim()) missing.push('Indicado por');
       if (!form.supervisor_id) missing.push('Supervisor direto');
       if (selectedAssociations.length === 0) missing.push('Associações de municípios');
-      if (selectedMacroregions.length === 0) missing.push('Macrorregiões');
       if (lvlNum === 4 && selectedMunicipalities.length === 0) missing.push('Municípios sob responsabilidade');
       if (lvlNum === 6 && selectedProfiles.length === 0) missing.push('Perfis de liderança');
     }
