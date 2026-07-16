@@ -279,7 +279,6 @@ export default function Hierarquia() {
     if (!form.microregion.trim()) missing.push('Microrregião');
     if (!geoForm.city) missing.push('Município');
     if (!form.status) missing.push('Status');
-    if (!form.observations.trim()) missing.push('Observações');
     if (lvlNum >= 3) {
       if (!form.referred_by.trim()) missing.push('Indicado por');
       if (!form.supervisor_id) missing.push('Supervisor direto');
