@@ -267,8 +267,36 @@ export default function Hierarquia() {
     }
   };
 
+  const lvlNum = parseInt(form.hierarchy_level);
+  const missingFields = (() => {
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push('Nome');
+    if (!form.role.trim()) missing.push('Cargo/Função');
+    if (!form.hierarchy_level) missing.push('Nível hierárquico');
+    if (!form.email.trim()) missing.push('E-mail');
+    if (!form.phone.trim()) missing.push('Telefone');
+    if (!form.macroregion_id) missing.push('Macrorregião');
+    if (!form.microregion.trim()) missing.push('Microrregião');
+    if (!geoForm.city) missing.push('Município');
+    if (!form.status) missing.push('Status');
+    if (!form.observations.trim()) missing.push('Observações');
+    if (lvlNum >= 3) {
+      if (!form.referred_by.trim()) missing.push('Indicado por');
+      if (!form.supervisor_id) missing.push('Supervisor direto');
+      if (selectedAssociations.length === 0) missing.push('Associações de municípios');
+      if (selectedMacroregions.length === 0) missing.push('Macrorregiões');
+      if (lvlNum === 4 && selectedMunicipalities.length === 0) missing.push('Municípios sob responsabilidade');
+      if (lvlNum === 6 && selectedProfiles.length === 0) missing.push('Perfis de liderança');
+    }
+    return missing;
+  })();
+  const isFormValid = missingFields.length === 0;
+
   const handleSubmit = async () => {
-    if (!form.name || !geoForm.city) return;
+    if (!isFormValid) {
+      toast.error(`Preencha todos os campos: ${missingFields.join(', ')}`);
+      return;
+    }
     const lvl = parseInt(form.hierarchy_level) as 1|2|3|4|5|6;
     const payload = {
       name: form.name,
@@ -640,16 +668,23 @@ export default function Hierarquia() {
                 <textarea value={form.observations} onChange={e => updateForm('observations', e.target.value)} rows={2} placeholder="Notas sobre este membro..." className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
-              <button
-                onClick={handleSubmit}
-                disabled={!form.name || !geoForm.city || createMember.isPending || updateMember.isPending}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
-                style={{ background: 'var(--gradient-primary)' }}
-              >
-                {createMember.isPending || updateMember.isPending ? 'Salvando...' : editingId ? 'Salvar' : 'Cadastrar'}
-              </button>
+            <div className="flex flex-col gap-2 mt-5">
+              {!isFormValid && (
+                <p className="text-[11px] text-amber-500">
+                  Campos obrigatórios pendentes: {missingFields.join(', ')}
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!isFormValid || createMember.isPending || updateMember.isPending}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                  style={{ background: 'var(--gradient-primary)' }}
+                >
+                  {createMember.isPending || updateMember.isPending ? 'Salvando...' : editingId ? 'Salvar' : 'Cadastrar'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
