@@ -267,8 +267,36 @@ export default function Hierarquia() {
     }
   };
 
+  const lvlNum = parseInt(form.hierarchy_level);
+  const missingFields = (() => {
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push('Nome');
+    if (!form.role.trim()) missing.push('Cargo/Função');
+    if (!form.hierarchy_level) missing.push('Nível hierárquico');
+    if (!form.email.trim()) missing.push('E-mail');
+    if (!form.phone.trim()) missing.push('Telefone');
+    if (!form.macroregion_id) missing.push('Macrorregião');
+    if (!form.microregion.trim()) missing.push('Microrregião');
+    if (!geoForm.city) missing.push('Município');
+    if (!form.status) missing.push('Status');
+    if (!form.observations.trim()) missing.push('Observações');
+    if (lvlNum >= 3) {
+      if (!form.referred_by.trim()) missing.push('Indicado por');
+      if (!form.supervisor_id) missing.push('Supervisor direto');
+      if (selectedAssociations.length === 0) missing.push('Associações de municípios');
+      if (selectedMacroregions.length === 0) missing.push('Macrorregiões');
+      if (lvlNum === 4 && selectedMunicipalities.length === 0) missing.push('Municípios sob responsabilidade');
+      if (lvlNum === 6 && selectedProfiles.length === 0) missing.push('Perfis de liderança');
+    }
+    return missing;
+  })();
+  const isFormValid = missingFields.length === 0;
+
   const handleSubmit = async () => {
-    if (!form.name || !geoForm.city) return;
+    if (!isFormValid) {
+      toast.error(`Preencha todos os campos: ${missingFields.join(', ')}`);
+      return;
+    }
     const lvl = parseInt(form.hierarchy_level) as 1|2|3|4|5|6;
     const payload = {
       name: form.name,
