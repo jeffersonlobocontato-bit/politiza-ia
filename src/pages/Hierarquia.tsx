@@ -151,6 +151,76 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+  const [showPrint, setShowPrint] = useState(false);
+  const [printLevels, setPrintLevels] = useState<Set<number>>(new Set([1, 2, 3, 4, 5, 6]));
+  const [printFields, setPrintFields] = useState<{ role: boolean; city: boolean; phone: boolean; email: boolean }>({
+    role: true, city: true, phone: false, email: false,
+  });
+
+  const togglePrintLevel = (l: number) => setPrintLevels(prev => {
+    const n = new Set(prev);
+    n.has(l) ? n.delete(l) : n.add(l);
+    return n;
+  });
+
+  const handlePrintNames = () => {
+    const selected = [1, 2, 3, 4, 5, 6].filter(l => printLevels.has(l));
+    if (selected.length === 0) {
+      toast.error('Selecione pelo menos um nível para imprimir.');
+      return;
+    }
+    const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as any)[c]);
+    const title = viewingCandidate ? `Hierarquia — ${viewingCandidate.name}` : 'Hierarquia da Campanha';
+    const now = new Date().toLocaleString('pt-BR');
+    const sections = selected.map(lv => {
+      const list = members
+        .filter(m => m.hierarchy_level === lv)
+        .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+      if (list.length === 0) return '';
+      const rows = list.map((m, i) => {
+        const parts: string[] = [];
+        if (printFields.role && m.role) parts.push(esc(m.role));
+        if (printFields.city && m.municipality) parts.push(esc(m.municipality));
+        if (printFields.phone && m.phone) parts.push(esc(m.phone));
+        if (printFields.email && m.email) parts.push(esc(m.email));
+        const meta = parts.length ? `<span class="meta"> — ${parts.join(' · ')}</span>` : '';
+        return `<li><span class="num">${i + 1}.</span> <span class="name">${esc(m.name)}</span>${meta}</li>`;
+      }).join('');
+      return `<section><h2>Nível ${lv} — ${esc(LEVEL_LABELS[lv])} <span class="count">(${list.length})</span></h2><ol>${rows}</ol></section>`;
+    }).join('');
+    const total = selected.reduce((s, lv) => s + members.filter(m => m.hierarchy_level === lv).length, 0);
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(title)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111; margin: 24px; }
+  header { border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 16px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { font-size: 11px; color: #555; }
+  section { margin-top: 16px; break-inside: avoid; }
+  h2 { font-size: 13px; margin: 0 0 6px; padding: 4px 8px; background: #f0f0f0; border-left: 4px solid #111; }
+  h2 .count { color: #666; font-weight: 500; }
+  ol { list-style: none; padding: 0; margin: 0; column-count: 2; column-gap: 24px; }
+  li { font-size: 11px; padding: 3px 0; border-bottom: 1px dotted #ddd; break-inside: avoid; }
+  .num { color: #888; display: inline-block; min-width: 22px; }
+  .name { font-weight: 600; }
+  .meta { color: #555; font-weight: 400; }
+  @media print { body { margin: 12mm; } ol { column-count: 2; } }
+</style></head><body>
+<header>
+  <h1>${esc(title)}</h1>
+  <div class="sub">Total: ${total} membros · Gerado em ${esc(now)}</div>
+</header>
+${sections || '<p>Nenhum membro nos níveis selecionados.</p>'}
+<script>window.onload=()=>{setTimeout(()=>window.print(),200);};</script>
+</body></html>`;
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) { toast.error('Bloqueado pelo navegador. Permita pop-ups.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    setShowPrint(false);
+  };
+
 
   // Multi-select links state (for the form)
   const [selectedAssociations, setSelectedAssociations] = useState<string[]>([]);
