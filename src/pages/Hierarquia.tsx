@@ -1,5 +1,5 @@
 import { useState, Fragment, useMemo, useEffect, useRef } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft, Upload, Loader2, Printer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
