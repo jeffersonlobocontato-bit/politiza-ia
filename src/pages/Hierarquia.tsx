@@ -485,6 +485,85 @@ ${sections || '<p>Nenhum membro nos níveis selecionados.</p>'}
 
       <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} initialCandidateId={flowCandidateId} />
 
+      {/* Print Names Dialog */}
+      {showPrint && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Printer className="w-4 h-4 text-primary" /> Imprimir Nomes
+              </h3>
+              <button onClick={() => setShowPrint(false)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-3">
+              Selecione quais níveis devem sair na impressão.
+            </p>
+            <div className="space-y-1.5 mb-4">
+              {[1, 2, 3, 4, 5, 6].map(lv => {
+                const count = members.filter(m => m.hierarchy_level === lv).length;
+                return (
+                  <label key={lv} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded hover:bg-accent/50">
+                    <input
+                      type="checkbox"
+                      checked={printLevels.has(lv)}
+                      onChange={() => togglePrintLevel(lv)}
+                      className="accent-primary"
+                    />
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: LEVEL_COLORS[lv] }} />
+                    <span className="flex-1">Nível {lv} — {LEVEL_LABELS[lv]}</span>
+                    <span className="text-[10px] text-muted-foreground tabular-nums">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setPrintLevels(new Set([1, 2, 3, 4, 5, 6]))}
+                className="text-[11px] text-primary hover:underline"
+              >Todos</button>
+              <button
+                onClick={() => setPrintLevels(new Set())}
+                className="text-[11px] text-muted-foreground hover:underline"
+              >Nenhum</button>
+            </div>
+            <div className="border-t border-border pt-3 mb-4">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Campos adicionais</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {([
+                  ['role', 'Cargo/Função'],
+                  ['city', 'Município'],
+                  ['phone', 'Telefone'],
+                  ['email', 'E-mail'],
+                ] as const).map(([k, label]) => (
+                  <label key={k} className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={printFields[k]}
+                      onChange={() => setPrintFields(p => ({ ...p, [k]: !p[k] }))}
+                      className="accent-primary"
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowPrint(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
+              <button
+                onClick={handlePrintNames}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground"
+                style={{ background: 'var(--gradient-primary)' }}
+              >
+                <Printer className="w-4 h-4" /> Imprimir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {members.length > 0 && (
         <div className="px-6 py-4 border-b border-border flex-shrink-0 bg-card/30">
