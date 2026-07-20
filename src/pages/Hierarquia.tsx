@@ -1,5 +1,5 @@
 import { useState, Fragment, useMemo, useEffect, useRef } from 'react';
-import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { Network, Award, Plus, Pencil, Trash2, X, GitFork, ChevronDown, ChevronRight, ArrowLeft, Upload, Loader2, Printer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GeoLocationInput, type GeoValue } from '@/components/ui/GeoLocationInput';
@@ -151,6 +151,76 @@ export default function Hierarquia() {
   const [form, setForm] = useState<MemberForm>(emptyForm());
   const [geoForm, setGeoForm] = useState<import('@/components/ui/GeoLocationInput').GeoValue>({ city: '', lat: null, lng: null });
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+  const [showPrint, setShowPrint] = useState(false);
+  const [printLevels, setPrintLevels] = useState<Set<number>>(new Set([1, 2, 3, 4, 5, 6]));
+  const [printFields, setPrintFields] = useState<{ role: boolean; city: boolean; phone: boolean; email: boolean }>({
+    role: true, city: true, phone: false, email: false,
+  });
+
+  const togglePrintLevel = (l: number) => setPrintLevels(prev => {
+    const n = new Set(prev);
+    n.has(l) ? n.delete(l) : n.add(l);
+    return n;
+  });
+
+  const handlePrintNames = () => {
+    const selected = [1, 2, 3, 4, 5, 6].filter(l => printLevels.has(l));
+    if (selected.length === 0) {
+      toast.error('Selecione pelo menos um nível para imprimir.');
+      return;
+    }
+    const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as any)[c]);
+    const title = viewingCandidate ? `Hierarquia — ${viewingCandidate.name}` : 'Hierarquia da Campanha';
+    const now = new Date().toLocaleString('pt-BR');
+    const sections = selected.map(lv => {
+      const list = members
+        .filter(m => m.hierarchy_level === lv)
+        .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+      if (list.length === 0) return '';
+      const rows = list.map((m, i) => {
+        const parts: string[] = [];
+        if (printFields.role && m.role) parts.push(esc(m.role));
+        if (printFields.city && m.municipality) parts.push(esc(m.municipality));
+        if (printFields.phone && m.phone) parts.push(esc(m.phone));
+        if (printFields.email && m.email) parts.push(esc(m.email));
+        const meta = parts.length ? `<span class="meta"> — ${parts.join(' · ')}</span>` : '';
+        return `<li><span class="num">${i + 1}.</span> <span class="name">${esc(m.name)}</span>${meta}</li>`;
+      }).join('');
+      return `<section><h2>Nível ${lv} — ${esc(LEVEL_LABELS[lv])} <span class="count">(${list.length})</span></h2><ol>${rows}</ol></section>`;
+    }).join('');
+    const total = selected.reduce((s, lv) => s + members.filter(m => m.hierarchy_level === lv).length, 0);
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(title)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111; margin: 24px; }
+  header { border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 16px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { font-size: 11px; color: #555; }
+  section { margin-top: 16px; break-inside: avoid; }
+  h2 { font-size: 13px; margin: 0 0 6px; padding: 4px 8px; background: #f0f0f0; border-left: 4px solid #111; }
+  h2 .count { color: #666; font-weight: 500; }
+  ol { list-style: none; padding: 0; margin: 0; column-count: 2; column-gap: 24px; }
+  li { font-size: 11px; padding: 3px 0; border-bottom: 1px dotted #ddd; break-inside: avoid; }
+  .num { color: #888; display: inline-block; min-width: 22px; }
+  .name { font-weight: 600; }
+  .meta { color: #555; font-weight: 400; }
+  @media print { body { margin: 12mm; } ol { column-count: 2; } }
+</style></head><body>
+<header>
+  <h1>${esc(title)}</h1>
+  <div class="sub">Total: ${total} membros · Gerado em ${esc(now)}</div>
+</header>
+${sections || '<p>Nenhum membro nos níveis selecionados.</p>'}
+<script>window.onload=()=>{setTimeout(()=>window.print(),200);};</script>
+</body></html>`;
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) { toast.error('Bloqueado pelo navegador. Permita pop-ups.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    setShowPrint(false);
+  };
+
 
   // Multi-select links state (for the form)
   const [selectedAssociations, setSelectedAssociations] = useState<string[]>([]);
@@ -398,6 +468,12 @@ export default function Hierarquia() {
             <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
           </button>
           <button
+            onClick={() => setShowPrint(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
+          >
+            <Printer className="w-4 h-4 text-primary" /> Imprimir Nomes
+          </button>
+          <button
             onClick={openNew}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
             style={{ background: 'var(--gradient-primary)' }}
@@ -408,6 +484,85 @@ export default function Hierarquia() {
       </div>
 
       <HierarchyFlowchart open={showFlow} onClose={() => setShowFlow(false)} initialCandidateId={flowCandidateId} />
+
+      {/* Print Names Dialog */}
+      {showPrint && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Printer className="w-4 h-4 text-primary" /> Imprimir Nomes
+              </h3>
+              <button onClick={() => setShowPrint(false)} className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-3">
+              Selecione quais níveis devem sair na impressão.
+            </p>
+            <div className="space-y-1.5 mb-4">
+              {[1, 2, 3, 4, 5, 6].map(lv => {
+                const count = members.filter(m => m.hierarchy_level === lv).length;
+                return (
+                  <label key={lv} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded hover:bg-accent/50">
+                    <input
+                      type="checkbox"
+                      checked={printLevels.has(lv)}
+                      onChange={() => togglePrintLevel(lv)}
+                      className="accent-primary"
+                    />
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: LEVEL_COLORS[lv] }} />
+                    <span className="flex-1">Nível {lv} — {LEVEL_LABELS[lv]}</span>
+                    <span className="text-[10px] text-muted-foreground tabular-nums">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setPrintLevels(new Set([1, 2, 3, 4, 5, 6]))}
+                className="text-[11px] text-primary hover:underline"
+              >Todos</button>
+              <button
+                onClick={() => setPrintLevels(new Set())}
+                className="text-[11px] text-muted-foreground hover:underline"
+              >Nenhum</button>
+            </div>
+            <div className="border-t border-border pt-3 mb-4">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Campos adicionais</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {([
+                  ['role', 'Cargo/Função'],
+                  ['city', 'Município'],
+                  ['phone', 'Telefone'],
+                  ['email', 'E-mail'],
+                ] as const).map(([k, label]) => (
+                  <label key={k} className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={printFields[k]}
+                      onChange={() => setPrintFields(p => ({ ...p, [k]: !p[k] }))}
+                      className="accent-primary"
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowPrint(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Cancelar</button>
+              <button
+                onClick={handlePrintNames}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground"
+                style={{ background: 'var(--gradient-primary)' }}
+              >
+                <Printer className="w-4 h-4" /> Imprimir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* ── Charts Panel ──────────────────────────────────────────────────────── */}
       {members.length > 0 && (
