@@ -468,6 +468,12 @@ ${sections || '<p>Nenhum membro nos níveis selecionados.</p>'}
             <GitFork className="w-4 h-4 text-primary" /> Ver Fluxograma
           </button>
           <button
+            onClick={() => setShowPrint(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-accent transition-colors"
+          >
+            <Printer className="w-4 h-4 text-primary" /> Imprimir Nomes
+          </button>
+          <button
             onClick={openNew}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
             style={{ background: 'var(--gradient-primary)' }}
