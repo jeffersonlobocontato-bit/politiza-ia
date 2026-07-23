@@ -641,19 +641,74 @@ export function UsersManager() {
       </Dialog>
 
       {/* Password reset dialog */}
-      <Dialog open={!!pwDialog} onOpenChange={o => { if (!o) { setPwDialog(null); setNewPassword(''); } }}>
+      <Dialog
+        open={!!pwDialog}
+        onOpenChange={o => { if (!o) { setPwDialog(null); setNewPassword(''); setPwSaved(null); setShowPw(false); } }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Redefinir senha</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Defina uma nova senha para <strong>{pwDialog?.full_name}</strong>.</p>
-            <Input type="text" placeholder="Nova senha (mín. 6 caracteres)" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setPwDialog(null); setNewPassword(''); }}>Cancelar</Button>
-            <Button onClick={resetPassword}>Redefinir</Button>
-          </DialogFooter>
+
+          {!pwSaved ? (
+            <>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Defina uma nova senha para <strong>{pwDialog?.full_name}</strong>.
+                </p>
+                <div className="relative">
+                  <Input
+                    type={showPw ? 'text' : 'password'}
+                    placeholder="Nova senha (mín. 6 caracteres)"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(s => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    title={showPw ? 'Ocultar' : 'Mostrar'}
+                  >
+                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <Button type="button" variant="outline" size="sm" className="w-full gap-1.5" onClick={generatePassword}>
+                  <RefreshCw className="w-3.5 h-3.5" /> Gerar senha provisória
+                </Button>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setPwDialog(null); setNewPassword(''); setShowPw(false); }}>
+                  Cancelar
+                </Button>
+                <Button onClick={resetPassword}>Redefinir</Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Senha redefinida para <strong>{pwDialog?.full_name}</strong>. Copie e envie ao usuário — ela não poderá ser visualizada novamente.
+                </p>
+                <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
+                  <code className="flex-1 text-sm font-mono break-all">{pwSaved}</code>
+                  <button
+                    type="button"
+                    onClick={() => copyPassword(pwSaved)}
+                    className="text-muted-foreground hover:text-foreground"
+                    title="Copiar"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => { setPwDialog(null); setNewPassword(''); setPwSaved(null); setShowPw(false); }}>
+                  Concluir
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
