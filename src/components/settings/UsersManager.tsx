@@ -360,6 +360,13 @@ export function UsersManager() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{u.email}</p>
+                  <button
+                    type="button"
+                    onClick={() => { setPwDialog(u); setNewPassword(''); setPwSaved(null); setShowPw(false); }}
+                    className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                  >
+                    <Key className="w-3 h-3" /> Redefinir senha
+                  </button>
                   {(u.macroregion_id || u.microregion || u.municipality) && (
                     <p className="text-[11px] text-muted-foreground/80 mt-0.5">
                       Escopo: {[u.municipality, u.microregion, u.macroregion_id].filter(Boolean).join(' · ')}
