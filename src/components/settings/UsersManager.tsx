@@ -263,16 +263,38 @@ export function UsersManager() {
     setShowPw(true);
   };
 
+  const isPwnedPassword = async (pw: string): Promise<boolean> => {
+    try {
+      const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(pw));
+      const hash = Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+      const res = await fetch(`https://api.pwnedpasswords.com/range/${hash.slice(0, 5)}`);
+      if (!res.ok) return false;
+      const body = await res.text();
+      return body.split('\n').some(line => line.split(':')[0].trim() === hash.slice(5));
+    } catch {
+      return false;
+    }
+  };
+
   const resetPassword = async () => {
     if (!pwDialog || newPassword.length < 6) {
       toast.error('Senha de no mínimo 6 caracteres');
+      return;
+    }
+    if (await isPwnedPassword(newPassword)) {
+      toast.error('Essa senha aparece em vazamentos públicos. Clique em "Gerar senha provisória".');
       return;
     }
     const r = await supabase.functions.invoke('manage-user', {
       body: { action: 'reset_password', user_id: pwDialog.id, password: newPassword },
     });
     if (r.error || (r.data as any)?.error) {
-      toast.error((r.data as any)?.error || r.error?.message || 'Erro');
+      const msg = (r.data as any)?.error || r.error?.message || 'Erro';
+      const friendly = /weak|guess|pwned|leaked/i.test(msg)
+        ? 'Essa senha é considerada fraca/vazada. Clique em "Gerar senha provisória".'
+        : msg;
+      toast.error(friendly);
       return;
     }
     toast.success('Senha redefinida com sucesso');
