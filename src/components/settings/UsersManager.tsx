@@ -245,11 +245,21 @@ export function UsersManager() {
   };
 
   const generatePassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-    let out = '';
-    for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
-    const pw = `${out}@26`;
-    setNewPassword(pw);
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const symbols = '!@#$%&*?';
+    const all = upper + lower + digits + symbols;
+    const rand = (s: string) => s[Math.floor(Math.random() * s.length)];
+    // Garante 1 de cada categoria + 10 aleatórios do conjunto completo
+    const chars = [rand(upper), rand(lower), rand(digits), rand(symbols)];
+    for (let i = 0; i < 10; i++) chars.push(rand(all));
+    // Embaralha para não fixar posições previsíveis
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    setNewPassword(chars.join(''));
     setShowPw(true);
   };
 
