@@ -8,16 +8,27 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ALLOWED_ORIGINS = new Set([
+const STATIC_ALLOWED = new Set([
   Deno.env.get("APP_ORIGIN") ?? "https://politiza.ia.br",
   "https://politiza.ia.br",
   "https://politiza-ia.lovable.app",
-  "https://id-preview--f380f93a-c842-436f-b4cc-1c33f0a98846.lovable.app",
   "http://localhost:8080",
 ]);
 
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (STATIC_ALLOWED.has(origin)) return true;
+  try {
+    const host = new URL(origin).hostname;
+    // Aceita subdomínios de preview do Lovable
+    return host.endsWith(".lovable.app") || host.endsWith(".lovableproject.com");
+  } catch {
+    return false;
+  }
+}
+
 function buildCorsHeaders(origin: string | null) {
-  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://politiza.ia.br";
+  const allow = isAllowedOrigin(origin) ? origin! : "https://politiza.ia.br";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
