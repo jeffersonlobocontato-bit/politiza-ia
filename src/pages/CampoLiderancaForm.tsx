@@ -276,11 +276,11 @@ export default function CampoLiderancaForm() {
             <div className="grid grid-cols-2 gap-3">
               <div className="min-w-0">
                 <label className={labelCls}>Influência (1-10)</label>
-                <input type="number" min={1} max={10} value={influence} onChange={e => setInfluence(parseInt(e.target.value) || 5)} className={inputCls} />
+                <ScoreStepper value={influence} onChange={setInfluence} min={1} max={10} />
               </div>
               <div className="min-w-0">
                 <label className={labelCls}>Mobilização (1-10)</label>
-                <input type="number" min={1} max={10} value={mobilization} onChange={e => setMobilization(parseInt(e.target.value) || 5)} className={inputCls} />
+                <ScoreStepper value={mobilization} onChange={setMobilization} min={1} max={10} />
               </div>
             </div>
             <div>
