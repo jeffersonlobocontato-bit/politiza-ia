@@ -136,8 +136,8 @@ Deno.serve(async (req) => {
       return json({ error: "Forbidden" }, 403);
     }
 
-    if (!ANTHROPIC_API_KEY) {
-      return json({ error: "ANTHROPIC_API_KEY não configurada." }, 500);
+    if (!LOVABLE_API_KEY) {
+      return json({ error: "LOVABLE_API_KEY não configurada." }, 500);
     }
 
     const body = (await req.json()) as Body;
