@@ -134,6 +134,17 @@ export default function DueDiligence() {
                 <Label className="text-xs font-mono uppercase tracking-wide text-muted-foreground">Cargo / Função</Label>
                 <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Ex: Vereador, Secretário, Empresário" />
               </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs font-mono uppercase tracking-wide text-muted-foreground">
+                  CPF <span className="opacity-60">(opcional)</span>
+                </Label>
+                <Input
+                  value={cpf}
+                  onChange={(e) => setCpf(e.target.value.replace(/[^\d.\-\s]/g, '').slice(0, 14))}
+                  placeholder="000.000.000-00"
+                  inputMode="numeric"
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">
