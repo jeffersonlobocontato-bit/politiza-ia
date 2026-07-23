@@ -272,22 +272,16 @@ Deno.serve(async (req) => {
     const payload = {
       model: MODEL,
       max_tokens: 4000,
-      system: systemWithContext,
-      messages,
-      tools: [
-        {
-          type: "web_search_20250305",
-          name: "web_search",
-        },
+      messages: [
+        { role: "system", content: systemWithContext },
+        ...messages,
       ],
     };
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-beta": "web-search-2025-03-05",
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
@@ -295,10 +289,9 @@ Deno.serve(async (req) => {
 
     if (!aiRes.ok) {
       const text = await aiRes.text();
-      const lower = text.toLowerCase();
-      if (lower.includes("credit balance is too low") || lower.includes("insufficient")) {
+      if (aiRes.status === 402) {
         return json({
-          error: "Sem saldo na Anthropic. Recarregue créditos em https://console.anthropic.com/settings/billing.",
+          error: "Créditos da Lovable AI esgotados. Adicione créditos em Settings → Plans & credits.",
           fallback: true,
           reason: "no_credits",
         }, 402);
@@ -306,20 +299,11 @@ Deno.serve(async (req) => {
       if (aiRes.status === 429) {
         return json({ error: "Limite de requisições atingido. Aguarde um momento.", fallback: true, reason: "rate_limit" }, 429);
       }
-      if (aiRes.status === 401 || aiRes.status === 403) {
-        return json({ error: "Chave da Anthropic inválida ou sem permissão.", fallback: true, reason: "auth" }, aiRes.status);
-      }
-      return json({ error: `Anthropic API [${aiRes.status}]: ${text}`, fallback: true, reason: "upstream" }, 502);
+      return json({ error: `Lovable AI [${aiRes.status}]: ${text}`, fallback: true, reason: "upstream" }, 502);
     }
 
     const data = await aiRes.json();
-
-    let text = "";
-    if (Array.isArray(data.content)) {
-      for (const block of data.content) {
-        if (block.type === "text") text += block.text;
-      }
-    }
+    const text: string = data?.choices?.[0]?.message?.content ?? "";
 
     // Persiste histórico (best-effort — não bloqueia a resposta em caso de erro)
     try {
