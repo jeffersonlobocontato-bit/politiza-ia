@@ -70,7 +70,7 @@ export default function DueDiligence() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!podeIniciar) return;
-    openRaioX({ nome, municipio, partido, cargo, contexto });
+    openRaioX({ nome, municipio, partido, cargo, cpf, contexto });
   };
 
   return (
