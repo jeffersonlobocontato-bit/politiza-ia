@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users, LayoutGrid } from 'lucide-react';
+import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users, LayoutGrid, Eye, EyeOff, Copy, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { ALL_MODULES, supportsCustomModules } from '@/config/modules';
