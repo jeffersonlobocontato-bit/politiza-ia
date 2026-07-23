@@ -160,6 +160,7 @@ function initRaioXApp(){
   var municipio = params.get('municipio');
   var partido   = params.get('partido');
   var cargo     = params.get('cargo');
+  var cpf       = params.get('cpf');
   var contexto  = params.get('contexto');
   var auto      = params.get('auto');
   var redeSocial = params.get('rede_social');
@@ -177,7 +178,8 @@ function initRaioXApp(){
       name: nome,
       municipality: municipio,
       party: partido || '',
-      position: cargo || ''
+      position: cargo || '',
+      cpf: cpf || ''
     };
 
     // Cria imediatamente um perfil "em andamento" — assim o botão Salvar já funciona
@@ -201,6 +203,7 @@ function initRaioXApp(){
     if (cargo)     partes.push(cargo);
     if (partido)   partes.push(partido);
     partes.push(municipio + '/PR');
+    if (cpf)       partes.push('CPF: ' + cpf);
     if (contexto)  partes.push('Contexto: ' + contexto);
 
     var msgPesquisa = 'pesquise profundamente sobre ' + nome + ' — ' + partes.join(', ');
@@ -212,6 +215,7 @@ function initRaioXApp(){
       (cargo    ? '• Cargo: <strong>' + cargo + '</strong><br>' : '') +
       (partido  ? '• Partido: <strong>' + partido + '</strong><br>' : '') +
       '• Município: <strong>' + municipio + '/PR</strong><br>' +
+      (cpf      ? '• CPF: <strong>' + cpf + '</strong><br>' : '') +
       (contexto ? '• Contexto: <em>' + contexto + '</em><br>' : '') +
       '<br>Iniciando investigação...'
     );

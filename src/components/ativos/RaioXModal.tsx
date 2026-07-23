@@ -124,6 +124,7 @@ export function openRaioX(dados: RaioXDados, sessionId?: string) {
     municipio: dados.municipio,
     partido: dados.partido ?? '',
     cargo: dados.cargo ?? '',
+    cpf: dados.cpf ?? '',
     contexto: dados.contexto ?? '',
     auto: 'true',
     session_id: sid,
