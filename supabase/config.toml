@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.manage-cruzamento-access]
 verify_jwt = true
+
+[functions.redator-gazeta-chat]
+verify_jwt = true
