@@ -244,6 +244,15 @@ export function UsersManager() {
     await load();
   };
 
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let out = '';
+    for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    const pw = `${out}@26`;
+    setNewPassword(pw);
+    setShowPw(true);
+  };
+
   const resetPassword = async () => {
     if (!pwDialog || newPassword.length < 6) {
       toast.error('Senha de no mínimo 6 caracteres');
@@ -256,9 +265,17 @@ export function UsersManager() {
       toast.error((r.data as any)?.error || r.error?.message || 'Erro');
       return;
     }
-    toast.success('Senha redefinida');
-    setPwDialog(null);
-    setNewPassword('');
+    toast.success('Senha redefinida com sucesso');
+    setPwSaved(newPassword);
+  };
+
+  const copyPassword = async (pw: string) => {
+    try {
+      await navigator.clipboard.writeText(pw);
+      toast.success('Senha copiada');
+    } catch {
+      toast.error('Não foi possível copiar');
+    }
   };
 
   const filtered = users.filter(u => {
