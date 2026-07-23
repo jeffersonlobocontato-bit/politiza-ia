@@ -7,9 +7,10 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban, PenLine
 } from 'lucide-react';
 import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
+import { useRedatorGazetaAccess } from '@/hooks/useRedatorGazetaAccess';
 import { useCandidate, type CampaignType } from '@/contexts/CandidateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserParty } from '@/hooks/useUserParty';
@@ -80,6 +81,7 @@ export function AppSidebar() {
   const userLevelTag = membership?.hierarchy_level ? `Nível ${membership.hierarchy_level}` : null;
   const { isPartyManager } = useUserParty();
   const { canAccess: canCruzamentoMoro } = useCruzamentoMoroAccess();
+  const { canAccess: canRedatorGazeta } = useRedatorGazetaAccess();
 
   const isJuridico = isAdmin || roles?.includes('juridico' as any);
   const isGestorOperacional = !isAdmin && roles?.includes('gestor_operacional' as any);
@@ -115,6 +117,12 @@ export function AppSidebar() {
     title: 'Cruzamento Moro', url: '/inteligencia/cruzamento-moro', icon: GitCompare, highlight: false,
   } : null;
 
+  // Aba exclusiva — só aparece para quem tem grant em redator_gazeta_access
+  // (por padrão, só Jefferson Lobo).
+  const redatorGazetaItem = canRedatorGazeta ? {
+    title: 'Redator Gazeta', url: '/redator-gazeta', icon: PenLine, highlight: false,
+  } : null;
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
       <SidebarContent className="bg-sidebar">
@@ -141,7 +149,7 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5 px-2">
-              {[...visibleItems, ...(cruzamentoMoroItem ? [cruzamentoMoroItem as any] : [])].map((item) => {
+              {[...visibleItems, ...(cruzamentoMoroItem ? [cruzamentoMoroItem as any] : []), ...(redatorGazetaItem ? [redatorGazetaItem as any] : [])].map((item) => {
                 const isActive = location.pathname === item.url;
                 const isHighlight = item.highlight;
                 return (
