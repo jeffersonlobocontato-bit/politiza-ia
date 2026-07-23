@@ -137,49 +137,121 @@ Deno.serve(async (req) => {
 
     // ── Monta o contexto de dados cruzando as fontes da plataforma ──────────
     const municipioFilter = body.municipio?.trim();
+    const areaFilter = body.area_tematica?.trim();
+    const exercicioFilter = body.exercicio;
+    const perBucketLimit = Math.min(Math.max(body.limit ?? 80, 20), 300);
 
-    let emendasQuery = db
-      .from("emendas")
-      .select("exercicio, tipo, ente_federativo, municipio, area_tematica, finalidade, valor_total, status, unidade_beneficiaria")
-      .order("valor_total", { ascending: false })
-      .limit(80);
-    if (municipioFilter) emendasQuery = emendasQuery.ilike("municipio", `%${municipioFilter}%`);
-    const { data: emendas } = await emendasQuery;
+    const emendasCols =
+      "id, exercicio, tipo, ente_federativo, municipio, area_tematica, finalidade, valor_total, valor_empenhado, valor_pago, status, unidade_beneficiaria";
 
-    let assetsQuery = db
-      .from("political_assets")
-      .select("name, role, alignment_status, influence_level, macroregion_id")
-      .limit(60);
-    const { data: assets } = await assetsQuery;
+    const applyFilters = (q: any) => {
+      if (municipioFilter) q = q.ilike("municipio", `%${municipioFilter}%`);
+      if (areaFilter) q = q.ilike("area_tematica", `%${areaFilter}%`);
+      if (exercicioFilter) q = q.eq("exercicio", exercicioFilter);
+      return q;
+    };
 
-    const { data: actions } = await db
-      .from("actions")
-      .select("title, status, macroregion_id, estimated_impact, planned_date")
-      .is("deleted_at", null)
-      .order("planned_date", { ascending: false })
-      .limit(40);
+    // Amostragem estratificada: paralela + deduplicada por id
+    const [byTotalRes, byPagoRes, distinctAreasRes, aggAreaRes, aggAnoRes, aggTotalsRes] =
+      await Promise.all([
+        applyFilters(db.from("emendas").select(emendasCols).order("valor_total", { ascending: false }).limit(Math.min(perBucketLimit, 40))),
+        applyFilters(db.from("emendas").select(emendasCols).order("valor_pago", { ascending: false }).limit(Math.min(perBucketLimit, 40))),
+        db.from("emendas").select("area_tematica").not("area_tematica", "is", null).limit(2000),
+        // Agregações via RPC não existem; buscamos amostras amplas para somar em memória
+        applyFilters(db.from("emendas").select("area_tematica, valor_total, valor_pago, valor_empenhado").limit(2000)),
+        applyFilters(db.from("emendas").select("exercicio, valor_total, valor_pago, valor_empenhado").limit(2000)),
+        applyFilters(db.from("emendas").select("valor_total, valor_pago, valor_empenhado, municipio").limit(2000)),
+      ]);
 
-    const { data: macroregions } = await db.from("macroregions").select("id, name");
+    const distinctAreas = Array.from(
+      new Set(((distinctAreasRes.data ?? []) as any[]).map((r) => r.area_tematica).filter(Boolean))
+    ).slice(0, 20);
 
-    const emendasTotal = (emendas ?? []).reduce((s, e: any) => s + (e.valor_total ?? 0), 0);
-    const emendasPorMunicipio: Record<string, number> = {};
-    for (const e of emendas ?? []) {
-      const key = (e as any).municipio ?? "Sem município";
-      emendasPorMunicipio[key] = (emendasPorMunicipio[key] ?? 0) + ((e as any).valor_total ?? 0);
+    const perAreaResults = await Promise.all(
+      distinctAreas.map((area) =>
+        applyFilters(db.from("emendas").select(emendasCols))
+          .ilike("area_tematica", area)
+          .order("valor_total", { ascending: false })
+          .limit(5)
+      )
+    );
+
+    // Dedupe por id
+    const emendasMap = new Map<string, any>();
+    const push = (rows: any[] | null | undefined) => {
+      for (const r of rows ?? []) if (r && !emendasMap.has(r.id)) emendasMap.set(r.id, r);
+    };
+    push(byTotalRes.data as any[]);
+    push(byPagoRes.data as any[]);
+    for (const r of perAreaResults) push(r.data as any[]);
+    const emendas = Array.from(emendasMap.values());
+
+    // Agregações
+    const num = (v: any) => (typeof v === "number" ? v : 0);
+    const valor_total_por_area_tematica: Record<string, number> = {};
+    const valor_pago_por_area_tematica: Record<string, number> = {};
+    for (const r of (aggAreaRes.data ?? []) as any[]) {
+      const k = r.area_tematica ?? "Sem área";
+      valor_total_por_area_tematica[k] = (valor_total_por_area_tematica[k] ?? 0) + num(r.valor_total);
+      valor_pago_por_area_tematica[k] = (valor_pago_por_area_tematica[k] ?? 0) + num(r.valor_pago);
     }
+    const valor_total_por_exercicio: Record<string, number> = {};
+    const valor_pago_por_exercicio: Record<string, number> = {};
+    for (const r of (aggAnoRes.data ?? []) as any[]) {
+      const k = String(r.exercicio ?? "N/D");
+      valor_total_por_exercicio[k] = (valor_total_por_exercicio[k] ?? 0) + num(r.valor_total);
+      valor_pago_por_exercicio[k] = (valor_pago_por_exercicio[k] ?? 0) + num(r.valor_pago);
+    }
+    let valor_total_geral = 0, valor_pago_geral = 0, valor_empenhado_geral = 0;
+    const valor_pago_por_municipio: Record<string, number> = {};
+    for (const r of (aggTotalsRes.data ?? []) as any[]) {
+      valor_total_geral += num(r.valor_total);
+      valor_pago_geral += num(r.valor_pago);
+      valor_empenhado_geral += num(r.valor_empenhado);
+      const m = r.municipio ?? "Sem município";
+      valor_pago_por_municipio[m] = (valor_pago_por_municipio[m] ?? 0) + num(r.valor_pago);
+    }
+    const top_10_municipios_por_valor_pago = Object.entries(valor_pago_por_municipio)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {} as Record<string, number>);
+
+    const [{ data: assets }, { data: actions }, { data: macroregions }] = await Promise.all([
+      db.from("political_assets").select("name, role, alignment_status, influence_level, macroregion_id").limit(60),
+      db.from("actions").select("title, status, macroregion_id, estimated_impact, planned_date").is("deleted_at", null).order("planned_date", { ascending: false }).limit(40),
+      db.from("macroregions").select("id, name"),
+    ]);
+
+    const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
 
     const dataContext = {
-      filtro_municipio: municipioFilter ?? null,
+      filtros_aplicados: {
+        municipio: municipioFilter ?? null,
+        area_tematica: areaFilter ?? null,
+        exercicio: exercicioFilter ?? null,
+      },
       emendas: {
-        total_registros: (emendas ?? []).length,
-        valor_total_destinado: emendasTotal,
-        valor_total_por_municipio: emendasPorMunicipio,
-        registros: emendas ?? [],
+        autoria: "Senador Sergio Moro (PR) — base integral da plataforma",
+        total_registros_amostra: emendas.length,
+        agregados_gerais: {
+          valor_total: valor_total_geral,
+          valor_empenhado: valor_empenhado_geral,
+          valor_pago: valor_pago_geral,
+          percentual_pago_sobre_total: pct(valor_pago_geral, valor_total_geral),
+          percentual_pago_sobre_empenhado: pct(valor_pago_geral, valor_empenhado_geral),
+        },
+        valor_total_por_area_tematica,
+        valor_pago_por_area_tematica,
+        valor_total_por_exercicio,
+        valor_pago_por_exercicio,
+        top_10_municipios_por_valor_pago,
+        registros: emendas,
       },
       ativos_politicos: assets ?? [],
       acoes_recentes: actions ?? [],
       macrorregioes: macroregions ?? [],
     };
+
 
     const systemWithContext =
       SYSTEM_PROMPT +
