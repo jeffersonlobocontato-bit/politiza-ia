@@ -1,4 +1,4 @@
-// One-off: fix camilo email + reset password. Self-contained.
+// One-off: reset senha para lista de usuários. Self-contained.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const cors = {
@@ -9,24 +9,30 @@ const cors = {
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 
-const USER_ID = "f9869481-3876-4299-839c-9024f1b58b3e";
-const NEW_EMAIL = "camiloindustrial@hotmail.com";
-const NEW_PASSWORD = "Politiza@2026";
+const TARGETS = [
+  "juarez@politiza.ia.br",
+  "daniela@politiza.ia.br",
+];
+const NEW_PASSWORD = "Politiza#Campo2026!";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const results: any[] = [];
 
-  const { data, error } = await admin.auth.admin.updateUserById(USER_ID, {
-    email: NEW_EMAIL,
-    email_confirm: true,
-    password: NEW_PASSWORD,
-    user_metadata: { must_change_password: true, full_name: "Joneval Verci Camilo" },
-  });
-  if (error) return json({ error: error.message }, 400);
+  for (const email of TARGETS) {
+    const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+    if (listErr) { results.push({ email, error: listErr.message }); continue; }
+    const u = list.users.find(x => (x.email || "").toLowerCase() === email.toLowerCase());
+    if (!u) { results.push({ email, error: "not_found" }); continue; }
+    const { error } = await admin.auth.admin.updateUserById(u.id, {
+      password: NEW_PASSWORD,
+      email_confirm: true,
+      user_metadata: { ...(u.user_metadata || {}), must_change_password: true },
+    });
+    results.push({ email, id: u.id, ok: !error, error: error?.message });
+  }
 
-  await admin.from("profiles").update({ email: NEW_EMAIL }).eq("id", USER_ID);
-
-  return json({ ok: true, id: data.user?.id, email: data.user?.email });
+  return json({ ok: true, results });
 });
