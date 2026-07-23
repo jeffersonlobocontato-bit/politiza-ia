@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users, LayoutGrid } from 'lucide-react';
+import { Plus, Pencil, Trash2, Key, ShieldCheck, Search, Users, LayoutGrid, Eye, EyeOff, Copy, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { ALL_MODULES, supportsCustomModules } from '@/config/modules';
@@ -102,6 +102,8 @@ export function UsersManager() {
   const [filterRole, setFilterRole] = useState<'all' | AppRole>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pwDialog, setPwDialog] = useState<UserRow | null>(null);
+  const [showPw, setShowPw] = useState(false);
+  const [pwSaved, setPwSaved] = useState<string | null>(null);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [citySearch, setCitySearch] = useState('');
@@ -242,6 +244,15 @@ export function UsersManager() {
     await load();
   };
 
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let out = '';
+    for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    const pw = `${out}@26`;
+    setNewPassword(pw);
+    setShowPw(true);
+  };
+
   const resetPassword = async () => {
     if (!pwDialog || newPassword.length < 6) {
       toast.error('Senha de no mínimo 6 caracteres');
@@ -254,9 +265,17 @@ export function UsersManager() {
       toast.error((r.data as any)?.error || r.error?.message || 'Erro');
       return;
     }
-    toast.success('Senha redefinida');
-    setPwDialog(null);
-    setNewPassword('');
+    toast.success('Senha redefinida com sucesso');
+    setPwSaved(newPassword);
+  };
+
+  const copyPassword = async (pw: string) => {
+    try {
+      await navigator.clipboard.writeText(pw);
+      toast.success('Senha copiada');
+    } catch {
+      toast.error('Não foi possível copiar');
+    }
   };
 
   const filtered = users.filter(u => {
@@ -341,6 +360,13 @@ export function UsersManager() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{u.email}</p>
+                  <button
+                    type="button"
+                    onClick={() => { setPwDialog(u); setNewPassword(''); setPwSaved(null); setShowPw(false); }}
+                    className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                  >
+                    <Key className="w-3 h-3" /> Redefinir senha
+                  </button>
                   {(u.macroregion_id || u.microregion || u.municipality) && (
                     <p className="text-[11px] text-muted-foreground/80 mt-0.5">
                       Escopo: {[u.municipality, u.microregion, u.macroregion_id].filter(Boolean).join(' · ')}
@@ -615,19 +641,74 @@ export function UsersManager() {
       </Dialog>
 
       {/* Password reset dialog */}
-      <Dialog open={!!pwDialog} onOpenChange={o => { if (!o) { setPwDialog(null); setNewPassword(''); } }}>
+      <Dialog
+        open={!!pwDialog}
+        onOpenChange={o => { if (!o) { setPwDialog(null); setNewPassword(''); setPwSaved(null); setShowPw(false); } }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Redefinir senha</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Defina uma nova senha para <strong>{pwDialog?.full_name}</strong>.</p>
-            <Input type="text" placeholder="Nova senha (mín. 6 caracteres)" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setPwDialog(null); setNewPassword(''); }}>Cancelar</Button>
-            <Button onClick={resetPassword}>Redefinir</Button>
-          </DialogFooter>
+
+          {!pwSaved ? (
+            <>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Defina uma nova senha para <strong>{pwDialog?.full_name}</strong>.
+                </p>
+                <div className="relative">
+                  <Input
+                    type={showPw ? 'text' : 'password'}
+                    placeholder="Nova senha (mín. 6 caracteres)"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(s => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    title={showPw ? 'Ocultar' : 'Mostrar'}
+                  >
+                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <Button type="button" variant="outline" size="sm" className="w-full gap-1.5" onClick={generatePassword}>
+                  <RefreshCw className="w-3.5 h-3.5" /> Gerar senha provisória
+                </Button>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setPwDialog(null); setNewPassword(''); setShowPw(false); }}>
+                  Cancelar
+                </Button>
+                <Button onClick={resetPassword}>Redefinir</Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Senha redefinida para <strong>{pwDialog?.full_name}</strong>. Copie e envie ao usuário — ela não poderá ser visualizada novamente.
+                </p>
+                <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
+                  <code className="flex-1 text-sm font-mono break-all">{pwSaved}</code>
+                  <button
+                    type="button"
+                    onClick={() => copyPassword(pwSaved)}
+                    className="text-muted-foreground hover:text-foreground"
+                    title="Copiar"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => { setPwDialog(null); setNewPassword(''); setPwSaved(null); setShowPw(false); }}>
+                  Concluir
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
