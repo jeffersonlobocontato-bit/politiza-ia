@@ -27,6 +27,7 @@ export default function DueDiligence() {
   const [municipio, setMunicipio] = useState('');
   const [partido, setPartido] = useState('');
   const [cargo, setCargo] = useState('');
+  const [cpf, setCpf] = useState('');
   const [contexto, setContexto] = useState('');
   const [search, setSearch] = useState('');
   const [viewing, setViewing] = useState<RaioXReport | null>(null);
