@@ -3,6 +3,7 @@ export interface RaioXDados {
   municipio: string;
   partido?: string;
   cargo?: string;
+  cpf?: string;
   contexto?: string;
 }
 
