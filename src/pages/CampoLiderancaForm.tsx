@@ -474,3 +474,78 @@ export default function CampoLiderancaForm() {
     </div>
   );
 }
+
+function ScoreStepper({
+  value,
+  onChange,
+  min = 1,
+  max = 10,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  const [draft, setDraft] = useState<string>(String(value));
+  useEffect(() => { setDraft(String(value)); }, [value]);
+
+  const clamp = (n: number) => Math.max(min, Math.min(max, n));
+  const dec = () => onChange(clamp(value - 1));
+  const inc = () => onChange(clamp(value + 1));
+
+  const canDec = value > min;
+  const canInc = value < max;
+
+  const btnBase =
+    'flex items-center justify-center h-11 w-11 rounded-xl text-lg font-bold select-none transition active:scale-95';
+  const btnOn = 'bg-white/10 text-white border border-white/15 hover:bg-white/15';
+  const btnOff = 'bg-white/5 text-white/25 border border-white/5 cursor-not-allowed';
+
+  return (
+    <div
+      className="flex items-center gap-2 h-11 rounded-xl border border-white/10 bg-[#0F1B33] px-1.5"
+    >
+      <button
+        type="button"
+        onClick={dec}
+        disabled={!canDec}
+        aria-label="Diminuir"
+        className={`${btnBase} ${canDec ? btnOn : btnOff}`}
+      >
+        −
+      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={draft}
+        onChange={e => {
+          const only = e.target.value.replace(/\D/g, '').slice(0, 2);
+          setDraft(only);
+          if (only === '') return;
+          const n = parseInt(only, 10);
+          if (!Number.isNaN(n)) onChange(clamp(n));
+        }}
+        onFocus={e => e.currentTarget.select()}
+        onBlur={() => {
+          if (draft === '') { setDraft(String(value)); return; }
+          const n = parseInt(draft, 10);
+          const c = clamp(Number.isNaN(n) ? value : n);
+          onChange(c);
+          setDraft(String(c));
+        }}
+        className="flex-1 min-w-0 h-full bg-transparent text-center text-lg font-bold text-white outline-none"
+      />
+      <button
+        type="button"
+        onClick={inc}
+        disabled={!canInc}
+        aria-label="Aumentar"
+        className={`${btnBase} ${canInc ? btnOn : btnOff}`}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
