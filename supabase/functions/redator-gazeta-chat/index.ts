@@ -41,8 +41,10 @@ interface ChatMessage {
 
 interface Body {
   messages?: ChatMessage[];
-  // Filtro opcional para focar o cruzamento (ex.: nome de município)
   municipio?: string;
+  area_tematica?: string;
+  exercicio?: number;
+  limit?: number;
 }
 
 const SYSTEM_PROMPT = `Você é o Redator-Chefe de IA da plataforma Politiza IA, com o padrão
@@ -50,30 +52,44 @@ editorial e as competências de apuração da Gazeta do Povo: texto direto, fact
 bem hierarquizado (lide + desenvolvimento), rigor no uso de números e fontes, e
 argumentação persuasiva construída sobre evidência — nunca sobre adjetivação vazia.
 
+BASE DE DADOS DE EMENDAS
+A tabela "emendas" da plataforma corresponde INTEGRALMENTE às emendas parlamentares
+do senador Sergio Moro (PR). Sempre que citar cifras dessa base, atribua explicitamente
+ao senador — por exemplo, "as emendas destinadas pelo senador Sergio Moro", "segundo
+o levantamento das emendas do senador Moro". Nunca use formulações genéricas que
+escondam a autoria.
+
 MÉTODO DE TRABALHO
-1. Leia o CONTEXTO DE DADOS DA PLATAFORMA fornecido abaixo (emendas parlamentares,
-   ativos políticos, ações de campo, pesquisas eleitorais). Esses dados são a
-   fonte primária e têm precedência sobre qualquer informação genérica.
-2. Cruze os dados entre si antes de escrever: relacione valores de emendas com o
-   município e a área temática, compare com o histórico de ações e o clima das
-   pesquisas na mesma região quando fizer sentido para o pedido.
-3. Use web_search apenas para checar contexto público adicional (notícias,
-   dados oficiais atualizados) — nunca para substituir os dados internos.
+1. Leia o CONTEXTO DE DADOS DA PLATAFORMA (emendas do senador Moro, ativos políticos,
+   ações de campo, macrorregiões). Esses dados são fonte primária e têm precedência
+   sobre qualquer informação genérica.
+2. Cruze os dados antes de escrever: relacione valores de emendas com município e área
+   temática, compare execução (valor_pago) contra empenho (valor_empenhado) e
+   destinação total (valor_total), observe agregados por ano.
+3. Use web_search apenas para checar contexto público adicional (notícias, dados
+   oficiais atualizados) — nunca para substituir os dados internos.
 4. Produza o formato pedido (nota para imprensa, artigo, post, discurso, thread,
-   release) já pronto para publicação, com título e, quando fizer sentido,
-   sugestão de linha de manchete.
+   release) pronto para publicação, com título e, quando fizer sentido, sugestão
+   de linha de manchete.
+
+ESTRUTURA OBRIGATÓRIA PARA CONTRA-ARGUMENTAR A IMPRENSA
+(a) Reconhecimento factual da pergunta ou acusação, sem hostilidade.
+(b) 3 evidências numéricas extraídas literalmente do CONTEXTO DE DADOS.
+(c) Fechamento com um dado comparativo (execução vs empenho, ano vs ano, ou
+    município vs macrorregião).
 
 REGRAS EDITORIAIS (INEGOCIÁVEIS)
+- Cite pelo menos 2 cifras absolutas + 1 percentual em toda resposta argumentativa,
+  todos extraídos literalmente do CONTEXTO DE DADOS.
 - Vocabulário responsável: "indícios", "segundo levantamento", "de acordo com os
   dados" — nunca "roubo", "fraude", "esquema" ou outra acusação sem base factual
   explícita nos dados fornecidos.
 - Nunca cite nome de partido ao tratar de alianças ou disputas (fale em "forças
   políticas regionais", não no partido em si).
-- Toda cifra citada (valores de emenda, percentuais de pesquisa) deve vir
-  literalmente do CONTEXTO DE DADOS — não estime ou arredonde de forma que
-  distorça o valor original.
-- Nunca invente números, fontes ou declarações que não estejam no contexto ou
-  em uma busca real.`;
+- Toda cifra citada deve vir literalmente do CONTEXTO — não estime nem arredonde
+  de forma que distorça o valor original.
+- Nunca invente números, fontes ou declarações que não estejam no contexto ou em
+  uma busca real.`;
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req.headers.get("Origin"));
@@ -121,49 +137,121 @@ Deno.serve(async (req) => {
 
     // ── Monta o contexto de dados cruzando as fontes da plataforma ──────────
     const municipioFilter = body.municipio?.trim();
+    const areaFilter = body.area_tematica?.trim();
+    const exercicioFilter = body.exercicio;
+    const perBucketLimit = Math.min(Math.max(body.limit ?? 80, 20), 300);
 
-    let emendasQuery = db
-      .from("emendas")
-      .select("exercicio, tipo, ente_federativo, municipio, area_tematica, finalidade, valor_total, status, unidade_beneficiaria")
-      .order("valor_total", { ascending: false })
-      .limit(80);
-    if (municipioFilter) emendasQuery = emendasQuery.ilike("municipio", `%${municipioFilter}%`);
-    const { data: emendas } = await emendasQuery;
+    const emendasCols =
+      "id, exercicio, tipo, ente_federativo, municipio, area_tematica, finalidade, valor_total, valor_empenhado, valor_pago, status, unidade_beneficiaria";
 
-    let assetsQuery = db
-      .from("political_assets")
-      .select("name, role, alignment_status, influence_level, macroregion_id")
-      .limit(60);
-    const { data: assets } = await assetsQuery;
+    const applyFilters = (q: any) => {
+      if (municipioFilter) q = q.ilike("municipio", `%${municipioFilter}%`);
+      if (areaFilter) q = q.ilike("area_tematica", `%${areaFilter}%`);
+      if (exercicioFilter) q = q.eq("exercicio", exercicioFilter);
+      return q;
+    };
 
-    const { data: actions } = await db
-      .from("actions")
-      .select("title, status, macroregion_id, estimated_impact, planned_date")
-      .is("deleted_at", null)
-      .order("planned_date", { ascending: false })
-      .limit(40);
+    // Amostragem estratificada: paralela + deduplicada por id
+    const [byTotalRes, byPagoRes, distinctAreasRes, aggAreaRes, aggAnoRes, aggTotalsRes] =
+      await Promise.all([
+        applyFilters(db.from("emendas").select(emendasCols).order("valor_total", { ascending: false }).limit(Math.min(perBucketLimit, 40))),
+        applyFilters(db.from("emendas").select(emendasCols).order("valor_pago", { ascending: false }).limit(Math.min(perBucketLimit, 40))),
+        db.from("emendas").select("area_tematica").not("area_tematica", "is", null).limit(2000),
+        // Agregações via RPC não existem; buscamos amostras amplas para somar em memória
+        applyFilters(db.from("emendas").select("area_tematica, valor_total, valor_pago, valor_empenhado").limit(2000)),
+        applyFilters(db.from("emendas").select("exercicio, valor_total, valor_pago, valor_empenhado").limit(2000)),
+        applyFilters(db.from("emendas").select("valor_total, valor_pago, valor_empenhado, municipio").limit(2000)),
+      ]);
 
-    const { data: macroregions } = await db.from("macroregions").select("id, name");
+    const distinctAreas = Array.from(
+      new Set(((distinctAreasRes.data ?? []) as any[]).map((r) => r.area_tematica).filter(Boolean))
+    ).slice(0, 20);
 
-    const emendasTotal = (emendas ?? []).reduce((s, e: any) => s + (e.valor_total ?? 0), 0);
-    const emendasPorMunicipio: Record<string, number> = {};
-    for (const e of emendas ?? []) {
-      const key = (e as any).municipio ?? "Sem município";
-      emendasPorMunicipio[key] = (emendasPorMunicipio[key] ?? 0) + ((e as any).valor_total ?? 0);
+    const perAreaResults = await Promise.all(
+      distinctAreas.map((area) =>
+        applyFilters(db.from("emendas").select(emendasCols))
+          .ilike("area_tematica", area)
+          .order("valor_total", { ascending: false })
+          .limit(5)
+      )
+    );
+
+    // Dedupe por id
+    const emendasMap = new Map<string, any>();
+    const push = (rows: any[] | null | undefined) => {
+      for (const r of rows ?? []) if (r && !emendasMap.has(r.id)) emendasMap.set(r.id, r);
+    };
+    push(byTotalRes.data as any[]);
+    push(byPagoRes.data as any[]);
+    for (const r of perAreaResults) push(r.data as any[]);
+    const emendas = Array.from(emendasMap.values());
+
+    // Agregações
+    const num = (v: any) => (typeof v === "number" ? v : 0);
+    const valor_total_por_area_tematica: Record<string, number> = {};
+    const valor_pago_por_area_tematica: Record<string, number> = {};
+    for (const r of (aggAreaRes.data ?? []) as any[]) {
+      const k = r.area_tematica ?? "Sem área";
+      valor_total_por_area_tematica[k] = (valor_total_por_area_tematica[k] ?? 0) + num(r.valor_total);
+      valor_pago_por_area_tematica[k] = (valor_pago_por_area_tematica[k] ?? 0) + num(r.valor_pago);
     }
+    const valor_total_por_exercicio: Record<string, number> = {};
+    const valor_pago_por_exercicio: Record<string, number> = {};
+    for (const r of (aggAnoRes.data ?? []) as any[]) {
+      const k = String(r.exercicio ?? "N/D");
+      valor_total_por_exercicio[k] = (valor_total_por_exercicio[k] ?? 0) + num(r.valor_total);
+      valor_pago_por_exercicio[k] = (valor_pago_por_exercicio[k] ?? 0) + num(r.valor_pago);
+    }
+    let valor_total_geral = 0, valor_pago_geral = 0, valor_empenhado_geral = 0;
+    const valor_pago_por_municipio: Record<string, number> = {};
+    for (const r of (aggTotalsRes.data ?? []) as any[]) {
+      valor_total_geral += num(r.valor_total);
+      valor_pago_geral += num(r.valor_pago);
+      valor_empenhado_geral += num(r.valor_empenhado);
+      const m = r.municipio ?? "Sem município";
+      valor_pago_por_municipio[m] = (valor_pago_por_municipio[m] ?? 0) + num(r.valor_pago);
+    }
+    const top_10_municipios_por_valor_pago = Object.entries(valor_pago_por_municipio)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {} as Record<string, number>);
+
+    const [{ data: assets }, { data: actions }, { data: macroregions }] = await Promise.all([
+      db.from("political_assets").select("name, role, alignment_status, influence_level, macroregion_id").limit(60),
+      db.from("actions").select("title, status, macroregion_id, estimated_impact, planned_date").is("deleted_at", null).order("planned_date", { ascending: false }).limit(40),
+      db.from("macroregions").select("id, name"),
+    ]);
+
+    const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
 
     const dataContext = {
-      filtro_municipio: municipioFilter ?? null,
+      filtros_aplicados: {
+        municipio: municipioFilter ?? null,
+        area_tematica: areaFilter ?? null,
+        exercicio: exercicioFilter ?? null,
+      },
       emendas: {
-        total_registros: (emendas ?? []).length,
-        valor_total_destinado: emendasTotal,
-        valor_total_por_municipio: emendasPorMunicipio,
-        registros: emendas ?? [],
+        autoria: "Senador Sergio Moro (PR) — base integral da plataforma",
+        total_registros_amostra: emendas.length,
+        agregados_gerais: {
+          valor_total: valor_total_geral,
+          valor_empenhado: valor_empenhado_geral,
+          valor_pago: valor_pago_geral,
+          percentual_pago_sobre_total: pct(valor_pago_geral, valor_total_geral),
+          percentual_pago_sobre_empenhado: pct(valor_pago_geral, valor_empenhado_geral),
+        },
+        valor_total_por_area_tematica,
+        valor_pago_por_area_tematica,
+        valor_total_por_exercicio,
+        valor_pago_por_exercicio,
+        top_10_municipios_por_valor_pago,
+        registros: emendas,
       },
       ativos_politicos: assets ?? [],
       acoes_recentes: actions ?? [],
       macrorregioes: macroregions ?? [],
     };
+
 
     const systemWithContext =
       SYSTEM_PROMPT +
