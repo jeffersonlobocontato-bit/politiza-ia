@@ -102,6 +102,8 @@ export function UsersManager() {
   const [filterRole, setFilterRole] = useState<'all' | AppRole>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pwDialog, setPwDialog] = useState<UserRow | null>(null);
+  const [showPw, setShowPw] = useState(false);
+  const [pwSaved, setPwSaved] = useState<string | null>(null);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [citySearch, setCitySearch] = useState('');
