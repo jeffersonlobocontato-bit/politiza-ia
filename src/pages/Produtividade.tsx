@@ -135,7 +135,7 @@ function RankingTable({
 }
 
 export default function Produtividade() {
-  const { roles, loading } = useAuth();
+  const { roles, loading, allowedModules, isAuditorHierarquia } = useAuth();
   const { activeCandidate } = useCandidate();
   const [period, setPeriod] = useState(30);
   const [metric, setMetric] = useState<'total' | 'efficiency'>('total');
@@ -143,11 +143,13 @@ export default function Produtividade() {
   const openDetail = (row: ProductivityRow, level: LevelKind) => setDetail({ row, level });
 
   const isAdminMaster = roles.includes('admin_master' as any);
+  const hasCustomAccess = allowedModules?.includes('/produtividade') ?? false;
+  const canAccess = isAdminMaster || isAuditorHierarquia || hasCustomAccess;
 
   const { data, isLoading } = useProductivity(activeCandidate?.id ?? null, period);
 
   if (loading) return null;
-  if (!isAdminMaster) return <Navigate to="/" replace />;
+  if (!canAccess) return <Navigate to="/" replace />;
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
