@@ -5,6 +5,7 @@ import { InfographicDonut, InfographicHBar, InfographicVBar } from '@/components
 import { useActions, useCreateAction, useUpdateAction, useUpdateActionStatus, useDeleteAction } from '@/hooks/useActions';
 import type { DbAction, DbActionStatus, DbActionType, DbPriorityLevel } from '@/types/database';
 import ActionDetailSheet from '@/components/campo/ActionDetailSheet';
+import { macroregionFromCity } from '@/lib/macroregion';
 
 const STATUS_OPTIONS: DbActionStatus[] = ['prevista','confirmada','em_andamento','realizada','atrasada','cancelada','pendente_validacao'];
 const TYPE_OPTIONS: { value: DbActionType; label: string }[] = [
