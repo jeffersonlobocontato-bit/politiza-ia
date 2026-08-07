@@ -5,6 +5,7 @@ import { InfographicDonut, InfographicHBar, InfographicVBar } from '@/components
 import { useActions, useCreateAction, useUpdateAction, useUpdateActionStatus, useDeleteAction } from '@/hooks/useActions';
 import type { DbAction, DbActionStatus, DbActionType, DbPriorityLevel } from '@/types/database';
 import ActionDetailSheet from '@/components/campo/ActionDetailSheet';
+import { macroregionFromCity } from '@/lib/macroregion';
 
 const STATUS_OPTIONS: DbActionStatus[] = ['prevista','confirmada','em_andamento','realizada','atrasada','cancelada','pendente_validacao'];
 const TYPE_OPTIONS: { value: DbActionType; label: string }[] = [
@@ -129,7 +130,7 @@ export default function Acoes() {
         planned_date: form.planned_date,
         planned_time: form.planned_time || null,
         estimated_impact: parseInt(form.estimated_impact) || 0,
-        macroregion_id: form.macroregion_id || null,
+        macroregion_id: macroregionFromCity(form.municipality) ?? (form.macroregion_id || null),
         priority: form.priority,
         description: form.description || null,
         target_audience: form.target_audience || null,
@@ -142,7 +143,7 @@ export default function Acoes() {
         description: form.description || null,
         municipality: form.municipality || null,
         microregion: form.municipality || null,
-        macroregion_id: form.macroregion_id || null,
+        macroregion_id: macroregionFromCity(form.municipality) ?? (form.macroregion_id || null),
         address: null,
         lat,
         lng,

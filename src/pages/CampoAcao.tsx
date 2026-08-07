@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCandidate } from '@/contexts/CandidateContext';
 import { toast } from 'sonner';
+import { macroregionFromCity } from '@/lib/macroregion';
 
 interface FieldInput {
   actionTitle: string;
@@ -142,6 +143,7 @@ export default function CampoAcao() {
         title: input.actionTitle || 'Ação de Campo',
         description: input.observations || null,
         municipality: geo.city,
+        macroregion_id: macroregionFromCity(geo.city),
         lat: geo.lat!,
         lng: geo.lng!,
         planned_date: input.executedDate,
@@ -164,7 +166,7 @@ export default function CampoAcao() {
       description: input.observations || 'Registro de campo',
       municipality: geo.city,
       microregion: geo.city || null,
-      macroregion_id: 'rmc',
+      macroregion_id: macroregionFromCity(geo.city),
       address: null,
       lat: geo.lat!,
       lng: geo.lng!,
