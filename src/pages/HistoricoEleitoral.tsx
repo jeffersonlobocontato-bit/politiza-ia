@@ -140,9 +140,18 @@ export default function HistoricoEleitoral() {
   }, [municipios]);
 
   const ranking = useMemo(
-    () => [...(municipios ?? [])].sort((a, b) => b.pct - a.pct),
-    [municipios],
+    () =>
+      [...(municipios ?? [])].sort((a, b) =>
+        ordenacao === 'votos' ? b.votos - a.votos : b.pct - a.pct,
+      ),
+    [municipios, ordenacao],
   );
+
+  const rankingFiltrado = useMemo(() => {
+    const q = buscaCidade.trim().toLowerCase();
+    if (!q) return ranking;
+    return ranking.filter(m => m.nome.toLowerCase().includes(q));
+  }, [ranking, buscaCidade]);
 
   const totalVotos = todosSelecionado
     ? candidatos.reduce((sum, c) => sum + c.votos, 0)
