@@ -1,35 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
-import { db, fetchAllRows } from '@/lib/db';
+import { db } from '@/lib/db';
 
-export interface ResultadoRow {
-  ano_eleicao: number;
-  num_turno: number;
-  cd_cargo: number;
-  ds_cargo: string;
-  nm_candidato: string;
-  nr_candidato: string;
-  sg_partido: string;
-  qt_votos: number;
-  cd_municipio_ibge: string | null;
-  nm_municipio_ibge: string | null;
-  pct_municipio: number | null;
+export interface CandidatoAgg {
+  nome: string;
+  partido: string;
+  numero: string;
+  votos: number;
+  pct: number;
 }
 
-/** Todos os resultados (por município) de um ano/turno/cargo. */
-export function useResultadosHistoricos(ano: number, turno: number, cargo: number) {
-  return useQuery({
-    queryKey: ['resultados-historicos', ano, turno, cargo],
-    queryFn: async () =>
-      fetchAllRows<ResultadoRow>(() =>
-        db
-          .from('vw_resultados_por_municipio_ibge' as any)
-          .select('*')
-          .eq('ano_eleicao', ano)
-          .eq('num_turno', turno)
-          .eq('cd_cargo', cargo),
-      ),
-    staleTime: 1000 * 60 * 30,
-  });
+export interface MunicipioAgg {
+  codigoIbge: string;
+  nome: string;
+  votos: number;
+  pct: number;
 }
 
 /** Combinações disponíveis (ano / turno / cargo). */
@@ -51,5 +35,57 @@ export function useCombinacoesDisponiveis() {
         .sort((a, b) => a.ano - b.ano || a.cargo - b.cargo || a.turno - b.turno);
     },
     staleTime: 1000 * 60 * 60,
+  });
+}
+
+/** Ranking estadual de candidatos do recorte (agregado no banco). */
+export function useCandidatosHistoricos(ano: number, turno: number, cargo: number) {
+  return useQuery({
+    queryKey: ['hist-candidatos', ano, turno, cargo],
+    queryFn: async (): Promise<CandidatoAgg[]> => {
+      const { data, error } = await db.rpc('hist_candidatos' as any, {
+        p_ano: ano,
+        p_turno: turno,
+        p_cargo: cargo,
+      });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map(r => ({
+        nome: r.nm_candidato as string,
+        partido: r.sg_partido as string,
+        numero: r.nr_candidato as string,
+        votos: Number(r.votos),
+        pct: Number(r.pct ?? 0),
+      }));
+    },
+    staleTime: 1000 * 60 * 30,
+  });
+}
+
+/** Votos por município do candidato selecionado (agregado no banco). */
+export function useMunicipiosHistoricos(
+  ano: number,
+  turno: number,
+  cargo: number,
+  candidato: string | null,
+) {
+  return useQuery({
+    queryKey: ['hist-municipios', ano, turno, cargo, candidato],
+    enabled: !!candidato,
+    queryFn: async (): Promise<MunicipioAgg[]> => {
+      const { data, error } = await db.rpc('hist_municipios' as any, {
+        p_ano: ano,
+        p_turno: turno,
+        p_cargo: cargo,
+        p_candidato: candidato,
+      });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map(r => ({
+        codigoIbge: String(r.cd_municipio_ibge),
+        nome: r.nm_municipio as string,
+        votos: Number(r.votos),
+        pct: Number(r.pct ?? 0),
+      }));
+    },
+    staleTime: 1000 * 60 * 30,
   });
 }
