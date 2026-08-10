@@ -54,6 +54,7 @@ import RedatorGazeta from "./pages/RedatorGazeta";
 import MeusCadastros from "./pages/MeusCadastros";
 import CampoMeusCadastros from "./pages/CampoMeusCadastros";
 import CampoTarefas from "./pages/CampoTarefas";
+import HistoricoEleitoral from "./pages/HistoricoEleitoral";
 
 const queryClient = new QueryClient({
   defaultOptions: {
