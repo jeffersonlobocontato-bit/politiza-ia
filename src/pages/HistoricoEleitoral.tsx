@@ -223,9 +223,10 @@ export default function HistoricoEleitoral() {
           </label>
           <select
             className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-foreground"
-            value={selecionado ?? ''}
+            value={selecionado}
             onChange={e => setCandidato(e.target.value)}
           >
+            <option value="TODOS">Todos os candidatos</option>
             {candidatosFiltrados.map(c => (
               <option key={c.nome} value={c.nome}>
                 {c.nome} ({c.partido}) — {c.pct.toFixed(2)}% · {fmt(c.votos)} votos
