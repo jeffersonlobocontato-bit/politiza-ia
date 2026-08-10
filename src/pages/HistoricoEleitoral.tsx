@@ -120,7 +120,8 @@ export default function HistoricoEleitoral() {
     );
   }, [candidatos, busca]);
 
-  const selecionado = candidato ?? candidatos[0]?.nome ?? null;
+  const selecionado = candidato || 'TODOS';
+  const todosSelecionado = selecionado === 'TODOS';
   const infoSelecionado = candidatos.find(c => c.nome === selecionado);
 
   const { data: municipios, isLoading: loadingMun } = useMunicipiosHistoricos(
