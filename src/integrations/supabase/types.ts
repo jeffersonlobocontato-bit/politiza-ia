@@ -2235,6 +2235,54 @@ export type Database = {
         }
         Relationships: []
       }
+      resultados_eleicoes_historicos: {
+        Row: {
+          ano_eleicao: number
+          cd_cargo: number
+          created_at: string
+          ds_cargo: string
+          id: string
+          nm_candidato: string
+          nm_municipio: string
+          nm_municipio_normalizado: string | null
+          nm_municipio_tse: string
+          nr_candidato: string
+          num_turno: number
+          qt_votos: number
+          sg_partido: string
+        }
+        Insert: {
+          ano_eleicao: number
+          cd_cargo: number
+          created_at?: string
+          ds_cargo: string
+          id?: string
+          nm_candidato: string
+          nm_municipio: string
+          nm_municipio_normalizado?: string | null
+          nm_municipio_tse: string
+          nr_candidato: string
+          num_turno: number
+          qt_votos: number
+          sg_partido: string
+        }
+        Update: {
+          ano_eleicao?: number
+          cd_cargo?: number
+          created_at?: string
+          ds_cargo?: string
+          id?: string
+          nm_candidato?: string
+          nm_municipio?: string
+          nm_municipio_normalizado?: string | null
+          nm_municipio_tse?: string
+          nr_candidato?: string
+          num_turno?: number
+          qt_votos?: number
+          sg_partido?: string
+        }
+        Relationships: []
+      }
       strategic_alerts: {
         Row: {
           created_at: string
@@ -3341,6 +3389,22 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string | null
+        }
+        Relationships: []
+      }
+      vw_resultados_por_municipio_ibge: {
+        Row: {
+          ano_eleicao: number | null
+          cd_cargo: number | null
+          cd_municipio_ibge: string | null
+          ds_cargo: string | null
+          nm_candidato: string | null
+          nm_municipio_ibge: string | null
+          nr_candidato: string | null
+          num_turno: number | null
+          pct_municipio: number | null
+          qt_votos: number | null
+          sg_partido: string | null
         }
         Relationships: []
       }
