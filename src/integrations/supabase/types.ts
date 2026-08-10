@@ -3423,6 +3423,10 @@ export type Database = {
         Args: { _created_by: string; _user_id: string }
         Returns: boolean
       }
+      can_view_campaign_member: {
+        Args: { _member_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_view_candidate_record: {
         Args: { _candidate_id: string; _user_id: string }
         Returns: boolean
