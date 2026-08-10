@@ -344,19 +344,58 @@ export default function HistoricoEleitoral() {
             </div>
 
             <div className="bg-card border border-border rounded-xl p-3">
-              <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> Melhores municípios
-              </p>
-              <div className="space-y-1">
-                {ranking.slice(0, 10).map(m => (
-                  <div key={m.codigoIbge} className="flex items-center justify-between text-[12px]">
-                    <span className="truncate text-foreground">{m.nome}</span>
-                    <span className="text-muted-foreground flex-shrink-0">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> Votos por município
+                </p>
+                <select
+                  className="bg-background border border-border rounded-md px-2 py-1 text-[11px] text-foreground"
+                  value={ordenacao}
+                  onChange={e => setOrdenacao(e.target.value as 'pct' | 'votos')}
+                >
+                  <option value="pct">Ordenar por %</option>
+                  <option value="votos">Ordenar por votos</option>
+                </select>
+              </div>
+
+              {expandirCidades && (
+                <div className="relative mb-2">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    className="w-full bg-background border border-border rounded-md pl-8 pr-3 py-1.5 text-xs text-foreground"
+                    placeholder="Buscar município"
+                    value={buscaCidade}
+                    onChange={e => setBuscaCidade(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className={`space-y-1 ${expandirCidades ? 'max-h-[420px] overflow-auto pr-1' : ''}`}>
+                {(expandirCidades ? rankingFiltrado : ranking.slice(0, 10)).map((m, i) => (
+                  <div key={m.codigoIbge} className="flex items-center justify-between text-[12px] gap-2">
+                    <span className="truncate text-foreground">
+                      <span className="text-muted-foreground">{i + 1}.</span> {m.nome}
+                    </span>
+                    <span className="text-muted-foreground flex-shrink-0 tabular-nums">
                       {m.pct.toFixed(2)}% · {fmt(m.votos)}
                     </span>
                   </div>
                 ))}
+                {expandirCidades && rankingFiltrado.length === 0 && (
+                  <p className="text-[11px] text-muted-foreground py-2">Nenhum município encontrado.</p>
+                )}
               </div>
+
+              <button
+                onClick={() => setExpandirCidades(v => !v)}
+                className="mt-2 w-full flex items-center justify-center gap-1 text-[11px] text-primary hover:underline"
+              >
+                {expandirCidades ? (
+                  <>Recolher lista <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>Ver todas as {ranking.length} cidades <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </button>
             </div>
 
             <div className="bg-card border border-border rounded-xl p-3">
