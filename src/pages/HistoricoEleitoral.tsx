@@ -54,6 +54,15 @@ const LEGEND = [
 
 const fmt = (n: number) => n.toLocaleString('pt-BR');
 
+const ANOS_PADRAO = [2018, 2022];
+const CARGOS_PADRAO = [
+  { cd: 1, label: 'Presidente' },
+  { cd: 3, label: 'Governador' },
+  { cd: 5, label: 'Senador' },
+  { cd: 6, label: 'Deputado Federal' },
+  { cd: 7, label: 'Deputado Estadual' },
+];
+
 export default function HistoricoEleitoral() {
   const { data: combos } = useCombinacoesDisponiveis();
   const [ano, setAno] = useState(2022);
