@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban, PenLine
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban, PenLine, History
 } from 'lucide-react';
 import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
 import { useRedatorGazetaAccess } from '@/hooks/useRedatorGazetaAccess';
@@ -53,6 +53,7 @@ const navItems: NavItem[] = [
   { title: 'Jurídico', url: '/juridico', icon: Gavel, scope: 'shared' },
   { title: 'Territórios', url: '/territorios', icon: Globe, scope: 'shared' },
   { title: 'Municípios', url: '/municipios', icon: Building2, scope: 'shared' },
+  { title: 'Histórico Eleitoral', url: '/historico-eleitoral', icon: History, scope: 'shared', malhaAdminOnly: true },
   { title: 'Hierarquia', url: '/hierarquia', icon: Network, scope: 'shared' },
   { title: 'Produtividade', url: '/produtividade', icon: Trophy, scope: 'shared', adminMasterOnly: true },
   { title: 'Eventos', url: '/eventos', icon: CalendarCheck, scope: 'shared' },
