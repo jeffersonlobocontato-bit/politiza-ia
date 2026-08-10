@@ -68,7 +68,7 @@ export default function HistoricoEleitoral() {
   const [ano, setAno] = useState(2022);
   const [turno, setTurno] = useState(1);
   const [cargo, setCargo] = useState(3);
-  const [candidato, setCandidato] = useState<string | null>(null);
+  const [candidato, setCandidato] = useState<string>('TODOS');
   const [busca, setBusca] = useState('');
 
   const { data: candidatosRaw, isLoading: loadingCand } = useCandidatosHistoricos(ano, turno, cargo);
@@ -120,7 +120,8 @@ export default function HistoricoEleitoral() {
     );
   }, [candidatos, busca]);
 
-  const selecionado = candidato ?? candidatos[0]?.nome ?? null;
+  const selecionado = candidato || 'TODOS';
+  const todosSelecionado = selecionado === 'TODOS';
   const infoSelecionado = candidatos.find(c => c.nome === selecionado);
 
   const { data: municipios, isLoading: loadingMun } = useMunicipiosHistoricos(
@@ -143,12 +144,14 @@ export default function HistoricoEleitoral() {
     [municipios],
   );
 
-  const totalVotos = infoSelecionado?.votos ?? 0;
-  const pctEstadual = infoSelecionado?.pct ?? 0;
+  const totalVotos = todosSelecionado
+    ? candidatos.reduce((sum, c) => sum + c.votos, 0)
+    : (infoSelecionado?.votos ?? 0);
+  const pctEstadual = todosSelecionado ? 100 : (infoSelecionado?.pct ?? 0);
 
   const trocarRecorte = (fn: () => void) => {
     fn();
-    setCandidato(null);
+    setCandidato('TODOS');
     setBusca('');
   };
 
@@ -220,9 +223,10 @@ export default function HistoricoEleitoral() {
           </label>
           <select
             className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-foreground"
-            value={selecionado ?? ''}
+            value={selecionado}
             onChange={e => setCandidato(e.target.value)}
           >
+            <option value="TODOS">Todos os candidatos</option>
             {candidatosFiltrados.map(c => (
               <option key={c.nome} value={c.nome}>
                 {c.nome} ({c.partido}) — {c.pct.toFixed(2)}% · {fmt(c.votos)} votos
