@@ -70,6 +70,9 @@ export default function HistoricoEleitoral() {
   const [cargo, setCargo] = useState(3);
   const [candidato, setCandidato] = useState<string>('TODOS');
   const [busca, setBusca] = useState('');
+  const [ordenacao, setOrdenacao] = useState<'pct' | 'votos'>('pct');
+  const [buscaCidade, setBuscaCidade] = useState('');
+  const [expandirCidades, setExpandirCidades] = useState(false);
 
   const { data: candidatosRaw, isLoading: loadingCand } = useCandidatosHistoricos(ano, turno, cargo);
   const { data: geo } = usePrGeoJson();
