@@ -208,7 +208,7 @@ export default function HistoricoEleitoral() {
           >
             {candidatosFiltrados.map(c => (
               <option key={c.nome} value={c.nome}>
-                {c.nome} ({c.partido}) — {c.pct.toFixed(2)}%
+                {c.nome} ({c.partido}) — {c.pct.toFixed(2)}% · {fmt(c.votos)} votos
               </option>
             ))}
           </select>
@@ -304,7 +304,7 @@ export default function HistoricoEleitoral() {
                     }`}
                   >
                     <span className="truncate">{i + 1}. {c.nome} <span className="text-muted-foreground">({c.partido})</span></span>
-                    <span className="flex-shrink-0">{c.pct.toFixed(2)}%</span>
+                    <span className="flex-shrink-0 tabular-nums">{c.pct.toFixed(2)}% · {fmt(c.votos)}</span>
                   </button>
                 ))}
               </div>
