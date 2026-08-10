@@ -3486,6 +3486,15 @@ export type Database = {
           votos: number
         }[]
       }
+      hist_combos: {
+        Args: never
+        Returns: {
+          ano: number
+          cargo: number
+          label: string
+          turno: number
+        }[]
+      }
       hist_municipios: {
         Args: {
           p_ano: number

@@ -54,6 +54,15 @@ const LEGEND = [
 
 const fmt = (n: number) => n.toLocaleString('pt-BR');
 
+const ANOS_PADRAO = [2018, 2022];
+const CARGOS_PADRAO = [
+  { cd: 1, label: 'Presidente' },
+  { cd: 3, label: 'Governador' },
+  { cd: 5, label: 'Senador' },
+  { cd: 6, label: 'Deputado Federal' },
+  { cd: 7, label: 'Deputado Estadual' },
+];
+
 export default function HistoricoEleitoral() {
   const { data: combos } = useCombinacoesDisponiveis();
   const [ano, setAno] = useState(2022);
@@ -65,29 +74,37 @@ export default function HistoricoEleitoral() {
   const { data: candidatosRaw, isLoading: loadingCand } = useCandidatosHistoricos(ano, turno, cargo);
   const { data: geo } = usePrGeoJson();
 
-  const anos = useMemo(
-    () => Array.from(new Set((combos ?? []).map(c => c.ano))).sort(),
-    [combos],
-  );
+  const anos = useMemo(() => {
+    const lista = Array.from(new Set((combos ?? []).map(c => c.ano))).sort();
+    return lista.length ? lista : ANOS_PADRAO;
+  }, [combos]);
   const cargos = useMemo(() => {
     const map = new Map<number, string>();
     (combos ?? []).filter(c => c.ano === ano).forEach(c => map.set(c.cargo, c.label));
-    return Array.from(map.entries())
+    const lista = Array.from(map.entries())
       .sort((a, b) => a[0] - b[0])
       .map(([cd, label]) => ({ cd, label }));
+    return lista.length ? lista : CARGOS_PADRAO;
   }, [combos, ano]);
-  const turnos = useMemo(
-    () =>
-      Array.from(
-        new Set((combos ?? []).filter(c => c.ano === ano && c.cargo === cargo).map(c => c.turno)),
-      ).sort(),
-    [combos, ano, cargo],
-  );
+  const turnos = useMemo(() => {
+    const lista = Array.from(
+      new Set((combos ?? []).filter(c => c.ano === ano && c.cargo === cargo).map(c => c.turno)),
+    ).sort();
+    return lista.length ? lista : [1];
+  }, [combos, ano, cargo]);
 
   // Mantém o turno válido para o recorte atual
   useEffect(() => {
     if (turnos.length && !turnos.includes(turno)) setTurno(turnos[0]);
   }, [turnos, turno]);
+
+  // Mantém ano/cargo dentro das opções disponíveis
+  useEffect(() => {
+    if (anos.length && !anos.includes(ano)) setAno(anos[anos.length - 1]);
+  }, [anos, ano]);
+  useEffect(() => {
+    if (cargos.length && !cargos.some(c => c.cd === cargo)) setCargo(cargos[0].cd);
+  }, [cargos, cargo]);
 
   const candidatos = useMemo(
     () => (candidatosRaw ?? []).filter(c => !IGNORAR.has(c.nome.toUpperCase())),

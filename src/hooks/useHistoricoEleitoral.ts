@@ -21,20 +21,19 @@ export function useCombinacoesDisponiveis() {
   return useQuery({
     queryKey: ['resultados-historicos-combos'],
     queryFn: async () => {
-      const { data, error } = await db
-        .from('vw_resultados_combos' as any)
-        .select('ano_eleicao, num_turno, cd_cargo, ds_cargo');
+      const { data, error } = await db.rpc('hist_combos' as any);
       if (error) throw error;
       return ((data ?? []) as any[])
         .map(r => ({
-          ano: r.ano_eleicao as number,
-          turno: r.num_turno as number,
-          cargo: r.cd_cargo as number,
-          label: r.ds_cargo as string,
+          ano: Number(r.ano),
+          turno: Number(r.turno),
+          cargo: Number(r.cargo),
+          label: r.label as string,
         }))
         .sort((a, b) => a.ano - b.ano || a.cargo - b.cargo || a.turno - b.turno);
     },
     staleTime: 1000 * 60 * 60,
+    retry: 1,
   });
 }
 
