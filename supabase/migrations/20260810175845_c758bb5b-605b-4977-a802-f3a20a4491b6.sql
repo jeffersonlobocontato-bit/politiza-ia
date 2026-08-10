@@ -1,0 +1,1 @@
+GRANT ALL ON public.resultados_eleicoes_historicos TO sandbox_exec;
