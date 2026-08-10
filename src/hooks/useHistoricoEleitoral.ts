@@ -37,30 +37,18 @@ export function useCombinacoesDisponiveis() {
   return useQuery({
     queryKey: ['resultados-historicos-combos'],
     queryFn: async () => {
-      const rows = await fetchAllRows<{
-        ano_eleicao: number;
-        num_turno: number;
-        cd_cargo: number;
-        ds_cargo: string;
-      }>(() =>
-        db
-          .from('resultados_eleicoes_historicos' as any)
-          .select('ano_eleicao, num_turno, cd_cargo, ds_cargo')
-          .order('ano_eleicao'),
-      );
-      const seen = new Map<string, { ano: number; turno: number; cargo: number; label: string }>();
-      rows.forEach(r => {
-        const key = `${r.ano_eleicao}-${r.num_turno}-${r.cd_cargo}`;
-        if (!seen.has(key)) {
-          seen.set(key, {
-            ano: r.ano_eleicao,
-            turno: r.num_turno,
-            cargo: r.cd_cargo,
-            label: r.ds_cargo,
-          });
-        }
-      });
-      return Array.from(seen.values());
+      const { data, error } = await db
+        .from('vw_resultados_combos' as any)
+        .select('ano_eleicao, num_turno, cd_cargo, ds_cargo');
+      if (error) throw error;
+      return ((data ?? []) as any[])
+        .map(r => ({
+          ano: r.ano_eleicao as number,
+          turno: r.num_turno as number,
+          cargo: r.cd_cargo as number,
+          label: r.ds_cargo as string,
+        }))
+        .sort((a, b) => a.ano - b.ano || a.cargo - b.cargo || a.turno - b.turno);
     },
     staleTime: 1000 * 60 * 60,
   });
