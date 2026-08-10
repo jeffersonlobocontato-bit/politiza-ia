@@ -68,7 +68,7 @@ export default function HistoricoEleitoral() {
   const [ano, setAno] = useState(2022);
   const [turno, setTurno] = useState(1);
   const [cargo, setCargo] = useState(3);
-  const [candidato, setCandidato] = useState<string | null>(null);
+  const [candidato, setCandidato] = useState<string>('TODOS');
   const [busca, setBusca] = useState('');
 
   const { data: candidatosRaw, isLoading: loadingCand } = useCandidatosHistoricos(ano, turno, cargo);
