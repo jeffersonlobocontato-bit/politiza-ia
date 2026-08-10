@@ -55,6 +55,7 @@ import MeusCadastros from "./pages/MeusCadastros";
 import CampoMeusCadastros from "./pages/CampoMeusCadastros";
 import CampoTarefas from "./pages/CampoTarefas";
 import HistoricoEleitoral from "./pages/HistoricoEleitoral";
+import CruzamentoEstrategico from "./pages/CruzamentoEstrategico";
 
 const queryClient = new QueryClient({
   defaultOptions: {
