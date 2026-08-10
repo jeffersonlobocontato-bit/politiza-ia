@@ -144,12 +144,14 @@ export default function HistoricoEleitoral() {
     [municipios],
   );
 
-  const totalVotos = infoSelecionado?.votos ?? 0;
-  const pctEstadual = infoSelecionado?.pct ?? 0;
+  const totalVotos = todosSelecionado
+    ? candidatos.reduce((sum, c) => sum + c.votos, 0)
+    : (infoSelecionado?.votos ?? 0);
+  const pctEstadual = todosSelecionado ? 100 : (infoSelecionado?.pct ?? 0);
 
   const trocarRecorte = (fn: () => void) => {
     fn();
-    setCandidato(null);
+    setCandidato('TODOS');
     setBusca('');
   };
 
