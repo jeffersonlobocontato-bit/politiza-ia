@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban, PenLine
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban, PenLine, History
 } from 'lucide-react';
 import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
 import { useRedatorGazetaAccess } from '@/hooks/useRedatorGazetaAccess';
