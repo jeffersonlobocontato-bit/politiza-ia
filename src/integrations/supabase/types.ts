@@ -3392,6 +3392,34 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_chapa_reeleicao: {
+        Row: {
+          ano_eleicao: number | null
+          cargo: string | null
+          name: string | null
+          nm_municipio: string | null
+          nm_municipio_normalizado: string | null
+          nome_no_historico: string | null
+          party: string | null
+          slate_id: string | null
+          votos_historicos: number | null
+        }
+        Relationships: []
+      }
+      vw_espaco_eleitoral_disponivel: {
+        Row: {
+          cd_cargo: number | null
+          ds_cargo: string | null
+          espaco_disponivel: number | null
+          nm_municipio: string | null
+          nm_municipio_normalizado: string | null
+          pct_espaco_disponivel: number | null
+          qtd_candidatos_reeleicao: number | null
+          total_votos_validos: number | null
+          votos_comprometidos_reeleicao: number | null
+        }
+        Relationships: []
+      }
       vw_resultados_combos: {
         Row: {
           ano_eleicao: number | null
@@ -3438,6 +3466,19 @@ export type Database = {
       can_view_party_record: {
         Args: { _created_by: string; _record_party: string; _user_id: string }
         Returns: boolean
+      }
+      fn_diagnostico_chapa: {
+        Args: { p_cenario?: string; p_slate_id: string }
+        Returns: {
+          candidato_ja_votou_aqui: boolean
+          espaco_disponivel: number
+          meta_cenario: number
+          nm_municipio: string
+          pct_espaco_disponivel: number
+          pct_meta_coberta: number
+          votos_acumulados_ranking: number
+          votos_proprios_historicos: number
+        }[]
       }
       get_dashboard_kpis: { Args: never; Returns: Json }
       get_delegable_members: {
@@ -3520,6 +3561,7 @@ export type Database = {
         Returns: boolean
       }
       is_malha_admin: { Args: { _user_id: string }; Returns: boolean }
+      normalizar_texto: { Args: { txt: string }; Returns: string }
       unaccent: { Args: { "": string }; Returns: string }
       user_has_candidate_scope: { Args: { _user_id: string }; Returns: boolean }
     }
