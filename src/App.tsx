@@ -108,6 +108,7 @@ const AppRoutes = () => (
     <Route path="/inteligencia/cruzamento-moro" element={<ProtectedRoute><RoleAwareLayout><CruzamentoMoro /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/redator-gazeta" element={<ProtectedRoute><RoleAwareLayout><RedatorGazeta /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/historico-eleitoral" element={<ProtectedRoute><RoleAwareLayout><HistoricoEleitoral /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/cruzamento-estrategico" element={<ProtectedRoute><RoleAwareLayout><CruzamentoEstrategico /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/raio-x" element={<ProtectedRoute><RaioX /></ProtectedRoute>} />
     <Route path="/chapas" element={<ProtectedRoute><RoleAwareLayout><Chapas /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/chapas/:party" element={<ProtectedRoute><RoleAwareLayout><ChapaPartido /></RoleAwareLayout></ProtectedRoute>} />
