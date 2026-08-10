@@ -3476,6 +3476,30 @@ export type Database = {
         }
         Returns: boolean
       }
+      hist_candidatos: {
+        Args: { p_ano: number; p_cargo: number; p_turno: number }
+        Returns: {
+          nm_candidato: string
+          nr_candidato: string
+          pct: number
+          sg_partido: string
+          votos: number
+        }[]
+      }
+      hist_municipios: {
+        Args: {
+          p_ano: number
+          p_candidato: string
+          p_cargo: number
+          p_turno: number
+        }
+        Returns: {
+          cd_municipio_ibge: string
+          nm_municipio: string
+          pct: number
+          votos: number
+        }[]
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_auditor_hierarquia: { Args: { _user_id: string }; Returns: boolean }
       is_in_my_subtree: {
