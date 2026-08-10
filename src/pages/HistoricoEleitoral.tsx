@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
 import 'leaflet/dist/leaflet.css';
-import { History, Loader2, TrendingUp, TrendingDown, Users, Search } from 'lucide-react';
+import { History, Loader2, TrendingUp, TrendingDown, Users, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   useCandidatosHistoricos,
   useMunicipiosHistoricos,
