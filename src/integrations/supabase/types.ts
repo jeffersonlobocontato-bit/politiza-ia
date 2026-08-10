@@ -3392,6 +3392,15 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_resultados_combos: {
+        Row: {
+          ano_eleicao: number | null
+          cd_cargo: number | null
+          ds_cargo: string | null
+          num_turno: number | null
+        }
+        Relationships: []
+      }
       vw_resultados_por_municipio_ibge: {
         Row: {
           ano_eleicao: number | null
