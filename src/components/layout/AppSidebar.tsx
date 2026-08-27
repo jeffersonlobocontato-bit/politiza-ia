@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
   { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'shared' },
   { title: 'Agenda', url: '/agenda', icon: Calendar, scope: 'shared' },
   { title: 'Malha Logística', url: '/malha-logistica', icon: Map, scope: 'shared', malhaAdminOnly: true },
+  { title: 'Distribuição de Material', url: '/distribuicao-material', icon: Package, scope: 'shared' },
   { title: 'Gestão de Equipe', url: '/gestao', icon: LayoutGrid, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Meus Cadastros', url: '/meus-cadastros', icon: FolderKanban, scope: 'shared' },
