@@ -101,7 +101,22 @@ export default function DistribuicaoMaterial() {
 
   const [filtroRegiao, setFiltroRegiao] = useState<string>('');
   const [cidadeBusca, setCidadeBusca] = useState('');
-  const [cidadeSelecionada, setCidadeSelecionada] = useState<DomicilioMunicipio | null>(null);
+  const [cidadesRota, setCidadesRota] = useState<DomicilioMunicipio[]>([]);
+  const [cidadeFocoIbge, setCidadeFocoIbge] = useState<string | null>(null);
+  const cidadeSelecionada = useMemo(
+    () => cidadesRota.find(c => c.codigo_ibge === cidadeFocoIbge) ?? cidadesRota[cidadesRota.length - 1] ?? null,
+    [cidadesRota, cidadeFocoIbge]
+  );
+  const addCidadeRota = (m: DomicilioMunicipio) => {
+    setCidadesRota(prev => (prev.some(c => c.codigo_ibge === m.codigo_ibge) ? prev : [...prev, m]));
+    setCidadeFocoIbge(m.codigo_ibge);
+    setCidadeBusca('');
+    setDomicilioManual('');
+    setEleitoresManual('');
+  };
+  const removeCidadeRota = (ibge: string) =>
+    setCidadesRota(prev => prev.filter(c => c.codigo_ibge !== ibge));
+
   const [itens, setItens] = useState<{ tipo_material: string; quantidade: string }[]>([
     { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' },
   ]);
