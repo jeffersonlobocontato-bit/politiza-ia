@@ -312,6 +312,70 @@ function Lista({
   );
 }
 
+function EditarEntregaDialog({ grupo, onClose }: { grupo: EntregaAgrupada | null; onClose: () => void }) {
+  const update = useUpdateEnvioQuantidade();
+  const [quantidades, setQuantidades] = useState<Record<string, number>>({});
+
+  // Inicializa quantidades ao abrir um novo grupo
+  const grupoId = grupo?.grupoId ?? null;
+  const [carregadoPara, setCarregadoPara] = useState<string | null>(null);
+  if (grupo && grupoId !== carregadoPara) {
+    const init: Record<string, number> = {};
+    grupo.itens.forEach(i => { init[i.id] = i.quantidade; });
+    setQuantidades(init);
+    setCarregadoPara(grupoId);
+  }
+  if (!grupo && carregadoPara !== null) setCarregadoPara(null);
+
+  const salvar = async () => {
+    if (!grupo) return;
+    const updates = grupo.itens
+      .filter(i => (quantidades[i.id] ?? i.quantidade) !== i.quantidade)
+      .map(i => ({ id: i.id, quantidade: quantidades[i.id] ?? i.quantidade }));
+    if (updates.length === 0) { onClose(); return; }
+    await update.mutateAsync(updates);
+    onClose();
+  };
+
+  return (
+    <Dialog open={grupo !== null} onOpenChange={() => onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-primary" /> Editar entrega — {grupo?.municipio}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground">
+          Ajuste a quantidade de cada material. Use <strong>0</strong> para remover um item da entrega.
+        </p>
+        <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+          {grupo?.itens.map(i => (
+            <div key={i.id} className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{i.tipo_material}</p>
+                {i.observacoes && <p className="text-[11px] text-muted-foreground truncate italic">{i.observacoes}</p>}
+              </div>
+              <Input
+                type="number"
+                min={0}
+                className="w-28"
+                value={quantidades[i.id] ?? i.quantidade}
+                onChange={e => setQuantidades(prev => ({ ...prev, [i.id]: Math.max(0, Number(e.target.value) || 0) }))}
+              />
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
+          <Button size="sm" disabled={update.isPending} onClick={salvar}>
+            {update.isPending ? 'Salvando…' : 'Salvar alterações'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ImprimirRotasDialog({
   open, onOpenChange, grupos, regiaoNome, respNome,
 }: {
