@@ -864,7 +864,9 @@ function RelatorioCuritibaDialog({
         .kpis{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
         .kpi{border:1px solid #ccc;border-radius:6px;padding:10px 14px}
         .kpi b{font-size:18px;display:block}
-        @media print{body{margin:12mm}}
+        *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important;}
+        @media print{body{margin:12mm;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}}
+
       </style></head><body>
       <h1>Relatório de entregas — Curitiba</h1>
       <h2>${labelPeriodo} · gerado em ${new Date().toLocaleString('pt-BR')}</h2>
