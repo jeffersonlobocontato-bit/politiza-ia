@@ -183,6 +183,16 @@ export default function ListaEntregasTab({
         regiaoNome={regiaoNome}
         respNome={respNome}
       />
+
+      <DetalheDialog
+        open={detalhe !== null}
+        onOpenChange={() => setDetalhe(null)}
+        tipo={detalhe}
+        feitas={feitas}
+        previstas={previstas}
+        regiaoNome={regiaoNome}
+        respNome={respNome}
+      />
     </div>
   );
 }
