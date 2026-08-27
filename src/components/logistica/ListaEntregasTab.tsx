@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
 import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
-import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade } from '@/hooks/useLogisticaMaterial';
+import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade, useAddItensEntrega, useItensCampanha } from '@/hooks/useLogisticaMaterial';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
@@ -314,7 +314,12 @@ function Lista({
 
 function EditarEntregaDialog({ grupo, onClose }: { grupo: EntregaAgrupada | null; onClose: () => void }) {
   const update = useUpdateEnvioQuantidade();
+  const addItens = useAddItensEntrega();
+  const { data: itensCampanha = [] } = useItensCampanha();
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
+  const [novoMaterial, setNovoMaterial] = useState('');
+  const [novoOutro, setNovoOutro] = useState('');
+  const [novaQtd, setNovaQtd] = useState<number>(0);
 
   // Inicializa quantidades ao abrir um novo grupo
   const grupoId = grupo?.grupoId ?? null;
@@ -324,18 +329,34 @@ function EditarEntregaDialog({ grupo, onClose }: { grupo: EntregaAgrupada | null
     grupo.itens.forEach(i => { init[i.id] = i.quantidade; });
     setQuantidades(init);
     setCarregadoPara(grupoId);
+    setNovoMaterial(''); setNovoOutro(''); setNovaQtd(0);
   }
   if (!grupo && carregadoPara !== null) setCarregadoPara(null);
+
+  const materialFinal = novoMaterial === '__outro' ? novoOutro.trim() : novoMaterial;
+
+  const adicionar = async () => {
+    if (!grupo || !materialFinal || novaQtd <= 0) return;
+    await addItens.mutateAsync({ base: grupo.itens[0], itens: [{ tipo_material: materialFinal, quantidade: novaQtd }] });
+    setNovoMaterial(''); setNovoOutro(''); setNovaQtd(0);
+    onClose();
+  };
 
   const salvar = async () => {
     if (!grupo) return;
     const updates = grupo.itens
       .filter(i => (quantidades[i.id] ?? i.quantidade) !== i.quantidade)
       .map(i => ({ id: i.id, quantidade: quantidades[i.id] ?? i.quantidade }));
-    if (updates.length === 0) { onClose(); return; }
-    await update.mutateAsync(updates);
+    const novos = materialFinal && novaQtd > 0
+      ? [{ tipo_material: materialFinal, quantidade: novaQtd }]
+      : [];
+    if (updates.length === 0 && novos.length === 0) { onClose(); return; }
+    if (updates.length > 0) await update.mutateAsync(updates);
+    if (novos.length > 0) await addItens.mutateAsync({ base: grupo.itens[0], itens: novos });
     onClose();
   };
+
+  const salvando = update.isPending || addItens.isPending;
 
   return (
     <Dialog open={grupo !== null} onOpenChange={() => onClose()}>
@@ -364,17 +385,60 @@ function EditarEntregaDialog({ grupo, onClose }: { grupo: EntregaAgrupada | null
               />
             </div>
           ))}
+
+          <div className="rounded-md border border-dashed border-border/60 p-3 space-y-2">
+            <p className="text-xs font-semibold flex items-center gap-1.5">
+              <Package className="w-3.5 h-3.5 text-primary" /> Adicionar novo item
+            </p>
+            <div className="flex items-center gap-2">
+              <Select value={novoMaterial} onValueChange={setNovoMaterial}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Selecione o material" />
+                </SelectTrigger>
+                <SelectContent>
+                  {itensCampanha.map(it => (
+                    <SelectItem key={it.id} value={it.nome}>{it.nome}</SelectItem>
+                  ))}
+                  <SelectItem value="__outro">Outro (digitar)</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                type="number"
+                min={0}
+                className="w-28"
+                placeholder="Qtd."
+                value={novaQtd || ''}
+                onChange={e => setNovaQtd(Math.max(0, Number(e.target.value) || 0))}
+              />
+            </div>
+            {novoMaterial === '__outro' && (
+              <Input
+                placeholder="Nome do material"
+                value={novoOutro}
+                onChange={e => setNovoOutro(e.target.value)}
+              />
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!materialFinal || novaQtd <= 0 || salvando}
+              onClick={adicionar}
+            >
+              Adicionar item
+            </Button>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
-          <Button size="sm" disabled={update.isPending} onClick={salvar}>
-            {update.isPending ? 'Salvando…' : 'Salvar alterações'}
+          <Button size="sm" disabled={salvando} onClick={salvar}>
+            {salvando ? 'Salvando…' : 'Salvar alterações'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 function ImprimirRotasDialog({
   open, onOpenChange, grupos, regiaoNome, respNome,

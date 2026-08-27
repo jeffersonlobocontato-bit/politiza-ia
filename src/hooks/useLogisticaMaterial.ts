@@ -323,6 +323,47 @@ export function useUpdateEnvioQuantidade() {
   });
 }
 
+
+export function useAddItensEntrega() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: {
+      base: LogisticaEnvio;
+      itens: { tipo_material: string; quantidade: number }[];
+    }) => {
+      const rows = payload.itens
+        .filter(i => i.tipo_material.trim() && i.quantidade > 0)
+        .map(i => ({
+          municipio: payload.base.municipio,
+          codigo_ibge: payload.base.codigo_ibge,
+          macroregion_id: payload.base.macroregion_id,
+          tipo_material: i.tipo_material.trim(),
+          quantidade: i.quantidade,
+          responsavel_id: payload.base.responsavel_id,
+          data_envio: payload.base.data_envio,
+          rota: payload.base.rota,
+          ordem_rota: payload.base.ordem_rota,
+          grupo_entrega_id: payload.base.grupo_entrega_id,
+          tipo_movimentacao: payload.base.tipo_movimentacao,
+          recibo_numero: payload.base.recibo_numero,
+          responsavel_entrega: payload.base.responsavel_entrega,
+          created_by: user?.id,
+          updated_by: user?.id,
+        }));
+      if (rows.length === 0) throw new Error('Informe o material e uma quantidade maior que zero.');
+      const { error } = await (db as any).from('logistica_envios_material').insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-envios'] });
+      toast.success('Item adicionado à entrega.');
+    },
+    onError: (e: any) => toast.error(`Erro ao adicionar item: ${e.message}`),
+  });
+}
+
+
 // ---------- Itens de campanha (portfólio de material) ----------
 
 export function useItensCampanha() {
