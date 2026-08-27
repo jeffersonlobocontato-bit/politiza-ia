@@ -496,6 +496,12 @@ export default function DistribuicaoMaterial() {
       </div>
         </TabsContent>
 
+        <TabsContent value="lista" className="space-y-5 mt-0">
+          <ListaEntregasTab envios={envios} macroRegions={macroRegions} responsaveis={responsaveisAll} />
+        </TabsContent>
+
+
+
         <TabsContent value="retiradas" className="space-y-5 mt-0">
           <RetiradasCuritibaTab
             domicilios={domicilios}
