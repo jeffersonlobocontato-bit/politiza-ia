@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
