@@ -482,14 +482,14 @@ function ImprimirRotasDialog({
   const toggle = (r: string) =>
     setSelecionadas(prev => (prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]));
 
-  const selecao = selecionadas.length > 0 ? selecionadas : rotasDisponiveis;
+  const selecao = selecionadas.length > 0 ? selecionadas : rotasDisponiveis.map(r => r.key);
 
   const [gerando, setGerando] = useState(false);
 
   const imprimir = async () => {
     setGerando(true);
     const linhas = grupos
-      .filter(g => selecao.includes(g.rota ? String(g.rota) : 'sem'))
+      .filter(g => selecao.includes(chaveRota(g.rota ? String(g.rota) : 'sem', g.criadaEm)))
       .filter(g => status === 'todas' || (status === 'feitas' ? g.data <= hoje : g.data > hoje))
       .sort((a, b) => {
         const ra = a.rota ?? 99, rb = b.rota ?? 99;
@@ -501,7 +501,7 @@ function ImprimirRotasDialog({
 
     const porRota = new Map<string, EntregaAgrupada[]>();
     linhas.forEach(g => {
-      const key = g.rota ? String(g.rota) : 'sem';
+      const key = chaveRota(g.rota ? String(g.rota) : 'sem', g.criadaEm);
       porRota.set(key, [...(porRota.get(key) ?? []), g]);
     });
 
