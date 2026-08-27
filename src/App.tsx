@@ -56,6 +56,7 @@ import CampoMeusCadastros from "./pages/CampoMeusCadastros";
 import CampoTarefas from "./pages/CampoTarefas";
 import HistoricoEleitoral from "./pages/HistoricoEleitoral";
 import CruzamentoEstrategico from "./pages/CruzamentoEstrategico";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,6 +78,7 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><RoleAwareLayout><SalaDeGuerra /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/mapa" element={<ProtectedRoute><RoleAwareLayout><MapaEstrategico /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/mapa/imprimir" element={<ProtectedRoute><MapaEstrategicoImpressao /></ProtectedRoute>} />
+    <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
     <Route path="/territorios" element={<ProtectedRoute><RoleAwareLayout><Territorios /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/municipios" element={<ProtectedRoute><RoleAwareLayout><Municipios /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/acoes" element={<ProtectedRoute><RoleAwareLayout><Acoes /></RoleAwareLayout></ProtectedRoute>} />
