@@ -1791,6 +1791,59 @@ export type Database = {
           },
         ]
       }
+      logistica_estoque_entradas: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_entrada: string
+          deleted_at: string | null
+          fornecedor: string | null
+          id: string
+          item_id: string | null
+          observacoes: string | null
+          quantidade: number
+          tipo_material: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_entrada?: string
+          deleted_at?: string | null
+          fornecedor?: string | null
+          id?: string
+          item_id?: string | null
+          observacoes?: string | null
+          quantidade: number
+          tipo_material: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_entrada?: string
+          deleted_at?: string | null
+          fornecedor?: string | null
+          id?: string
+          item_id?: string | null
+          observacoes?: string | null
+          quantidade?: number
+          tipo_material?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logistica_estoque_entradas_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "logistica_itens_campanha"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logistica_itens_campanha: {
         Row: {
           ativo: boolean
