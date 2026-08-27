@@ -451,7 +451,6 @@ function ImprimirRotasDialog({
   respNome: (id: string | null) => string | null;
 }) {
   const hoje = new Date().toISOString().split('T')[0];
-  const fmtData = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
   const chaveRota = (rota: string, criacao: string) => `${rota}|${criacao.slice(0, 10)}`;
 
   // Rotas distinguíveis por número + data de criação (mesma rota pode ter remessas em datas diferentes)
