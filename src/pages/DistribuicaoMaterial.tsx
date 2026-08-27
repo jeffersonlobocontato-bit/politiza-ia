@@ -178,7 +178,7 @@ export default function DistribuicaoMaterial() {
     .reduce((s, c) => s + (c.eleitores_estimado ?? 0), 0);
 
   const resetForm = () => {
-    setCidadeBusca(''); setCidadeSelecionada(null);
+    setCidadeBusca(''); setCidadesRota([]); setCidadeFocoIbge(null);
     setItens([{ tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
     setRota(''); setOrdemRota('');
     setObservacoes(''); setDomicilioManual(''); setEleitoresManual('');
@@ -190,35 +190,40 @@ export default function DistribuicaoMaterial() {
   const updateItem = (idx: number, patch: Partial<{ tipo_material: string; quantidade: string }>) =>
     setItens(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
 
-  const canSubmit = cidadeSelecionada && totalKitAtual > 0 && dataEnvio;
+  const canSubmit = cidadesRota.length > 0 && totalKitAtual > 0 && dataEnvio;
 
   const handleSubmit = async () => {
-    if (!cidadeSelecionada || !canSubmit) return;
-    if (domicilioManual && !cidadeSelecionada.domicilios_estimado) {
+    if (!canSubmit) return;
+    if (cidadeSelecionada && domicilioManual && !cidadeSelecionada.domicilios_estimado) {
       await updateDomicilios.mutateAsync({
         codigo_ibge: cidadeSelecionada.codigo_ibge,
         domicilios_estimado: Number(domicilioManual),
       });
     }
-    if (eleitoresManual && !cidadeSelecionada.eleitores_estimado) {
+    if (cidadeSelecionada && eleitoresManual && !cidadeSelecionada.eleitores_estimado) {
       await updateEleitores.mutateAsync({
         codigo_ibge: cidadeSelecionada.codigo_ibge,
         eleitores_estimado: Number(eleitoresManual),
       });
     }
-    await createEnvio.mutateAsync({
-      municipio: cidadeSelecionada.municipio,
-      codigo_ibge: cidadeSelecionada.codigo_ibge,
-      macroregion_id: cidadeSelecionada.macroregion_id,
-      itens: itens.map(it => ({ tipo_material: it.tipo_material, quantidade: Number(it.quantidade) || 0 })),
-      responsavel_id: responsavelSelecionado?.id ?? null,
-      data_envio: dataEnvio,
-      observacoes: observacoes || null,
-      rota: rota ? Number(rota) : null,
-      ordem_rota: ordemRota ? Number(ordemRota) : null,
-    });
+    const base = ordemRota ? Number(ordemRota) : null;
+    for (let i = 0; i < cidadesRota.length; i++) {
+      const cidade = cidadesRota[i];
+      await createEnvio.mutateAsync({
+        municipio: cidade.municipio,
+        codigo_ibge: cidade.codigo_ibge,
+        macroregion_id: cidade.macroregion_id,
+        itens: itens.map(it => ({ tipo_material: it.tipo_material, quantidade: Number(it.quantidade) || 0 })),
+        responsavel_id: responsavelSelecionado?.id ?? null,
+        data_envio: dataEnvio,
+        observacoes: observacoes || null,
+        rota: rota ? Number(rota) : null,
+        ordem_rota: base !== null ? base + i : null,
+      });
+    }
     resetForm();
   };
+
 
   return (
     <div className="space-y-5">
