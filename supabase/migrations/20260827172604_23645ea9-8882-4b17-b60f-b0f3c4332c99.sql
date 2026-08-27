@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.update_logistica_itens_updated_at() FROM anon, authenticated;
