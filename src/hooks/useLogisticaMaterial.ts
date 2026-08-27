@@ -210,7 +210,7 @@ export function useEnviosMaterial() {
     queryKey: ['logistica-envios'],
     queryFn: async () => {
       const rows = await fetchAllRows<LogisticaEnvio>(() =>
-        (db as any).from('logistica_envios_material').select('*').order('data_envio', { ascending: false })
+        (db as any).from('logistica_envios_material').select('*').is('deleted_at', null).order('data_envio', { ascending: false })
       );
       return rows;
     },
