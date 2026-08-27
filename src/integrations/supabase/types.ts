@@ -1663,6 +1663,187 @@ export type Database = {
         }
         Relationships: []
       }
+      logistica_domicilios_municipio: {
+        Row: {
+          codigo_ibge: string
+          domicilios_estimado: number | null
+          eleitores_estimado: number | null
+          fonte: string
+          macroregion_id: string | null
+          municipio: string
+          populacao_estimada: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          codigo_ibge: string
+          domicilios_estimado?: number | null
+          eleitores_estimado?: number | null
+          fonte?: string
+          macroregion_id?: string | null
+          municipio: string
+          populacao_estimada?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          codigo_ibge?: string
+          domicilios_estimado?: number | null
+          eleitores_estimado?: number | null
+          fonte?: string
+          macroregion_id?: string | null
+          municipio?: string
+          populacao_estimada?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logistica_domicilios_municipio_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      logistica_envios_material: {
+        Row: {
+          codigo_ibge: string | null
+          created_at: string
+          created_by: string | null
+          data_envio: string
+          deleted_at: string | null
+          grupo_entrega_id: string
+          id: string
+          macroregion_id: string | null
+          municipio: string
+          observacoes: string | null
+          ordem_rota: number | null
+          quantidade: number
+          recibo_numero: string | null
+          responsavel_entrega: string | null
+          responsavel_id: string | null
+          rota: number | null
+          tipo_material: string
+          tipo_movimentacao: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          codigo_ibge?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_envio?: string
+          deleted_at?: string | null
+          grupo_entrega_id?: string
+          id?: string
+          macroregion_id?: string | null
+          municipio: string
+          observacoes?: string | null
+          ordem_rota?: number | null
+          quantidade: number
+          recibo_numero?: string | null
+          responsavel_entrega?: string | null
+          responsavel_id?: string | null
+          rota?: number | null
+          tipo_material?: string
+          tipo_movimentacao?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          codigo_ibge?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_envio?: string
+          deleted_at?: string | null
+          grupo_entrega_id?: string
+          id?: string
+          macroregion_id?: string | null
+          municipio?: string
+          observacoes?: string | null
+          ordem_rota?: number | null
+          quantidade?: number
+          recibo_numero?: string | null
+          responsavel_entrega?: string | null
+          responsavel_id?: string | null
+          rota?: number | null
+          tipo_material?: string
+          tipo_movimentacao?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logistica_envios_material_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logistica_envios_material_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "logistica_responsaveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      logistica_responsaveis: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          macroregion_id: string | null
+          municipio: string | null
+          nome: string
+          observacoes: string | null
+          tag_tipo: string
+          telefone: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          macroregion_id?: string | null
+          municipio?: string | null
+          nome: string
+          observacoes?: string | null
+          tag_tipo?: string
+          telefone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          macroregion_id?: string | null
+          municipio?: string | null
+          nome?: string
+          observacoes?: string | null
+          tag_tipo?: string
+          telefone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logistica_responsaveis_macroregion_id_fkey"
+            columns: ["macroregion_id"]
+            isOneToOne: false
+            referencedRelation: "macroregions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       macroregions: {
         Row: {
           center_lat: number | null
@@ -3560,9 +3741,9 @@ export type Database = {
         Args: { _manager: string; _target: string }
         Returns: boolean
       }
+      is_logistica_gestor: { Args: { _user_id: string }; Returns: boolean }
       is_malha_admin: { Args: { _user_id: string }; Returns: boolean }
       normalizar_texto: { Args: { txt: string }; Returns: string }
-      tmp_install_logistica: { Args: { _sql: string }; Returns: undefined }
       unaccent: { Args: { "": string }; Returns: string }
       user_has_candidate_scope: { Args: { _user_id: string }; Returns: boolean }
     }
