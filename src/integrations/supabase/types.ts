@@ -3831,6 +3831,7 @@ export type Database = {
         | "juridico"
         | "gestor_operacional"
         | "auditor_hierarquia"
+        | "gestor_administrativo"
       asset_type:
         | "prefeito"
         | "ex_prefeito"
@@ -4074,6 +4075,7 @@ export const Constants = {
         "juridico",
         "gestor_operacional",
         "auditor_hierarquia",
+        "gestor_administrativo",
       ],
       asset_type: [
         "prefeito",
