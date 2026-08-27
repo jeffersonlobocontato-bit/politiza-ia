@@ -21,6 +21,7 @@ import {
   type DomicilioMunicipio, type LogisticaResponsavel, type LogisticaEnvio,
 } from '@/hooks/useLogisticaMaterial';
 import ListaEntregasTab from '@/components/logistica/ListaEntregasTab';
+import ItensCampanhaTab from '@/components/logistica/ItensCampanhaTab';
 
 // Endereço do depósito/central de logística em Curitiba, onde ocorrem as retiradas
 const ENDERECO_DEPOSITO_CURITIBA = 'Rua Carlos De Laeti, 2605, Hauer, Curitiba';
