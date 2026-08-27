@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
+import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
@@ -427,8 +428,8 @@ function ImprimirRotasDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button size="sm" onClick={imprimir} className="gap-1.5">
-            <Printer className="w-3.5 h-3.5" /> Imprimir
+          <Button size="sm" onClick={imprimir} disabled={gerando} className="gap-1.5">
+            <Printer className="w-3.5 h-3.5" /> {gerando ? 'Gerando mapa…' : 'Imprimir'}
           </Button>
         </DialogFooter>
       </DialogContent>
