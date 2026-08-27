@@ -323,6 +323,114 @@ export function useCreateItemCampanha() {
   });
 }
 
+// ---------- Estoque (entradas cumulativas) ----------
+
+export interface LogisticaEstoqueEntrada {
+  id: string;
+  item_id: string | null;
+  tipo_material: string;
+  quantidade: number;
+  data_entrada: string;
+  fornecedor: string | null;
+  observacoes: string | null;
+  created_at: string;
+}
+
+export function useEstoqueEntradas() {
+  return useQuery({
+    queryKey: ['logistica-estoque-entradas'],
+    queryFn: async () => {
+      const rows = await fetchAllRows<LogisticaEstoqueEntrada>(() =>
+        (db as any)
+          .from('logistica_estoque_entradas')
+          .select('*')
+          .is('deleted_at', null)
+          .order('data_entrada', { ascending: false })
+      );
+      return rows;
+    },
+  });
+}
+
+export function useCreateEstoqueEntrada() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: {
+      item_id?: string | null;
+      tipo_material: string;
+      quantidade: number;
+      data_entrada: string;
+      fornecedor?: string | null;
+      observacoes?: string | null;
+    }) => {
+      const { error } = await (db as any).from('logistica_estoque_entradas').insert({
+        item_id: payload.item_id || null,
+        tipo_material: payload.tipo_material,
+        quantidade: payload.quantidade,
+        data_entrada: payload.data_entrada,
+        fornecedor: payload.fornecedor || null,
+        observacoes: payload.observacoes || null,
+        created_by: user?.id,
+        updated_by: user?.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-estoque-entradas'] });
+      toast.success('Entrada de estoque registrada.');
+    },
+    onError: (e: any) => toast.error(`Erro ao registrar entrada: ${e.message}`),
+  });
+}
+
+export function useDeleteEstoqueEntrada() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (db as any)
+        .from('logistica_estoque_entradas')
+        .update({ deleted_at: new Date().toISOString(), updated_by: user?.id })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-estoque-entradas'] });
+      toast.success('Entrada removida do estoque.');
+    },
+    onError: (e: any) => toast.error(`Erro ao remover entrada: ${e.message}`),
+  });
+}
+
+export interface SaldoEstoque {
+  tipo_material: string;
+  entrada: number;
+  saida: number;
+  saldo: number;
+}
+
+export function computeSaldoEstoque(
+  entradas: LogisticaEstoqueEntrada[],
+  envios: LogisticaEnvio[],
+): SaldoEstoque[] {
+  const map = new Map<string, SaldoEstoque>();
+  const get = (mat: string) => {
+    const key = mat.trim();
+    if (!map.has(key)) map.set(key, { tipo_material: key, entrada: 0, saida: 0, saldo: 0 });
+    return map.get(key)!;
+  };
+  for (const e of entradas) get(e.tipo_material).entrada += e.quantidade;
+  for (const s of envios) {
+    if (s.tipo_movimentacao === 'retirada') continue;
+    get(s.tipo_material).saida += s.quantidade;
+  }
+  return Array.from(map.values())
+    .map(r => ({ ...r, saldo: r.entrada - r.saida }))
+    .sort((a, b) => a.tipo_material.localeCompare(b.tipo_material));
+}
+
+
 // ---------- Agregações para o dashboard ----------
 
 export interface CoberturaMunicipio {

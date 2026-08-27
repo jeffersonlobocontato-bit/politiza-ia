@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks, PlusCircle, Tag, Archive } from 'lucide-react';
+import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks, PlusCircle, Tag, Archive, Boxes } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import {
 } from '@/hooks/useLogisticaMaterial';
 import ListaEntregasTab from '@/components/logistica/ListaEntregasTab';
 import ItensCampanhaTab from '@/components/logistica/ItensCampanhaTab';
+import EstoqueTab from '@/components/logistica/EstoqueTab';
 
 // Endereço do depósito/central de logística em Curitiba, onde ocorrem as retiradas
 const ENDERECO_DEPOSITO_CURITIBA = 'Rua Carlos De Laeti, 2605, Hauer, Curitiba';
@@ -293,6 +294,9 @@ export default function DistribuicaoMaterial() {
           </TabsTrigger>
           <TabsTrigger value="itens" className="flex items-center gap-1.5">
             <Archive className="w-3.5 h-3.5" /> Itens de campanha
+          </TabsTrigger>
+          <TabsTrigger value="estoque" className="flex items-center gap-1.5">
+            <Boxes className="w-3.5 h-3.5" /> Estoque
           </TabsTrigger>
         </TabsList>
 
@@ -662,6 +666,10 @@ export default function DistribuicaoMaterial() {
             onCreate={payload => createItemCampanha.mutate(payload)}
             isCreating={createItemCampanha.isPending}
           />
+        </TabsContent>
+
+        <TabsContent value="estoque" className="space-y-5 mt-0">
+          <EstoqueTab itens={itensCampanha} envios={envios} />
         </TabsContent>
       </Tabs>
 
