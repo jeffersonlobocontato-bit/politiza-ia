@@ -271,9 +271,21 @@ export function useDeleteEntregaGrupo() {
       const { error } = await (db as any)
         .from('logistica_envios_material')
         .update({ deleted_at: new Date().toISOString(), updated_by: user?.id })
-        .eq('grupo_entrega_id', grupoEntregaId);
+        .eq('grupo_entrega_id', grupoEntregaId)
+        .is('deleted_at', null);
       if (error) throw error;
+      // Confirma que a remoção passou pelas regras de acesso (update sem permissão não gera erro)
+      const { data: restantes } = await (db as any)
+        .from('logistica_envios_material')
+        .select('id')
+        .eq('grupo_entrega_id', grupoEntregaId)
+        .is('deleted_at', null);
+      if (restantes && restantes.length > 0) {
+        throw new Error('Você não tem permissão para remover entregas.');
+      }
     },
+
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['logistica-envios'] });
       toast.success('Cidade removida da rota.');
