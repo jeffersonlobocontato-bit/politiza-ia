@@ -228,6 +228,9 @@ export default function DistribuicaoMaterial() {
           <TabsTrigger value="retiradas" className="flex items-center gap-1.5">
             <Warehouse className="w-3.5 h-3.5" /> Retiradas em Curitiba
           </TabsTrigger>
+          <TabsTrigger value="itens" className="flex items-center gap-1.5">
+            <Archive className="w-3.5 h-3.5" /> Itens de campanha
+          </TabsTrigger>
         </TabsList>
 
 
