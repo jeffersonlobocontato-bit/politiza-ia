@@ -27,6 +27,7 @@ export interface EntregaAgrupada {
   ordemRota: number | null;
   responsavelId: string | null;
   observacoes: string | null;
+  criadaEm: string;
   itens: LogisticaEnvio[];
   total: number;
 }
@@ -48,6 +49,7 @@ function agrupar(envios: LogisticaEnvio[]): EntregaAgrupada[] {
     ordemRota: itens[0].ordem_rota,
     responsavelId: itens[0].responsavel_id,
     observacoes: itens[0].observacoes,
+    criadaEm: itens.reduce((min, i) => (i.created_at < min ? i.created_at : min), itens[0].created_at),
     itens,
     total: itens.reduce((s, i) => s + i.quantidade, 0),
   }));
@@ -449,10 +451,28 @@ function ImprimirRotasDialog({
   respNome: (id: string | null) => string | null;
 }) {
   const hoje = new Date().toISOString().split('T')[0];
+  const chaveRota = (rota: string, criacao: string) => `${rota}|${criacao.slice(0, 10)}`;
+
+  // Rotas distinguíveis por número + data de criação (mesma rota pode ter remessas em datas diferentes)
   const rotasDisponiveis = useMemo(() => {
-    const set = new Set<string>();
-    grupos.forEach(g => set.add(g.rota ? String(g.rota) : 'sem'));
-    return Array.from(set).sort();
+    const porRota = new Map<string, EntregaAgrupada[]>();
+    grupos.forEach(g => {
+      const r = g.rota ? String(g.rota) : 'sem';
+      porRota.set(r, [...(porRota.get(r) ?? []), g]);
+    });
+    const insts: { key: string; rota: string; criacao: string; total: number }[] = [];
+    for (const [rota, lista] of porRota) {
+      // agrupa por data de criação de cada entrega da rota
+      const porData = new Map<string, number>();
+      lista.forEach(g => {
+        const d = g.criadaEm.slice(0, 10);
+        porData.set(d, (porData.get(d) ?? 0) + 1);
+      });
+      Array.from(porData.entries())
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .forEach(([data, total]) => insts.push({ key: chaveRota(rota, data), rota, criacao: data, total }));
+    }
+    return insts.sort((a, b) => a.rota.localeCompare(b.rota) || b.criacao.localeCompare(a.criacao));
   }, [grupos]);
 
   const [selecionadas, setSelecionadas] = useState<string[]>([]);
@@ -461,14 +481,14 @@ function ImprimirRotasDialog({
   const toggle = (r: string) =>
     setSelecionadas(prev => (prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]));
 
-  const selecao = selecionadas.length > 0 ? selecionadas : rotasDisponiveis;
+  const selecao = selecionadas.length > 0 ? selecionadas : rotasDisponiveis.map(r => r.key);
 
   const [gerando, setGerando] = useState(false);
 
   const imprimir = async () => {
     setGerando(true);
     const linhas = grupos
-      .filter(g => selecao.includes(g.rota ? String(g.rota) : 'sem'))
+      .filter(g => selecao.includes(chaveRota(g.rota ? String(g.rota) : 'sem', g.criadaEm)))
       .filter(g => status === 'todas' || (status === 'feitas' ? g.data <= hoje : g.data > hoje))
       .sort((a, b) => {
         const ra = a.rota ?? 99, rb = b.rota ?? 99;
@@ -480,11 +500,17 @@ function ImprimirRotasDialog({
 
     const porRota = new Map<string, EntregaAgrupada[]>();
     linhas.forEach(g => {
-      const key = g.rota ? String(g.rota) : 'sem';
+      const key = chaveRota(g.rota ? String(g.rota) : 'sem', g.criadaEm);
       porRota.set(key, [...(porRota.get(key) ?? []), g]);
     });
 
     const esc = (s: string) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+
+    const tituloRota = (key: string) => {
+      const [rota, data] = key.split('|');
+      const base = ROTA_LABEL[rota] ?? 'Entregas sem rota definida';
+      return `${base} — criada em ${new Date(data + 'T12:00:00').toLocaleDateString('pt-BR')}`;
+    };
 
     const mapas = new Map<string, string>();
     for (const [rota, lista] of porRota) {
@@ -501,11 +527,11 @@ function ImprimirRotasDialog({
           vistos.add(k);
           return true;
         });
-      mapas.set(rota, await buildRotaMapaSvg(cidades, ROTA_LABEL[rota] ?? 'Entregas sem rota definida'));
+      mapas.set(rota, await buildRotaMapaSvg(cidades, tituloRota(rota)));
     }
 
     const secoes = Array.from(porRota.entries()).map(([rota, lista]) => `
-      <h2>${esc(ROTA_LABEL[rota] ?? 'Entregas sem rota definida')} — ${lista.length} parada(s)</h2>
+      <h2>${esc(tituloRota(rota))} — ${lista.length} parada(s)</h2>
       ${mapas.get(rota) ?? ''}
 
       <table>
@@ -569,16 +595,16 @@ function ImprimirRotasDialog({
             <Label className="text-xs text-muted-foreground">Selecione as rotas</Label>
             <div className="space-y-1.5 mt-2">
               {rotasDisponiveis.map(r => (
-                <label key={r} className="flex items-center gap-2 text-sm cursor-pointer">
+                <label key={r.key} className="flex items-center gap-2 text-sm cursor-pointer">
                   <input
                     type="checkbox"
                     className="w-4 h-4 accent-primary"
-                    checked={selecionadas.includes(r)}
-                    onChange={() => toggle(r)}
+                    checked={selecionadas.includes(r.key)}
+                    onChange={() => toggle(r.key)}
                   />
-                  {ROTA_LABEL[r] ?? 'Sem rota definida'}
+                  {ROTA_LABEL[r.rota] ?? 'Sem rota definida'}
                   <span className="text-[11px] text-muted-foreground">
-                    ({grupos.filter(g => (g.rota ? String(g.rota) : 'sem') === r).length} entregas)
+                    criada em {new Date(r.criacao + 'T12:00:00').toLocaleDateString('pt-BR')} · {r.total} entrega(s)
                   </span>
                 </label>
               ))}
