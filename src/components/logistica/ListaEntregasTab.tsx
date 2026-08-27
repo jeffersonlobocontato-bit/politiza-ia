@@ -361,6 +361,10 @@ function ImprimirRotasDialog({
         th,td{border:1px solid #bbb;padding:4px 6px;text-align:left;vertical-align:top;}
         th{background:#eef2f7;}
         .check{width:60px;}
+        .mapa-rota{margin:8px 0 14px;page-break-inside:avoid;}
+        .mapa-rota h3{font-size:11px;color:#1A2A45;margin:0 0 4px;}
+        .mapa-rota svg{border:1px solid #ddd;border-radius:4px;}
+        .mapa-legenda{margin-top:6px;line-height:1.6;}
         @media print{ h2{page-break-after:avoid;} tr{page-break-inside:avoid;} }
       </style></head><body>
       <h1>Rotas de distribuição de material</h1>
@@ -370,11 +374,13 @@ function ImprimirRotasDialog({
       </body></html>`;
 
     const w = window.open('', '_blank');
+    setGerando(false);
     if (!w) return;
     w.document.write(html);
     w.document.close();
     onOpenChange(false);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
