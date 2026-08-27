@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2 } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
 import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
-import { useDeleteEntregaGrupo } from '@/hooks/useLogisticaMaterial';
+import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade } from '@/hooks/useLogisticaMaterial';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
@@ -95,6 +95,7 @@ export default function ListaEntregasTab({
 
   const deleteGrupo = useDeleteEntregaGrupo();
   const [confirmar, setConfirmar] = useState<EntregaAgrupada | null>(null);
+  const [editando, setEditando] = useState<EntregaAgrupada | null>(null);
 
   const regiaoNome = (id: string | null) => macroRegions.find(r => r.id === id)?.name ?? '—';
   const respNome = (id: string | null) => responsaveis.find(r => r.id === id)?.nome ?? null;
@@ -172,10 +173,10 @@ export default function ListaEntregasTab({
             </TabsList>
 
             <TabsContent value="feitas" className="mt-3">
-              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega realizada com os filtros atuais." />
+              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} vazio="Nenhuma entrega realizada com os filtros atuais." />
             </TabsContent>
             <TabsContent value="previstas" className="mt-3">
-              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega prevista com os filtros atuais." />
+              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} vazio="Nenhuma entrega prevista com os filtros atuais." />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -208,6 +209,8 @@ export default function ListaEntregasTab({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditarEntregaDialog grupo={editando} onClose={() => setEditando(null)} />
 
       <DetalheDialog
         open={detalhe !== null}
@@ -242,13 +245,14 @@ function Mini({ label, value, icon: Icon, onClick }: { label: string; value: str
 }
 
 function Lista({
-  grupos, regiaoNome, respNome, vazio, onDelete,
+  grupos, regiaoNome, respNome, vazio, onDelete, onEdit,
 }: {
   grupos: EntregaAgrupada[];
   regiaoNome: (id: string | null) => string;
   respNome: (id: string | null) => string | null;
   vazio: string;
   onDelete?: (g: EntregaAgrupada) => void;
+  onEdit?: (g: EntregaAgrupada) => void;
 }) {
   if (grupos.length === 0) {
     return <p className="text-xs text-muted-foreground italic">{vazio}</p>;
@@ -269,6 +273,16 @@ function Lista({
             </p>
             <span className="text-xs text-muted-foreground flex items-center gap-2">
               {new Date(g.data + 'T12:00:00').toLocaleDateString('pt-BR')} · {g.total.toLocaleString('pt-BR')} itens
+              {onEdit && (
+                <button
+                  type="button"
+                  aria-label={`Editar quantidades de ${g.municipio}`}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => onEdit(g)}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              )}
               {onDelete && (
                 <button
                   type="button"
@@ -295,6 +309,70 @@ function Lista({
         </div>
       ))}
     </div>
+  );
+}
+
+function EditarEntregaDialog({ grupo, onClose }: { grupo: EntregaAgrupada | null; onClose: () => void }) {
+  const update = useUpdateEnvioQuantidade();
+  const [quantidades, setQuantidades] = useState<Record<string, number>>({});
+
+  // Inicializa quantidades ao abrir um novo grupo
+  const grupoId = grupo?.grupoId ?? null;
+  const [carregadoPara, setCarregadoPara] = useState<string | null>(null);
+  if (grupo && grupoId !== carregadoPara) {
+    const init: Record<string, number> = {};
+    grupo.itens.forEach(i => { init[i.id] = i.quantidade; });
+    setQuantidades(init);
+    setCarregadoPara(grupoId);
+  }
+  if (!grupo && carregadoPara !== null) setCarregadoPara(null);
+
+  const salvar = async () => {
+    if (!grupo) return;
+    const updates = grupo.itens
+      .filter(i => (quantidades[i.id] ?? i.quantidade) !== i.quantidade)
+      .map(i => ({ id: i.id, quantidade: quantidades[i.id] ?? i.quantidade }));
+    if (updates.length === 0) { onClose(); return; }
+    await update.mutateAsync(updates);
+    onClose();
+  };
+
+  return (
+    <Dialog open={grupo !== null} onOpenChange={() => onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-primary" /> Editar entrega — {grupo?.municipio}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground">
+          Ajuste a quantidade de cada material. Use <strong>0</strong> para remover um item da entrega.
+        </p>
+        <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+          {grupo?.itens.map(i => (
+            <div key={i.id} className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{i.tipo_material}</p>
+                {i.observacoes && <p className="text-[11px] text-muted-foreground truncate italic">{i.observacoes}</p>}
+              </div>
+              <Input
+                type="number"
+                min={0}
+                className="w-28"
+                value={quantidades[i.id] ?? i.quantidade}
+                onChange={e => setQuantidades(prev => ({ ...prev, [i.id]: Math.max(0, Number(e.target.value) || 0) }))}
+              />
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
+          <Button size="sm" disabled={update.isPending} onClick={salvar}>
+            {update.isPending ? 'Salvando…' : 'Salvar alterações'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -210,7 +210,7 @@ export function useEnviosMaterial() {
     queryKey: ['logistica-envios'],
     queryFn: async () => {
       const rows = await fetchAllRows<LogisticaEnvio>(() =>
-        (db as any).from('logistica_envios_material').select('*').order('data_envio', { ascending: false })
+        (db as any).from('logistica_envios_material').select('*').is('deleted_at', null).order('data_envio', { ascending: false })
       );
       return rows;
     },
@@ -279,6 +279,35 @@ export function useDeleteEntregaGrupo() {
       toast.success('Cidade removida da rota.');
     },
     onError: (e: any) => toast.error(`Erro ao remover: ${e.message}`),
+  });
+}
+
+export function useUpdateEnvioQuantidade() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (updates: { id: string; quantidade: number }[]) => {
+      for (const u of updates) {
+        if (u.quantidade <= 0) {
+          const { error } = await (db as any)
+            .from('logistica_envios_material')
+            .update({ deleted_at: new Date().toISOString(), updated_by: user?.id })
+            .eq('id', u.id);
+          if (error) throw error;
+        } else {
+          const { error } = await (db as any)
+            .from('logistica_envios_material')
+            .update({ quantidade: u.quantidade, updated_by: user?.id })
+            .eq('id', u.id);
+          if (error) throw error;
+        }
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-envios'] });
+      toast.success('Entrega atualizada.');
+    },
+    onError: (e: any) => toast.error(`Erro ao atualizar entrega: ${e.message}`),
   });
 }
 
