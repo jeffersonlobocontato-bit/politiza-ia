@@ -667,6 +667,10 @@ export default function DistribuicaoMaterial() {
             isCreating={createItemCampanha.isPending}
           />
         </TabsContent>
+
+        <TabsContent value="estoque" className="space-y-5 mt-0">
+          <EstoqueTab itens={itensCampanha} envios={envios} />
+        </TabsContent>
       </Tabs>
 
       {/* ---------- Dialog: cadastrar responsável ---------- */}
