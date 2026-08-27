@@ -95,6 +95,7 @@ export default function ListaEntregasTab({
 
   const deleteGrupo = useDeleteEntregaGrupo();
   const [confirmar, setConfirmar] = useState<EntregaAgrupada | null>(null);
+  const [editando, setEditando] = useState<EntregaAgrupada | null>(null);
 
   const regiaoNome = (id: string | null) => macroRegions.find(r => r.id === id)?.name ?? '—';
   const respNome = (id: string | null) => responsaveis.find(r => r.id === id)?.nome ?? null;
@@ -172,10 +173,10 @@ export default function ListaEntregasTab({
             </TabsList>
 
             <TabsContent value="feitas" className="mt-3">
-              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega realizada com os filtros atuais." />
+              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} vazio="Nenhuma entrega realizada com os filtros atuais." />
             </TabsContent>
             <TabsContent value="previstas" className="mt-3">
-              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega prevista com os filtros atuais." />
+              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} vazio="Nenhuma entrega prevista com os filtros atuais." />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -208,6 +209,8 @@ export default function ListaEntregasTab({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditarEntregaDialog grupo={editando} onClose={() => setEditando(null)} />
 
       <DetalheDialog
         open={detalhe !== null}
