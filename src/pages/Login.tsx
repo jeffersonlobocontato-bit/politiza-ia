@@ -15,6 +15,8 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
 
   const targetForUser = () => {
+    const nextParam = new URLSearchParams(location.search).get('next');
+    if (nextParam && /^\/(?!\/)/.test(nextParam)) return nextParam;
     const from = (location.state as any)?.from?.pathname as string | undefined;
     if (isCampoOperator) return '/campo';
     return from && from !== '/login' ? from : '/';

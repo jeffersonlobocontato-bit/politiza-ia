@@ -1,0 +1,216 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://sumdjlmjtqgfzkcfkceq.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "gestao-eleitoral",
+      "version": "0.1.0",
+      "title": "Gestão Eleitoral"
+    },
+    "tools": [
+      {
+        "name": "list_candidates",
+        "title": "Listar candidatos",
+        "description": "Lista os candidatos aos quais o usuário conectado tem acesso (nome, partido, cargo, ano).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "only_active": {
+              "type": "boolean",
+              "description": "Se verdadeiro, retorna apenas candidatos ativos."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Máximo de registros (padrão 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_actions",
+        "title": "Listar ações de campo",
+        "description": "Lista ações de campo da campanha (título, município, status, data planejada/executada, público atingido), com filtros opcionais.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "candidate_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Filtra por candidato."
+            },
+            "municipality": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtra por município (busca parcial)."
+            },
+            "status": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtra por status exato (ex.: planejada, executada)."
+            },
+            "since": {
+              "type": "string",
+              "description": "Data mínima (YYYY-MM-DD) para planned_date."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Máximo de registros (padrão 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_leaders",
+        "title": "Listar lideranças",
+        "description": "Lista lideranças municipais cadastradas (nome, município, nível de influência, alinhamento, apoiadores estimados).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Busca parcial por nome."
+            },
+            "municipality": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtra por município (busca parcial)."
+            },
+            "candidate_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Filtra por candidato."
+            },
+            "min_influence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10,
+              "description": "Nível mínimo de influência."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Máximo de registros (padrão 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_political_assets",
+        "title": "Listar ativos políticos",
+        "description": "Lista ativos políticos (prefeitos, vereadores, apoiadores e demais contatos estratégicos) com município, cargo e alinhamento.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Busca parcial por nome."
+            },
+            "municipality": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtra por município (busca parcial)."
+            },
+            "candidate_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Filtra por candidato."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Máximo de registros (padrão 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_strategic_alerts",
+        "title": "Listar alertas estratégicos",
+        "description": "Lista alertas estratégicos da Sala de Crise (risco/oportunidade por território, severidade, recomendação e status).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtra por status exato (ex.: aberto, resolvido)."
+            },
+            "municipality": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtra por município (busca parcial)."
+            },
+            "min_severity": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "Severidade mínima."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Máximo de registros (padrão 30)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
