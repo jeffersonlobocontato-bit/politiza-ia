@@ -245,13 +245,14 @@ function Mini({ label, value, icon: Icon, onClick }: { label: string; value: str
 }
 
 function Lista({
-  grupos, regiaoNome, respNome, vazio, onDelete,
+  grupos, regiaoNome, respNome, vazio, onDelete, onEdit,
 }: {
   grupos: EntregaAgrupada[];
   regiaoNome: (id: string | null) => string;
   respNome: (id: string | null) => string | null;
   vazio: string;
   onDelete?: (g: EntregaAgrupada) => void;
+  onEdit?: (g: EntregaAgrupada) => void;
 }) {
   if (grupos.length === 0) {
     return <p className="text-xs text-muted-foreground italic">{vazio}</p>;
@@ -272,6 +273,16 @@ function Lista({
             </p>
             <span className="text-xs text-muted-foreground flex items-center gap-2">
               {new Date(g.data + 'T12:00:00').toLocaleDateString('pt-BR')} · {g.total.toLocaleString('pt-BR')} itens
+              {onEdit && (
+                <button
+                  type="button"
+                  aria-label={`Editar quantidades de ${g.municipio}`}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => onEdit(g)}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              )}
               {onDelete && (
                 <button
                   type="button"
