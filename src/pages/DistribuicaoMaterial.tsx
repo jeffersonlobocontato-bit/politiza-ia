@@ -16,7 +16,7 @@ import {
   useMacroRegions, useDomiciliosMunicipios, useUpdateDomicilios, useUpdateEleitores,
   useSearchResponsaveis, useAllResponsaveis, useCreateResponsavel,
   useEnviosMaterial, useCreateEnvio,
-  useItensCampanha, useCreateItemCampanha,
+  useItensCampanha, useCreateItemCampanha, uploadFotoEntrega,
   computeCobertura, computeResumoPorRegiao,
   type DomicilioMunicipio, type LogisticaResponsavel, type LogisticaEnvio,
 } from '@/hooks/useLogisticaMaterial';
@@ -732,6 +732,8 @@ function RetiradasCuritibaTab({
   const [responsavelBusca, setResponsavelBusca] = useState('');
   const [responsavelSelecionado, setResponsavelSelecionado] = useState<LogisticaResponsavel | null>(null);
   const [showCadastrarResponsavel, setShowCadastrarResponsavel] = useState(false);
+  const [fotoKit, setFotoKit] = useState<File | null>(null);
+  const [enviandoFoto, setEnviandoFoto] = useState(false);
 
   const { data: sugestoesResponsavel = [] } = useSearchResponsaveis(responsavelBusca);
 
@@ -748,11 +750,20 @@ function RetiradasCuritibaTab({
   const resetForm = () => {
     setReciboNumero(''); setResponsavelEntrega('');
     setChecklist(RECIBO_MATERIAIS.map(material => ({ material, marcado: false, quantidade: '', observacao: '' })));
-    setResponsavelBusca(''); setResponsavelSelecionado(null);
+    setResponsavelBusca(''); setResponsavelSelecionado(null); setFotoKit(null);
   };
 
   const handleSubmit = async () => {
     if (!curitiba || !canSubmit) return;
+    let fotoPath: string | null = null;
+    if (fotoKit) {
+      setEnviandoFoto(true);
+      try {
+        fotoPath = await uploadFotoEntrega(fotoKit, 'retiradas-curitiba');
+      } finally {
+        setEnviandoFoto(false);
+      }
+    }
     await createEnvio.mutateAsync({
       municipio: curitiba.municipio,
       codigo_ibge: curitiba.codigo_ibge,
@@ -765,6 +776,8 @@ function RetiradasCuritibaTab({
       tipo_movimentacao: 'retirada',
       recibo_numero: reciboNumero || null,
       responsavel_entrega: responsavelEntrega || null,
+      foto_url: fotoPath,
+      entregue: true,
     });
     resetForm();
   };
@@ -890,6 +903,18 @@ function RetiradasCuritibaTab({
             )}
           </div>
 
+          <div>
+            <Label className="text-xs text-muted-foreground">Foto do kit retirado (opcional)</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="mt-1"
+              onChange={e => setFotoKit(e.target.files?.[0] ?? null)}
+            />
+            {fotoKit && <p className="text-[11px] text-muted-foreground mt-1">Selecionada: {fotoKit.name}</p>}
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">
               Declaro que retirei, nesta data, os materiais abaixo relacionados:
@@ -928,8 +953,8 @@ function RetiradasCuritibaTab({
           </div>
 
           <div className="flex justify-end">
-            <Button disabled={!canSubmit || createEnvio.isPending} onClick={handleSubmit}>
-              {createEnvio.isPending ? 'Registrando…' : 'Registrar retirada'}
+            <Button disabled={!canSubmit || createEnvio.isPending || enviandoFoto} onClick={handleSubmit}>
+              {enviandoFoto ? 'Enviando foto…' : createEnvio.isPending ? 'Registrando…' : 'Registrar retirada'}
             </Button>
           </div>
         </CardContent>

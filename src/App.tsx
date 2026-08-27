@@ -55,6 +55,7 @@ import MeusCadastros from "./pages/MeusCadastros";
 import CampoMeusCadastros from "./pages/CampoMeusCadastros";
 import CampoTarefas from "./pages/CampoTarefas";
 import HistoricoEleitoral from "./pages/HistoricoEleitoral";
+import AppLogistica from './pages/AppLogistica';
 import DistribuicaoMaterial from "./pages/DistribuicaoMaterial";
 import CruzamentoEstrategico from "./pages/CruzamentoEstrategico";
 import OAuthConsent from "./pages/OAuthConsent";
@@ -109,6 +110,7 @@ const AppRoutes = () => (
     <Route path="/agenda" element={<ProtectedRoute><RoleAwareLayout><Agenda /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/malha-logistica" element={<ProtectedRoute><RoleAwareLayout><MalhaLogistica /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/distribuicao-material" element={<ProtectedRoute><RoleAwareLayout><DistribuicaoMaterial /></RoleAwareLayout></ProtectedRoute>} />
+    <Route path="/app-logistica" element={<ProtectedRoute><AppLogistica /></ProtectedRoute>} />
     <Route path="/due-diligence" element={<ProtectedRoute><RoleAwareLayout><DueDiligence /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/inteligencia/cruzamento-moro" element={<ProtectedRoute><RoleAwareLayout><CruzamentoMoro /></RoleAwareLayout></ProtectedRoute>} />
     <Route path="/redator-gazeta" element={<ProtectedRoute><RoleAwareLayout><RedatorGazeta /></RoleAwareLayout></ProtectedRoute>} />
