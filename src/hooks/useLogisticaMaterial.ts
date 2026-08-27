@@ -51,6 +51,11 @@ export interface LogisticaEnvio {
   tipo_movimentacao: 'entrega' | 'retirada';
   recibo_numero: string | null;
   responsavel_entrega: string | null;
+  entregue?: boolean;
+  entregue_em?: string | null;
+  entregue_por?: string | null;
+  foto_url?: string | null;
+  entrega_obs?: string | null;
   created_at: string;
 }
 
@@ -229,6 +234,7 @@ export function useCreateEnvio() {
       rota?: number | null; ordem_rota?: number | null;
       tipo_movimentacao?: 'entrega' | 'retirada';
       recibo_numero?: string | null; responsavel_entrega?: string | null;
+      foto_url?: string | null; entregue?: boolean;
     }) => {
       const grupoEntregaId = crypto.randomUUID();
       const rows = payload.itens
@@ -248,6 +254,10 @@ export function useCreateEnvio() {
           tipo_movimentacao: payload.tipo_movimentacao ?? 'entrega',
           recibo_numero: payload.recibo_numero || null,
           responsavel_entrega: payload.responsavel_entrega || null,
+          foto_url: payload.foto_url || null,
+          entregue: payload.entregue ?? false,
+          entregue_em: payload.entregue ? new Date().toISOString() : null,
+          entregue_por: payload.entregue ? user?.id ?? null : null,
           created_by: user?.id,
           updated_by: user?.id,
         }));
@@ -363,6 +373,106 @@ export function useAddItensEntrega() {
   });
 }
 
+
+// ---------- Itens de campanha (portfólio de material) ----------
+
+// ---------- Confirmação de entrega com foto do kit ----------
+
+const BUCKET_ENTREGAS = 'logistica-entregas';
+
+export async function uploadFotoEntrega(file: File, prefixo: string): Promise<string> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const path = `${prefixo}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await (db as any).storage.from(BUCKET_ENTREGAS).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: file.type || 'image/jpeg',
+  });
+  if (error) throw error;
+  return path;
+}
+
+export function useFotoEntregaUrl(path: string | null | undefined) {
+  return useQuery({
+    queryKey: ['logistica-foto', path],
+    enabled: !!path,
+    staleTime: 30 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await (db as any).storage
+        .from(BUCKET_ENTREGAS)
+        .createSignedUrl(path as string, 60 * 60);
+      if (error) throw error;
+      return data?.signedUrl as string;
+    },
+  });
+}
+
+export function useConfirmarEntrega() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: {
+      grupoEntregaId: string;
+      foto?: File | null;
+      observacao?: string | null;
+      dataEntrega?: string | null;
+    }) => {
+      let fotoPath: string | null = null;
+      if (payload.foto) fotoPath = await uploadFotoEntrega(payload.foto, payload.grupoEntregaId);
+
+      const patch: Record<string, any> = {
+        entregue: true,
+        entregue_em: new Date().toISOString(),
+        entregue_por: user?.id ?? null,
+        entrega_obs: payload.observacao || null,
+        updated_by: user?.id,
+      };
+      if (fotoPath) patch.foto_url = fotoPath;
+      if (payload.dataEntrega) patch.data_envio = payload.dataEntrega;
+
+      const { error } = await (db as any)
+        .from('logistica_envios_material')
+        .update(patch)
+        .eq('grupo_entrega_id', payload.grupoEntregaId)
+        .is('deleted_at', null);
+      if (error) throw error;
+
+      const { data: check } = await (db as any)
+        .from('logistica_envios_material')
+        .select('entregue')
+        .eq('grupo_entrega_id', payload.grupoEntregaId)
+        .is('deleted_at', null);
+      if (check && check.some((r: any) => !r.entregue)) {
+        throw new Error('Você não tem permissão para lançar entregas.');
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-envios'] });
+      toast.success('Entrega lançada com sucesso.');
+    },
+    onError: (e: any) => toast.error(`Erro ao lançar entrega: ${e.message}`),
+  });
+}
+
+export function useReabrirEntrega() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (grupoEntregaId: string) => {
+      const { error } = await (db as any)
+        .from('logistica_envios_material')
+        .update({ entregue: false, entregue_em: null, updated_by: user?.id })
+        .eq('grupo_entrega_id', grupoEntregaId)
+        .is('deleted_at', null);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-envios'] });
+      toast.success('Entrega reaberta.');
+    },
+    onError: (e: any) => toast.error(`Erro ao reabrir: ${e.message}`),
+  });
+}
 
 // ---------- Itens de campanha (portfólio de material) ----------
 

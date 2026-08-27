@@ -1,16 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2, Pencil, FileBarChart } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2, Pencil, FileBarChart, Camera, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
 import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
-import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade, useAddItensEntrega, useItensCampanha } from '@/hooks/useLogisticaMaterial';
+import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade, useAddItensEntrega, useItensCampanha, useConfirmarEntrega, useFotoEntregaUrl } from '@/hooks/useLogisticaMaterial';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
@@ -28,6 +29,10 @@ export interface EntregaAgrupada {
   responsavelId: string | null;
   observacoes: string | null;
   criadaEm: string;
+  entregue: boolean;
+  fotoPath: string | null;
+  entregaObs: string | null;
+  entregueEm: string | null;
   itens: LogisticaEnvio[];
   total: number;
 }
@@ -50,6 +55,10 @@ function agrupar(envios: LogisticaEnvio[]): EntregaAgrupada[] {
     responsavelId: itens[0].responsavel_id,
     observacoes: itens[0].observacoes,
     criadaEm: itens.reduce((min, i) => (i.created_at < min ? i.created_at : min), itens[0].created_at),
+    entregue: itens.some(i => i.entregue),
+    fotoPath: itens.find(i => i.foto_url)?.foto_url ?? null,
+    entregaObs: itens.find(i => i.entrega_obs)?.entrega_obs ?? null,
+    entregueEm: itens.find(i => i.entregue_em)?.entregue_em ?? null,
     itens,
     total: itens.reduce((s, i) => s + i.quantidade, 0),
   }));
@@ -96,9 +105,20 @@ export default function ListaEntregasTab({
     [filtrados, hoje]
   );
 
+  const aLancar = useMemo(
+    () => filtrados.filter(g => !g.entregue).sort((a, b) => a.data.localeCompare(b.data)),
+    [filtrados]
+  );
+  const lancadas = useMemo(
+    () => filtrados.filter(g => g.entregue).sort((a, b) => b.data.localeCompare(a.data)),
+    [filtrados]
+  );
+
   const deleteGrupo = useDeleteEntregaGrupo();
   const [confirmar, setConfirmar] = useState<EntregaAgrupada | null>(null);
   const [editando, setEditando] = useState<EntregaAgrupada | null>(null);
+  const [lancando, setLancando] = useState<EntregaAgrupada | null>(null);
+  const [vendoFoto, setVendoFoto] = useState<EntregaAgrupada | null>(null);
 
   const regiaoNome = (id: string | null) => macroRegions.find(r => r.id === id)?.name ?? '—';
   const respNome = (id: string | null) => responsaveis.find(r => r.id === id)?.nome ?? null;
@@ -171,20 +191,32 @@ export default function ListaEntregasTab({
           </div>
 
           <Tabs defaultValue="feitas">
-            <TabsList>
+            <TabsList className="flex-wrap h-auto">
               <TabsTrigger value="feitas" className="gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Feitas ({feitas.length})
               </TabsTrigger>
               <TabsTrigger value="previstas" className="gap-1.5">
                 <CalendarClock className="w-3.5 h-3.5" /> Previstas ({previstas.length})
               </TabsTrigger>
+              <TabsTrigger value="lancar" className="gap-1.5">
+                <Camera className="w-3.5 h-3.5" /> A lançar ({aLancar.length})
+              </TabsTrigger>
+              <TabsTrigger value="lancadas" className="gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5" /> Lançadas ({lancadas.length})
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="feitas" className="mt-3">
-              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} vazio="Nenhuma entrega realizada com os filtros atuais." />
+              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} onLancar={setLancando} onVerFoto={setVendoFoto} vazio="Nenhuma entrega realizada com os filtros atuais." />
             </TabsContent>
             <TabsContent value="previstas" className="mt-3">
-              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} vazio="Nenhuma entrega prevista com os filtros atuais." />
+              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} onLancar={setLancando} onVerFoto={setVendoFoto} vazio="Nenhuma entrega prevista com os filtros atuais." />
+            </TabsContent>
+            <TabsContent value="lancar" className="mt-3">
+              <Lista grupos={aLancar} regiaoNome={regiaoNome} respNome={respNome} onLancar={setLancando} vazio="Todas as entregas já foram lançadas." />
+            </TabsContent>
+            <TabsContent value="lancadas" className="mt-3">
+              <Lista grupos={lancadas} regiaoNome={regiaoNome} respNome={respNome} onVerFoto={setVendoFoto} vazio="Nenhuma entrega lançada ainda." />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -228,6 +260,12 @@ export default function ListaEntregasTab({
 
       <EditarEntregaDialog grupo={editando} onClose={() => setEditando(null)} />
 
+      <LancarEntregaDialog grupo={lancando} onClose={() => setLancando(null)} />
+
+      <VerFotoDialog grupo={vendoFoto} onClose={() => setVendoFoto(null)} />
+
+
+
       <DetalheDialog
         open={detalhe !== null}
         onOpenChange={() => setDetalhe(null)}
@@ -261,7 +299,7 @@ function Mini({ label, value, icon: Icon, onClick }: { label: string; value: str
 }
 
 function Lista({
-  grupos, regiaoNome, respNome, vazio, onDelete, onEdit,
+  grupos, regiaoNome, respNome, vazio, onDelete, onEdit, onLancar, onVerFoto,
 }: {
   grupos: EntregaAgrupada[];
   regiaoNome: (id: string | null) => string;
@@ -269,6 +307,8 @@ function Lista({
   vazio: string;
   onDelete?: (g: EntregaAgrupada) => void;
   onEdit?: (g: EntregaAgrupada) => void;
+  onLancar?: (g: EntregaAgrupada) => void;
+  onVerFoto?: (g: EntregaAgrupada) => void;
 }) {
   if (grupos.length === 0) {
     return <p className="text-xs text-muted-foreground italic">{vazio}</p>;
@@ -322,6 +362,30 @@ function Lista({
             <p className="text-[11px] text-muted-foreground">Responsável: {respNome(g.responsavelId)}</p>
           )}
           {g.observacoes && <p className="text-[11px] text-muted-foreground italic">{g.observacoes}</p>}
+          {g.entregue && (
+            <p className="text-[11px] text-emerald-500 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              Entrega lançada{g.entregueEm ? ` em ${new Date(g.entregueEm).toLocaleString('pt-BR')}` : ''}
+              {g.entregaObs ? ` · ${g.entregaObs}` : ''}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2 pt-0.5">
+            {onLancar && !g.entregue && (
+              <Button size="sm" className="h-8 gap-1.5" onClick={() => onLancar(g)}>
+                <Camera className="w-3.5 h-3.5" /> Lançar entrega
+              </Button>
+            )}
+            {onLancar && g.entregue && (
+              <Button size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => onLancar(g)}>
+                <Camera className="w-3.5 h-3.5" /> Atualizar foto
+              </Button>
+            )}
+            {onVerFoto && g.fotoPath && (
+              <Button size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => onVerFoto(g)}>
+                <ImageIcon className="w-3.5 h-3.5" /> Ver foto do kit
+              </Button>
+            )}
+          </div>
         </div>
       ))}
     </div>
@@ -872,6 +936,118 @@ function RelatorioCuritibaDialog({
           <Button size="sm" className="gap-1.5" onClick={gerar} disabled={entregas.length === 0}>
             <Printer className="w-3.5 h-3.5" /> Gerar relatório
           </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------- Lançamento de entrega com foto do kit ----------
+
+function LancarEntregaDialog({ grupo, onClose }: { grupo: EntregaAgrupada | null; onClose: () => void }) {
+  const confirmar = useConfirmarEntrega();
+  const [foto, setFoto] = useState<File | null>(null);
+  const [obs, setObs] = useState('');
+  const [data, setData] = useState<string>('');
+  const [carregadoPara, setCarregadoPara] = useState<string | null>(null);
+
+  const grupoId = grupo?.grupoId ?? null;
+  if (grupo && grupoId !== carregadoPara) {
+    setCarregadoPara(grupoId);
+    setFoto(null);
+    setObs(grupo.entregaObs ?? '');
+    setData(grupo.data);
+  }
+  if (!grupo && carregadoPara !== null) setCarregadoPara(null);
+
+  const salvar = async () => {
+    if (!grupo) return;
+    await confirmar.mutateAsync({
+      grupoEntregaId: grupo.grupoId,
+      foto,
+      observacao: obs || null,
+      dataEntrega: data || null,
+    });
+    onClose();
+  };
+
+  return (
+    <Dialog open={grupo !== null} onOpenChange={o => { if (!o) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Camera className="w-4 h-4 text-primary" /> Lançar entrega — {grupo?.municipio}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="rounded-md border border-border/40 p-2.5">
+            <p className="text-xs text-muted-foreground">Materiais desta entrega</p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {grupo?.itens.map(i => (
+                <Badge key={i.id} variant="outline" className="text-[10px]">
+                  {i.tipo_material}: {i.quantidade.toLocaleString('pt-BR')}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground">Data da entrega</Label>
+            <Input type="date" className="mt-1" value={data} onChange={e => setData(e.target.value)} />
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground">Foto do kit entregue</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="mt-1"
+              onChange={e => setFoto(e.target.files?.[0] ?? null)}
+            />
+            {foto && <p className="text-[11px] text-muted-foreground mt-1">Selecionada: {foto.name}</p>}
+            {!foto && grupo?.fotoPath && (
+              <p className="text-[11px] text-muted-foreground mt-1">Já existe uma foto registrada — envie outra para substituir.</p>
+            )}
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground">Observação (opcional)</Label>
+            <Textarea
+              className="mt-1 min-h-[64px]"
+              placeholder="Quem recebeu, condição do material, etc."
+              value={obs}
+              onChange={e => setObs(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
+          <Button size="sm" disabled={confirmar.isPending} onClick={salvar} className="gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            {confirmar.isPending ? 'Salvando…' : 'Confirmar entrega'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function VerFotoDialog({ grupo, onClose }: { grupo: EntregaAgrupada | null; onClose: () => void }) {
+  const { data: url, isLoading } = useFotoEntregaUrl(grupo?.fotoPath);
+  return (
+    <Dialog open={grupo !== null} onOpenChange={o => { if (!o) onClose(); }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ImageIcon className="w-4 h-4 text-primary" /> Foto do kit — {grupo?.municipio}
+          </DialogTitle>
+        </DialogHeader>
+        {isLoading && <p className="text-xs text-muted-foreground">Carregando foto…</p>}
+        {url && <img src={url} alt={`Kit entregue em ${grupo?.municipio}`} className="w-full rounded-md border border-border/40" />}
+        {grupo?.entregaObs && <p className="text-xs text-muted-foreground">{grupo.entregaObs}</p>}
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={onClose}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

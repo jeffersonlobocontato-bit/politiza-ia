@@ -1714,6 +1714,11 @@ export type Database = {
           created_by: string | null
           data_envio: string
           deleted_at: string | null
+          entrega_obs: string | null
+          entregue: boolean
+          entregue_em: string | null
+          entregue_por: string | null
+          foto_url: string | null
           grupo_entrega_id: string
           id: string
           macroregion_id: string | null
@@ -1736,6 +1741,11 @@ export type Database = {
           created_by?: string | null
           data_envio?: string
           deleted_at?: string | null
+          entrega_obs?: string | null
+          entregue?: boolean
+          entregue_em?: string | null
+          entregue_por?: string | null
+          foto_url?: string | null
           grupo_entrega_id?: string
           id?: string
           macroregion_id?: string | null
@@ -1758,6 +1768,11 @@ export type Database = {
           created_by?: string | null
           data_envio?: string
           deleted_at?: string | null
+          entrega_obs?: string | null
+          entregue?: boolean
+          entregue_em?: string | null
+          entregue_por?: string | null
+          foto_url?: string | null
           grupo_entrega_id?: string
           id?: string
           macroregion_id?: string | null
