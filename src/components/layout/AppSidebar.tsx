@@ -7,7 +7,7 @@ import {
 import {
   Crosshair, Map, Globe, ClipboardList, Smartphone,
   Users, BarChart2, Network, Settings, ShieldCheck, ShieldAlert, Vote, Activity, Calendar, Building2,
-  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban, PenLine, History
+  ChevronDown, Check, UsersRound, Gavel, Trophy, LayoutGrid, Banknote, CalendarCheck, Shield, GitCompare, FolderKanban, PenLine, History, Package
 } from 'lucide-react';
 import { useCruzamentoMoroAccess } from '@/hooks/useCruzamentoMoroAccess';
 import { useRedatorGazetaAccess } from '@/hooks/useRedatorGazetaAccess';
@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
   { title: 'Ações', url: '/acoes', icon: ClipboardList, scope: 'shared' },
   { title: 'Agenda', url: '/agenda', icon: Calendar, scope: 'shared' },
   { title: 'Malha Logística', url: '/malha-logistica', icon: Map, scope: 'shared', malhaAdminOnly: true },
+  { title: 'Distribuição de Material', url: '/distribuicao-material', icon: Package, scope: 'shared' },
   { title: 'Gestão de Equipe', url: '/gestao', icon: LayoutGrid, scope: 'shared' },
   { title: 'Campo', url: '/campo', icon: Smartphone, scope: 'shared' },
   { title: 'Meus Cadastros', url: '/meus-cadastros', icon: FolderKanban, scope: 'shared' },
@@ -92,7 +93,7 @@ export function AppSidebar() {
   const isMalhaAdmin = roles?.includes('admin_master' as any) || roles?.includes('coordenador_estadual' as any);
 
   const allowedForGestorOperacional = new Set<string>([
-    '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
+    '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia', '/distribuicao-material',
   ]);
 
   const allowedForAuditor = new Set<string>([

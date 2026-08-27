@@ -1,0 +1,327 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db, fetchAllRows } from '@/lib/db';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+
+// ---------- Tipos ----------
+
+export interface MacroRegion {
+  id: string;
+  name: string;
+  coordinator: string | null;
+  municipalities_count: number | null;
+}
+
+export interface DomicilioMunicipio {
+  codigo_ibge: string;
+  municipio: string;
+  macroregion_id: string | null;
+  populacao_estimada: number | null;
+  domicilios_estimado: number | null;
+  eleitores_estimado: number | null;
+  fonte: string;
+  updated_at: string;
+}
+
+export interface LogisticaResponsavel {
+  id: string;
+  nome: string;
+  telefone: string | null;
+  tag_tipo: 'cidade' | 'regiao';
+  municipio: string | null;
+  macroregion_id: string | null;
+  observacoes: string | null;
+  ativo: boolean;
+  created_at: string;
+}
+
+export interface LogisticaEnvio {
+  id: string;
+  municipio: string;
+  codigo_ibge: string | null;
+  macroregion_id: string | null;
+  tipo_material: string;
+  quantidade: number;
+  responsavel_id: string | null;
+  data_envio: string;
+  observacoes: string | null;
+  rota: number | null;
+  ordem_rota: number | null;
+  grupo_entrega_id: string;
+  tipo_movimentacao: 'entrega' | 'retirada';
+  recibo_numero: string | null;
+  responsavel_entrega: string | null;
+  created_at: string;
+}
+
+// ---------- Macrorregiões ----------
+
+export function useMacroRegions() {
+  return useQuery({
+    queryKey: ['macro-regions'],
+    queryFn: async () => {
+      const { data, error } = await (db as any)
+        .from('macro_regions')
+        .select('id, name, coordinator, municipalities_count')
+        .order('name');
+      if (error) throw error;
+      return (data ?? []) as MacroRegion[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// ---------- Levantamento de domicílios por município ----------
+
+export function useDomiciliosMunicipios() {
+  return useQuery({
+    queryKey: ['logistica-domicilios'],
+    queryFn: async () => {
+      const rows = await fetchAllRows<DomicilioMunicipio>(() =>
+        (db as any).from('logistica_domicilios_municipio').select('*').order('municipio')
+      );
+      return rows;
+    },
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useUpdateDomicilios() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ codigo_ibge, domicilios_estimado }: { codigo_ibge: string; domicilios_estimado: number }) => {
+      const { error } = await (db as any)
+        .from('logistica_domicilios_municipio')
+        .update({ domicilios_estimado, fonte: 'manual', updated_by: user?.id })
+        .eq('codigo_ibge', codigo_ibge);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-domicilios'] });
+      toast.success('Estimativa de domicílios atualizada.');
+    },
+    onError: (e: any) => toast.error(`Erro ao atualizar domicílios: ${e.message}`),
+  });
+}
+
+export function useUpdateEleitores() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ codigo_ibge, eleitores_estimado }: { codigo_ibge: string; eleitores_estimado: number }) => {
+      const { error } = await (db as any)
+        .from('logistica_domicilios_municipio')
+        .update({ eleitores_estimado, updated_by: user?.id })
+        .eq('codigo_ibge', codigo_ibge);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-domicilios'] });
+      toast.success('Número de eleitores atualizado.');
+    },
+    onError: (e: any) => toast.error(`Erro ao atualizar eleitores: ${e.message}`),
+  });
+}
+
+// ---------- Responsáveis pela retirada/recebimento ----------
+
+export function useSearchResponsaveis(term: string) {
+  return useQuery({
+    queryKey: ['logistica-responsaveis', term],
+    queryFn: async () => {
+      let query = (db as any)
+        .from('logistica_responsaveis')
+        .select('*')
+        .eq('ativo', true)
+        .order('nome')
+        .limit(8);
+      if (term.trim().length >= 2) {
+        query = query.ilike('nome', `%${term.trim()}%`);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as LogisticaResponsavel[];
+    },
+    enabled: term.trim().length >= 2,
+  });
+}
+
+export function useAllResponsaveis() {
+  return useQuery({
+    queryKey: ['logistica-responsaveis-all'],
+    queryFn: async () => {
+      const rows = await fetchAllRows<LogisticaResponsavel>(() =>
+        (db as any).from('logistica_responsaveis').select('*').eq('ativo', true).order('nome')
+      );
+      return rows;
+    },
+  });
+}
+
+export function useCreateResponsavel() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: {
+      nome: string; telefone?: string | null;
+      tag_tipo: 'cidade' | 'regiao'; municipio?: string | null; macroregion_id?: string | null;
+      observacoes?: string | null;
+    }) => {
+      const { data, error } = await (db as any)
+        .from('logistica_responsaveis')
+        .insert({
+          nome: payload.nome,
+          telefone: payload.telefone || null,
+          tag_tipo: payload.tag_tipo,
+          municipio: payload.tag_tipo === 'cidade' ? (payload.municipio || null) : null,
+          macroregion_id: payload.tag_tipo === 'regiao' ? (payload.macroregion_id || null) : null,
+          observacoes: payload.observacoes || null,
+          created_by: user?.id,
+          updated_by: user?.id,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data as LogisticaResponsavel;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-responsaveis'] });
+      qc.invalidateQueries({ queryKey: ['logistica-responsaveis-all'] });
+      toast.success('Responsável cadastrado.');
+    },
+    onError: (e: any) => toast.error(`Erro ao cadastrar responsável: ${e.message}`),
+  });
+}
+
+// ---------- Envios de material ----------
+
+export function useEnviosMaterial() {
+  return useQuery({
+    queryKey: ['logistica-envios'],
+    queryFn: async () => {
+      const rows = await fetchAllRows<LogisticaEnvio>(() =>
+        (db as any).from('logistica_envios_material').select('*').order('data_envio', { ascending: false })
+      );
+      return rows;
+    },
+  });
+}
+
+export function useCreateEnvio() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: {
+      municipio: string; codigo_ibge?: string | null; macroregion_id?: string | null;
+      itens: { tipo_material: string; quantidade: number; observacao?: string | null }[];
+      responsavel_id?: string | null;
+      data_envio: string; observacoes?: string | null;
+      rota?: number | null; ordem_rota?: number | null;
+      tipo_movimentacao?: 'entrega' | 'retirada';
+      recibo_numero?: string | null; responsavel_entrega?: string | null;
+    }) => {
+      const grupoEntregaId = crypto.randomUUID();
+      const rows = payload.itens
+        .filter(item => item.quantidade > 0)
+        .map(item => ({
+          municipio: payload.municipio,
+          codigo_ibge: payload.codigo_ibge || null,
+          macroregion_id: payload.macroregion_id || null,
+          tipo_material: item.tipo_material,
+          quantidade: item.quantidade,
+          responsavel_id: payload.responsavel_id || null,
+          data_envio: payload.data_envio,
+          observacoes: item.observacao || payload.observacoes || null,
+          rota: payload.rota ?? null,
+          ordem_rota: payload.ordem_rota ?? null,
+          grupo_entrega_id: grupoEntregaId,
+          tipo_movimentacao: payload.tipo_movimentacao ?? 'entrega',
+          recibo_numero: payload.recibo_numero || null,
+          responsavel_entrega: payload.responsavel_entrega || null,
+          created_by: user?.id,
+          updated_by: user?.id,
+        }));
+      if (rows.length === 0) throw new Error('Informe ao menos um item de material com quantidade.');
+      const { error } = await (db as any).from('logistica_envios_material').insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['logistica-envios'] });
+      toast.success(variables.tipo_movimentacao === 'retirada' ? 'Retirada registrada.' : 'Entrega de material registrada.');
+    },
+    onError: (e: any) => toast.error(`Erro ao registrar: ${e.message}`),
+  });
+}
+
+// ---------- Agregações para o dashboard ----------
+
+export interface CoberturaMunicipio {
+  codigo_ibge: string;
+  municipio: string;
+  macroregion_id: string | null;
+  domicilios_estimado: number | null;
+  eleitores_estimado: number | null;
+  quantidade_enviada: number;
+  cobertura_pct: number | null; // null quando não há estimativa de domicílios
+}
+
+export function computeCobertura(
+  domicilios: DomicilioMunicipio[],
+  envios: LogisticaEnvio[],
+): CoberturaMunicipio[] {
+  const enviadoPorMunicipio = new Map<string, number>();
+  for (const e of envios) {
+    const key = e.codigo_ibge || e.municipio;
+    enviadoPorMunicipio.set(key, (enviadoPorMunicipio.get(key) ?? 0) + e.quantidade);
+  }
+
+  return domicilios.map(d => {
+    const quantidade_enviada = enviadoPorMunicipio.get(d.codigo_ibge) ?? 0;
+    const cobertura_pct = d.domicilios_estimado && d.domicilios_estimado > 0
+      ? Math.min(100, Math.round((quantidade_enviada / d.domicilios_estimado) * 1000) / 10)
+      : null;
+    return {
+      codigo_ibge: d.codigo_ibge,
+      municipio: d.municipio,
+      macroregion_id: d.macroregion_id,
+      domicilios_estimado: d.domicilios_estimado,
+      eleitores_estimado: d.eleitores_estimado,
+      quantidade_enviada,
+      cobertura_pct,
+    };
+  });
+}
+
+export interface RegiaoResumo {
+  macroregion_id: string;
+  nome: string;
+  total_enviado: number;
+  municipios_atendidos: number;
+  municipios_total: number;
+  cobertura_media_pct: number | null;
+  eleitores_total: number;
+}
+
+export function computeResumoPorRegiao(
+  cobertura: CoberturaMunicipio[],
+  macroRegions: MacroRegion[],
+): RegiaoResumo[] {
+  return macroRegions.map(r => {
+    const doRegiao = cobertura.filter(c => c.macroregion_id === r.id);
+    const atendidos = doRegiao.filter(c => c.quantidade_enviada > 0);
+    const comEstimativa = doRegiao.filter(c => c.cobertura_pct !== null);
+    const cobertura_media_pct = comEstimativa.length > 0
+      ? Math.round((comEstimativa.reduce((sum, c) => sum + (c.cobertura_pct ?? 0), 0) / comEstimativa.length) * 10) / 10
+      : null;
+    return {
+      macroregion_id: r.id,
+      nome: r.name,
+      total_enviado: doRegiao.reduce((sum, c) => sum + c.quantidade_enviada, 0),
+      municipios_atendidos: atendidos.length,
+      municipios_total: doRegiao.length,
+      cobertura_media_pct,
+      eleitores_total: doRegiao.reduce((sum, c) => sum + (c.eleitores_estimado ?? 0), 0),
+    };
+  });
+}
