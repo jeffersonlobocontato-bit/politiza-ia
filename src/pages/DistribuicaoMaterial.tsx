@@ -209,7 +209,7 @@ export default function DistribuicaoMaterial() {
     setItensPorCidade({}); setKitPorCidade(false);
     setRota(''); setOrdemRota('');
     setObservacoes(''); setDomicilioManual(''); setEleitoresManual('');
-    setResponsavelBusca(''); setResponsavelSelecionado(null); setFotoKit(null);
+    setResponsavelBusca(''); setResponsavelSelecionado(null);
   };
 
   const addItem = () => setItensAtuais(prev => [...prev, { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
