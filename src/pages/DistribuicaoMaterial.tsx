@@ -416,7 +416,7 @@ export default function DistribuicaoMaterial() {
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Nº da parada na rota (opcional)</Label>
+              <Label className="text-xs text-muted-foreground">Nº da 1ª parada (opcional)</Label>
               <Input
                 type="number" min={1} className="mt-1"
                 value={ordemRota} onChange={e => setOrdemRota(e.target.value)}
