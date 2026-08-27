@@ -523,7 +523,9 @@ export default function DistribuicaoMaterial() {
 
           <div className="flex justify-end">
             <Button disabled={!canSubmit || createEnvio.isPending} onClick={handleSubmit}>
-              {createEnvio.isPending ? 'Registrando…' : 'Registrar entrega'}
+              {createEnvio.isPending
+                ? 'Registrando…'
+                : cidadesRota.length > 1 ? `Registrar ${cidadesRota.length} entregas` : 'Registrar entrega'}
             </Button>
           </div>
         </CardContent>
