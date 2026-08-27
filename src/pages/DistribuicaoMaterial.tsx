@@ -750,7 +750,7 @@ function RetiradasCuritibaTab({
   const resetForm = () => {
     setReciboNumero(''); setResponsavelEntrega('');
     setChecklist(RECIBO_MATERIAIS.map(material => ({ material, marcado: false, quantidade: '', observacao: '' })));
-    setResponsavelBusca(''); setResponsavelSelecionado(null);
+    setResponsavelBusca(''); setResponsavelSelecionado(null); setFotoKit(null);
   };
 
   const handleSubmit = async () => {
