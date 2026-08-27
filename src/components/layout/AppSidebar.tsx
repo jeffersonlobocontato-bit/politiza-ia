@@ -93,7 +93,7 @@ export function AppSidebar() {
   const isMalhaAdmin = roles?.includes('admin_master' as any) || roles?.includes('coordenador_estadual' as any);
 
   const allowedForGestorOperacional = new Set<string>([
-    '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
+    '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia', '/distribuicao-material',
   ]);
 
   const allowedForAuditor = new Set<string>([
