@@ -19,6 +19,8 @@ import {
   computeCobertura, computeResumoPorRegiao,
   type DomicilioMunicipio, type LogisticaResponsavel, type LogisticaEnvio,
 } from '@/hooks/useLogisticaMaterial';
+import ListaEntregasTab from '@/components/logistica/ListaEntregasTab';
+
 
 const TIPOS_MATERIAL = [
   'Perfurado Moro', 'Perfurado Trio', 'Perfurado Quarteto', 'Bola', 'Bola Foto', 'Bola Marca',
