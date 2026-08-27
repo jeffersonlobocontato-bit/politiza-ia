@@ -451,10 +451,29 @@ function ImprimirRotasDialog({
   respNome: (id: string | null) => string | null;
 }) {
   const hoje = new Date().toISOString().split('T')[0];
+  const fmtData = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
+  const chaveRota = (rota: string, criacao: string) => `${rota}|${criacao.slice(0, 10)}`;
+
+  // Rotas distinguíveis por número + data de criação (mesma rota pode ter remessas em datas diferentes)
   const rotasDisponiveis = useMemo(() => {
-    const set = new Set<string>();
-    grupos.forEach(g => set.add(g.rota ? String(g.rota) : 'sem'));
-    return Array.from(set).sort();
+    const porRota = new Map<string, EntregaAgrupada[]>();
+    grupos.forEach(g => {
+      const r = g.rota ? String(g.rota) : 'sem';
+      porRota.set(r, [...(porRota.get(r) ?? []), g]);
+    });
+    const insts: { key: string; rota: string; criacao: string; total: number }[] = [];
+    for (const [rota, lista] of porRota) {
+      // agrupa por data de criação de cada entrega da rota
+      const porData = new Map<string, number>();
+      lista.forEach(g => {
+        const d = g.criadaEm.slice(0, 10);
+        porData.set(d, (porData.get(d) ?? 0) + 1);
+      });
+      Array.from(porData.entries())
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .forEach(([data, total]) => insts.push({ key: chaveRota(rota, data), rota, criacao: data, total }));
+    }
+    return insts.sort((a, b) => a.rota.localeCompare(b.rota) || b.criacao.localeCompare(a.criacao));
   }, [grupos]);
 
   const [selecionadas, setSelecionadas] = useState<string[]>([]);
