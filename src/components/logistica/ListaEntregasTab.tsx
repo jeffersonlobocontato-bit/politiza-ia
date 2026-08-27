@@ -507,6 +507,12 @@ function ImprimirRotasDialog({
 
     const esc = (s: string) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
 
+    const tituloRota = (key: string) => {
+      const [rota, data] = key.split('|');
+      const base = ROTA_LABEL[rota] ?? 'Entregas sem rota definida';
+      return `${base} — criada em ${new Date(data + 'T12:00:00').toLocaleDateString('pt-BR')}`;
+    };
+
     const mapas = new Map<string, string>();
     for (const [rota, lista] of porRota) {
       const vistos = new Set<string>();
