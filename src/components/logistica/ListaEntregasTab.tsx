@@ -105,14 +105,6 @@ export default function ListaEntregasTab({
     [filtrados, hoje]
   );
 
-  const aLancar = useMemo(
-    () => filtrados.filter(g => !g.entregue).sort((a, b) => a.data.localeCompare(b.data)),
-    [filtrados]
-  );
-  const lancadas = useMemo(
-    () => filtrados.filter(g => g.entregue).sort((a, b) => b.data.localeCompare(a.data)),
-    [filtrados]
-  );
 
   const deleteGrupo = useDeleteEntregaGrupo();
   const [confirmar, setConfirmar] = useState<EntregaAgrupada | null>(null);
