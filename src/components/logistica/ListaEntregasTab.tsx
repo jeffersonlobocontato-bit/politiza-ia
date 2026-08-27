@@ -97,17 +97,19 @@ export default function ListaEntregasTab({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Mini label="Entregas realizadas" value={String(feitas.length)} icon={CheckCircle2} />
-        <Mini label="Entregas previstas" value={String(previstas.length)} icon={CalendarClock} />
+        <Mini label="Entregas realizadas" value={String(feitas.length)} icon={CheckCircle2} onClick={() => setDetalhe('feitas')} />
+        <Mini label="Entregas previstas" value={String(previstas.length)} icon={CalendarClock} onClick={() => setDetalhe('previstas')} />
         <Mini
           label="Itens entregues"
           value={feitas.reduce((s, g) => s + g.total, 0).toLocaleString('pt-BR')}
           icon={Package}
+          onClick={() => setDetalhe('itens-feitas')}
         />
         <Mini
           label="Itens previstos"
           value={previstas.reduce((s, g) => s + g.total, 0).toLocaleString('pt-BR')}
           icon={Truck}
+          onClick={() => setDetalhe('itens-previstas')}
         />
       </div>
 
