@@ -187,9 +187,12 @@ export default function ListaEntregasTab({
   );
 }
 
-function Mini({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
+function Mini({ label, value, icon: Icon, onClick }: { label: string; value: string; icon: any; onClick?: () => void }) {
   return (
-    <Card className="bg-card/80 border-border/50">
+    <Card
+      onClick={onClick}
+      className={`bg-card/80 border-border/50 transition-colors ${onClick ? 'cursor-pointer hover:border-primary/60 hover:bg-primary/5' : ''}`}
+    >
       <CardContent className="p-3 flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4 h-4 text-primary" />
