@@ -263,6 +263,25 @@ export function useCreateEnvio() {
   });
 }
 
+export function useDeleteEntregaGrupo() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (grupoEntregaId: string) => {
+      const { error } = await (db as any)
+        .from('logistica_envios_material')
+        .update({ deleted_at: new Date().toISOString(), updated_by: user?.id })
+        .eq('grupo_entrega_id', grupoEntregaId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-envios'] });
+      toast.success('Cidade removida da rota.');
+    },
+    onError: (e: any) => toast.error(`Erro ao remover: ${e.message}`),
+  });
+}
+
 // ---------- Itens de campanha (portfólio de material) ----------
 
 export function useItensCampanha() {
