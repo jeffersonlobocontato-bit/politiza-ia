@@ -27,6 +27,7 @@ export interface EntregaAgrupada {
   ordemRota: number | null;
   responsavelId: string | null;
   observacoes: string | null;
+  criadaEm: string;
   itens: LogisticaEnvio[];
   total: number;
 }
@@ -48,6 +49,7 @@ function agrupar(envios: LogisticaEnvio[]): EntregaAgrupada[] {
     ordemRota: itens[0].ordem_rota,
     responsavelId: itens[0].responsavel_id,
     observacoes: itens[0].observacoes,
+    criadaEm: itens.reduce((min, i) => (i.created_at < min ? i.created_at : min), itens[0].created_at),
     itens,
     total: itens.reduce((s, i) => s + i.quantidade, 0),
   }));
