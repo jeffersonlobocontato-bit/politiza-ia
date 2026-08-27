@@ -67,6 +67,7 @@ export default function ListaEntregasTab({
   const [filtroRota, setFiltroRota] = useState<string>('todas');
   const [filtroRegiao, setFiltroRegiao] = useState<string>('todas');
   const [showPrint, setShowPrint] = useState(false);
+  const [showRelCwb, setShowRelCwb] = useState(false);
   const [detalhe, setDetalhe] = useState<'feitas' | 'previstas' | 'itens-feitas' | 'itens-previstas' | null>(null);
 
   const grupos = useMemo(() => agrupar(envios), [envios]);
