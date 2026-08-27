@@ -163,13 +163,13 @@ export default function DistribuicaoMaterial() {
 
   const resetForm = () => {
     setCidadeBusca(''); setCidadeSelecionada(null);
-    setItens([{ tipo_material: TIPOS_MATERIAL[0], quantidade: '' }]);
+    setItens([{ tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
     setRota(''); setOrdemRota('');
     setObservacoes(''); setDomicilioManual(''); setEleitoresManual('');
     setResponsavelBusca(''); setResponsavelSelecionado(null);
   };
 
-  const addItem = () => setItens(prev => [...prev, { tipo_material: TIPOS_MATERIAL[0], quantidade: '' }]);
+  const addItem = () => setItens(prev => [...prev, { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
   const removeItem = (idx: number) => setItens(prev => prev.filter((_, i) => i !== idx));
   const updateItem = (idx: number, patch: Partial<{ tipo_material: string; quantidade: string }>) =>
     setItens(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
