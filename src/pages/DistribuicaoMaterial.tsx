@@ -84,11 +84,25 @@ export default function DistribuicaoMaterial() {
   const tiposMaterialDisponiveis = useMemo(() => itensCampanha.map(i => i.nome), [itensCampanha]);
 
   // ---------- Estado do formulário ----------
+  const itensInicializados = useRef(false);
+  useEffect(() => {
+    if (tiposMaterialDisponiveis.length > 0 && !itensInicializados.current) {
+      itensInicializados.current = true;
+      setItens(prev =>
+        prev.map(i =>
+          tiposMaterialDisponiveis.includes(i.tipo_material)
+            ? i
+            : { ...i, tipo_material: tiposMaterialDisponiveis[0] }
+        )
+      );
+    }
+  }, [tiposMaterialDisponiveis.length]);
+
   const [filtroRegiao, setFiltroRegiao] = useState<string>('');
   const [cidadeBusca, setCidadeBusca] = useState('');
   const [cidadeSelecionada, setCidadeSelecionada] = useState<DomicilioMunicipio | null>(null);
   const [itens, setItens] = useState<{ tipo_material: string; quantidade: string }[]>([
-    { tipo_material: TIPOS_MATERIAL[0], quantidade: '' },
+    { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' },
   ]);
   const [rota, setRota] = useState<string>('');
   const [ordemRota, setOrdemRota] = useState<string>('');
