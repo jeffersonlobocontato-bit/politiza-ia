@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks, PlusCircle, Tag, Archive } from 'lucide-react';
+import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks, PlusCircle, Tag, Archive, Boxes } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
