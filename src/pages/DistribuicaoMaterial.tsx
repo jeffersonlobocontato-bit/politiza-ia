@@ -101,7 +101,22 @@ export default function DistribuicaoMaterial() {
 
   const [filtroRegiao, setFiltroRegiao] = useState<string>('');
   const [cidadeBusca, setCidadeBusca] = useState('');
-  const [cidadeSelecionada, setCidadeSelecionada] = useState<DomicilioMunicipio | null>(null);
+  const [cidadesRota, setCidadesRota] = useState<DomicilioMunicipio[]>([]);
+  const [cidadeFocoIbge, setCidadeFocoIbge] = useState<string | null>(null);
+  const cidadeSelecionada = useMemo(
+    () => cidadesRota.find(c => c.codigo_ibge === cidadeFocoIbge) ?? cidadesRota[cidadesRota.length - 1] ?? null,
+    [cidadesRota, cidadeFocoIbge]
+  );
+  const addCidadeRota = (m: DomicilioMunicipio) => {
+    setCidadesRota(prev => (prev.some(c => c.codigo_ibge === m.codigo_ibge) ? prev : [...prev, m]));
+    setCidadeFocoIbge(m.codigo_ibge);
+    setCidadeBusca('');
+    setDomicilioManual('');
+    setEleitoresManual('');
+  };
+  const removeCidadeRota = (ibge: string) =>
+    setCidadesRota(prev => prev.filter(c => c.codigo_ibge !== ibge));
+
   const [itens, setItens] = useState<{ tipo_material: string; quantidade: string }[]>([
     { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' },
   ]);
@@ -122,9 +137,13 @@ export default function DistribuicaoMaterial() {
     if (cidadeBusca.trim().length < 1) return [];
     const q = cidadeBusca.toLowerCase();
     return domicilios
-      .filter(d => (!filtroRegiao || d.macroregion_id === filtroRegiao) && d.municipio.toLowerCase().includes(q))
+      .filter(d =>
+        (!filtroRegiao || d.macroregion_id === filtroRegiao) &&
+        d.municipio.toLowerCase().includes(q) &&
+        !cidadesRota.some(c => c.codigo_ibge === d.codigo_ibge)
+      )
       .slice(0, 8);
-  }, [cidadeBusca, filtroRegiao, domicilios]);
+  }, [cidadeBusca, filtroRegiao, domicilios, cidadesRota]);
 
   // ---------- Cobertura em tempo real ----------
   const jaEnviadoNaCidade = useMemo(() => {
@@ -163,7 +182,7 @@ export default function DistribuicaoMaterial() {
     .reduce((s, c) => s + (c.eleitores_estimado ?? 0), 0);
 
   const resetForm = () => {
-    setCidadeBusca(''); setCidadeSelecionada(null);
+    setCidadeBusca(''); setCidadesRota([]); setCidadeFocoIbge(null);
     setItens([{ tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
     setRota(''); setOrdemRota('');
     setObservacoes(''); setDomicilioManual(''); setEleitoresManual('');
@@ -175,35 +194,40 @@ export default function DistribuicaoMaterial() {
   const updateItem = (idx: number, patch: Partial<{ tipo_material: string; quantidade: string }>) =>
     setItens(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
 
-  const canSubmit = cidadeSelecionada && totalKitAtual > 0 && dataEnvio;
+  const canSubmit = cidadesRota.length > 0 && totalKitAtual > 0 && dataEnvio;
 
   const handleSubmit = async () => {
-    if (!cidadeSelecionada || !canSubmit) return;
-    if (domicilioManual && !cidadeSelecionada.domicilios_estimado) {
+    if (!canSubmit) return;
+    if (cidadeSelecionada && domicilioManual && !cidadeSelecionada.domicilios_estimado) {
       await updateDomicilios.mutateAsync({
         codigo_ibge: cidadeSelecionada.codigo_ibge,
         domicilios_estimado: Number(domicilioManual),
       });
     }
-    if (eleitoresManual && !cidadeSelecionada.eleitores_estimado) {
+    if (cidadeSelecionada && eleitoresManual && !cidadeSelecionada.eleitores_estimado) {
       await updateEleitores.mutateAsync({
         codigo_ibge: cidadeSelecionada.codigo_ibge,
         eleitores_estimado: Number(eleitoresManual),
       });
     }
-    await createEnvio.mutateAsync({
-      municipio: cidadeSelecionada.municipio,
-      codigo_ibge: cidadeSelecionada.codigo_ibge,
-      macroregion_id: cidadeSelecionada.macroregion_id,
-      itens: itens.map(it => ({ tipo_material: it.tipo_material, quantidade: Number(it.quantidade) || 0 })),
-      responsavel_id: responsavelSelecionado?.id ?? null,
-      data_envio: dataEnvio,
-      observacoes: observacoes || null,
-      rota: rota ? Number(rota) : null,
-      ordem_rota: ordemRota ? Number(ordemRota) : null,
-    });
+    const base = ordemRota ? Number(ordemRota) : null;
+    for (let i = 0; i < cidadesRota.length; i++) {
+      const cidade = cidadesRota[i];
+      await createEnvio.mutateAsync({
+        municipio: cidade.municipio,
+        codigo_ibge: cidade.codigo_ibge,
+        macroregion_id: cidade.macroregion_id,
+        itens: itens.map(it => ({ tipo_material: it.tipo_material, quantidade: Number(it.quantidade) || 0 })),
+        responsavel_id: responsavelSelecionado?.id ?? null,
+        data_envio: dataEnvio,
+        observacoes: observacoes || null,
+        rota: rota ? Number(rota) : null,
+        ordem_rota: base !== null ? base + i : null,
+      });
+    }
     resetForm();
   };
+
 
   return (
     <div className="space-y-5">
@@ -259,22 +283,24 @@ export default function DistribuicaoMaterial() {
             </div>
 
             <div className="md:col-span-2 relative">
-              <Label className="text-xs text-muted-foreground">Município de destino</Label>
+              <Label className="text-xs text-muted-foreground">
+                Municípios da rota {cidadesRota.length > 0 && `(${cidadesRota.length} selecionados)`}
+              </Label>
               <div className="relative mt-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="pl-9"
-                  placeholder="Digite para buscar entre os 399 municípios do PR…"
-                  value={cidadeSelecionada ? cidadeSelecionada.municipio : cidadeBusca}
-                  onChange={e => { setCidadeSelecionada(null); setCidadeBusca(e.target.value); setDomicilioManual(''); }}
+                  placeholder="Digite para adicionar cidades à rota…"
+                  value={cidadeBusca}
+                  onChange={e => setCidadeBusca(e.target.value)}
                 />
               </div>
-              {!cidadeSelecionada && sugestoesCidade.length > 0 && (
+              {sugestoesCidade.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full border border-border/50 rounded-md bg-popover divide-y divide-border/30 max-h-56 overflow-y-auto shadow-lg">
                   {sugestoesCidade.map(m => (
                     <button
                       key={m.codigo_ibge}
-                      onClick={() => { setCidadeSelecionada(m); setCidadeBusca(''); }}
+                      onClick={() => addCidadeRota(m)}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted/40 transition-colors flex items-center justify-between"
                     >
                       <span>{m.municipio}</span>
@@ -288,6 +314,28 @@ export default function DistribuicaoMaterial() {
               )}
             </div>
           </div>
+
+          {cidadesRota.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {cidadesRota.map((c, i) => (
+                <Badge
+                  key={c.codigo_ibge}
+                  variant={c.codigo_ibge === cidadeSelecionada?.codigo_ibge ? 'default' : 'outline'}
+                  className="cursor-pointer gap-1"
+                  onClick={() => setCidadeFocoIbge(c.codigo_ibge)}
+                >
+                  <span className="opacity-60">{i + 1}.</span> {c.municipio}
+                  <button
+                    className="ml-1 opacity-70 hover:opacity-100"
+                    onClick={e => { e.stopPropagation(); removeCidadeRota(c.codigo_ibge); }}
+                  >
+                    ×
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+
 
           {cidadeSelecionada && (
             <div className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-2">
@@ -368,7 +416,7 @@ export default function DistribuicaoMaterial() {
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Nº da parada na rota (opcional)</Label>
+              <Label className="text-xs text-muted-foreground">Nº da 1ª parada (opcional)</Label>
               <Input
                 type="number" min={1} className="mt-1"
                 value={ordemRota} onChange={e => setOrdemRota(e.target.value)}
@@ -475,7 +523,9 @@ export default function DistribuicaoMaterial() {
 
           <div className="flex justify-end">
             <Button disabled={!canSubmit || createEnvio.isPending} onClick={handleSubmit}>
-              {createEnvio.isPending ? 'Registrando…' : 'Registrar entrega'}
+              {createEnvio.isPending
+                ? 'Registrando…'
+                : cidadesRota.length > 1 ? `Registrar ${cidadesRota.length} entregas` : 'Registrar entrega'}
             </Button>
           </div>
         </CardContent>
