@@ -386,7 +386,10 @@ export default function DistribuicaoMaterial() {
                   <Select value={item.tipo_material} onValueChange={v => updateItem(idx, { tipo_material: v })}>
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TIPOS_MATERIAL.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {tiposMaterialDisponiveis.length === 0 && (
+                        <SelectItem disabled value="">{loadingItens ? 'Carregando itens…' : 'Nenhum item cadastrado'}</SelectItem>
+                      )}
+                      {tiposMaterialDisponiveis.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
