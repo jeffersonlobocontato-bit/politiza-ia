@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse } from 'lucide-react';
+import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,8 @@ import {
   computeCobertura, computeResumoPorRegiao,
   type DomicilioMunicipio, type LogisticaResponsavel, type LogisticaEnvio,
 } from '@/hooks/useLogisticaMaterial';
+import ListaEntregasTab from '@/components/logistica/ListaEntregasTab';
+
 
 const TIPOS_MATERIAL = [
   'Perfurado Moro', 'Perfurado Trio', 'Perfurado Quarteto', 'Bola', 'Bola Foto', 'Bola Marca',
@@ -208,10 +210,14 @@ export default function DistribuicaoMaterial() {
           <TabsTrigger value="entregas" className="flex items-center gap-1.5">
             <Truck className="w-3.5 h-3.5" /> Entregas por rota
           </TabsTrigger>
+          <TabsTrigger value="lista" className="flex items-center gap-1.5">
+            <ListChecks className="w-3.5 h-3.5" /> Lista de entregas
+          </TabsTrigger>
           <TabsTrigger value="retiradas" className="flex items-center gap-1.5">
             <Warehouse className="w-3.5 h-3.5" /> Retiradas em Curitiba
           </TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="entregas" className="space-y-5 mt-0">
       {/* ---------- Formulário de novo envio ---------- */}
@@ -491,6 +497,12 @@ export default function DistribuicaoMaterial() {
         )}
       </div>
         </TabsContent>
+
+        <TabsContent value="lista" className="space-y-5 mt-0">
+          <ListaEntregasTab envios={envios} macroRegions={macroRegions} responsaveis={responsaveisAll} />
+        </TabsContent>
+
+
 
         <TabsContent value="retiradas" className="space-y-5 mt-0">
           <RetiradasCuritibaTab
