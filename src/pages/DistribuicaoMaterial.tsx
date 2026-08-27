@@ -295,6 +295,9 @@ export default function DistribuicaoMaterial() {
           <TabsTrigger value="itens" className="flex items-center gap-1.5">
             <Archive className="w-3.5 h-3.5" /> Itens de campanha
           </TabsTrigger>
+          <TabsTrigger value="estoque" className="flex items-center gap-1.5">
+            <Boxes className="w-3.5 h-3.5" /> Estoque
+          </TabsTrigger>
         </TabsList>
 
 
