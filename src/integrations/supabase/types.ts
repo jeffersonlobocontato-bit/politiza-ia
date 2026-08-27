@@ -3562,6 +3562,7 @@ export type Database = {
       }
       is_malha_admin: { Args: { _user_id: string }; Returns: boolean }
       normalizar_texto: { Args: { txt: string }; Returns: string }
+      tmp_install_logistica: { Args: { _sql: string }; Returns: undefined }
       unaccent: { Args: { "": string }; Returns: string }
       user_has_candidate_scope: { Args: { _user_id: string }; Returns: boolean }
     }
