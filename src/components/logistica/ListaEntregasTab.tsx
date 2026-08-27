@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
+import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
+import { useDeleteEntregaGrupo } from '@/hooks/useLogisticaMaterial';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
@@ -91,6 +93,9 @@ export default function ListaEntregasTab({
     [filtrados, hoje]
   );
 
+  const deleteGrupo = useDeleteEntregaGrupo();
+  const [confirmar, setConfirmar] = useState<EntregaAgrupada | null>(null);
+
   const regiaoNome = (id: string | null) => macroRegions.find(r => r.id === id)?.name ?? '—';
   const respNome = (id: string | null) => responsaveis.find(r => r.id === id)?.nome ?? null;
 
@@ -167,10 +172,10 @@ export default function ListaEntregasTab({
             </TabsList>
 
             <TabsContent value="feitas" className="mt-3">
-              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} vazio="Nenhuma entrega realizada com os filtros atuais." />
+              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega realizada com os filtros atuais." />
             </TabsContent>
             <TabsContent value="previstas" className="mt-3">
-              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} vazio="Nenhuma entrega prevista com os filtros atuais." />
+              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega prevista com os filtros atuais." />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -183,6 +188,26 @@ export default function ListaEntregasTab({
         regiaoNome={regiaoNome}
         respNome={respNome}
       />
+
+      <Dialog open={confirmar !== null} onOpenChange={() => setConfirmar(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Remover cidade da rota</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Excluir a entrega de <strong className="text-foreground">{confirmar?.municipio}</strong>
+            {confirmar?.rota ? ` na ${ROTA_LABEL[String(confirmar.rota)] ?? `Rota ${confirmar.rota}`}` : ''}?
+            Os {confirmar?.total.toLocaleString('pt-BR')} itens registrados deixam de contar na cobertura.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setConfirmar(null)}>Cancelar</Button>
+            <Button
+              variant="destructive" size="sm" disabled={deleteGrupo.isPending}
+              onClick={async () => { if (confirmar) { await deleteGrupo.mutateAsync(confirmar.grupoId); setConfirmar(null); } }}
+            >
+              {deleteGrupo.isPending ? 'Removendo…' : 'Remover'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DetalheDialog
         open={detalhe !== null}
@@ -217,12 +242,13 @@ function Mini({ label, value, icon: Icon, onClick }: { label: string; value: str
 }
 
 function Lista({
-  grupos, regiaoNome, respNome, vazio,
+  grupos, regiaoNome, respNome, vazio, onDelete,
 }: {
   grupos: EntregaAgrupada[];
   regiaoNome: (id: string | null) => string;
   respNome: (id: string | null) => string | null;
   vazio: string;
+  onDelete?: (g: EntregaAgrupada) => void;
 }) {
   if (grupos.length === 0) {
     return <p className="text-xs text-muted-foreground italic">{vazio}</p>;
@@ -241,8 +267,18 @@ function Lista({
                 </Badge>
               )}
             </p>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground flex items-center gap-2">
               {new Date(g.data + 'T12:00:00').toLocaleDateString('pt-BR')} · {g.total.toLocaleString('pt-BR')} itens
+              {onDelete && (
+                <button
+                  type="button"
+                  aria-label={`Remover ${g.municipio} da rota`}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  onClick={() => onDelete(g)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </span>
           </div>
           <div className="flex flex-wrap gap-1">
@@ -285,7 +321,10 @@ function ImprimirRotasDialog({
 
   const selecao = selecionadas.length > 0 ? selecionadas : rotasDisponiveis;
 
-  const imprimir = () => {
+  const [gerando, setGerando] = useState(false);
+
+  const imprimir = async () => {
+    setGerando(true);
     const linhas = grupos
       .filter(g => selecao.includes(g.rota ? String(g.rota) : 'sem'))
       .filter(g => status === 'todas' || (status === 'feitas' ? g.data <= hoje : g.data > hoje))
@@ -305,8 +344,28 @@ function ImprimirRotasDialog({
 
     const esc = (s: string) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
 
+    const mapas = new Map<string, string>();
+    for (const [rota, lista] of porRota) {
+      const vistos = new Set<string>();
+      const cidades = lista
+        .map((g, i) => ({
+          municipio: g.municipio,
+          codigo_ibge: g.itens[0]?.codigo_ibge ?? null,
+          ordem: g.ordemRota ?? i + 1,
+        }))
+        .filter(c => {
+          const k = (c.codigo_ibge ?? c.municipio).toString();
+          if (vistos.has(k)) return false;
+          vistos.add(k);
+          return true;
+        });
+      mapas.set(rota, await buildRotaMapaSvg(cidades, ROTA_LABEL[rota] ?? 'Entregas sem rota definida'));
+    }
+
     const secoes = Array.from(porRota.entries()).map(([rota, lista]) => `
       <h2>${esc(ROTA_LABEL[rota] ?? 'Entregas sem rota definida')} — ${lista.length} parada(s)</h2>
+      ${mapas.get(rota) ?? ''}
+
       <table>
         <thead>
           <tr><th>#</th><th>Município</th><th>Região</th><th>Data</th><th>Status</th><th>Responsável</th><th>Materiais</th><th>Total</th><th>Conferido</th></tr>
@@ -338,6 +397,10 @@ function ImprimirRotasDialog({
         th,td{border:1px solid #bbb;padding:4px 6px;text-align:left;vertical-align:top;}
         th{background:#eef2f7;}
         .check{width:60px;}
+        .mapa-rota{margin:8px 0 14px;page-break-inside:avoid;}
+        .mapa-rota h3{font-size:11px;color:#1A2A45;margin:0 0 4px;}
+        .mapa-rota svg{border:1px solid #ddd;border-radius:4px;}
+        .mapa-legenda{margin-top:6px;line-height:1.6;}
         @media print{ h2{page-break-after:avoid;} tr{page-break-inside:avoid;} }
       </style></head><body>
       <h1>Rotas de distribuição de material</h1>
@@ -347,11 +410,13 @@ function ImprimirRotasDialog({
       </body></html>`;
 
     const w = window.open('', '_blank');
+    setGerando(false);
     if (!w) return;
     w.document.write(html);
     w.document.close();
     onOpenChange(false);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -398,8 +463,8 @@ function ImprimirRotasDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button size="sm" onClick={imprimir} className="gap-1.5">
-            <Printer className="w-3.5 h-3.5" /> Imprimir
+          <Button size="sm" onClick={imprimir} disabled={gerando} className="gap-1.5">
+            <Printer className="w-3.5 h-3.5" /> {gerando ? 'Gerando mapa…' : 'Imprimir'}
           </Button>
         </DialogFooter>
       </DialogContent>

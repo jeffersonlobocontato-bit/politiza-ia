@@ -120,6 +120,27 @@ export default function DistribuicaoMaterial() {
   const [itens, setItens] = useState<{ tipo_material: string; quantidade: string }[]>([
     { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' },
   ]);
+  const [kitPorCidade, setKitPorCidade] = useState(false);
+  const [itensPorCidade, setItensPorCidade] = useState<Record<string, { tipo_material: string; quantidade: string }[]>>({});
+  const kitDefault = () => [{ tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }];
+  const itensDaCidade = (ibge: string) => itensPorCidade[ibge] ?? kitDefault();
+  const usandoKitPorCidade = kitPorCidade && cidadesRota.length > 1;
+  const itensAtuais = usandoKitPorCidade && cidadeSelecionada
+    ? itensDaCidade(cidadeSelecionada.codigo_ibge)
+    : itens;
+  const setItensAtuais = (
+    updater: (prev: { tipo_material: string; quantidade: string }[]) => { tipo_material: string; quantidade: string }[],
+  ) => {
+    if (usandoKitPorCidade && cidadeSelecionada) {
+      const ibge = cidadeSelecionada.codigo_ibge;
+      setItensPorCidade(prev => ({ ...prev, [ibge]: updater(prev[ibge] ?? kitDefault()) }));
+    } else {
+      setItens(updater);
+    }
+  };
+  const totalDaCidade = (ibge: string) =>
+    (usandoKitPorCidade ? itensDaCidade(ibge) : itens).reduce((s2, it) => s2 + (Number(it.quantidade) || 0), 0);
+
   const [rota, setRota] = useState<string>('');
   const [ordemRota, setOrdemRota] = useState<string>('');
   const [dataEnvio, setDataEnvio] = useState(() => new Date().toISOString().split('T')[0]);
@@ -157,8 +178,8 @@ export default function DistribuicaoMaterial() {
     ?? (domicilioManual ? Number(domicilioManual) : null);
 
   const totalKitAtual = useMemo(
-    () => itens.reduce((sum, it) => sum + (Number(it.quantidade) || 0), 0),
-    [itens]
+    () => itensAtuais.reduce((sum, it) => sum + (Number(it.quantidade) || 0), 0),
+    [itensAtuais]
   );
 
   const coberturaPreview = useMemo(() => {
@@ -184,17 +205,32 @@ export default function DistribuicaoMaterial() {
   const resetForm = () => {
     setCidadeBusca(''); setCidadesRota([]); setCidadeFocoIbge(null);
     setItens([{ tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
+    setItensPorCidade({}); setKitPorCidade(false);
     setRota(''); setOrdemRota('');
     setObservacoes(''); setDomicilioManual(''); setEleitoresManual('');
     setResponsavelBusca(''); setResponsavelSelecionado(null);
   };
 
-  const addItem = () => setItens(prev => [...prev, { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
-  const removeItem = (idx: number) => setItens(prev => prev.filter((_, i) => i !== idx));
+  const addItem = () => setItensAtuais(prev => [...prev, { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
+  const removeItem = (idx: number) => setItensAtuais(prev => prev.filter((_, i) => i !== idx));
   const updateItem = (idx: number, patch: Partial<{ tipo_material: string; quantidade: string }>) =>
-    setItens(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
+    setItensAtuais(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
 
-  const canSubmit = cidadesRota.length > 0 && totalKitAtual > 0 && dataEnvio;
+  const copiarKitParaTodas = () => {
+    if (!cidadeSelecionada) return;
+    const modelo = itensDaCidade(cidadeSelecionada.codigo_ibge);
+    setItensPorCidade(prev => {
+      const next = { ...prev };
+      cidadesRota.forEach(c => { next[c.codigo_ibge] = modelo.map(i => ({ ...i })); });
+      return next;
+    });
+  };
+
+  const canSubmit = cidadesRota.length > 0 && dataEnvio && (
+    usandoKitPorCidade
+      ? cidadesRota.every(c => totalDaCidade(c.codigo_ibge) > 0)
+      : totalKitAtual > 0
+  );
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -217,7 +253,9 @@ export default function DistribuicaoMaterial() {
         municipio: cidade.municipio,
         codigo_ibge: cidade.codigo_ibge,
         macroregion_id: cidade.macroregion_id,
-        itens: itens.map(it => ({ tipo_material: it.tipo_material, quantidade: Number(it.quantidade) || 0 })),
+        itens: (usandoKitPorCidade ? itensDaCidade(cidade.codigo_ibge) : itens)
+          .map(it => ({ tipo_material: it.tipo_material, quantidade: Number(it.quantidade) || 0 }))
+          .filter(it => it.quantidade > 0),
         responsavel_id: responsavelSelecionado?.id ?? null,
         data_envio: dataEnvio,
         observacoes: observacoes || null,
@@ -325,6 +363,11 @@ export default function DistribuicaoMaterial() {
                   onClick={() => setCidadeFocoIbge(c.codigo_ibge)}
                 >
                   <span className="opacity-60">{i + 1}.</span> {c.municipio}
+                  {usandoKitPorCidade && (
+                    <span className="opacity-70 text-[10px]">
+                      · {totalDaCidade(c.codigo_ibge).toLocaleString('pt-BR')} itens
+                    </span>
+                  )}
                   <button
                     className="ml-1 opacity-70 hover:opacity-100"
                     onClick={e => { e.stopPropagation(); removeCidadeRota(c.codigo_ibge); }}
@@ -431,8 +474,37 @@ export default function DistribuicaoMaterial() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Materiais do kit desta entrega</Label>
-            {itens.map((item, idx) => (
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <Label className="text-xs text-muted-foreground">
+                {usandoKitPorCidade && cidadeSelecionada
+                  ? `Materiais para ${cidadeSelecionada.municipio}`
+                  : 'Materiais do kit desta entrega'}
+              </Label>
+              {cidadesRota.length > 1 && (
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 text-[11px] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-3.5 h-3.5 accent-primary"
+                      checked={kitPorCidade}
+                      onChange={e => setKitPorCidade(e.target.checked)}
+                    />
+                    Materiais diferentes por cidade
+                  </label>
+                  {usandoKitPorCidade && (
+                    <button type="button" onClick={copiarKitParaTodas} className="text-[11px] text-primary hover:underline">
+                      Copiar este kit para todas
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            {usandoKitPorCidade && (
+              <p className="text-[11px] text-muted-foreground">
+                Selecione a cidade nas etiquetas acima para editar o kit dela. Cada cidade precisa de ao menos um item.
+              </p>
+            )}
+            {itensAtuais.map((item, idx) => (
               <div key={idx} className="flex items-end gap-2">
                 <div className="flex-1">
                   <Select value={item.tipo_material} onValueChange={v => updateItem(idx, { tipo_material: v })}>
@@ -456,7 +528,7 @@ export default function DistribuicaoMaterial() {
                 </div>
                 <Button
                   type="button" variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive"
-                  disabled={itens.length === 1} onClick={() => removeItem(idx)}
+                  disabled={itensAtuais.length === 1} onClick={() => removeItem(idx)}
                 >
                   Remover
                 </Button>
