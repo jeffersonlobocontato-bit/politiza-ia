@@ -615,19 +615,25 @@ function ImprimirRotasDialog({
     const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
       <title>Rotas de distribuição de material</title>
       <style>
-        body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:24px;}
+        *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important;}
+        body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:24px;background:#fff;}
         h1{font-size:18px;margin:0 0 4px;}
         .sub{font-size:11px;color:#555;margin-bottom:16px;}
-        h2{font-size:14px;margin:20px 0 6px;border-bottom:2px solid #1F5AB4;padding-bottom:3px;}
+        h2{font-size:14px;margin:20px 0 6px;border-bottom:2px solid #1F5AB4;padding-bottom:3px;color:#1A2A45;}
         table{width:100%;border-collapse:collapse;font-size:10px;}
         th,td{border:1px solid #bbb;padding:4px 6px;text-align:left;vertical-align:top;}
-        th{background:#eef2f7;}
+        th{background:#eef2f7;color:#1A2A45;}
         .check{width:60px;}
         .mapa-rota{margin:8px 0 14px;page-break-inside:avoid;}
         .mapa-rota h3{font-size:11px;color:#1A2A45;margin:0 0 4px;}
-        .mapa-rota svg{border:1px solid #ddd;border-radius:4px;}
+        .mapa-rota svg{border:1px solid #ddd;border-radius:4px;max-width:100%;height:auto;}
         .mapa-legenda{margin-top:6px;line-height:1.6;}
-        @media print{ h2{page-break-after:avoid;} tr{page-break-inside:avoid;} }
+        @media print{
+          h2{page-break-after:avoid;}
+          tr{page-break-inside:avoid;}
+          html,body{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+        }
+
       </style></head><body>
       <h1>Rotas de distribuição de material</h1>
       <div class="sub">Emitido em ${new Date().toLocaleString('pt-BR')} · ${linhas.length} entrega(s)</div>
@@ -858,7 +864,9 @@ function RelatorioCuritibaDialog({
         .kpis{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
         .kpi{border:1px solid #ccc;border-radius:6px;padding:10px 14px}
         .kpi b{font-size:18px;display:block}
-        @media print{body{margin:12mm}}
+        *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important;}
+        @media print{body{margin:12mm;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}}
+
       </style></head><body>
       <h1>Relatório de entregas — Curitiba</h1>
       <h2>${labelPeriodo} · gerado em ${new Date().toLocaleString('pt-BR')}</h2>
