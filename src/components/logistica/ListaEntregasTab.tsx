@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
 import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
+import { useDeleteEntregaGrupo } from '@/hooks/useLogisticaMaterial';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
@@ -92,6 +93,9 @@ export default function ListaEntregasTab({
     [filtrados, hoje]
   );
 
+  const deleteGrupo = useDeleteEntregaGrupo();
+  const [confirmar, setConfirmar] = useState<EntregaAgrupada | null>(null);
+
   const regiaoNome = (id: string | null) => macroRegions.find(r => r.id === id)?.name ?? '—';
   const respNome = (id: string | null) => responsaveis.find(r => r.id === id)?.nome ?? null;
 
@@ -168,10 +172,10 @@ export default function ListaEntregasTab({
             </TabsList>
 
             <TabsContent value="feitas" className="mt-3">
-              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} vazio="Nenhuma entrega realizada com os filtros atuais." />
+              <Lista grupos={feitas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega realizada com os filtros atuais." />
             </TabsContent>
             <TabsContent value="previstas" className="mt-3">
-              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} vazio="Nenhuma entrega prevista com os filtros atuais." />
+              <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} vazio="Nenhuma entrega prevista com os filtros atuais." />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -184,6 +188,26 @@ export default function ListaEntregasTab({
         regiaoNome={regiaoNome}
         respNome={respNome}
       />
+
+      <Dialog open={confirmar !== null} onOpenChange={() => setConfirmar(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Remover cidade da rota</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Excluir a entrega de <strong className="text-foreground">{confirmar?.municipio}</strong>
+            {confirmar?.rota ? ` na ${ROTA_LABEL[String(confirmar.rota)] ?? `Rota ${confirmar.rota}`}` : ''}?
+            Os {confirmar?.total.toLocaleString('pt-BR')} itens registrados deixam de contar na cobertura.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setConfirmar(null)}>Cancelar</Button>
+            <Button
+              variant="destructive" size="sm" disabled={deleteGrupo.isPending}
+              onClick={async () => { if (confirmar) { await deleteGrupo.mutateAsync(confirmar.grupoId); setConfirmar(null); } }}
+            >
+              {deleteGrupo.isPending ? 'Removendo…' : 'Remover'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DetalheDialog
         open={detalhe !== null}
@@ -218,12 +242,13 @@ function Mini({ label, value, icon: Icon, onClick }: { label: string; value: str
 }
 
 function Lista({
-  grupos, regiaoNome, respNome, vazio,
+  grupos, regiaoNome, respNome, vazio, onDelete,
 }: {
   grupos: EntregaAgrupada[];
   regiaoNome: (id: string | null) => string;
   respNome: (id: string | null) => string | null;
   vazio: string;
+  onDelete?: (g: EntregaAgrupada) => void;
 }) {
   if (grupos.length === 0) {
     return <p className="text-xs text-muted-foreground italic">{vazio}</p>;
@@ -242,8 +267,18 @@ function Lista({
                 </Badge>
               )}
             </p>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground flex items-center gap-2">
               {new Date(g.data + 'T12:00:00').toLocaleDateString('pt-BR')} · {g.total.toLocaleString('pt-BR')} itens
+              {onDelete && (
+                <button
+                  type="button"
+                  aria-label={`Remover ${g.municipio} da rota`}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  onClick={() => onDelete(g)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </span>
           </div>
           <div className="flex flex-wrap gap-1">
