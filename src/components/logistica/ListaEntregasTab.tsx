@@ -528,11 +528,11 @@ function ImprimirRotasDialog({
           vistos.add(k);
           return true;
         });
-      mapas.set(rota, await buildRotaMapaSvg(cidades, ROTA_LABEL[rota] ?? 'Entregas sem rota definida'));
+      mapas.set(rota, await buildRotaMapaSvg(cidades, tituloRota(rota)));
     }
 
     const secoes = Array.from(porRota.entries()).map(([rota, lista]) => `
-      <h2>${esc(ROTA_LABEL[rota] ?? 'Entregas sem rota definida')} — ${lista.length} parada(s)</h2>
+      <h2>${esc(tituloRota(rota))} — ${lista.length} parada(s)</h2>
       ${mapas.get(rota) ?? ''}
 
       <table>
