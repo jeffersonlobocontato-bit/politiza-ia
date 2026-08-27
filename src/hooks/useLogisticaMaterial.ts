@@ -268,17 +268,23 @@ export function useDeleteEntregaGrupo() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (grupoEntregaId: string) => {
-      const { data, error } = await (db as any)
+      const { error } = await (db as any)
         .from('logistica_envios_material')
         .update({ deleted_at: new Date().toISOString(), updated_by: user?.id })
         .eq('grupo_entrega_id', grupoEntregaId)
-        .is('deleted_at', null)
-        .select('id');
+        .is('deleted_at', null);
       if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error('Nenhum registro removido — você não tem permissão para editar entregas.');
+      // Confirma que a remoção passou pelas regras de acesso (update sem permissão não gera erro)
+      const { data: restantes } = await (db as any)
+        .from('logistica_envios_material')
+        .select('id')
+        .eq('grupo_entrega_id', grupoEntregaId)
+        .is('deleted_at', null);
+      if (restantes && restantes.length > 0) {
+        throw new Error('Você não tem permissão para remover entregas.');
       }
     },
+
 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['logistica-envios'] });
