@@ -406,3 +406,75 @@ function ImprimirRotasDialog({
     </Dialog>
   );
 }
+
+function DetalheDialog({
+  open, onOpenChange, tipo, feitas, previstas, regiaoNome, respNome,
+}: {
+  open: boolean;
+  onOpenChange: () => void;
+  tipo: 'feitas' | 'previstas' | 'itens-feitas' | 'itens-previstas' | null;
+  feitas: EntregaAgrupada[];
+  previstas: EntregaAgrupada[];
+  regiaoNome: (id: string | null) => string;
+  respNome: (id: string | null) => string | null;
+}) {
+  const config = {
+    feitas: { titulo: 'Entregas realizadas', grupos: feitas, icone: CheckCircle2 },
+    previstas: { titulo: 'Entregas previstas', grupos: previstas, icone: CalendarClock },
+    'itens-feitas': { titulo: 'Itens entregues', grupos: feitas, icone: Package },
+    'itens-previstas': { titulo: 'Itens previstos', grupos: previstas, icone: Truck },
+  }[tipo ?? 'feitas'];
+
+  const totalItens = config.grupos.reduce((s, g) => s + g.total, 0);
+  const Icon = config.icone;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Icon className="w-5 h-5 text-primary" /> {config.titulo}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-2.5">
+              <p className="text-xl font-bold">{config.grupos.length.toLocaleString('pt-BR')}</p>
+              <p className="text-[11px] text-muted-foreground">Entregas</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-2.5">
+              <p className="text-xl font-bold">{totalItens.toLocaleString('pt-BR')}</p>
+              <p className="text-[11px] text-muted-foreground">Total de itens</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-2.5">
+              <p className="text-xl font-bold">
+                {new Set(config.grupos.map(g => g.municipio)).size.toLocaleString('pt-BR')}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Municípios</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex-1 overflow-hidden">
+          <Lista
+            grupos={config.grupos}
+            regiaoNome={regiaoNome}
+            respNome={respNome}
+            vazio="Nenhuma entrega para exibir."
+          />
+        </div>
+
+        <DialogFooter className="pt-3">
+          <Button variant="outline" size="sm" onClick={onOpenChange} className="gap-1.5">
+            <X className="w-3.5 h-3.5" /> Fechar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
