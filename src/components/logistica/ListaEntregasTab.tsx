@@ -327,9 +327,9 @@ function ImprimirRotasDialog({
     }
 
     const secoes = Array.from(porRota.entries()).map(([rota, lista]) => `
+      <h2>${esc(ROTA_LABEL[rota] ?? 'Entregas sem rota definida')} — ${lista.length} parada(s)</h2>
       ${mapas.get(rota) ?? ''}
 
-      <h2>${esc(ROTA_LABEL[rota] ?? 'Entregas sem rota definida')} — ${lista.length} parada(s)</h2>
       <table>
         <thead>
           <tr><th>#</th><th>Município</th><th>Região</th><th>Data</th><th>Status</th><th>Responsável</th><th>Materiais</th><th>Total</th><th>Conferido</th></tr>
