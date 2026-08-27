@@ -268,12 +268,18 @@ export function useDeleteEntregaGrupo() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (grupoEntregaId: string) => {
-      const { error } = await (db as any)
+      const { data, error } = await (db as any)
         .from('logistica_envios_material')
         .update({ deleted_at: new Date().toISOString(), updated_by: user?.id })
-        .eq('grupo_entrega_id', grupoEntregaId);
+        .eq('grupo_entrega_id', grupoEntregaId)
+        .is('deleted_at', null)
+        .select('id');
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Nenhum registro removido — você não tem permissão para editar entregas.');
+      }
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['logistica-envios'] });
       toast.success('Cidade removida da rota.');
