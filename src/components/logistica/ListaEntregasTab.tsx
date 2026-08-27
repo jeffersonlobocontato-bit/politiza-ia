@@ -190,12 +190,6 @@ export default function ListaEntregasTab({
               <TabsTrigger value="previstas" className="gap-1.5">
                 <CalendarClock className="w-3.5 h-3.5" /> Previstas ({previstas.length})
               </TabsTrigger>
-              <TabsTrigger value="lancar" className="gap-1.5">
-                <Camera className="w-3.5 h-3.5" /> A lançar ({aLancar.length})
-              </TabsTrigger>
-              <TabsTrigger value="lancadas" className="gap-1.5">
-                <ImageIcon className="w-3.5 h-3.5" /> Lançadas ({lancadas.length})
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="feitas" className="mt-3">
@@ -203,12 +197,6 @@ export default function ListaEntregasTab({
             </TabsContent>
             <TabsContent value="previstas" className="mt-3">
               <Lista grupos={previstas} regiaoNome={regiaoNome} respNome={respNome} onDelete={setConfirmar} onEdit={setEditando} onLancar={setLancando} onVerFoto={setVendoFoto} vazio="Nenhuma entrega prevista com os filtros atuais." />
-            </TabsContent>
-            <TabsContent value="lancar" className="mt-3">
-              <Lista grupos={aLancar} regiaoNome={regiaoNome} respNome={respNome} onLancar={setLancando} vazio="Todas as entregas já foram lançadas." />
-            </TabsContent>
-            <TabsContent value="lancadas" className="mt-3">
-              <Lista grupos={lancadas} regiaoNome={regiaoNome} respNome={respNome} onVerFoto={setVendoFoto} vazio="Nenhuma entrega lançada ainda." />
             </TabsContent>
           </Tabs>
         </CardContent>
