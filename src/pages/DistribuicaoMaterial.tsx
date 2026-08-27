@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks } from 'lucide-react';
+import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks, PlusCircle, Tag, Archive } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,17 +16,11 @@ import {
   useMacroRegions, useDomiciliosMunicipios, useUpdateDomicilios, useUpdateEleitores,
   useSearchResponsaveis, useAllResponsaveis, useCreateResponsavel,
   useEnviosMaterial, useCreateEnvio,
+  useItensCampanha, useCreateItemCampanha,
   computeCobertura, computeResumoPorRegiao,
   type DomicilioMunicipio, type LogisticaResponsavel, type LogisticaEnvio,
 } from '@/hooks/useLogisticaMaterial';
 import ListaEntregasTab from '@/components/logistica/ListaEntregasTab';
-
-
-const TIPOS_MATERIAL = [
-  'Perfurado Moro', 'Perfurado Trio', 'Perfurado Quarteto', 'Bola', 'Bola Foto', 'Bola Marca',
-  'Praguinha', 'Bandeira', 'Colinha', 'Perfurado Filipe', 'Ret/Foto Filipe', 'Bola Filipe',
-  'Santinho', 'Adesivo', 'Cartaz', 'Camiseta', 'Outro',
-];
 
 // Endereço do depósito/central de logística em Curitiba, onde ocorrem as retiradas
 const ENDERECO_DEPOSITO_CURITIBA = 'Rua Carlos De Laeti, 2605, Hauer, Curitiba';
@@ -81,9 +75,13 @@ export default function DistribuicaoMaterial() {
   const { data: domicilios = [], isLoading: loadingDomicilios } = useDomiciliosMunicipios();
   const { data: envios = [] } = useEnviosMaterial();
   const { data: responsaveisAll = [] } = useAllResponsaveis();
+  const { data: itensCampanha = [], isLoading: loadingItens } = useItensCampanha();
   const createEnvio = useCreateEnvio();
+  const createItemCampanha = useCreateItemCampanha();
   const updateDomicilios = useUpdateDomicilios();
   const updateEleitores = useUpdateEleitores();
+
+  const tiposMaterialDisponiveis = useMemo(() => itensCampanha.map(i => i.nome), [itensCampanha]);
 
   // ---------- Estado do formulário ----------
   const [filtroRegiao, setFiltroRegiao] = useState<string>('');
