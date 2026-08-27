@@ -11,6 +11,10 @@ const GESTOR_OPERACIONAL_ALLOWED = [
   '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia',
 ];
 
+const GESTOR_ADMINISTRATIVO_ALLOWED = [
+  '/agenda', '/malha-logistica', '/distribuicao-material', '/municipios', '/territorios',
+];
+
 const AUDITOR_HIERARQUIA_ALLOWED = [
   '/hierarquia', '/gestao', '/mapa', '/agenda', '/meus-cadastros',
   '/ativos', '/proporcional', '/territorios', '/municipios',
@@ -56,6 +60,12 @@ export function RoleAwareLayout({ children }: { children: ReactNode }) {
       p => p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
     );
     if (!allowed) return <Navigate to="/" replace />;
+  }
+
+  const isGestorAdministrativo = !isAdmin && roles?.includes('gestor_administrativo' as any);
+  if (isGestorAdministrativo && !allowedModules) {
+    const allowed = GESTOR_ADMINISTRATIVO_ALLOWED.some(p => location.pathname.startsWith(p));
+    if (!allowed) return <Navigate to="/agenda" replace />;
   }
 
   // Auditor de Hierarquia: leitura restrita a um conjunto de módulos (default).

@@ -96,6 +96,11 @@ export function AppSidebar() {
     '/', '/pesquisas', '/campo', '/proporcional', '/agenda', '/hierarquia', '/distribuicao-material',
   ]);
 
+  const isGestorAdministrativo = !isAdmin && roles?.includes('gestor_administrativo' as any);
+  const allowedForGestorAdministrativo = new Set<string>([
+    '/agenda', '/malha-logistica', '/distribuicao-material', '/municipios', '/territorios',
+  ]);
+
   const allowedForAuditor = new Set<string>([
     '/hierarquia', '/gestao', '/mapa', '/agenda', '/meus-cadastros',
     '/ativos', '/proporcional', '/territorios', '/municipios',
@@ -109,11 +114,12 @@ export function AppSidebar() {
       if (allowedModules) return allowedModules.includes(item.url);
       if (isAuditorHierarquia) return allowedForAuditor.has(item.url);
       if (isGestorOperacional) return allowedForGestorOperacional.has(item.url);
+      if (isGestorAdministrativo) return allowedForGestorAdministrativo.has(item.url);
       return isItemVisible(item, campaignType);
     })
     .filter(item => item.url !== '/juridico' || isJuridico || (allowedModules?.includes('/juridico') ?? false))
     .filter(item => !item.adminMasterOnly || isAdminMaster || isAuditorHierarquia || (allowedModules?.includes(item.url) ?? false))
-    .filter(item => !item.malhaAdminOnly || isMalhaAdmin || (isAuditorHierarquia && allowedForAuditor.has(item.url)) || (allowedModules?.includes(item.url) ?? false));
+    .filter(item => !item.malhaAdminOnly || isMalhaAdmin || isGestorAdministrativo || (isAuditorHierarquia && allowedForAuditor.has(item.url)) || (allowedModules?.includes(item.url) ?? false));
 
   // Item extra restrito: só aparece para admin_master ou usuários com acesso delegado
   const cruzamentoMoroItem = canCruzamentoMoro ? {

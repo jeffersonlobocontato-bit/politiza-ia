@@ -5,6 +5,7 @@ export type AppRole =
   | 'coordenador_regional' | 'coordenador_microrregional' | 'coordenador_municipal'
   | 'lideranca_local' | 'operador_campo' | 'analista_inteligencia'
   | 'analista_pesquisa' | 'executivo_leitura' | 'gestor_operacional'
+  | 'gestor_administrativo'
   | 'auditor_hierarquia';
 
 export type DbActionStatus = 'prevista' | 'confirmada' | 'em_andamento' | 'realizada' | 'atrasada' | 'cancelada' | 'pendente_validacao';
@@ -238,6 +239,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   analista_pesquisa: 'Analista de Pesquisa',
   executivo_leitura: 'Executivo (Leitura)',
   gestor_operacional: 'Gestor Operacional',
+  gestor_administrativo: 'Gestor Administrativo',
   auditor_hierarquia: 'Auditor de Hierarquia',
 };
 
@@ -258,5 +260,6 @@ export const ROLE_AREA_LABELS: Record<AppRole, string> = {
   analista_pesquisa: 'Pesquisa',
   executivo_leitura: 'Executivo',
   gestor_operacional: 'Operacional',
+  gestor_administrativo: 'Administrativo',
   auditor_hierarquia: 'Auditoria',
 };

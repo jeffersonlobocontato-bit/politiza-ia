@@ -16,7 +16,8 @@ type AppRole =
   | 'coordenador_regional' | 'coordenador_microrregional' | 'coordenador_municipal'
   | 'lideranca_local' | 'operador_campo' | 'analista_inteligencia'
   | 'analista_pesquisa' | 'executivo_leitura'
-  | 'gestor_estadual_novo' | 'gestor_estadual_pl' | 'gestor_operacional';
+  | 'gestor_estadual_novo' | 'gestor_estadual_pl' | 'gestor_operacional'
+  | 'gestor_administrativo';
 
 const ESTADUAL_ALLOWED_ROLES: AppRole[] = [
   'coordenador_regional', 'coordenador_microrregional', 'coordenador_municipal',
@@ -48,6 +49,7 @@ const ROLES: { value: AppRole; label: string; description: string; color: string
   { value: 'analista_pesquisa',         label: 'Analista de Pesquisa',      description: 'Gerencia pesquisas eleitorais e tracking.',                color: 'bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/30' },
   { value: 'executivo_leitura',         label: 'Executivo (Leitura)',       description: 'Visualiza dashboards sem permissão de edição.',            color: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
   { value: 'gestor_operacional',        label: 'Gestor Operacional',        description: 'Acesso limitado: dashboard, Pesquisas, Campo, Proporcional, Agenda e Hierarquia.', color: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30' },
+  { value: 'gestor_administrativo',     label: 'Gestor Administrativo',     description: 'Acesso a Agenda, Malha Logística, Distribuição de Material, Municípios e Territórios.', color: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
 ];
 
 const roleMeta = (r: AppRole) => ROLES.find(x => x.value === r);
