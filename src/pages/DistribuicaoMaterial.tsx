@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Package, Search, UserPlus, Truck, Home, MapPinned, Users2, ThermometerSun, Vote, Warehouse, ListChecks, PlusCircle, Tag, Archive } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,17 +16,12 @@ import {
   useMacroRegions, useDomiciliosMunicipios, useUpdateDomicilios, useUpdateEleitores,
   useSearchResponsaveis, useAllResponsaveis, useCreateResponsavel,
   useEnviosMaterial, useCreateEnvio,
+  useItensCampanha, useCreateItemCampanha,
   computeCobertura, computeResumoPorRegiao,
   type DomicilioMunicipio, type LogisticaResponsavel, type LogisticaEnvio,
 } from '@/hooks/useLogisticaMaterial';
 import ListaEntregasTab from '@/components/logistica/ListaEntregasTab';
-
-
-const TIPOS_MATERIAL = [
-  'Perfurado Moro', 'Perfurado Trio', 'Perfurado Quarteto', 'Bola', 'Bola Foto', 'Bola Marca',
-  'Praguinha', 'Bandeira', 'Colinha', 'Perfurado Filipe', 'Ret/Foto Filipe', 'Bola Filipe',
-  'Santinho', 'Adesivo', 'Cartaz', 'Camiseta', 'Outro',
-];
+import ItensCampanhaTab from '@/components/logistica/ItensCampanhaTab';
 
 // Endereço do depósito/central de logística em Curitiba, onde ocorrem as retiradas
 const ENDERECO_DEPOSITO_CURITIBA = 'Rua Carlos De Laeti, 2605, Hauer, Curitiba';
@@ -81,16 +76,34 @@ export default function DistribuicaoMaterial() {
   const { data: domicilios = [], isLoading: loadingDomicilios } = useDomiciliosMunicipios();
   const { data: envios = [] } = useEnviosMaterial();
   const { data: responsaveisAll = [] } = useAllResponsaveis();
+  const { data: itensCampanha = [], isLoading: loadingItens } = useItensCampanha();
   const createEnvio = useCreateEnvio();
+  const createItemCampanha = useCreateItemCampanha();
   const updateDomicilios = useUpdateDomicilios();
   const updateEleitores = useUpdateEleitores();
 
+  const tiposMaterialDisponiveis = useMemo(() => itensCampanha.map(i => i.nome), [itensCampanha]);
+
   // ---------- Estado do formulário ----------
+  const itensInicializados = useRef(false);
+  useEffect(() => {
+    if (tiposMaterialDisponiveis.length > 0 && !itensInicializados.current) {
+      itensInicializados.current = true;
+      setItens(prev =>
+        prev.map(i =>
+          tiposMaterialDisponiveis.includes(i.tipo_material)
+            ? i
+            : { ...i, tipo_material: tiposMaterialDisponiveis[0] }
+        )
+      );
+    }
+  }, [tiposMaterialDisponiveis.length]);
+
   const [filtroRegiao, setFiltroRegiao] = useState<string>('');
   const [cidadeBusca, setCidadeBusca] = useState('');
   const [cidadeSelecionada, setCidadeSelecionada] = useState<DomicilioMunicipio | null>(null);
   const [itens, setItens] = useState<{ tipo_material: string; quantidade: string }[]>([
-    { tipo_material: TIPOS_MATERIAL[0], quantidade: '' },
+    { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' },
   ]);
   const [rota, setRota] = useState<string>('');
   const [ordemRota, setOrdemRota] = useState<string>('');
@@ -151,13 +164,13 @@ export default function DistribuicaoMaterial() {
 
   const resetForm = () => {
     setCidadeBusca(''); setCidadeSelecionada(null);
-    setItens([{ tipo_material: TIPOS_MATERIAL[0], quantidade: '' }]);
+    setItens([{ tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
     setRota(''); setOrdemRota('');
     setObservacoes(''); setDomicilioManual(''); setEleitoresManual('');
     setResponsavelBusca(''); setResponsavelSelecionado(null);
   };
 
-  const addItem = () => setItens(prev => [...prev, { tipo_material: TIPOS_MATERIAL[0], quantidade: '' }]);
+  const addItem = () => setItens(prev => [...prev, { tipo_material: tiposMaterialDisponiveis[0] || '', quantidade: '' }]);
   const removeItem = (idx: number) => setItens(prev => prev.filter((_, i) => i !== idx));
   const updateItem = (idx: number, patch: Partial<{ tipo_material: string; quantidade: string }>) =>
     setItens(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
@@ -215,6 +228,9 @@ export default function DistribuicaoMaterial() {
           </TabsTrigger>
           <TabsTrigger value="retiradas" className="flex items-center gap-1.5">
             <Warehouse className="w-3.5 h-3.5" /> Retiradas em Curitiba
+          </TabsTrigger>
+          <TabsTrigger value="itens" className="flex items-center gap-1.5">
+            <Archive className="w-3.5 h-3.5" /> Itens de campanha
           </TabsTrigger>
         </TabsList>
 
@@ -374,7 +390,10 @@ export default function DistribuicaoMaterial() {
                   <Select value={item.tipo_material} onValueChange={v => updateItem(idx, { tipo_material: v })}>
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TIPOS_MATERIAL.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {tiposMaterialDisponiveis.length === 0 && (
+                        <SelectItem disabled value="">{loadingItens ? 'Carregando itens…' : 'Nenhum item cadastrado'}</SelectItem>
+                      )}
+                      {tiposMaterialDisponiveis.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -509,6 +528,15 @@ export default function DistribuicaoMaterial() {
             domicilios={domicilios}
             envios={envios}
             macroRegions={macroRegions}
+          />
+        </TabsContent>
+
+        <TabsContent value="itens" className="space-y-5 mt-0">
+          <ItensCampanhaTab
+            itens={itensCampanha}
+            isLoading={loadingItens}
+            onCreate={payload => createItemCampanha.mutate(payload)}
+            isCreating={createItemCampanha.isPending}
           />
         </TabsContent>
       </Tabs>

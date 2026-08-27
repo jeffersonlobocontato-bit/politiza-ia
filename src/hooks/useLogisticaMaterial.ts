@@ -54,6 +54,15 @@ export interface LogisticaEnvio {
   created_at: string;
 }
 
+export interface LogisticaItemCampanha {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  unidade: string;
+  ativo: boolean;
+  created_at: string;
+}
+
 // ---------- Macrorregiões ----------
 
 export function useMacroRegions() {
@@ -251,6 +260,47 @@ export function useCreateEnvio() {
       toast.success(variables.tipo_movimentacao === 'retirada' ? 'Retirada registrada.' : 'Entrega de material registrada.');
     },
     onError: (e: any) => toast.error(`Erro ao registrar: ${e.message}`),
+  });
+}
+
+// ---------- Itens de campanha (portfólio de material) ----------
+
+export function useItensCampanha() {
+  return useQuery({
+    queryKey: ['logistica-itens-campanha'],
+    queryFn: async () => {
+      const rows = await fetchAllRows<LogisticaItemCampanha>(() =>
+        (db as any).from('logistica_itens_campanha').select('*').eq('ativo', true).order('nome')
+      );
+      return rows;
+    },
+  });
+}
+
+export function useCreateItemCampanha() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: { nome: string; descricao?: string | null; unidade?: string | null }) => {
+      const { data, error } = await (db as any)
+        .from('logistica_itens_campanha')
+        .insert({
+          nome: payload.nome.trim(),
+          descricao: payload.descricao || null,
+          unidade: payload.unidade?.trim() || 'unidade',
+          created_by: user?.id,
+          updated_by: user?.id,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data as LogisticaItemCampanha;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['logistica-itens-campanha'] });
+      toast.success('Item de campanha cadastrado no portfólio.');
+    },
+    onError: (e: any) => toast.error(`Erro ao cadastrar item: ${e.message}`),
   });
 }
 
