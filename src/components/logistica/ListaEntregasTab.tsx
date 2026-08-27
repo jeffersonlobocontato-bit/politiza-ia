@@ -596,16 +596,16 @@ function ImprimirRotasDialog({
             <Label className="text-xs text-muted-foreground">Selecione as rotas</Label>
             <div className="space-y-1.5 mt-2">
               {rotasDisponiveis.map(r => (
-                <label key={r} className="flex items-center gap-2 text-sm cursor-pointer">
+                <label key={r.key} className="flex items-center gap-2 text-sm cursor-pointer">
                   <input
                     type="checkbox"
                     className="w-4 h-4 accent-primary"
-                    checked={selecionadas.includes(r)}
-                    onChange={() => toggle(r)}
+                    checked={selecionadas.includes(r.key)}
+                    onChange={() => toggle(r.key)}
                   />
-                  {ROTA_LABEL[r] ?? 'Sem rota definida'}
+                  {ROTA_LABEL[r.rota] ?? 'Sem rota definida'}
                   <span className="text-[11px] text-muted-foreground">
-                    ({grupos.filter(g => (g.rota ? String(g.rota) : 'sem') === r).length} entregas)
+                    criada em {new Date(r.criacao + 'T12:00:00').toLocaleDateString('pt-BR')} · {r.total} entrega(s)
                   </span>
                 </label>
               ))}
