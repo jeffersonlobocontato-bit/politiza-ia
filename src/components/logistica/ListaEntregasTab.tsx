@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2 } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
 import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
-import { useDeleteEntregaGrupo } from '@/hooks/useLogisticaMaterial';
+import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade } from '@/hooks/useLogisticaMaterial';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
