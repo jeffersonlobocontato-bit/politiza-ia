@@ -279,22 +279,24 @@ export default function DistribuicaoMaterial() {
             </div>
 
             <div className="md:col-span-2 relative">
-              <Label className="text-xs text-muted-foreground">Município de destino</Label>
+              <Label className="text-xs text-muted-foreground">
+                Municípios da rota {cidadesRota.length > 0 && `(${cidadesRota.length} selecionados)`}
+              </Label>
               <div className="relative mt-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="pl-9"
-                  placeholder="Digite para buscar entre os 399 municípios do PR…"
-                  value={cidadeSelecionada ? cidadeSelecionada.municipio : cidadeBusca}
-                  onChange={e => { setCidadeSelecionada(null); setCidadeBusca(e.target.value); setDomicilioManual(''); }}
+                  placeholder="Digite para adicionar cidades à rota…"
+                  value={cidadeBusca}
+                  onChange={e => setCidadeBusca(e.target.value)}
                 />
               </div>
-              {!cidadeSelecionada && sugestoesCidade.length > 0 && (
+              {sugestoesCidade.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full border border-border/50 rounded-md bg-popover divide-y divide-border/30 max-h-56 overflow-y-auto shadow-lg">
                   {sugestoesCidade.map(m => (
                     <button
                       key={m.codigo_ibge}
-                      onClick={() => { setCidadeSelecionada(m); setCidadeBusca(''); }}
+                      onClick={() => addCidadeRota(m)}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted/40 transition-colors flex items-center justify-between"
                     >
                       <span>{m.municipio}</span>
@@ -308,6 +310,28 @@ export default function DistribuicaoMaterial() {
               )}
             </div>
           </div>
+
+          {cidadesRota.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {cidadesRota.map((c, i) => (
+                <Badge
+                  key={c.codigo_ibge}
+                  variant={c.codigo_ibge === cidadeSelecionada?.codigo_ibge ? 'default' : 'outline'}
+                  className="cursor-pointer gap-1"
+                  onClick={() => setCidadeFocoIbge(c.codigo_ibge)}
+                >
+                  <span className="opacity-60">{i + 1}.</span> {c.municipio}
+                  <button
+                    className="ml-1 opacity-70 hover:opacity-100"
+                    onClick={e => { e.stopPropagation(); removeCidadeRota(c.codigo_ibge); }}
+                  >
+                    ×
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+
 
           {cidadeSelecionada && (
             <div className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-2">
