@@ -321,6 +321,8 @@ export function useUpdateEnvioQuantidade() {
     },
     onError: (e: any) => toast.error(`Erro ao atualizar entrega: ${e.message}`),
   });
+}
+
 
 export function useAddItensEntrega() {
   const qc = useQueryClient();
