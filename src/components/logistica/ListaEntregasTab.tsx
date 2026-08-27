@@ -285,7 +285,10 @@ function ImprimirRotasDialog({
 
   const selecao = selecionadas.length > 0 ? selecionadas : rotasDisponiveis;
 
-  const imprimir = () => {
+  const [gerando, setGerando] = useState(false);
+
+  const imprimir = async () => {
+    setGerando(true);
     const linhas = grupos
       .filter(g => selecao.includes(g.rota ? String(g.rota) : 'sem'))
       .filter(g => status === 'todas' || (status === 'feitas' ? g.data <= hoje : g.data > hoje))
@@ -305,7 +308,27 @@ function ImprimirRotasDialog({
 
     const esc = (s: string) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
 
+    const mapas = new Map<string, string>();
+    for (const [rota, lista] of porRota) {
+      const vistos = new Set<string>();
+      const cidades = lista
+        .map((g, i) => ({
+          municipio: g.municipio,
+          codigo_ibge: g.itens[0]?.codigo_ibge ?? null,
+          ordem: g.ordemRota ?? i + 1,
+        }))
+        .filter(c => {
+          const k = (c.codigo_ibge ?? c.municipio).toString();
+          if (vistos.has(k)) return false;
+          vistos.add(k);
+          return true;
+        });
+      mapas.set(rota, await buildRotaMapaSvg(cidades, ROTA_LABEL[rota] ?? 'Entregas sem rota definida'));
+    }
+
     const secoes = Array.from(porRota.entries()).map(([rota, lista]) => `
+      ${mapas.get(rota) ?? ''}
+
       <h2>${esc(ROTA_LABEL[rota] ?? 'Entregas sem rota definida')} — ${lista.length} parada(s)</h2>
       <table>
         <thead>
