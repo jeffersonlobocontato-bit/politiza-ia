@@ -127,9 +127,14 @@ export default function ListaEntregasTab({
           <CardTitle className="text-base font-bold flex items-center gap-2">
             <Truck className="w-4 h-4 text-primary" /> Lista de entregas
           </CardTitle>
-          <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5">
-            <Printer className="w-3.5 h-3.5" /> Imprimir rotas
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowRelCwb(true)} className="gap-1.5">
+              <FileBarChart className="w-3.5 h-3.5" /> Relatório Curitiba
+            </Button>
+            <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5">
+              <Printer className="w-3.5 h-3.5" /> Imprimir rotas
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
