@@ -391,7 +391,9 @@ export default function DistribuicaoMaterial() {
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {tiposMaterialDisponiveis.length === 0 && (
-                        <SelectItem disabled value="">{loadingItens ? 'Carregando itens…' : 'Nenhum item cadastrado'}</SelectItem>
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                          {loadingItens ? 'Carregando itens…' : 'Nenhum item cadastrado'}
+                        </div>
                       )}
                       {tiposMaterialDisponiveis.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
