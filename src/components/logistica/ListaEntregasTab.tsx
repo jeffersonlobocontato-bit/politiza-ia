@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LogisticaEnvio, LogisticaResponsavel } from '@/hooks/useLogisticaMaterial';
 import { buildRotaMapaSvg } from '@/lib/rotaMapaSvg';
-import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade } from '@/hooks/useLogisticaMaterial';
+import { useDeleteEntregaGrupo, useUpdateEnvioQuantidade, useAddItensEntrega, useItensCampanha } from '@/hooks/useLogisticaMaterial';
 
 const ROTA_LABEL: Record<string, string> = {
   '1': 'Rota 1 — azul',
