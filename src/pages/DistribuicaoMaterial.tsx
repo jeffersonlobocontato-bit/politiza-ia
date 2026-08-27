@@ -530,6 +530,15 @@ export default function DistribuicaoMaterial() {
             macroRegions={macroRegions}
           />
         </TabsContent>
+
+        <TabsContent value="itens" className="space-y-5 mt-0">
+          <ItensCampanhaTab
+            itens={itensCampanha}
+            isLoading={loadingItens}
+            onCreate={payload => createItemCampanha.mutate(payload)}
+            isCreating={createItemCampanha.isPending}
+          />
+        </TabsContent>
       </Tabs>
 
       {/* ---------- Dialog: cadastrar responsável ---------- */}
