@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.update_logistica_itens_updated_at() FROM PUBLIC;
