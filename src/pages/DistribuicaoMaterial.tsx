@@ -137,9 +137,13 @@ export default function DistribuicaoMaterial() {
     if (cidadeBusca.trim().length < 1) return [];
     const q = cidadeBusca.toLowerCase();
     return domicilios
-      .filter(d => (!filtroRegiao || d.macroregion_id === filtroRegiao) && d.municipio.toLowerCase().includes(q))
+      .filter(d =>
+        (!filtroRegiao || d.macroregion_id === filtroRegiao) &&
+        d.municipio.toLowerCase().includes(q) &&
+        !cidadesRota.some(c => c.codigo_ibge === d.codigo_ibge)
+      )
       .slice(0, 8);
-  }, [cidadeBusca, filtroRegiao, domicilios]);
+  }, [cidadeBusca, filtroRegiao, domicilios, cidadesRota]);
 
   // ---------- Cobertura em tempo real ----------
   const jaEnviadoNaCidade = useMemo(() => {
