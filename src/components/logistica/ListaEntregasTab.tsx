@@ -198,6 +198,14 @@ export default function ListaEntregasTab({
         respNome={respNome}
       />
 
+      <RelatorioCuritibaDialog
+        open={showRelCwb}
+        onOpenChange={setShowRelCwb}
+        grupos={grupos}
+        respNome={respNome}
+        hoje={hoje}
+      />
+
       <Dialog open={confirmar !== null} onOpenChange={() => setConfirmar(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader><DialogTitle>Remover cidade da rota</DialogTitle></DialogHeader>
