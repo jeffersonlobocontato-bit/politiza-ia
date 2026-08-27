@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2, Pencil } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X, Trash2, Pencil, FileBarChart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +67,7 @@ export default function ListaEntregasTab({
   const [filtroRota, setFiltroRota] = useState<string>('todas');
   const [filtroRegiao, setFiltroRegiao] = useState<string>('todas');
   const [showPrint, setShowPrint] = useState(false);
+  const [showRelCwb, setShowRelCwb] = useState(false);
   const [detalhe, setDetalhe] = useState<'feitas' | 'previstas' | 'itens-feitas' | 'itens-previstas' | null>(null);
 
   const grupos = useMemo(() => agrupar(envios), [envios]);
@@ -126,9 +127,14 @@ export default function ListaEntregasTab({
           <CardTitle className="text-base font-bold flex items-center gap-2">
             <Truck className="w-4 h-4 text-primary" /> Lista de entregas
           </CardTitle>
-          <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5">
-            <Printer className="w-3.5 h-3.5" /> Imprimir rotas
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowRelCwb(true)} className="gap-1.5">
+              <FileBarChart className="w-3.5 h-3.5" /> Relatório Curitiba
+            </Button>
+            <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5">
+              <Printer className="w-3.5 h-3.5" /> Imprimir rotas
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -190,6 +196,14 @@ export default function ListaEntregasTab({
         grupos={grupos}
         regiaoNome={regiaoNome}
         respNome={respNome}
+      />
+
+      <RelatorioCuritibaDialog
+        open={showRelCwb}
+        onOpenChange={setShowRelCwb}
+        grupos={grupos}
+        respNome={respNome}
+        hoje={hoje}
       />
 
       <Dialog open={confirmar !== null} onOpenChange={() => setConfirmar(null)}>
@@ -705,6 +719,158 @@ function DetalheDialog({
         <DialogFooter className="pt-3">
           <Button variant="outline" size="sm" onClick={onOpenChange} className="gap-1.5">
             <X className="w-3.5 h-3.5" /> Fechar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------- Relatório de entregas de Curitiba ----------
+
+type PeriodoRel = 'dia' | 'semana' | 'mes';
+
+function intervaloPeriodo(periodo: PeriodoRel, ref: string): { inicio: string; fim: string } {
+  const d = new Date(ref + 'T12:00:00');
+  if (periodo === 'dia') return { inicio: ref, fim: ref };
+  if (periodo === 'mes') {
+    const ini = new Date(d.getFullYear(), d.getMonth(), 1);
+    const fim = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    return { inicio: ini.toISOString().slice(0, 10), fim: fim.toISOString().slice(0, 10) };
+  }
+  const dow = (d.getDay() + 6) % 7; // segunda = 0
+  const ini = new Date(d); ini.setDate(d.getDate() - dow);
+  const fim = new Date(ini); fim.setDate(ini.getDate() + 6);
+  return { inicio: ini.toISOString().slice(0, 10), fim: fim.toISOString().slice(0, 10) };
+}
+
+function RelatorioCuritibaDialog({
+  open, onOpenChange, grupos, respNome, hoje,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  grupos: EntregaAgrupada[];
+  respNome: (id: string | null) => string | null;
+  hoje: string;
+}) {
+  const [periodo, setPeriodo] = useState<PeriodoRel>('dia');
+  const [ref, setRef] = useState(hoje);
+
+  const { inicio, fim } = intervaloPeriodo(periodo, ref);
+
+  const entregas = useMemo(() => grupos
+    .filter(g => g.municipio.trim().toLowerCase() === 'curitiba')
+    .filter(g => g.data >= inicio && g.data <= fim)
+    .sort((a, b) => a.data.localeCompare(b.data)),
+  [grupos, inicio, fim]);
+
+  const fmtData = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR');
+  const labelPeriodo = periodo === 'dia'
+    ? `Dia ${fmtData(ref)}`
+    : periodo === 'semana'
+      ? `Semana de ${fmtData(inicio)} a ${fmtData(fim)}`
+      : `Mês de ${new Date(ref + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`;
+
+  const totalItens = entregas.reduce((s, g) => s + g.total, 0);
+  const feitas = entregas.filter(g => g.data <= hoje).length;
+  const previstas = entregas.length - feitas;
+
+  const gerar = () => {
+    const porDia = new Map<string, EntregaAgrupada[]>();
+    for (const g of entregas) porDia.set(g.data, [...(porDia.get(g.data) ?? []), g]);
+
+    const porMaterial = new Map<string, number>();
+    for (const g of entregas) for (const i of g.itens) {
+      porMaterial.set(i.tipo_material, (porMaterial.get(i.tipo_material) ?? 0) + i.quantidade);
+    }
+
+    const secDias = Array.from(porDia.entries()).map(([data, gs]) => {
+      const linhas = gs.map(g => `
+        <tr>
+          <td>${g.rota ? (ROTA_LABEL[String(g.rota)] ?? `Rota ${g.rota}`) : 'Sem rota'}</td>
+          <td>${g.itens.map(i => `${i.tipo_material}: ${i.quantidade.toLocaleString('pt-BR')}`).join('<br/>')}</td>
+          <td class="num">${g.total.toLocaleString('pt-BR')}</td>
+          <td>${respNome(g.responsavelId) ?? '—'}</td>
+          <td>${g.data <= hoje ? 'Realizada' : 'Prevista'}</td>
+        </tr>`).join('');
+      return `<h3>${fmtData(data)}</h3>
+        <table><thead><tr><th>Rota</th><th>Materiais</th><th>Total</th><th>Responsável</th><th>Status</th></tr></thead>
+        <tbody>${linhas}</tbody></table>`;
+    }).join('');
+
+    const resumoMat = Array.from(porMaterial.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([m, q]) => `<tr><td>${m}</td><td class="num">${q.toLocaleString('pt-BR')}</td></tr>`).join('');
+
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
+      <title>Relatório de entregas — Curitiba</title>
+      <style>
+        body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:32px;font-size:13px}
+        h1{font-size:20px;margin:0} h2{font-size:14px;color:#555;font-weight:400;margin:4px 0 0}
+        h3{font-size:14px;margin:20px 0 6px}
+        table{width:100%;border-collapse:collapse;margin-top:4px}
+        th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}
+        th{background:#f0f0f0} td.num{text-align:right;white-space:nowrap}
+        .kpis{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+        .kpi{border:1px solid #ccc;border-radius:6px;padding:10px 14px}
+        .kpi b{font-size:18px;display:block}
+        @media print{body{margin:12mm}}
+      </style></head><body>
+      <h1>Relatório de entregas — Curitiba</h1>
+      <h2>${labelPeriodo} · gerado em ${new Date().toLocaleString('pt-BR')}</h2>
+      <div class="kpis">
+        <div class="kpi"><b>${entregas.length}</b>entregas no período</div>
+        <div class="kpi"><b>${feitas}</b>realizadas</div>
+        <div class="kpi"><b>${previstas}</b>previstas</div>
+        <div class="kpi"><b>${totalItens.toLocaleString('pt-BR')}</b>itens no total</div>
+      </div>
+      <h3>Resumo por material</h3>
+      <table><thead><tr><th>Material</th><th>Quantidade</th></tr></thead><tbody>${resumoMat || '<tr><td colspan="2">—</td></tr>'}</tbody></table>
+      ${secDias || '<p>Nenhuma entrega para Curitiba no período.</p>'}
+      <script>window.print()</script>
+      </body></html>`;
+
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileBarChart className="w-4 h-4 text-primary" /> Relatório de entregas — Curitiba
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Período</Label>
+            <Select value={periodo} onValueChange={v => setPeriodo(v as PeriodoRel)}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dia">Por dia</SelectItem>
+                <SelectItem value="semana">Por semana</SelectItem>
+                <SelectItem value="mes">Por mês</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">
+              {periodo === 'dia' ? 'Data' : periodo === 'semana' ? 'Qualquer dia da semana' : 'Qualquer dia do mês'}
+            </Label>
+            <Input type="date" className="mt-1" value={ref} onChange={e => e.target.value && setRef(e.target.value)} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {labelPeriodo}: <strong className="text-foreground">{entregas.length}</strong> entrega(s) ·{' '}
+            <strong className="text-foreground">{totalItens.toLocaleString('pt-BR')}</strong> itens
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Fechar</Button>
+          <Button size="sm" className="gap-1.5" onClick={gerar} disabled={entregas.length === 0}>
+            <Printer className="w-3.5 h-3.5" /> Gerar relatório
           </Button>
         </DialogFooter>
       </DialogContent>
