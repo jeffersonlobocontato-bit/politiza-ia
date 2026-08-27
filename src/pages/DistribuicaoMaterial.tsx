@@ -282,23 +282,25 @@ export default function DistribuicaoMaterial() {
       </div>
 
       <Tabs defaultValue="entregas" className="space-y-5">
-        <TabsList>
-          <TabsTrigger value="entregas" className="flex items-center gap-1.5">
-            <Truck className="w-3.5 h-3.5" /> Entregas por rota
-          </TabsTrigger>
-          <TabsTrigger value="lista" className="flex items-center gap-1.5">
-            <ListChecks className="w-3.5 h-3.5" /> Lista de entregas
-          </TabsTrigger>
-          <TabsTrigger value="retiradas" className="flex items-center gap-1.5">
-            <Warehouse className="w-3.5 h-3.5" /> Retiradas em Curitiba
-          </TabsTrigger>
-          <TabsTrigger value="itens" className="flex items-center gap-1.5">
-            <Archive className="w-3.5 h-3.5" /> Itens de campanha
-          </TabsTrigger>
-          <TabsTrigger value="estoque" className="flex items-center gap-1.5">
-            <Boxes className="w-3.5 h-3.5" /> Estoque
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1 pb-1">
+          <TabsList className="w-max min-w-full justify-start">
+            <TabsTrigger value="entregas" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Truck className="w-3.5 h-3.5" /> Entregas por rota
+            </TabsTrigger>
+            <TabsTrigger value="lista" className="flex items-center gap-1.5 whitespace-nowrap">
+              <ListChecks className="w-3.5 h-3.5" /> Lista de entregas
+            </TabsTrigger>
+            <TabsTrigger value="retiradas" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Warehouse className="w-3.5 h-3.5" /> Retiradas em Curitiba
+            </TabsTrigger>
+            <TabsTrigger value="itens" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Archive className="w-3.5 h-3.5" /> Itens de campanha
+            </TabsTrigger>
+            <TabsTrigger value="estoque" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Boxes className="w-3.5 h-3.5" /> Estoque
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
 
         <TabsContent value="entregas" className="space-y-5 mt-0">
