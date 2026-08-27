@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package } from 'lucide-react';
+import { Printer, Search, Truck, CheckCircle2, CalendarClock, MapPinned, Package, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +63,7 @@ export default function ListaEntregasTab({
   const [filtroRota, setFiltroRota] = useState<string>('todas');
   const [filtroRegiao, setFiltroRegiao] = useState<string>('todas');
   const [showPrint, setShowPrint] = useState(false);
+  const [detalhe, setDetalhe] = useState<'feitas' | 'previstas' | 'itens-feitas' | 'itens-previstas' | null>(null);
 
   const grupos = useMemo(() => agrupar(envios), [envios]);
 
@@ -96,17 +97,19 @@ export default function ListaEntregasTab({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Mini label="Entregas realizadas" value={String(feitas.length)} icon={CheckCircle2} />
-        <Mini label="Entregas previstas" value={String(previstas.length)} icon={CalendarClock} />
+        <Mini label="Entregas realizadas" value={String(feitas.length)} icon={CheckCircle2} onClick={() => setDetalhe('feitas')} />
+        <Mini label="Entregas previstas" value={String(previstas.length)} icon={CalendarClock} onClick={() => setDetalhe('previstas')} />
         <Mini
           label="Itens entregues"
           value={feitas.reduce((s, g) => s + g.total, 0).toLocaleString('pt-BR')}
           icon={Package}
+          onClick={() => setDetalhe('itens-feitas')}
         />
         <Mini
           label="Itens previstos"
           value={previstas.reduce((s, g) => s + g.total, 0).toLocaleString('pt-BR')}
           icon={Truck}
+          onClick={() => setDetalhe('itens-previstas')}
         />
       </div>
 
@@ -180,13 +183,26 @@ export default function ListaEntregasTab({
         regiaoNome={regiaoNome}
         respNome={respNome}
       />
+
+      <DetalheDialog
+        open={detalhe !== null}
+        onOpenChange={() => setDetalhe(null)}
+        tipo={detalhe}
+        feitas={feitas}
+        previstas={previstas}
+        regiaoNome={regiaoNome}
+        respNome={respNome}
+      />
     </div>
   );
 }
 
-function Mini({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
+function Mini({ label, value, icon: Icon, onClick }: { label: string; value: string; icon: any; onClick?: () => void }) {
   return (
-    <Card className="bg-card/80 border-border/50">
+    <Card
+      onClick={onClick}
+      className={`bg-card/80 border-border/50 transition-colors ${onClick ? 'cursor-pointer hover:border-primary/60 hover:bg-primary/5' : ''}`}
+    >
       <CardContent className="p-3 flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4 h-4 text-primary" />
@@ -384,6 +400,78 @@ function ImprimirRotasDialog({
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button size="sm" onClick={imprimir} className="gap-1.5">
             <Printer className="w-3.5 h-3.5" /> Imprimir
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DetalheDialog({
+  open, onOpenChange, tipo, feitas, previstas, regiaoNome, respNome,
+}: {
+  open: boolean;
+  onOpenChange: () => void;
+  tipo: 'feitas' | 'previstas' | 'itens-feitas' | 'itens-previstas' | null;
+  feitas: EntregaAgrupada[];
+  previstas: EntregaAgrupada[];
+  regiaoNome: (id: string | null) => string;
+  respNome: (id: string | null) => string | null;
+}) {
+  const config = {
+    feitas: { titulo: 'Entregas realizadas', grupos: feitas, icone: CheckCircle2 },
+    previstas: { titulo: 'Entregas previstas', grupos: previstas, icone: CalendarClock },
+    'itens-feitas': { titulo: 'Itens entregues', grupos: feitas, icone: Package },
+    'itens-previstas': { titulo: 'Itens previstos', grupos: previstas, icone: Truck },
+  }[tipo ?? 'feitas'];
+
+  const totalItens = config.grupos.reduce((s, g) => s + g.total, 0);
+  const Icon = config.icone;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Icon className="w-5 h-5 text-primary" /> {config.titulo}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-2.5">
+              <p className="text-xl font-bold">{config.grupos.length.toLocaleString('pt-BR')}</p>
+              <p className="text-[11px] text-muted-foreground">Entregas</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-2.5">
+              <p className="text-xl font-bold">{totalItens.toLocaleString('pt-BR')}</p>
+              <p className="text-[11px] text-muted-foreground">Total de itens</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-2.5">
+              <p className="text-xl font-bold">
+                {new Set(config.grupos.map(g => g.municipio)).size.toLocaleString('pt-BR')}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Municípios</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex-1 overflow-hidden">
+          <Lista
+            grupos={config.grupos}
+            regiaoNome={regiaoNome}
+            respNome={respNome}
+            vazio="Nenhuma entrega para exibir."
+          />
+        </div>
+
+        <DialogFooter className="pt-3">
+          <Button variant="outline" size="sm" onClick={onOpenChange} className="gap-1.5">
+            <X className="w-3.5 h-3.5" /> Fechar
           </Button>
         </DialogFooter>
       </DialogContent>
