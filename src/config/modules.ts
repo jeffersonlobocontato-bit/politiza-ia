@@ -12,6 +12,7 @@ export const ALL_MODULES: ModuleDef[] = [
   { key: '/acoes',               label: 'Ações' },
   { key: '/agenda',              label: 'Agenda' },
   { key: '/malha-logistica',     label: 'Malha Logística' },
+  { key: '/distribuicao-material', label: 'Distribuição de Material' },
   { key: '/gestao',              label: 'Gestão de Equipe' },
   { key: '/campo',               label: 'Campo' },
   { key: '/meus-cadastros',      label: 'Meus Cadastros' },
@@ -45,6 +46,7 @@ const CUSTOMIZABLE_ROLES: string[] = [
   'analista_pesquisa',
   'executivo_leitura',
   'gestor_operacional',
+  'gestor_administrativo',
 ];
 
 export function supportsCustomModules(role: string | null | undefined): boolean {
