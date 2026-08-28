@@ -512,8 +512,8 @@ export default function DistribuicaoMaterial() {
               </p>
             )}
             {itensAtuais.map((item, idx) => (
-              <div key={idx} className="flex items-end gap-2">
-                <div className="flex-1">
+              <div key={idx} className="flex flex-wrap items-end gap-2">
+                <div className="flex-1 min-w-[180px] basis-full sm:basis-0">
                   <Select value={item.tipo_material} onValueChange={v => updateItem(idx, { tipo_material: v })}>
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -526,7 +526,7 @@ export default function DistribuicaoMaterial() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-36">
+                <div className="flex-1 min-w-0 sm:flex-none sm:w-36">
                   <Input
                     type="number" min={1} className="mt-1"
                     value={item.quantidade} onChange={e => updateItem(idx, { quantidade: e.target.value })}
@@ -534,13 +534,15 @@ export default function DistribuicaoMaterial() {
                   />
                 </div>
                 <Button
-                  type="button" variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive"
+                  type="button" variant="ghost" size="sm"
+                  className="text-muted-foreground hover:text-destructive flex-shrink-0 px-2"
                   disabled={itensAtuais.length === 1} onClick={() => removeItem(idx)}
                 >
                   Remover
                 </Button>
               </div>
             ))}
+
             <Button type="button" variant="outline" size="sm" onClick={addItem}>
               + Adicionar material ao kit
             </Button>
