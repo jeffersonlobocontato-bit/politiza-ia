@@ -209,16 +209,17 @@ export default function EstoqueTab({ itens, envios }: Props) {
 
       {/* Histórico */}
       <Card>
-        <CardHeader className="pb-3 flex-row items-center justify-between gap-3 space-y-0">
+        <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
           <CardTitle className="text-base">Histórico de entradas</CardTitle>
           <Select value={filtroMaterial} onValueChange={setFiltroMaterial}>
-            <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[220px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os materiais</SelectItem>
               {materiaisDisponiveis.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
             </SelectContent>
           </Select>
         </CardHeader>
+
         <CardContent className="space-y-2">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Carregando entradas...</p>
