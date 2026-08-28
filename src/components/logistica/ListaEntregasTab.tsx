@@ -298,16 +298,17 @@ function Lista({
     <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
       {grupos.map(g => (
         <div key={g.grupoId} className="rounded-md border border-border/40 p-2.5 space-y-1.5">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <p className="text-sm font-semibold flex items-center gap-1.5">
-              <MapPinned className="w-3.5 h-3.5 text-primary" /> {g.municipio}
+          <div className="flex items-start sm:items-center justify-between gap-2 flex-wrap">
+            <p className="text-sm font-semibold flex items-center gap-1.5 flex-wrap min-w-0">
+              <MapPinned className="w-3.5 h-3.5 text-primary flex-shrink-0" /> <span className="break-words">{g.municipio}</span>
               <Badge variant="outline" className="text-[10px] font-normal">{regiaoNome(g.macroregionId)}</Badge>
               {g.rota && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-[10px] whitespace-normal text-left">
                   {ROTA_LABEL[String(g.rota)] ?? `Rota ${g.rota}`}{g.ordemRota ? ` · ${g.ordemRota}ª parada` : ''}
                 </Badge>
               )}
             </p>
+
             <span className="text-xs text-muted-foreground flex items-center gap-2">
               {new Date(g.data + 'T12:00:00').toLocaleDateString('pt-BR')} · {g.total.toLocaleString('pt-BR')} itens
               {onEdit && (
