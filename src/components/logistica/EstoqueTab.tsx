@@ -141,8 +141,8 @@ export default function EstoqueTab({ itens, envios }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5 min-w-0">
                 <Label>Quantidade</Label>
                 <Input
                   type="number" min={1} inputMode="numeric"
@@ -151,11 +151,12 @@ export default function EstoqueTab({ itens, envios }: Props) {
                   placeholder="0"
                 />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 min-w-0">
                 <Label>Data da entrada</Label>
-                <Input type="date" value={dataEntrada} onChange={e => setDataEntrada(e.target.value)} />
+                <Input type="date" className="w-full min-w-0" value={dataEntrada} onChange={e => setDataEntrada(e.target.value)} />
               </div>
             </div>
+
             <div className="space-y-1.5">
               <Label>Fornecedor / origem</Label>
               <Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} placeholder="Gráfica, doação, etc." />
