@@ -96,7 +96,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5" /> Total cadastrado
             </p>
-            <p className="text-2xl font-semibold mt-1">{fmt(totais.entrada)}</p>
+            <p className="text-xl sm:text-2xl font-semibold mt-1 break-words">{fmt(totais.entrada)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -104,7 +104,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <TrendingDown className="w-3.5 h-3.5" /> Já entregue
             </p>
-            <p className="text-2xl font-semibold mt-1">{fmt(totais.saida)}</p>
+            <p className="text-xl sm:text-2xl font-semibold mt-1 break-words">{fmt(totais.saida)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -112,7 +112,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Boxes className="w-3.5 h-3.5" /> Saldo em estoque
             </p>
-            <p className={cn('text-2xl font-semibold mt-1', totais.saldo < 0 ? 'text-destructive' : 'text-emerald-500')}>
+            <p className={cn('text-xl sm:text-2xl font-semibold mt-1 break-words', totais.saldo < 0 ? 'text-destructive' : 'text-emerald-500')}>
               {fmt(totais.saldo)}
             </p>
           </CardContent>
