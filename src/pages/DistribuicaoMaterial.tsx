@@ -269,10 +269,10 @@ export default function DistribuicaoMaterial() {
 
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-full overflow-x-hidden">
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Package className="w-6 h-6 text-primary" />
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+          <Package className="w-6 h-6 text-primary flex-shrink-0" />
           Distribuição de Material
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -282,8 +282,9 @@ export default function DistribuicaoMaterial() {
       </div>
 
       <Tabs defaultValue="entregas" className="space-y-5">
-        <div className="overflow-x-auto -mx-1 px-1 pb-1">
-          <TabsList className="w-max min-w-full justify-start">
+        <div className="w-full max-w-full overflow-x-auto pb-1">
+          <TabsList className="w-max justify-start">
+
             <TabsTrigger value="entregas" className="flex items-center gap-1.5 whitespace-nowrap">
               <Truck className="w-3.5 h-3.5" /> Entregas por rota
             </TabsTrigger>
