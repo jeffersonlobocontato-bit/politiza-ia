@@ -457,9 +457,11 @@ export function UsersManager() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>E-mail *</Label>
-                <Input type="email" disabled={!!editing} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                <Label>E-mail (login e recuperação) *</Label>
+                <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                {editing && <p className="text-[11px] text-muted-foreground">Alterar aqui muda o e-mail de login e de recuperação de senha.</p>}
               </div>
+
               <div className="space-y-1.5">
                 <Label>Telefone</Label>
                 <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
