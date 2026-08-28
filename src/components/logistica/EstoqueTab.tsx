@@ -96,7 +96,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5" /> Total cadastrado
             </p>
-            <p className="text-2xl font-semibold mt-1">{fmt(totais.entrada)}</p>
+            <p className="text-xl sm:text-2xl font-semibold mt-1 break-words">{fmt(totais.entrada)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -104,7 +104,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <TrendingDown className="w-3.5 h-3.5" /> Já entregue
             </p>
-            <p className="text-2xl font-semibold mt-1">{fmt(totais.saida)}</p>
+            <p className="text-xl sm:text-2xl font-semibold mt-1 break-words">{fmt(totais.saida)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -112,7 +112,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Boxes className="w-3.5 h-3.5" /> Saldo em estoque
             </p>
-            <p className={cn('text-2xl font-semibold mt-1', totais.saldo < 0 ? 'text-destructive' : 'text-emerald-500')}>
+            <p className={cn('text-xl sm:text-2xl font-semibold mt-1 break-words', totais.saldo < 0 ? 'text-destructive' : 'text-emerald-500')}>
               {fmt(totais.saldo)}
             </p>
           </CardContent>
@@ -141,8 +141,8 @@ export default function EstoqueTab({ itens, envios }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5 min-w-0">
                 <Label>Quantidade</Label>
                 <Input
                   type="number" min={1} inputMode="numeric"
@@ -151,11 +151,12 @@ export default function EstoqueTab({ itens, envios }: Props) {
                   placeholder="0"
                 />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 min-w-0">
                 <Label>Data da entrada</Label>
-                <Input type="date" value={dataEntrada} onChange={e => setDataEntrada(e.target.value)} />
+                <Input type="date" className="w-full min-w-0" value={dataEntrada} onChange={e => setDataEntrada(e.target.value)} />
               </div>
             </div>
+
             <div className="space-y-1.5">
               <Label>Fornecedor / origem</Label>
               <Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} placeholder="Gráfica, doação, etc." />
@@ -185,12 +186,13 @@ export default function EstoqueTab({ itens, envios }: Props) {
               const pct = s.entrada > 0 ? Math.min(100, Math.round((s.saida / s.entrada) * 100)) : 0;
               return (
                 <div key={s.tipo_material} className="rounded-lg border p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-medium text-sm">{s.tipo_material}</p>
-                    <Badge variant={s.saldo < 0 ? 'destructive' : 'secondary'}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="font-medium text-sm min-w-0 break-words">{s.tipo_material}</p>
+                    <Badge variant={s.saldo < 0 ? 'destructive' : 'secondary'} className="shrink-0">
                       Saldo {fmt(s.saldo)}
                     </Badge>
                   </div>
+
                   <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className={cn('h-full rounded-full', s.saldo < 0 ? 'bg-destructive' : 'bg-primary')}
@@ -209,32 +211,33 @@ export default function EstoqueTab({ itens, envios }: Props) {
 
       {/* Histórico */}
       <Card>
-        <CardHeader className="pb-3 flex-row items-center justify-between gap-3 space-y-0">
+        <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
           <CardTitle className="text-base">Histórico de entradas</CardTitle>
           <Select value={filtroMaterial} onValueChange={setFiltroMaterial}>
-            <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[220px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os materiais</SelectItem>
               {materiaisDisponiveis.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
             </SelectContent>
           </Select>
         </CardHeader>
+
         <CardContent className="space-y-2">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Carregando entradas...</p>
           ) : entradasFiltradas.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma entrada cadastrada.</p>
           ) : entradasFiltradas.map(e => (
-            <div key={e.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+            <div key={e.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 rounded-lg border p-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{e.tipo_material}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium break-words">{e.tipo_material}</p>
+                <p className="text-xs text-muted-foreground break-words">
                   {formatDate(e.data_entrada)}
                   {e.fornecedor ? ` · ${e.fornecedor}` : ''}
                   {e.observacoes ? ` · ${e.observacoes}` : ''}
                 </p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                 <Badge variant="outline">+{fmt(e.quantidade)}</Badge>
                 <Button
                   size="icon" variant="ghost"
@@ -245,6 +248,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
               </div>
             </div>
           ))}
+
         </CardContent>
       </Card>
 

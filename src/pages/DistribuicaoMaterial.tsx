@@ -269,10 +269,10 @@ export default function DistribuicaoMaterial() {
 
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-full overflow-x-hidden p-3 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Package className="w-6 h-6 text-primary" />
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+          <Package className="w-6 h-6 text-primary flex-shrink-0" />
           Distribuição de Material
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -282,8 +282,9 @@ export default function DistribuicaoMaterial() {
       </div>
 
       <Tabs defaultValue="entregas" className="space-y-5">
-        <div className="overflow-x-auto -mx-1 px-1 pb-1">
-          <TabsList className="w-max min-w-full justify-start">
+        <div className="w-full max-w-full overflow-x-auto pb-1">
+          <TabsList className="w-max justify-start">
+
             <TabsTrigger value="entregas" className="flex items-center gap-1.5 whitespace-nowrap">
               <Truck className="w-3.5 h-3.5" /> Entregas por rota
             </TabsTrigger>
@@ -511,8 +512,8 @@ export default function DistribuicaoMaterial() {
               </p>
             )}
             {itensAtuais.map((item, idx) => (
-              <div key={idx} className="flex items-end gap-2">
-                <div className="flex-1">
+              <div key={idx} className="flex flex-wrap items-end gap-2">
+                <div className="flex-1 min-w-[180px] basis-full sm:basis-0">
                   <Select value={item.tipo_material} onValueChange={v => updateItem(idx, { tipo_material: v })}>
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -525,7 +526,7 @@ export default function DistribuicaoMaterial() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-36">
+                <div className="flex-1 min-w-0 sm:flex-none sm:w-36">
                   <Input
                     type="number" min={1} className="mt-1"
                     value={item.quantidade} onChange={e => updateItem(idx, { quantidade: e.target.value })}
@@ -533,13 +534,15 @@ export default function DistribuicaoMaterial() {
                   />
                 </div>
                 <Button
-                  type="button" variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive"
+                  type="button" variant="ghost" size="sm"
+                  className="text-muted-foreground hover:text-destructive flex-shrink-0 px-2"
                   disabled={itensAtuais.length === 1} onClick={() => removeItem(idx)}
                 >
                   Remover
                 </Button>
               </div>
             ))}
+
             <Button type="button" variant="outline" size="sm" onClick={addItem}>
               + Adicionar material ao kit
             </Button>
@@ -692,15 +695,16 @@ export default function DistribuicaoMaterial() {
 function BigNumber({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
   return (
     <Card className="bg-card/80 border-border/50">
-      <CardContent className="p-3 flex items-center gap-3">
+      <CardContent className="p-3 flex items-center gap-3 min-w-0">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4.5 h-4.5 text-primary" />
         </div>
-        <div>
-          <p className="text-lg font-bold leading-none">{value}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">{label}</p>
+        <div className="min-w-0">
+          <p className="text-lg font-bold leading-none break-words">{value}</p>
+          <p className="text-[11px] text-muted-foreground mt-1 break-words">{label}</p>
         </div>
       </CardContent>
+
     </Card>
   );
 }
@@ -922,33 +926,44 @@ function RetiradasCuritibaTab({
               Declaro que retirei, nesta data, os materiais abaixo relacionados:
             </Label>
             <div className="rounded-md border border-border/40 divide-y divide-border/30">
-              <div className="grid grid-cols-[auto_1fr_100px_1fr] gap-2 px-2.5 py-1.5 bg-muted/30 text-[11px] font-medium text-muted-foreground">
+              <div className="hidden sm:grid grid-cols-[auto_1fr_100px_1fr] gap-2 px-2.5 py-1.5 bg-muted/30 text-[11px] font-medium text-muted-foreground">
                 <span>Marcar</span><span>Material</span><span>Quantidade</span><span>Observação</span>
               </div>
               {checklist.map((item, idx) => (
-                <div key={item.material} className="grid grid-cols-[auto_1fr_100px_1fr] gap-2 px-2.5 py-2 items-center">
-                  <input
-                    type="checkbox" checked={item.marcado}
-                    onChange={() => toggleMarcado(idx)}
-                    className="w-4 h-4 accent-primary cursor-pointer"
-                  />
-                  <span className={cn('text-sm', !item.marcado && 'text-muted-foreground')}>{item.material}</span>
-                  <Input
-                    type="number" min={1} className="h-8 text-sm"
-                    disabled={!item.marcado}
-                    value={item.quantidade}
-                    onChange={e => updateChecklist(idx, { quantidade: e.target.value })}
-                  />
-                  <Input
-                    className="h-8 text-sm"
-                    disabled={!item.marcado}
-                    placeholder="Opcional"
-                    value={item.observacao}
-                    onChange={e => updateChecklist(idx, { observacao: e.target.value })}
-                  />
+                <div
+                  key={item.material}
+                  className="px-2.5 py-2 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-[auto_1fr_100px_1fr] sm:gap-2 sm:items-center"
+                >
+                  <label className="flex items-center gap-2 min-w-0 sm:contents cursor-pointer">
+                    <input
+                      type="checkbox" checked={item.marcado}
+                      onChange={() => toggleMarcado(idx)}
+                      className="w-4 h-4 accent-primary cursor-pointer flex-shrink-0"
+                    />
+                    <span className={cn('text-sm min-w-0 break-words', !item.marcado && 'text-muted-foreground')}>
+                      {item.material}
+                    </span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 sm:contents">
+                    <Input
+                      type="number" min={1} className="h-8 text-sm min-w-0"
+                      disabled={!item.marcado}
+                      placeholder="Qtd."
+                      value={item.quantidade}
+                      onChange={e => updateChecklist(idx, { quantidade: e.target.value })}
+                    />
+                    <Input
+                      className="h-8 text-sm min-w-0"
+                      disabled={!item.marcado}
+                      placeholder="Opcional"
+                      value={item.observacao}
+                      onChange={e => updateChecklist(idx, { observacao: e.target.value })}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
+
             {totalKitAtual > 0 && (
               <p className="text-[11px] text-muted-foreground">Total marcado: {totalKitAtual.toLocaleString('pt-BR')} itens</p>
             )}

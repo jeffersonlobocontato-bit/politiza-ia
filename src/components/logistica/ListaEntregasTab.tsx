@@ -135,19 +135,20 @@ export default function ListaEntregasTab({
       </div>
 
       <Card className="bg-card/80 border-border/50">
-        <CardHeader className="pb-3 flex-row items-center justify-between gap-2 space-y-0 flex-wrap">
+        <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 space-y-0">
           <CardTitle className="text-base font-bold flex items-center gap-2">
             <Truck className="w-4 h-4 text-primary" /> Lista de entregas
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setShowRelCwb(true)} className="gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowRelCwb(true)} className="gap-1.5 flex-1 sm:flex-none">
               <FileBarChart className="w-3.5 h-3.5" /> Relatório Curitiba
             </Button>
-            <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5">
+            <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5 flex-1 sm:flex-none">
               <Printer className="w-3.5 h-3.5" /> Imprimir rotas
             </Button>
           </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="relative">
@@ -265,15 +266,16 @@ function Mini({ label, value, icon: Icon, onClick }: { label: string; value: str
       onClick={onClick}
       className={`bg-card/80 border-border/50 transition-colors ${onClick ? 'cursor-pointer hover:border-primary/60 hover:bg-primary/5' : ''}`}
     >
-      <CardContent className="p-3 flex items-center gap-3">
+      <CardContent className="p-3 flex items-center gap-3 min-w-0">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4 h-4 text-primary" />
         </div>
-        <div>
-          <p className="text-lg font-bold leading-none">{value}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">{label}</p>
+        <div className="min-w-0">
+          <p className="text-lg font-bold leading-none break-words">{value}</p>
+          <p className="text-[11px] text-muted-foreground mt-1 break-words">{label}</p>
         </div>
       </CardContent>
+
     </Card>
   );
 }
@@ -297,16 +299,17 @@ function Lista({
     <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
       {grupos.map(g => (
         <div key={g.grupoId} className="rounded-md border border-border/40 p-2.5 space-y-1.5">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <p className="text-sm font-semibold flex items-center gap-1.5">
-              <MapPinned className="w-3.5 h-3.5 text-primary" /> {g.municipio}
+          <div className="flex items-start sm:items-center justify-between gap-2 flex-wrap">
+            <p className="text-sm font-semibold flex items-center gap-1.5 flex-wrap min-w-0">
+              <MapPinned className="w-3.5 h-3.5 text-primary flex-shrink-0" /> <span className="break-words">{g.municipio}</span>
               <Badge variant="outline" className="text-[10px] font-normal">{regiaoNome(g.macroregionId)}</Badge>
               {g.rota && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-[10px] whitespace-normal text-left">
                   {ROTA_LABEL[String(g.rota)] ?? `Rota ${g.rota}`}{g.ordemRota ? ` · ${g.ordemRota}ª parada` : ''}
                 </Badge>
               )}
             </p>
+
             <span className="text-xs text-muted-foreground flex items-center gap-2">
               {new Date(g.data + 'T12:00:00').toLocaleDateString('pt-BR')} · {g.total.toLocaleString('pt-BR')} itens
               {onEdit && (
