@@ -32,9 +32,10 @@ export default function AppLogistica() {
         </div>
       </header>
 
-      <main className="p-4 pb-16">
+      <main className="pb-16 max-w-full overflow-x-hidden">
         <DistribuicaoMaterial />
       </main>
+
     </div>
   );
 }
