@@ -135,19 +135,20 @@ export default function ListaEntregasTab({
       </div>
 
       <Card className="bg-card/80 border-border/50">
-        <CardHeader className="pb-3 flex-row items-center justify-between gap-2 space-y-0 flex-wrap">
+        <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 space-y-0">
           <CardTitle className="text-base font-bold flex items-center gap-2">
             <Truck className="w-4 h-4 text-primary" /> Lista de entregas
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setShowRelCwb(true)} className="gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowRelCwb(true)} className="gap-1.5 flex-1 sm:flex-none">
               <FileBarChart className="w-3.5 h-3.5" /> Relatório Curitiba
             </Button>
-            <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5">
+            <Button size="sm" onClick={() => setShowPrint(true)} className="gap-1.5 flex-1 sm:flex-none">
               <Printer className="w-3.5 h-3.5" /> Imprimir rotas
             </Button>
           </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="relative">
