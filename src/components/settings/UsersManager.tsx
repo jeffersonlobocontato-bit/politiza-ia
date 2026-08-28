@@ -191,6 +191,13 @@ export function UsersManager() {
     try {
       let targetUserId: string | null = editing?.id ?? null;
       if (editing) {
+        const newEmail = form.email.trim().toLowerCase();
+        if (newEmail && newEmail !== (editing.email || '').toLowerCase()) {
+          const re = await supabase.functions.invoke('manage-user', {
+            body: { action: 'update_email', user_id: editing.id, email: newEmail },
+          });
+          if (re.error || (re.data as any)?.error) throw new Error((re.data as any)?.error || re.error?.message);
+        }
         const r1 = await supabase.functions.invoke('manage-user', {
           body: {
             action: 'update_profile',
@@ -198,6 +205,7 @@ export function UsersManager() {
           },
         });
         if (r1.error || (r1.data as any)?.error) throw new Error((r1.data as any)?.error || r1.error?.message);
+
 
         const r2 = await supabase.functions.invoke('manage-user', {
           body: {
