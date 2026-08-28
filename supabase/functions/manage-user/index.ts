@@ -276,6 +276,21 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "update_email") {
+      const { user_id, email } = payload;
+      if (!user_id || !email) return json({ error: "user_id e e-mail obrigatórios" }, 400);
+      const tErrE = await assertCanManageTargetUser(user_id);
+      if (tErrE) return json({ error: tErrE }, 403);
+      const { error } = await admin.auth.admin.updateUserById(user_id, {
+        email,
+        email_confirm: true,
+      });
+      if (error) return json({ error: error.message }, 400);
+      await admin.from("profiles").update({ email }).eq("id", user_id);
+      await admin.from("campaign_members").update({ email }).eq("user_id", user_id);
+      return json({ ok: true });
+    }
+
     if (action === "reset_password") {
       const { user_id, password } = payload;
       if (!user_id || !password) return json({ error: "user_id e senha obrigatórios" }, 400);
@@ -285,6 +300,7 @@ Deno.serve(async (req) => {
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true });
     }
+
 
     if (action === "delete") {
       const { user_id } = payload;

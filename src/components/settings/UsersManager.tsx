@@ -191,6 +191,13 @@ export function UsersManager() {
     try {
       let targetUserId: string | null = editing?.id ?? null;
       if (editing) {
+        const newEmail = form.email.trim().toLowerCase();
+        if (newEmail && newEmail !== (editing.email || '').toLowerCase()) {
+          const re = await supabase.functions.invoke('manage-user', {
+            body: { action: 'update_email', user_id: editing.id, email: newEmail },
+          });
+          if (re.error || (re.data as any)?.error) throw new Error((re.data as any)?.error || re.error?.message);
+        }
         const r1 = await supabase.functions.invoke('manage-user', {
           body: {
             action: 'update_profile',
@@ -198,6 +205,7 @@ export function UsersManager() {
           },
         });
         if (r1.error || (r1.data as any)?.error) throw new Error((r1.data as any)?.error || r1.error?.message);
+
 
         const r2 = await supabase.functions.invoke('manage-user', {
           body: {
@@ -449,9 +457,11 @@ export function UsersManager() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>E-mail *</Label>
-                <Input type="email" disabled={!!editing} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                <Label>E-mail (login e recuperação) *</Label>
+                <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                {editing && <p className="text-[11px] text-muted-foreground">Alterar aqui muda o e-mail de login e de recuperação de senha.</p>}
               </div>
+
               <div className="space-y-1.5">
                 <Label>Telefone</Label>
                 <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
