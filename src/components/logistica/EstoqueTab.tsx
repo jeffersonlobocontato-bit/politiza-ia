@@ -226,16 +226,16 @@ export default function EstoqueTab({ itens, envios }: Props) {
           ) : entradasFiltradas.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma entrada cadastrada.</p>
           ) : entradasFiltradas.map(e => (
-            <div key={e.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+            <div key={e.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 rounded-lg border p-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{e.tipo_material}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium break-words">{e.tipo_material}</p>
+                <p className="text-xs text-muted-foreground break-words">
                   {formatDate(e.data_entrada)}
                   {e.fornecedor ? ` · ${e.fornecedor}` : ''}
                   {e.observacoes ? ` · ${e.observacoes}` : ''}
                 </p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                 <Badge variant="outline">+{fmt(e.quantidade)}</Badge>
                 <Button
                   size="icon" variant="ghost"
@@ -246,6 +246,7 @@ export default function EstoqueTab({ itens, envios }: Props) {
               </div>
             </div>
           ))}
+
         </CardContent>
       </Card>
 
