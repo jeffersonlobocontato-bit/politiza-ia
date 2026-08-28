@@ -185,12 +185,13 @@ export default function EstoqueTab({ itens, envios }: Props) {
               const pct = s.entrada > 0 ? Math.min(100, Math.round((s.saida / s.entrada) * 100)) : 0;
               return (
                 <div key={s.tipo_material} className="rounded-lg border p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-medium text-sm">{s.tipo_material}</p>
-                    <Badge variant={s.saldo < 0 ? 'destructive' : 'secondary'}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="font-medium text-sm min-w-0 break-words">{s.tipo_material}</p>
+                    <Badge variant={s.saldo < 0 ? 'destructive' : 'secondary'} className="shrink-0">
                       Saldo {fmt(s.saldo)}
                     </Badge>
                   </div>
+
                   <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className={cn('h-full rounded-full', s.saldo < 0 ? 'bg-destructive' : 'bg-primary')}
