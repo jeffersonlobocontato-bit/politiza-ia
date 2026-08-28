@@ -269,7 +269,7 @@ export default function DistribuicaoMaterial() {
 
 
   return (
-    <div className="space-y-5 max-w-full overflow-x-hidden">
+    <div className="space-y-5 max-w-full overflow-x-hidden p-3 sm:p-6">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
           <Package className="w-6 h-6 text-primary flex-shrink-0" />
