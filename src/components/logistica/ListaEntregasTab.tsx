@@ -266,15 +266,16 @@ function Mini({ label, value, icon: Icon, onClick }: { label: string; value: str
       onClick={onClick}
       className={`bg-card/80 border-border/50 transition-colors ${onClick ? 'cursor-pointer hover:border-primary/60 hover:bg-primary/5' : ''}`}
     >
-      <CardContent className="p-3 flex items-center gap-3">
+      <CardContent className="p-3 flex items-center gap-3 min-w-0">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4 h-4 text-primary" />
         </div>
-        <div>
-          <p className="text-lg font-bold leading-none">{value}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">{label}</p>
+        <div className="min-w-0">
+          <p className="text-lg font-bold leading-none break-words">{value}</p>
+          <p className="text-[11px] text-muted-foreground mt-1 break-words">{label}</p>
         </div>
       </CardContent>
+
     </Card>
   );
 }
